@@ -1,0 +1,63 @@
+# melee weapons
+[weapons.espada]
+name = "Espada"
+min_damage = 2
+max_damage = 5
+type = "MELEE"
+
+[weapons.hacha]
+name = "Hacha"
+min_damage = 4
+max_damage = 5
+type = "MELEE"
+
+[weapons.martillo]
+name = "Martillo"
+min_damage = 1
+max_damage = 9
+type = "MELEE"
+
+# ranged weapons
+[weapons.arco_simple]
+name = "Arco simple"
+min_damage = 1
+max_damage = 4
+type = "RANGED"
+mana_cost = 0
+
+[weapons.arco_compuesto]
+name = "Arco compuesto"
+min_damage = 4
+max_damage = 16
+type = "RANGED"
+mana_cost = 0
+
+# magic weapons
+
+[weapons.vara_de_fresno]
+name = "Vara de fresno"
+min_damage = 2
+max_damage = 4
+type = "MAGIC"
+mana_cost = 5
+
+[weapons.flauta_elfica]
+name = "Flauta elfica"
+min_damage = 0
+max_damage = 0
+type = "MAGIC"
+mana_cost = 100
+
+[weapons.baculo_nudoso]
+name = "Baculo nudoso"
+min_damage = 4
+max_damage = 8
+type = "MAGIC"
+mana_cost = 15
+
+[weapons.baculo_engarzado]
+name = "Baculo engarzado"
+min_damage = 8
+max_damage = 20
+type = "MAGIC"
+mana_cost = 30
