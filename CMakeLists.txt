@@ -99,6 +99,15 @@ if(TALLER_CLIENT OR TALLER_EDITOR)
     FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
 endif()
 
+if(TALLER_SERVER)
+    include(FetchContent)
+    FetchContent_Declare(
+        tomlplusplus
+        URL https://github.com/marzer/tomlplusplus/archive/refs/tags/v3.4.0.zip
+    )
+    FetchContent_MakeAvailable(tomlplusplus)
+endif()
+
 # Program section
 # ---------------
 if(TALLER_CLIENT)
