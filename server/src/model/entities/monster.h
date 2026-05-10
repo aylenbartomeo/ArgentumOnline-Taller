@@ -19,6 +19,8 @@ private:
     int detection_range;
     int attack_range;
 
+    FormulaEngine& formulas;
+
 public:
     Monster(uint32_t id, NPCType type, std::string zone, Position pos);
 

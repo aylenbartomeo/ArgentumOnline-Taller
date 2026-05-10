@@ -8,6 +8,7 @@
 #include "../utils/types.h"
 #include "interfaces/combatant.h"
 #include "interfaces/interactable.h"
+#include "../model/formulas/FormulaEngine.h"
 
 class Player : public Combatant, Interactable {
 private:
@@ -34,6 +35,8 @@ private:
     
     uint32_t experience;
     uint16_t level;
+
+    FormulaEngine& formulas;
 
     /** Metodos para usar con los NPCs ciudadanos */
 
@@ -63,7 +66,7 @@ private:
 
 public:
     Player(uint32_t id, const std::string& name, Race race, CharacterClass char_class, 
-           Position pos);
+           Position pos, FormulaEngine& formulas);
 
     /* Métodos de Combatant */
     void receive_damage(int amount) override;
