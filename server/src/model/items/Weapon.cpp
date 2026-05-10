@@ -1,7 +1,7 @@
 #include "Weapon.h"
 
 Weapon::Weapon(int id, const std::string& name, int minDamage, int maxDamage, WeaponType type, int manaCost)
-    : id(id), name(name), minDamage(minDamage), maxDamage(maxDamage), type(type), manaCost(manaCost) {}
+    : id(id), minDamage(minDamage), maxDamage(maxDamage), name(name), type(type), manaCost(manaCost) {}
 
 int Weapon::getId() const { return id; }
 int Weapon::getMinDamage() const { return minDamage; }

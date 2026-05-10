@@ -2,13 +2,29 @@
 #include "../combat/CombatManager.h"
 
 Player::Player(uint32_t id, const std::string & name, Race race, CharacterClass char_class, Position pos, FormulaEngine& formulas)
-    : id(id), name(name), race(race), char_class(char_class), pos(pos), formulas(formulas),
-      level(1), experience(0), strength(15), intelligence(15), agility(15), constitution(15), gold(0)
+    : id(id),
+      name(name),
+      race(race),
+      char_class(char_class),
+      pos(pos),
+      equipped_weapon(nullptr),
+      strength(15),
+      intelligence(15),
+      agility(15),
+      constitution(15),
+      health(0),
+      max_health(0),
+      mana(0),
+      max_mana(0),
+      gold(0),
+      max_gold(0),
+      experience(0),
+      level(1),
+      formulas(formulas)
 {
     // VALORES DE PRUEBA (Luego vendrán del TOML)
     float race_f = 1.0f; 
     float class_f = 1.0f;
-    this->equipped_weapon = nullptr;
     this->max_health = this->formulas.calculate_max_life(this->constitution, class_f, race_f, this->level);
     this->health = this->max_health;
 
@@ -63,6 +79,9 @@ bool Player::is_dead() const { return health <= 0; }
 
 void Player::interact(Interactable &interactable, const std::string &action, const std::vector<std::string> &params)
 {
+    (void)interactable;
+    (void)action;
+    (void)params;
     // Aca deberia ocurrir la interaccion con el NPC de ciudad, dependiendo del tipo de NPC y la accion, 
     // se llamaria a los metodos correspondientes (buy, sell, heal, respawn, etc).
     // Habria que generar la comunicacion dado que ambos son Interactables
@@ -70,11 +89,13 @@ void Player::interact(Interactable &interactable, const std::string &action, con
 
 void Player::buy(const std::vector<std::string> &params)
 {
+    (void)params;
     // Implementar logica de compra con el comerciante
 }
 
 void Player::sell(const std::vector<std::string> &params)
 {
+    (void)params;
     // Implementar logica de venta con el comerciante
 }
 
@@ -90,21 +111,25 @@ void Player::heal()
 
 void Player::deposit_object(const std::vector<std::string> &params)
 {
+    (void)params;
     // Implementar logica de deposito de objetos en el banco
 }
 
 void Player::withdraw_object(const std::vector<std::string> &params)
 {
+    (void)params;
     // Implementar logica de retiro de objetos del banco
 }
 
 void Player::deposit_gold(const std::vector<std::string> &params)
 {
+    (void)params;
     // Implementar logica de deposito de oro en el banco
 }
 
 void Player::withdraw_gold(const std::vector<std::string> &params)
 {
+    (void)params;
     // Implementar logica de retiro de oro del banco
 }
 
