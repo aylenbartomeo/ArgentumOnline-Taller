@@ -18,6 +18,7 @@ target_sources(argentum_online_server
     src/model/items/Armor.cpp
     src/model/items/ArmorFactory.cpp
     src/model/items/BodyArmor.cpp
+    src/model/items/Equipment.cpp
     src/model/items/Helmet.cpp
     src/model/items/Shield.cpp
     src/model/items/Weapon.cpp  
@@ -29,6 +30,7 @@ target_sources(argentum_online_server
     src/model/items/Armor.h
     src/model/items/ArmorFactory.h
     src/model/items/BodyArmor.h
+    src/model/items/Equipment.h
     src/model/items/Helmet.h
     src/model/items/Item.h
     src/model/items/Shield.h
