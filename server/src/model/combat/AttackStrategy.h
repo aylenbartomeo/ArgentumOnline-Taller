@@ -4,7 +4,7 @@
 #include "../items/Weapon.h"
 #include <iostream>
 #include "../entities/interfaces/combatant.h"
-#include "../../include/model/FormulaEngine.h"
+#include "model/FormulaEngine.h"
 
 
 class AttackStrategy {

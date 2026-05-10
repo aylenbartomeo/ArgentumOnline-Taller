@@ -7,7 +7,7 @@
 #include "../utils/types.h"
 #include "interfaces/combatant.h"
 #include "interfaces/interactable.h"
-#include "..//include/model/FormulaEngine.h"
+#include "model/FormulaEngine.h"
 #include "interfaces/MagicUser.h"
 
 class Weapon;

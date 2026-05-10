@@ -5,7 +5,7 @@
 #include "../utils/position.h"
 #include "../utils/types.h"
 #include "interfaces/combatant.h"
-#include "..//include/model/FormulaEngine.h"
+#include "model/FormulaEngine.h"
 #include "interfaces/interactable.h"
 
 class Monster : public Combatant {

@@ -2,6 +2,8 @@
 #ifndef COMBATANT_H
 #define COMBATANT_H
 
+#include <cstdint>
+
 class Combatant {
 public:
     virtual ~Combatant() = default;

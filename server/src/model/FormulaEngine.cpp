@@ -1,4 +1,4 @@
-#include "../..//include/model/FormulaEngine.h"
+#include "model/FormulaEngine.h"
 #include "RandomNumberGenerator.h"
 #include <cmath>
 #include <algorithm>
