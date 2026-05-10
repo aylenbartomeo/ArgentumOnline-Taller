@@ -8,7 +8,7 @@ Player::Player(uint32_t id, const std::string & name, Race race, CharacterClass 
       race(race),
       char_class(char_class),
       pos(pos),
-      equipped_weapon(nullptr),
+      equipment(),
       strength(15),
       intelligence(15),
       agility(15),
@@ -47,8 +47,8 @@ void Player::receive_damage(int amount) {
         return; 
     }
 
-    // 2. Mitigación por defensa (Valores de prueba de armadura/escudo/casco, se debería chequear inventario del jugador)
-    uint16_t def = this->formulas.calculate_defense(5, 10, 0, 0, 0, 0); // Solo armadura por ahora (min-max)
+    // 2. Mitigación por defensa equipada.
+    int def = this->equipment.getDefense();
     
     // 3. Aplicar daño final
     int final_damage = std::max(0, amount - static_cast<int>(def));
@@ -58,13 +58,14 @@ void Player::receive_damage(int amount) {
 }
 
 void Player::attack(Combatant& target) {
-    if (!this->equipped_weapon) {
+    Weapon* equipped_weapon = this->equipment.getWeapon();
+    if (equipped_weapon == nullptr) {
         return; 
     }
 
     // Ejecutar el ataque
     bool attack_success = this->combat_manager.executeAttack(
-        *this->equipped_weapon, 
+        *equipped_weapon, 
         *this,
         target,
         this->formulas
@@ -140,3 +141,7 @@ uint16_t Player::get_strength() const { return this->strength; }
 uint16_t Player::get_intelligence() const { return this->intelligence; }
 int Player::get_mana() const { return this->mana; }
 void Player::consume_mana(int amount) { this->mana = std::max(0, this->mana - amount); }
+
+Equipment& Player::getEquipment() { return this->equipment; }
+
+const Equipment& Player::getEquipment() const { return this->equipment; }

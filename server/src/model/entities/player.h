@@ -9,9 +9,9 @@
 #include "interfaces/interactable.h"
 #include "model/FormulaEngine.h"
 #include "interfaces/MagicUser.h"
+#include "server/src/model/items/Equipment.h"
 
 class CombatManager;
-class Weapon;
 
 class Player : public Combatant, public Interactable, public MagicUser {
 private:
@@ -21,7 +21,7 @@ private:
     Race race;
     CharacterClass char_class;
     Position pos;
-    Weapon* equipped_weapon;
+    Equipment equipment;
 
     // --- Atributos de Rol (Influyen en fórmulas) ---
     int strength;      // Fuerza (Daño)
@@ -86,6 +86,9 @@ public:
     uint16_t get_intelligence() const override;
     int get_mana() const override;
     void consume_mana(int amount) override;
+
+    Equipment& getEquipment();
+    const Equipment& getEquipment() const;
 };
 
 #endif
