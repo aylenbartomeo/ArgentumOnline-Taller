@@ -19,7 +19,7 @@ public:
 
         caster->consume_mana(mana_cost);
 
-        uint16_t damage = formulas.calculate_base_damage(1, weapon.getMinDamage(), weapon.getMaxDamage());
+        uint16_t damage = weapon.calculateDamage(caster->get_intelligence(), formulas);
 
         target.receive_damage(static_cast<int>(damage));
                   

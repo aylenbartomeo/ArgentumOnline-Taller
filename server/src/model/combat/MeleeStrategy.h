@@ -6,7 +6,7 @@ public:
         FormulaEngine& formulas) override {
         uint16_t strength = attacker.get_strength();
 
-        uint16_t damage = formulas.calculate_base_damage(strength, weapon.getMinDamage(), weapon.getMaxDamage());
+        uint16_t damage = weapon.calculateDamage(strength, formulas);
 
         target.receive_damage(static_cast<int>(damage));
                   
