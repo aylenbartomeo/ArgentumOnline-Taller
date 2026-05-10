@@ -1,7 +1,7 @@
 target_sources(argentum_online_client
     PRIVATE
     # .cpp files
-    main.cpp
+    src/main.cpp
     PUBLIC
     # .h files
     )

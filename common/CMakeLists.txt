@@ -1,18 +1,28 @@
 target_sources(lib_common
     PRIVATE
     # .cpp files
-    socket/socket.cpp
-    socket/liberror.cpp
-    socket/resolver.cpp
-    socket/resolvererror.cpp
+    src/socket/socket.cpp
+    src/socket/liberror.cpp
+    src/socket/resolver.cpp
+    src/socket/resolvererror.cpp
+    src/RandomNumberGenerator.cpp
     foo.cpp
     PUBLIC
     # .h files
-    socket/socket.h
-    socket/liberror.h
-    socket/resolver.h
-    socket/resolvererror.h
-    queue.h
-    thread.h
+    src/socket/socket.h
+    src/socket/liberror.h
+    src/socket/resolver.h
+    src/socket/resolvererror.h
+    include/RandomNumberGenerator.h
+    include/queue.h
+    include/thread.h
+    src/dto/InventoryStatus.h
+    src/dto/ItemActionDTO.h
     foo.h
     )
+
+target_include_directories(lib_common
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)

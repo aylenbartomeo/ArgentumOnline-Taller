@@ -1,10 +1,13 @@
 target_sources(argentum_online_server
     PRIVATE
     # .cpp files
-    main.cpp
+    src/main.cpp
 
     # Config
     src/config/ArmorConfigLoader.cpp
+
+    # Formulas
+    src/model/FormulaEngine.cpp
 
     # Entities
     src/model/entities/player.cpp
@@ -29,11 +32,15 @@ target_sources(argentum_online_server
     src/model/items/Helmet.h
     src/model/items/Item.h
     src/model/items/Shield.h
+    src/model/items/Weapon.h
+    include/model/FormulaEngine.h
 )
 
 # Include directories
 target_include_directories(argentum_online_server
     PRIVATE
+    include
+    src
     src/model
     src/model/entities
     src/model/items

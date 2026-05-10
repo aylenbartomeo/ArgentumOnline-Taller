@@ -16,6 +16,8 @@ project(argentum_online
     LANGUAGES CXX
     )
 
+add_compile_definitions(_POSIX_C_SOURCE=200809L)
+
 option(ARGENTUM_ONLINE_TESTS "Enable / disable tests." ON)
 option(ARGENTUM_ONLINE_CLIENT "Enable / disable client program." ON)
 option(ARGENTUM_ONLINE_SERVER "Enable / disable server program." ON)
@@ -98,7 +100,7 @@ if(ARGENTUM_ONLINE_CLIENT OR ARGENTUM_ONLINE_EDITOR)
     FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
 endif()
 
-if(TALLER_SERVER)
+if(ARGENTUM_ONLINE_SERVER)
     include(FetchContent)
     FetchContent_Declare(
         tomlplusplus
