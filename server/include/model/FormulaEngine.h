@@ -40,6 +40,31 @@ public:
 
     // XP por ataque exitoso: Danio * max(NivelDelOtro - Nivel + 10, 0)
     uint32_t calculate_attack_xp_gain(uint16_t damage, uint16_t attacker_level, uint16_t victim_level) const;
+
+    // Calcula si es newbie (nivel <= 12)
+    bool is_newbie(uint16_t level) const;
+
+    // Valida si el nivel de PvP es permitido (diferencia <= 10)
+    bool is_pvp_level_valid(uint16_t attacker_level, uint16_t victim_level) const;
+
+    // Calcula el oro que se pierde al morir: max(0, OroActual - OroSeguro)
+    uint32_t calculate_excess_gold_dropped(uint32_t current_gold, uint32_t safe_limit) const;
+
+    // Calcula el oro que suelta un NPC al morir: rand(0, 0.2) * VidaMaxNPC
+    uint32_t calculate_npc_gold_drop(uint16_t npc_max_life) const;
+
+    // Evalúa si un ataque es crítico: rand(0,1) < ProbabilidadCritico
+    bool is_critical_attack(float critical_probability) const;
+
+    // Calcula recuperación pasiva: FRecuperacionRaza * SegundosTranscurridos
+    uint16_t calculate_passive_recovery(float race_recovery_factor, float seconds_elapsed) const;
+
+    // Calcula recuperación por meditación: FMeditacionClase * Inteligencia * SegundosTranscurridos
+    uint16_t calculate_meditation_recovery(float class_meditation_factor, 
+                                            uint16_t intelligence, float seconds_elapsed) const;
+
+    // Calcula XP ganada por matar a un NPC: VidaMaxVictima * max(0, 10 - DiferenciaNiveles)
+    uint32_t calculate_kill_xp_gain(uint16_t victim_max_life, uint16_t attacker_level, uint16_t victim_level) const;
 };
 
 #endif // FORMULA_ENGINE_H_
