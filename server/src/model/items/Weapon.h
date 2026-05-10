@@ -18,15 +18,18 @@ private:
     int maxDamage;
     std::string name;
     WeaponType type;
+    int attackRange;
     int manaCost;
 
 public:
-    Weapon(int id, const std::string& name, int minDamage, int maxDamage, WeaponType type, int manaCost = 0);
+    Weapon(int id, const std::string& name, int minDamage, int maxDamage, WeaponType type, int attackRange,
+           int manaCost = 0);
     int getId() const;
     int getMinDamage() const;
     int getMaxDamage() const;
     const std::string& getName() const;
     WeaponType getType() const;
+    int getAttackRange() const;
     int getManaCost() const;
 
 };
