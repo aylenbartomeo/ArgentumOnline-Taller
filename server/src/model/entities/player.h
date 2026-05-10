@@ -8,9 +8,11 @@
 #include "interfaces/combatant.h"
 #include "interfaces/interactable.h"
 #include "..//include/model/FormulaEngine.h"
+#include "interfaces/MagicUser.h"
 
+class Weapon;
 
-class Player : public Combatant, Interactable {
+class Player : public Combatant, public Interactable, public MagicUser {
 private:
     // Identidad y Posición
     uint32_t id;
@@ -18,6 +20,7 @@ private:
     Race race;
     CharacterClass char_class;
     Position pos;
+    Weapon* equipped_weapon;
 
     // --- Atributos de Rol (Influyen en fórmulas) ---
     int strength;      // Fuerza (Daño)
@@ -76,6 +79,10 @@ public:
     /* Llamaria adentro a los metodos utilizados con los ciudadanos */
     void interact(Interactable& interactable, const std::string& action, const std::vector<std::string>& params);
 
+    uint16_t get_strength() const override;
+    uint16_t get_intelligence() const override;
+    int get_mana() const override;
+    void consume_mana(int amount) override;
 };
 
 #endif

@@ -31,3 +31,5 @@ void Monster::attack(Combatant& target) {
 }
 
 bool Monster::is_dead() const { return health <= 0; }
+
+uint16_t Monster::get_strength() const { return this->strength; }

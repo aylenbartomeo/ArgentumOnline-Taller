@@ -6,6 +6,7 @@
 #include "../utils/types.h"
 #include "interfaces/combatant.h"
 #include "..//include/model/FormulaEngine.h"
+#include "interfaces/interactable.h"
 
 class Monster : public Combatant {
 private:
@@ -13,23 +14,25 @@ private:
     NPCType type;
     std::string zone; //bosques, mazmorras
     Position pos;
+    FormulaEngine& formulas;
     
     int health;
     int max_health;
 
     int detection_range;
     int attack_range;
+    int strength;
 
-    FormulaEngine& formulas;
 
 public:
-    Monster(uint32_t id, NPCType type, std::string zone, Position pos);
-
+    Monster(uint32_t id, NPCType type, std::string zone, Position pos, FormulaEngine& formulas);
+    
     void move(const Position& new_pos);
     void receive_damage(int amount) override;
     void attack(Combatant& target) override;
     bool is_dead() const override;
-    
+
+    uint16_t get_strength() const override;    
 };
 
 #endif

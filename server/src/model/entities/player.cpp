@@ -1,4 +1,5 @@
 #include "player.h"
+#include "../combat/CombatManager.h"
 
 Player::Player(uint32_t id, const std::string & name, Race race, CharacterClass char_class, Position pos, FormulaEngine& formulas)
     : id(id), name(name), race(race), char_class(char_class), pos(pos), formulas(formulas),
@@ -7,7 +8,7 @@ Player::Player(uint32_t id, const std::string & name, Race race, CharacterClass 
     // VALORES DE PRUEBA (Luego vendrán del TOML)
     float race_f = 1.0f; 
     float class_f = 1.0f;
-
+    this->equipped_weapon = nullptr;
     this->max_health = this->formulas.calculate_max_life(this->constitution, class_f, race_f, this->level);
     this->health = this->max_health;
 
@@ -39,20 +40,23 @@ void Player::receive_damage(int amount) {
 }
 
 void Player::attack(Combatant& target) {
-    // Valores de prueba del arma (Daño 5-10, se debería chequear inventario del jugador y obtener los daños según el arma)
-    uint16_t w_min = 5;
-    uint16_t w_max = 10;
+    if (!this->equipped_weapon) {
+        return; 
+    }
 
-    uint16_t damage = this->formulas.calculate_base_damage(
-        static_cast<uint16_t>(this->strength), w_min, w_max
+    CombatManager combat_manager;
+    // Ejecutar el ataque
+    bool attack_success = combat_manager.executeAttack(
+        *this->equipped_weapon, 
+        *this,
+        target,
+        this->formulas
     );
 
-    target.receive_damage(static_cast<int>(damage));
-
-    // Si el objetivo muere, gestionamos la XP acá o en el GameLoop...
-    if (target.is_dead()) {
-        // Lógica de recompensa...
-    }
+    // Si el ataque fue exitoso y el objetivo muere, damos la XP
+    if (attack_success && target.is_dead()) {
+        // Lógica de ganar experiencia...
+    }    
 }
 
 bool Player::is_dead() const { return health <= 0; }
@@ -103,3 +107,8 @@ void Player::withdraw_gold(const std::vector<std::string> &params)
 {
     // Implementar logica de retiro de oro del banco
 }
+
+uint16_t Player::get_strength() const { return this->strength; }
+uint16_t Player::get_intelligence() const { return this->intelligence; }
+int Player::get_mana() const { return this->mana; }
+void Player::consume_mana(int amount) { this->mana = std::max(0, this->mana - amount); }
