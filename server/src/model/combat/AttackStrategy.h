@@ -3,14 +3,16 @@
 
 #include "../items/Weapon.h"
 #include <iostream>
+#include "../entities/interfaces/combatant.h"
+#include "../../include/model/FormulaEngine.h"
 
-class Character; // (Reemplazar despues)
 
 class AttackStrategy {
 public:
     virtual ~AttackStrategy() = default;
 
-    virtual bool execute(const Weapon& weapon /*, Character& attacker, Character& target */) = 0;
+    virtual bool execute(const Weapon& weapon, Combatant& attacker, Combatant& target, 
+        FormulaEngine& formulas) = 0;
 };
 
 #endif

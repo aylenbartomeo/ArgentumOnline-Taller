@@ -19,13 +19,12 @@ public:
         strategies[WeaponType::MAGIC] = std::make_unique<MagicStrategy>();
     }
 
-    void executeAttack(const Weapon& weapon /*, Character& attacker, Character& target */) {
+    bool executeAttack(const Weapon& weapon, Combatant& attacker, Combatant& target, FormulaEngine& formulas) {
         auto it = strategies.find(weapon.getType());
         if (it != strategies.end()) {
-            it->second->execute(weapon);
-        } else {
-            std::cout << "Error: Estrategia de arma no encontrada." << std::endl;
+            return it->second->execute(weapon, attacker, target, formulas);
         }
+        return false;
     }
 };
 

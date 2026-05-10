@@ -1,17 +1,27 @@
 #include "AttackStrategy.h"
+#include "../entities/interfaces/MagicUser.h"
 
 class MagicStrategy : public AttackStrategy {
 public:
-    bool execute(const Weapon& weapon) override {
-        std::cout << "[MAGIC] Intentando lanzar hechizo con " << weapon.getName() << "..." << std::endl;
-        
-        std::cout << "[MAGIC] Verificando si el personaje tiene al menos " << weapon.getManaCost() << " de mana." << std::endl;
+    bool execute(const Weapon& weapon, Combatant& attacker, Combatant& target, 
+        FormulaEngine& formulas) override {
+        // Intentamos convertir al atacante en un usuario de magia
+        MagicUser* caster = dynamic_cast<MagicUser*>(&attacker);
 
-        
-        std::cout << "[MAGIC] Descontando " << weapon.getManaCost() << " puntos de mana al atacante." << std::endl;
-        
-        std::cout << "[MAGIC] Impactando al objetivo con dano magico entre " 
-                  << weapon.getMinDamage() << " y " << weapon.getMaxDamage() << "." << std::endl;
+        if (!caster) { return false; }
+
+        int mana_cost = weapon.getManaCost();
+
+        if (caster->get_mana() < mana_cost) {
+            std::cout << "[MAGIC] No se puede lanzar el hechizo. Mana insuficiente." << std::endl;
+            return false; 
+        }
+
+        caster->consume_mana(mana_cost);
+
+        uint16_t damage = formulas.calculate_base_damage(1, weapon.getMinDamage(), weapon.getMaxDamage());
+
+        target.receive_damage(static_cast<int>(damage));
                   
         return true;
     }
