@@ -7,7 +7,8 @@
 #include "../utils/types.h"
 #include "interfaces/combatant.h"
 #include "interfaces/interactable.h"
-#include "../model/formulas/FormulaEngine.h"
+#include "..//include/model/FormulaEngine.h"
+
 
 class Player : public Combatant, Interactable {
 private:
