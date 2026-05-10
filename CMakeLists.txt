@@ -10,37 +10,36 @@ endif()
 
 set(CMAKE_CXX_EXTENSIONS ON)
 
-project(taller_tp
+project(argentum_online
     VERSION 1.0
-    HOMEPAGE_URL "https://github.com/URL-HERE"
+    HOMEPAGE_URL "https://github.com/aylenbartomeo/ArgentumOnline-Taller"
     LANGUAGES CXX
     )
 
-option(TALLER_TESTS "Enable / disable tests." ON)
-option(TALLER_CLIENT "Enable / disable client program." ON)
-option(TALLER_SERVER "Enable / disable server program." ON)
-option(TALLER_EDITOR "Enable / disable editor program." ON)
-option(TALLER_MAKE_WARNINGS_AS_ERRORS "Enable / disable warnings as errors." ON)
+option(ARGENTUM_ONLINE_TESTS "Enable / disable tests." ON)
+option(ARGENTUM_ONLINE_CLIENT "Enable / disable client program." ON)
+option(ARGENTUM_ONLINE_SERVER "Enable / disable server program." ON)
+option(ARGENTUM_ONLINE_EDITOR "Enable / disable editor program." ON)
+option(ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS "Enable / disable warnings as errors." ON)
 
 message(CMAKE_CXX_COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
 
 # Define target: lib common between client, server and editor programs
-# HEY TODO XXX: change the name to something that you like
-add_library(taller_common STATIC)
+# HEY TODO XXX: change the name to something that you like ---> DONE!!!
+add_library(lib_common STATIC)
 
 # add the source files that make the lib
 # HEY!! TODO XXX: add more subfolders here
 add_subdirectory(common/)
 
-
 # set compiler warnings to the targets
 include(cmake/CompilerWarnings.cmake)
-set_project_warnings(taller_common ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
+set_project_warnings(lib_common ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
 # Say where the headers will be found required by library target
 # Make this PUBLIC so any dependant linking lib will inherit this
 # location (so our dependants will not have to explicitly request this)
-target_include_directories(taller_common PUBLIC .)
+target_include_directories(lib_common PUBLIC .)
 
 # HEY!! TODO XXX: you need to install some runtime and dev libraries *before*
 # compiling the client/editor code.
@@ -52,7 +51,7 @@ target_include_directories(taller_common PUBLIC .)
 
 # Install libSDL2 and libSDL2pp (for client or editor)
 # HEY!! TODO XXX: add more dependendies (either for client, server or editor)
-if(TALLER_CLIENT OR TALLER_EDITOR)
+if(ARGENTUM_ONLINE_CLIENT OR ARGENTUM_ONLINE_EDITOR)
     include(FetchContent)
     FetchContent_Declare(
         SDL2
@@ -101,68 +100,68 @@ endif()
 
 # Program section
 # ---------------
-if(TALLER_CLIENT)
+if(ARGENTUM_ONLINE_CLIENT)
     # HEY!! TODO XXX: Change the name of the executable to the one you like!
-    add_executable(taller_client)
+    add_executable(argentum_online_client)
 
     # Make them depend on taller_common lib
-    add_dependencies(taller_client taller_common SDL2pp::SDL2pp)
+    add_dependencies(argentum_online_client lib_common SDL2pp::SDL2pp)
 
     # Add source files and enable warnings
     # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(client)
 
-    set_project_warnings(taller_client ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
+    set_project_warnings(argentum_online_client ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
     # add libSDL2pp's headers
-    target_include_directories(taller_client PRIVATE ${libSDL2pp_SOURCE_DIR})
+    target_include_directories(argentum_online_client PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp)
+    target_link_libraries(argentum_online_client lib_common SDL2pp::SDL2pp)
 endif()
 
-if(TALLER_SERVER)
+if(ARGENTUM_ONLINE_SERVER)
     # HEY!! TODO XXX: Change the name of the executable to the one you like!
-    add_executable(taller_server)
+    add_executable(argentum_online_server)
 
     # Make them depend on taller_common lib
-    add_dependencies(taller_server taller_common)
+    add_dependencies(argentum_online_server lib_common)
 
     # Add source files and enable warnings
     # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(server)
 
-    set_project_warnings(taller_server ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
+    set_project_warnings(argentum_online_server ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
     # Link the taller_common lib target
-    target_link_libraries(taller_server taller_common)
+    target_link_libraries(argentum_online_server lib_common)
 endif()
 
-if(TALLER_EDITOR)
+if(ARGENTUM_ONLINE_EDITOR)
     # HEY!! TODO XXX: Change the name of the executable to the one you like!
-    add_executable(taller_editor)
+    add_executable(argentum_online_editor)
 
     # Make them depend on taller_common lib
-    add_dependencies(taller_editor taller_common SDL2pp::SDL2pp)
+    add_dependencies(argentum_online_editor lib_common SDL2pp::SDL2pp)
 
     # Add source files and enable warnings
     # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(editor)
 
-    set_project_warnings(taller_editor ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
+    set_project_warnings(argentum_online_editor ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
     # add libSDL2pp's headers
-    target_include_directories(taller_editor PRIVATE ${libSDL2pp_SOURCE_DIR})
+    target_include_directories(argentum_online_editor PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(taller_editor taller_common SDL2pp::SDL2pp)
+    target_link_libraries(argentum_online_editor lib_common SDL2pp::SDL2pp)
 endif()
 
 
 # Testing section
 # ---------------
 
-if(TALLER_TESTS)
+if(ARGENTUM_ONLINE_TESTS)
     # Let's use google test
     include(FetchContent)
     FetchContent_Declare(
@@ -178,34 +177,34 @@ if(TALLER_TESTS)
 
     # target for testing
     # HEY!! TODO XXX: Change the name of the executable to the one you like!
-    add_executable(taller_tests)
+    add_executable(argentum_online_tests)
 
     # HEY!! TODO XXX: I'm assuming that the code under testing is in taller_common
     # Change this if you have to.
-    add_dependencies(taller_tests taller_common)
+    add_dependencies(argentum_online_tests lib_common)
 
     # Say where to find the xoz headers
     # HEY!! TODO XXX: add more subfolders here
-    target_include_directories(taller_tests PUBLIC .)
+    target_include_directories(argentum_online_tests PUBLIC .)
 
     # Add the source files to the taller_tests target
     # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(tests/)
 
     # Set the compiler warnings to the tests target (but be a little lesser strict)
-    set_project_warnings(taller_tests ${TALLER_MAKE_WARNINGS_AS_ERRORS} TRUE)
+    set_project_warnings(argentum_online_tests ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} TRUE)
 
     # Say where googletest headers can be found
-    target_include_directories(taller_tests
+    target_include_directories(argentum_online_tests
         PUBLIC
         ${gtest_SOURCE_DIR}/include
         ${gmock_SOURCE_DIR}/include
         )
 
     # HEY!! TODO XXX: I'm assuming that the code under testing is in taller_common
-    # Change this if you have to.
-    target_link_libraries(taller_tests
-        taller_common
+    # Change this if you have to. ---> DONE!!!
+    target_link_libraries(argentum_online_tests
+        lib_common
         GTest::gtest_main
     )
 endif()

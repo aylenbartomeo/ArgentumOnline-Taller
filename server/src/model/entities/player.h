@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include "combatant.h"
 #include "../utils/position.h"
 #include "../utils/types.h"
 #include "interfaces/combatant.h"

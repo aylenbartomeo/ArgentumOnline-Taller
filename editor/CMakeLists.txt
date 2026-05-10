@@ -1,4 +1,4 @@
-target_sources(taller_editor
+target_sources(argentum_online_editor
     PRIVATE
     # .cpp files
     main.cpp
