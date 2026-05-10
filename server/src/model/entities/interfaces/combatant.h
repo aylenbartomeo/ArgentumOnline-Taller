@@ -2,6 +2,8 @@
 #ifndef COMBATANT_H
 #define COMBATANT_H
 
+#include "utils/position.h"
+
 #include <cstdint>
 
 class Combatant {
@@ -16,6 +18,9 @@ public:
 
     // Método de consulta de estado
     virtual bool is_dead() const = 0;
+
+    // Posición actual para validar alcance y adyacencia.
+    virtual Position get_position() const = 0;
 
     // Métodos para el combate físico
     virtual uint16_t get_strength() const = 0;

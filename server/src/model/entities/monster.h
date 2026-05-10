@@ -31,6 +31,7 @@ public:
     void receive_damage(int amount) override;
     void attack(Combatant& target) override;
     bool is_dead() const override;
+    Position get_position() const override;
 
     uint16_t get_strength() const override;    
 };
