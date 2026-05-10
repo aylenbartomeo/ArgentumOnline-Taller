@@ -1,7 +1,6 @@
 #ifndef POSITION_H
 #define POSITION_H
 
-#include <compare>
 #include <cmath>
 
 // Representa una coordenada en el mapa basada en tiles.
