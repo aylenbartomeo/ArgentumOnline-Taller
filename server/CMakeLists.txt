@@ -5,6 +5,7 @@ target_sources(argentum_online_server
 
     # Config
     src/config/ArmorConfigLoader.cpp
+    src/config/ItemConfigLoader.cpp
 
     # Formulas
     src/model/FormulaEngine.cpp
@@ -22,10 +23,12 @@ target_sources(argentum_online_server
     src/model/items/Helmet.cpp
     src/model/items/Shield.cpp
     src/model/items/Weapon.cpp  
+    src/model/items/WeaponFactory.cpp
 
     PUBLIC
     # .h files
     src/config/ArmorConfigLoader.h
+    src/config/ItemConfigLoader.h
 
     src/model/items/Armor.h
     src/model/items/ArmorFactory.h
@@ -35,6 +38,7 @@ target_sources(argentum_online_server
     src/model/items/Item.h
     src/model/items/Shield.h
     src/model/items/Weapon.h
+    src/model/items/WeaponFactory.h
     include/model/FormulaEngine.h
 )
 
