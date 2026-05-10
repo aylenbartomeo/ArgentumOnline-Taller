@@ -62,62 +62,83 @@ max_defense = 4
 # WEAPONS
 # =========================
 
-[weapons.espada]
+[[weapon]]
+id = 4001
 name = "Espada"
 min_damage = 2
 max_damage = 5
-type = "MELEE"
+type = "melee"
+attack_range = 1
+mana_cost = 0
 
-[weapons.hacha]
+[[weapon]]
+id = 4002
 name = "Hacha"
 min_damage = 4
 max_damage = 5
-type = "MELEE"
+type = "melee"
+attack_range = 1
+mana_cost = 0
 
-[weapons.martillo]
+[[weapon]]
+id = 4003
 name = "Martillo"
 min_damage = 1
 max_damage = 9
-type = "MELEE"
+type = "melee"
+attack_range = 1
+mana_cost = 0
 
-[weapons.arco_simple]
+[[weapon]]
+id = 5001
 name = "Arco simple"
 min_damage = 1
 max_damage = 4
-type = "RANGED"
+type = "ranged"
+attack_range = 8
 mana_cost = 0
 
-[weapons.arco_compuesto]
+[[weapon]]
+id = 5002
 name = "Arco compuesto"
 min_damage = 4
 max_damage = 16
-type = "RANGED"
+type = "ranged"
+attack_range = 8
 mana_cost = 0
 
-[weapons.vara_de_fresno]
+[[weapon]]
+id = 6001
 name = "Vara de fresno"
 min_damage = 2
 max_damage = 4
-type = "MAGIC"
+type = "magic"
+attack_range = 8
 mana_cost = 5
 
-[weapons.flauta_elfica]
+[[weapon]]
+id = 6002
 name = "Flauta elfica"
 min_damage = 0
 max_damage = 0
-type = "MAGIC"
+type = "magic"
+attack_range = 8
 mana_cost = 100
 
-[weapons.baculo_nudoso]
+[[weapon]]
+id = 6003
 name = "Baculo nudoso"
 min_damage = 4
 max_damage = 8
-type = "MAGIC"
+type = "magic"
+attack_range = 8
 mana_cost = 15
 
-[weapons.baculo_engarzado]
+[[weapon]]
+id = 6004
 name = "Baculo engarzado"
 min_damage = 8
 max_damage = 20
-type = "MAGIC"
+type = "magic"
+attack_range = 8
 mana_cost = 30
