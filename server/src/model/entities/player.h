@@ -10,6 +10,7 @@
 #include "model/FormulaEngine.h"
 #include "interfaces/MagicUser.h"
 
+class CombatManager;
 class Weapon;
 
 class Player : public Combatant, public Interactable, public MagicUser {
@@ -40,6 +41,7 @@ private:
     uint16_t level;
 
     FormulaEngine& formulas;
+    CombatManager& combat_manager;
 
     /** Metodos para usar con los NPCs ciudadanos */
 
@@ -69,12 +71,13 @@ private:
 
 public:
     Player(uint32_t id, const std::string& name, Race race, CharacterClass char_class, 
-           Position pos, FormulaEngine& formulas);
+           Position pos, FormulaEngine& formulas, CombatManager& combat_manager);
 
     /* Métodos de Combatant */
     void receive_damage(int amount) override;
     void attack(Combatant& target) override;
     bool is_dead() const override;
+    Position get_position() const override;
 
     /* Llamaria adentro a los metodos utilizados con los ciudadanos */
     void interact(Interactable& interactable, const std::string& action, const std::vector<std::string>& params);

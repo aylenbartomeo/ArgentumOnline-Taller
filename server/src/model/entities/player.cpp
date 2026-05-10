@@ -1,7 +1,8 @@
 #include "player.h"
 #include "../combat/CombatManager.h"
 
-Player::Player(uint32_t id, const std::string & name, Race race, CharacterClass char_class, Position pos, FormulaEngine& formulas)
+Player::Player(uint32_t id, const std::string & name, Race race, CharacterClass char_class, Position pos,
+               FormulaEngine& formulas, CombatManager& combat_manager)
     : id(id),
       name(name),
       race(race),
@@ -20,7 +21,8 @@ Player::Player(uint32_t id, const std::string & name, Race race, CharacterClass 
       max_gold(0),
       experience(0),
       level(1),
-      formulas(formulas)
+      formulas(formulas),
+      combat_manager(combat_manager)
 {
     // VALORES DE PRUEBA (Luego vendrán del TOML)
     float race_f = 1.0f; 
@@ -60,9 +62,8 @@ void Player::attack(Combatant& target) {
         return; 
     }
 
-    CombatManager combat_manager;
     // Ejecutar el ataque
-    bool attack_success = combat_manager.executeAttack(
+    bool attack_success = this->combat_manager.executeAttack(
         *this->equipped_weapon, 
         *this,
         target,
@@ -76,6 +77,8 @@ void Player::attack(Combatant& target) {
 }
 
 bool Player::is_dead() const { return health <= 0; }
+
+Position Player::get_position() const { return this->pos; }
 
 void Player::interact(Interactable &interactable, const std::string &action, const std::vector<std::string> &params)
 {
