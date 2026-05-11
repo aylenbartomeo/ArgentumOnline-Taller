@@ -14,6 +14,12 @@
 
 class CombatManager;
 
+enum class PlayerState {
+    Alive,
+    Ghost,
+    Meditating,
+};
+
 class Player : public Combatant, public Interactable, public MagicUser {
 private:
     // Identidad y Posición
@@ -44,6 +50,14 @@ private:
     FormulaEngine& formulas;
     CombatManager& combat_manager;
     bool can_use_magic;
+    bool can_meditate;
+    float recovery_factor;
+    float meditation_factor;
+    PlayerState state;
+
+    void recoverHealth(int amount);
+    void recoverMana(int amount);
+    void becomeGhost();
 
     /** Metodos para usar con los NPCs ciudadanos */
 
@@ -82,6 +96,13 @@ public:
     void attack(Combatant& target) override;
     bool is_dead() const override;
     Position get_position() const override;
+    PlayerState getState() const;
+    bool isMeditating() const;
+    bool isGhost() const;
+    bool startMeditating();
+    void stopMeditating();
+    void recoverOverTime(float secondsElapsed);
+    void recoverMeditating(float secondsElapsed);
 
     /* Llamaria adentro a los metodos utilizados con los ciudadanos */
     void interact(Interactable& interactable, const std::string& action, const std::vector<std::string>& params) override;
@@ -91,6 +112,7 @@ public:
     int get_mana() const override;
     void consume_mana(int amount) override;
     bool canUseMagic() const override;
+    bool canMeditate() const;
 
     Equipment& getEquipment();
     const Equipment& getEquipment() const;
