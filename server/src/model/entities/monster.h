@@ -2,6 +2,7 @@
 #define MONSTER_H
 
 #include <string>
+#include "server/src/config/MonsterConfig.h"
 #include "../utils/position.h"
 #include "../utils/types.h"
 #include "interfaces/combatant.h"
@@ -22,10 +23,14 @@ private:
     int detection_range;
     int attack_range;
     int strength;
+    int agility;
+    int attack_min;
+    int attack_max;
 
 
 public:
-    Monster(uint32_t id, NPCType type, std::string zone, Position pos, FormulaEngine& formulas);
+    Monster(uint32_t id, NPCType type, Position pos, FormulaEngine& formulas,
+            const MonsterConfig& config);
     
     void move(const Position& new_pos);
     void receive_damage(int amount) override;
@@ -33,7 +38,10 @@ public:
     bool is_dead() const override;
     Position get_position() const override;
 
-    uint16_t get_strength() const override;    
+    uint16_t get_strength() const override;
+    int get_detection_range() const;
+    int get_attack_range() const;
+    const std::string& get_zone() const;
 };
 
 #endif
