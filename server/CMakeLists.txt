@@ -7,6 +7,7 @@ target_sources(argentum_online_server
     src/config/ArmorConfigLoader.cpp
     src/config/CharacterConfigLoader.cpp
     src/config/ItemConfigLoader.cpp
+    src/config/MonsterConfigLoader.cpp
 
     # Formulas
     src/model/FormulaEngine.cpp
@@ -14,6 +15,7 @@ target_sources(argentum_online_server
     # Entities
     src/model/entities/player.cpp
     src/model/entities/monster.cpp
+    src/model/entities/MonsterFactory.cpp
     src/model/entities/citizen.cpp
 
     # Items
@@ -32,7 +34,10 @@ target_sources(argentum_online_server
     src/config/CharacterConfig.h
     src/config/CharacterConfigLoader.h
     src/config/ItemConfigLoader.h
+    src/config/MonsterConfig.h
+    src/config/MonsterConfigLoader.h
 
+    src/model/entities/MonsterFactory.h
     src/model/items/Armor.h
     src/model/items/ArmorFactory.h
     src/model/items/BodyArmor.h
