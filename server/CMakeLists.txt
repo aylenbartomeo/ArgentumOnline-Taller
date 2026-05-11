@@ -5,6 +5,7 @@ target_sources(argentum_online_server
 
     # Config
     src/config/ArmorConfigLoader.cpp
+    src/config/CharacterConfigLoader.cpp
     src/config/ItemConfigLoader.cpp
 
     # Formulas
@@ -28,6 +29,8 @@ target_sources(argentum_online_server
     PUBLIC
     # .h files
     src/config/ArmorConfigLoader.h
+    src/config/CharacterConfig.h
+    src/config/CharacterConfigLoader.h
     src/config/ItemConfigLoader.h
 
     src/model/items/Armor.h
