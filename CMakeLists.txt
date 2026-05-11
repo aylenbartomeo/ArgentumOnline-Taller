@@ -219,3 +219,18 @@ if(ARGENTUM_ONLINE_TESTS)
         GTest::gtest_main
     )
 endif()
+
+# --- SECCIÓN DEL INSTALADOR ---
+
+# Instalamos los binarios que ya fueron definidos arriba
+install(TARGETS argentum_online_server argentum_online_client 
+        DESTINATION bin)
+
+# Instalamos los recursos (muy importante para que el cliente encuentre las imágenes)
+# Usamos CMAKE_SOURCE_DIR para referenciar la carpeta de origen
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/client/resources 
+        DESTINATION share/argentum_online)
+
+# Instalamos configuraciones básicas
+install(FILES ${CMAKE_SOURCE_DIR}/server/config.yaml 
+        DESTINATION /etc/argentum_online OPTIONAL)
