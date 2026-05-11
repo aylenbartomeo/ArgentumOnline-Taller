@@ -1,13 +1,14 @@
 #include "server/src/config/ItemConfigLoader.h"
 
-#include <toml++/toml.hpp>
-
 #include <cstdint>
 #include <limits>
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <unordered_set>
+
+#include <toml++/toml.hpp>
 
 namespace {
 
@@ -19,23 +20,23 @@ toml::table parseConfigFile(const std::filesystem::path& configPath) {
     }
 }
 
-std::string requiredString(const toml::table& table, const std::string& fieldName) {
+std::string requiredString(const toml::table& table, std::string_view fieldName) {
     const std::optional<std::string> value = table[fieldName].value<std::string>();
     if (!value.has_value() || value->empty()) {
-        throw std::runtime_error("Missing or empty item field: " + fieldName);
+        throw std::runtime_error("Missing or empty item field: " + std::string(fieldName));
     }
 
     return *value;
 }
 
-int requiredInt(const toml::table& table, const std::string& fieldName) {
+int requiredInt(const toml::table& table, std::string_view fieldName) {
     const std::optional<int64_t> value = table[fieldName].value<int64_t>();
     if (!value.has_value()) {
-        throw std::runtime_error("Missing item integer field: " + fieldName);
+        throw std::runtime_error("Missing item integer field: " + std::string(fieldName));
     }
 
     if (*value < std::numeric_limits<int>::min() || *value > std::numeric_limits<int>::max()) {
-        throw std::runtime_error("Item integer field out of range: " + fieldName);
+        throw std::runtime_error("Item integer field out of range: " + std::string(fieldName));
     }
 
     return static_cast<int>(*value);

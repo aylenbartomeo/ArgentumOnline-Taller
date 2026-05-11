@@ -1,12 +1,13 @@
 #ifndef COMBAT_MANAGER_H
 #define COMBAT_MANAGER_H
 
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
+
 #include "AttackStrategy.h"
+#include "MagicStrategy.h"
 #include "MeleeStrategy.h"
 #include "RangedStrategy.h"
-#include "MagicStrategy.h"
 
 class CombatManager {
 private:
@@ -19,7 +20,8 @@ public:
         strategies[WeaponType::MAGIC] = std::make_unique<MagicStrategy>();
     }
 
-    bool executeAttack(const Weapon& weapon, Combatant& attacker, Combatant& target, FormulaEngine& formulas) {
+    bool executeAttack(const Weapon& weapon, Combatant& attacker, Combatant& target,
+                       FormulaEngine& formulas) {
         auto it = strategies.find(weapon.getType());
         if (it != strategies.end()) {
             return it->second->execute(weapon, attacker, target, formulas);

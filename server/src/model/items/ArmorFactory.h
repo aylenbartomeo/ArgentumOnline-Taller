@@ -1,11 +1,11 @@
 #ifndef SERVER_SRC_MODEL_ITEMS_ARMORFACTORY_H
 #define SERVER_SRC_MODEL_ITEMS_ARMORFACTORY_H
 
-#include "server/src/model/items/Armor.h"
-
 #include <memory>
 #include <string>
 #include <unordered_map>
+
+#include "server/src/model/items/Armor.h"
 
 enum class ArmorSlot {
     Body,

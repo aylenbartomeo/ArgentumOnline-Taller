@@ -1,9 +1,9 @@
 #ifndef SERVER_SRC_MODEL_ITEMS_HELMET_H
 #define SERVER_SRC_MODEL_ITEMS_HELMET_H
 
-#include "server/src/model/items/Armor.h"
-
 #include <string>
+
+#include "server/src/model/items/Armor.h"
 
 class Helmet final: public Armor {
 public:

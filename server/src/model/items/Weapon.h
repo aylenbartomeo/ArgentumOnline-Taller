@@ -1,18 +1,14 @@
 #ifndef WEAPON_H
 #define WEAPON_H
 
-#include "Item.h"
-
 #include <cstdint>
 #include <string>
 
+#include "Item.h"
+
 class FormulaEngine;
 
-enum class WeaponType {
-    MELEE,
-    RANGED,
-    MAGIC
-};
+enum class WeaponType { MELEE, RANGED, MAGIC };
 
 class Weapon: public Item {
 private:
@@ -25,10 +21,10 @@ private:
     int manaCost;
 
 public:
-    virtual ~Weapon() = default;
+    ~Weapon() override = default;
 
-    Weapon(int id, const std::string& name, int minDamage, int maxDamage, WeaponType type, int attackRange,
-           int manaCost = 0);
+    Weapon(int id, const std::string& name, int minDamage, int maxDamage, WeaponType type,
+           int attackRange, int manaCost = 0);
     int getId() const override;
     int getMinDamage() const;
     int getMaxDamage() const;
@@ -37,7 +33,6 @@ public:
     int getAttackRange() const;
     int getManaCost() const;
     uint16_t calculateDamage(uint16_t attackPower, const FormulaEngine& formulas) const;
-
 };
 
 #endif

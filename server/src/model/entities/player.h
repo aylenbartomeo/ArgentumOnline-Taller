@@ -3,17 +3,25 @@
 
 #include <string>
 #include <vector>
+
 #include "../utils/position.h"
 #include "../utils/types.h"
+#include "interfaces/MagicUser.h"
 #include "interfaces/combatant.h"
 #include "interfaces/interactable.h"
 #include "model/FormulaEngine.h"
-#include "interfaces/MagicUser.h"
+#include "server/src/config/CharacterConfig.h"
 #include "server/src/model/items/Equipment.h"
 
 class CombatManager;
 
-class Player : public Combatant, public Interactable, public MagicUser {
+enum class PlayerState {
+    Alive,
+    Ghost,
+    Meditating,
+};
+
+class Player: public Combatant, public Interactable, public MagicUser {
 private:
     // Identidad y Posición
     uint32_t id;
@@ -31,61 +39,93 @@ private:
 
     // --- Estados Dinámicos ---
     int health;
-    int max_health;    // Calculado por Constitución + Clase + Nivel
+    int max_health;  // Calculado por Constitución + Clase + Nivel
     int mana;
-    int max_mana;      // Calculado por Inteligencia + Clase + Nivel
+    int max_mana;  // Calculado por Inteligencia + Clase + Nivel
     uint32_t gold;
-    uint32_t max_gold; // Limitado por el Nivel
-    
+    uint32_t max_gold;  // Limitado por el Nivel
+
     uint32_t experience;
     uint16_t level;
 
     FormulaEngine& formulas;
     CombatManager& combat_manager;
+    bool can_use_magic;
+    bool can_meditate;
+    float recovery_factor;
+    float meditation_factor;
+    PlayerState state;
+
+    void recoverHealth(int amount);
+    void recoverMana(int amount);
+    void becomeGhost();
 
     /** Metodos para usar con los NPCs ciudadanos */
 
     /* Comprar objetos */
-    void buy(const std::vector<std::string> &params);
+    // cppcheck-suppress unusedPrivateFunction
+    void buy(const std::vector<std::string>& params);
 
     /* Vender objetos */
-    void sell(const std::vector<std::string> &params);
+    // cppcheck-suppress unusedPrivateFunction
+    void sell(const std::vector<std::string>& params);
 
     /* Revivir*/
+    // cppcheck-suppress unusedPrivateFunction
     void respawn();
 
     /* Sanar */
+    // cppcheck-suppress unusedPrivateFunction
     void heal();
 
     /* Depositar objeto en el banco */
-    void deposit_object(const std::vector<std::string> &params);
+    // cppcheck-suppress unusedPrivateFunction
+    void deposit_object(const std::vector<std::string>& params);
 
-     /* Retirar objeto del banco */
-    void withdraw_object(const std::vector<std::string> &params);   
+    /* Retirar objeto del banco */
+    // cppcheck-suppress unusedPrivateFunction
+    void withdraw_object(const std::vector<std::string>& params);
 
     /* Despositar el oro en el banco */
-    void deposit_gold(const std::vector<std::string> &params);
+    // cppcheck-suppress unusedPrivateFunction
+    void deposit_gold(const std::vector<std::string>& params);
 
-     /* Retirar oro del banco */
-    void withdraw_gold(const std::vector<std::string> &params);
+    /* Retirar oro del banco */
+    // cppcheck-suppress unusedPrivateFunction
+    void withdraw_gold(const std::vector<std::string>& params);
 
 public:
-    Player(uint32_t id, const std::string& name, Race race, CharacterClass char_class, 
-           Position pos, FormulaEngine& formulas, CombatManager& combat_manager);
+    Player(uint32_t id, const std::string& name, Race race, CharacterClass char_class, Position pos,
+           FormulaEngine& formulas, CombatManager& combat_manager, const PlayerConfig& playerConfig,
+           const RaceConfig& raceConfig, const CharacterClassConfig& classConfig);
 
     /* Métodos de Combatant */
     void receive_damage(int amount) override;
     void attack(Combatant& target) override;
     bool is_dead() const override;
     Position get_position() const override;
+    PlayerState getState() const;
+    bool isMeditating() const;
+    bool isGhost() const;
+    bool startMeditating();
+    void stopMeditating();
+    void recoverOverTime(float secondsElapsed);
+    void recoverMeditating(float secondsElapsed);
+    bool healHealth(int amount);
+    bool recoverManaAmount(int amount);
+    bool restoreHealthAndMana();
+    bool resurrect(Position respawnPosition);
 
     /* Llamaria adentro a los metodos utilizados con los ciudadanos */
-    void interact(Interactable& interactable, const std::string& action, const std::vector<std::string>& params) override;
+    void interact(Interactable& interactable, const std::string& action,
+                  const std::vector<std::string>& params) override;
 
     uint16_t get_strength() const override;
     uint16_t get_intelligence() const override;
     int get_mana() const override;
     void consume_mana(int amount) override;
+    bool canUseMagic() const override;
+    bool canMeditate() const;
 
     Equipment& getEquipment();
     const Equipment& getEquipment() const;

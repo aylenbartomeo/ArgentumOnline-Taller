@@ -1,19 +1,9 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-enum class Race {
-    HUMAN,
-    ELF,
-    DWARF,
-    GNOME
-};
+enum class Race { HUMAN, ELF, DWARF, GNOME };
 
-enum class CharacterClass {
-    MAGE,
-    WARRIOR,
-    PALADIN,
-    CLERIC
-};
+enum class CharacterClass { MAGE, WARRIOR, PALADIN, CLERIC };
 
 // Tipos de NPCs disponibles en el juego
 enum class NPCType {

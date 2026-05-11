@@ -13,4 +13,4 @@ public:
     int operator()(int min, int max) const;
 };
 
-#endif // RANDOM_NUMBER_GENERATOR_H_
+#endif  // RANDOM_NUMBER_GENERATOR_H_
