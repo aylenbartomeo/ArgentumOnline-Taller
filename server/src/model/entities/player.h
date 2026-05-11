@@ -103,6 +103,10 @@ public:
     void stopMeditating();
     void recoverOverTime(float secondsElapsed);
     void recoverMeditating(float secondsElapsed);
+    bool healHealth(int amount);
+    bool recoverManaAmount(int amount);
+    bool restoreHealthAndMana();
+    bool resurrect(Position respawnPosition);
 
     /* Llamaria adentro a los metodos utilizados con los ciudadanos */
     void interact(Interactable& interactable, const std::string& action, const std::vector<std::string>& params) override;

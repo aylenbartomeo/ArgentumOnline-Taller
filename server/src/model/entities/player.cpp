@@ -157,6 +157,64 @@ void Player::recoverMeditating(float secondsElapsed) {
     }
 }
 
+bool Player::healHealth(int amount) {
+    if (this->isGhost() || amount <= 0 || this->health >= this->max_health) {
+        return false;
+    }
+
+    this->stopMeditating();
+    this->recoverHealth(amount);
+    return true;
+}
+
+bool Player::recoverManaAmount(int amount) {
+    if (this->isGhost() || amount <= 0 || !this->can_use_magic || this->mana >= this->max_mana) {
+        return false;
+    }
+
+    this->stopMeditating();
+    this->recoverMana(amount);
+    return true;
+}
+
+bool Player::restoreHealthAndMana() {
+    if (this->isGhost()) {
+        return false;
+    }
+
+    const bool hadMissingHealth = this->health < this->max_health;
+    const bool hadMissingMana = this->can_use_magic && this->mana < this->max_mana;
+
+    if (!hadMissingHealth && !hadMissingMana) {
+        return false;
+    }
+
+    this->stopMeditating();
+    this->health = this->max_health;
+
+    if (this->can_use_magic) {
+        this->mana = this->max_mana;
+    }
+
+    return true;
+}
+
+bool Player::resurrect(Position respawnPosition) {
+    if (!this->isGhost()) {
+        return false;
+    }
+
+    this->pos = respawnPosition;
+    this->state = PlayerState::Alive;
+    this->health = this->max_health;
+
+    if (this->can_use_magic) {
+        this->mana = this->max_mana;
+    }
+
+    return true;
+}
+
 void Player::interact(Interactable &interactable, const std::string &action, const std::vector<std::string> &params)
 {
     this->stopMeditating();
