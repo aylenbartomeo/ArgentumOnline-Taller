@@ -31,8 +31,8 @@ private:
 public:
     explicit Acceptor(const char* port);
 
-    void run() override;
-    void stop() override;
+    virtual void run() override;
+    virtual void stop() override;
 
     /* Deshabilitamos las copias */
     Acceptor(const Acceptor&) = delete;

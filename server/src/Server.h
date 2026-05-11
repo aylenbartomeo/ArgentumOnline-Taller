@@ -14,7 +14,6 @@
  */
 class Server {
 private:
-    static constexpr size_t QUEUE_CAPACITY = 10000;
     static constexpr const char* EXIT_CMD = "q";
 
     Acceptor acceptor;
@@ -23,11 +22,6 @@ private:
      * @brief Inicializa y lanza el hilo del Acceptor para comenzar a recibir conexiones.
      */
     void start_acceptor();
-
-    /**
-     * @brief Inicializa y lanza el hilo del GameLoop para comenzar el procesamiento de la lógica.
-     */
-    void start_game_loop();
 
     /**
      * @brief Bloquea el hilo principal y espera la instrucción de salida por entrada estándar.
