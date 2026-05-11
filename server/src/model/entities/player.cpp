@@ -2,35 +2,40 @@
 #include "../combat/CombatManager.h"
 
 Player::Player(uint32_t id, const std::string & name, Race race, CharacterClass char_class, Position pos,
-               FormulaEngine& formulas, CombatManager& combat_manager)
+               FormulaEngine& formulas, CombatManager& combat_manager, const PlayerConfig& playerConfig,
+               const RaceConfig& raceConfig, const CharacterClassConfig& classConfig)
     : id(id),
       name(name),
       race(race),
       char_class(char_class),
       pos(pos),
       equipment(),
-      strength(15),
-      intelligence(15),
-      agility(15),
-      constitution(15),
+      strength(playerConfig.baseStrength),
+      intelligence(playerConfig.baseIntelligence),
+      agility(playerConfig.baseAgility),
+      constitution(playerConfig.baseConstitution),
       health(0),
       max_health(0),
       mana(0),
       max_mana(0),
-      gold(0),
+      gold(playerConfig.startingGold),
       max_gold(0),
-      experience(0),
-      level(1),
+      experience(playerConfig.startingExperience),
+      level(playerConfig.startingLevel),
       formulas(formulas),
-      combat_manager(combat_manager)
+      combat_manager(combat_manager),
+      can_use_magic(classConfig.canUseMagic)
 {
-    // VALORES DE PRUEBA (Luego vendrán del TOML)
-    float race_f = 1.0f; 
-    float class_f = 1.0f;
-    this->max_health = this->formulas.calculate_max_life(this->constitution, class_f, race_f, this->level);
+    this->max_health = this->formulas.calculate_max_life(
+            static_cast<uint16_t>(this->constitution), classConfig.lifeFactor, raceConfig.lifeFactor,
+            this->level);
     this->health = this->max_health;
 
-    this->max_mana = this->formulas.calculate_max_mana(this->intelligence, class_f, race_f, this->level);
+    this->max_mana = this->can_use_magic ?
+                             this->formulas.calculate_max_mana(
+                                     static_cast<uint16_t>(this->intelligence), classConfig.manaFactor,
+                                     raceConfig.manaFactor, this->level) :
+                             0;
     this->mana = this->max_mana;
 
     this->max_gold = this->formulas.calculate_safe_gold_limit(this->level);
@@ -141,6 +146,7 @@ uint16_t Player::get_strength() const { return this->strength; }
 uint16_t Player::get_intelligence() const { return this->intelligence; }
 int Player::get_mana() const { return this->mana; }
 void Player::consume_mana(int amount) { this->mana = std::max(0, this->mana - amount); }
+bool Player::canUseMagic() const { return this->can_use_magic; }
 
 Equipment& Player::getEquipment() { return this->equipment; }
 

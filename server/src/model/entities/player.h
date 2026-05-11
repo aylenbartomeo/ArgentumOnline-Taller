@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "server/src/config/CharacterConfig.h"
 #include "../utils/position.h"
 #include "../utils/types.h"
 #include "interfaces/combatant.h"
@@ -42,6 +43,7 @@ private:
 
     FormulaEngine& formulas;
     CombatManager& combat_manager;
+    bool can_use_magic;
 
     /** Metodos para usar con los NPCs ciudadanos */
 
@@ -71,7 +73,9 @@ private:
 
 public:
     Player(uint32_t id, const std::string& name, Race race, CharacterClass char_class, 
-           Position pos, FormulaEngine& formulas, CombatManager& combat_manager);
+           Position pos, FormulaEngine& formulas, CombatManager& combat_manager,
+           const PlayerConfig& playerConfig, const RaceConfig& raceConfig,
+           const CharacterClassConfig& classConfig);
 
     /* Métodos de Combatant */
     void receive_damage(int amount) override;
@@ -86,6 +90,7 @@ public:
     uint16_t get_intelligence() const override;
     int get_mana() const override;
     void consume_mana(int amount) override;
+    bool canUseMagic() const override;
 
     Equipment& getEquipment();
     const Equipment& getEquipment() const;
