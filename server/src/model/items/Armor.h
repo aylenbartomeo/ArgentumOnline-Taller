@@ -1,9 +1,9 @@
 #ifndef SERVER_SRC_MODEL_ITEMS_ARMOR_H
 #define SERVER_SRC_MODEL_ITEMS_ARMOR_H
 
-#include "server/src/model/items/Item.h"
-
 #include <string>
+
+#include "server/src/model/items/Item.h"
 
 class Armor: public Item {
 protected:

@@ -1,4 +1,5 @@
 #include "RandomNumberGenerator.h"
+
 #include <random>
 
 static std::mt19937& get_engine() {

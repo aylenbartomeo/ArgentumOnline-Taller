@@ -1,12 +1,13 @@
 #include "server/src/config/MonsterConfigLoader.h"
 
-#include <toml++/toml.hpp>
-
 #include <cstdint>
 #include <limits>
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
+
+#include <toml++/toml.hpp>
 
 namespace {
 
@@ -14,36 +15,38 @@ toml::table parseConfigFile(const std::filesystem::path& configPath) {
     try {
         return toml::parse_file(configPath.string());
     } catch (const toml::parse_error& error) {
-        throw std::runtime_error("Could not parse monster TOML config: " + std::string(error.what()));
+        throw std::runtime_error("Could not parse monster TOML config: " +
+                                 std::string(error.what()));
     }
 }
 
-const toml::table& requiredTable(const toml::table& table, const std::string& fieldName) {
+const toml::table& requiredTable(const toml::table& table, std::string_view fieldName) {
     const toml::table* child = table[fieldName].as_table();
     if (child == nullptr) {
-        throw std::runtime_error("Missing monster config table: " + fieldName);
+        throw std::runtime_error("Missing monster config table: " + std::string(fieldName));
     }
 
     return *child;
 }
 
-int requiredInt(const toml::table& table, const std::string& fieldName) {
+int requiredInt(const toml::table& table, std::string_view fieldName) {
     const std::optional<int64_t> value = table[fieldName].value<int64_t>();
     if (!value.has_value()) {
-        throw std::runtime_error("Missing monster integer field: " + fieldName);
+        throw std::runtime_error("Missing monster integer field: " + std::string(fieldName));
     }
 
     if (*value < std::numeric_limits<int>::min() || *value > std::numeric_limits<int>::max()) {
-        throw std::runtime_error("Monster integer field out of range: " + fieldName);
+        throw std::runtime_error("Monster integer field out of range: " + std::string(fieldName));
     }
 
     return static_cast<int>(*value);
 }
 
-std::string requiredString(const toml::table& table, const std::string& fieldName) {
+std::string requiredString(const toml::table& table, std::string_view fieldName) {
     const std::optional<std::string> value = table[fieldName].value<std::string>();
     if (!value.has_value() || value->empty()) {
-        throw std::runtime_error("Missing or empty monster string field: " + fieldName);
+        throw std::runtime_error("Missing or empty monster string field: " +
+                                 std::string(fieldName));
     }
 
     return *value;
@@ -51,14 +54,10 @@ std::string requiredString(const toml::table& table, const std::string& fieldNam
 
 MonsterConfig parseMonsterConfig(const toml::table& monsterTable) {
     MonsterConfig config{
-            requiredInt(monsterTable, "max_health"),
-            requiredInt(monsterTable, "strength"),
-            requiredInt(monsterTable, "agility"),
-            requiredInt(monsterTable, "attack_min"),
-            requiredInt(monsterTable, "attack_max"),
-            requiredInt(monsterTable, "detection_range"),
-            requiredInt(monsterTable, "attack_range"),
-            requiredString(monsterTable, "zone"),
+            requiredInt(monsterTable, "max_health"),   requiredInt(monsterTable, "strength"),
+            requiredInt(monsterTable, "agility"),      requiredInt(monsterTable, "attack_min"),
+            requiredInt(monsterTable, "attack_max"),   requiredInt(monsterTable, "detection_range"),
+            requiredInt(monsterTable, "attack_range"), requiredString(monsterTable, "zone"),
     };
 
     if (config.maxHealth <= 0) {

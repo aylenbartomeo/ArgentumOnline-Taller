@@ -29,18 +29,10 @@ int Armor::rollDefense() const {
     return distribution(generator);
 }
 
-int Armor::getId() const {
-    return id;
-}
+int Armor::getId() const { return id; }
 
-const std::string& Armor::getName() const {
-    return name;
-}
+const std::string& Armor::getName() const { return name; }
 
-int Armor::getMinDefense() const {
-    return minDefense;
-}
+int Armor::getMinDefense() const { return minDefense; }
 
-int Armor::getMaxDefense() const {
-    return maxDefense;
-}
+int Armor::getMaxDefense() const { return maxDefense; }

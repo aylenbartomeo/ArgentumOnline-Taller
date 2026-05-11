@@ -1,18 +1,18 @@
 #include "Weapon.h"
 
-#include "model/FormulaEngine.h"
-
 #include <stdexcept>
 
-Weapon::Weapon(int id, const std::string& name, int minDamage, int maxDamage, WeaponType type, int attackRange,
-               int manaCost)
-    : id(id),
-      minDamage(minDamage),
-      maxDamage(maxDamage),
-      name(name),
-      type(type),
-      attackRange(attackRange),
-      manaCost(manaCost) {
+#include "model/FormulaEngine.h"
+
+Weapon::Weapon(int id, const std::string& name, int minDamage, int maxDamage, WeaponType type,
+               int attackRange, int manaCost):
+        id(id),
+        minDamage(minDamage),
+        maxDamage(maxDamage),
+        name(name),
+        type(type),
+        attackRange(attackRange),
+        manaCost(manaCost) {
     if (id < 0) {
         throw std::invalid_argument("Weapon id cannot be negative");
     }
@@ -47,6 +47,6 @@ int Weapon::getAttackRange() const { return attackRange; }
 int Weapon::getManaCost() const { return manaCost; }
 
 uint16_t Weapon::calculateDamage(uint16_t attackPower, const FormulaEngine& formulas) const {
-    return formulas.calculate_base_damage(
-            attackPower, static_cast<uint16_t>(this->minDamage), static_cast<uint16_t>(this->maxDamage));
+    return formulas.calculate_base_damage(attackPower, static_cast<uint16_t>(this->minDamage),
+                                          static_cast<uint16_t>(this->maxDamage));
 }

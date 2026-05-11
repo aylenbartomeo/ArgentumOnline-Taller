@@ -10,8 +10,7 @@ public:
     virtual ~Interactable() = default;
 
     // El contrato de comunicación: quién interactúa, qué quiere hacer y qué datos extra envía.
-    virtual void interact(Interactable& interactable, 
-                          const std::string& action, 
+    virtual void interact(Interactable& interactable, const std::string& action,
                           const std::vector<std::string>& params) = 0;
 };
 

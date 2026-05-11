@@ -1,11 +1,11 @@
 #ifndef SERVER_SRC_CONFIG_ARMORCONFIGLOADER_H
 #define SERVER_SRC_CONFIG_ARMORCONFIGLOADER_H
 
-#include "server/src/model/items/ArmorFactory.h"
-
 #include <filesystem>
 #include <string>
 #include <unordered_map>
+
+#include "server/src/model/items/ArmorFactory.h"
 
 class ArmorConfigLoader {
 public:

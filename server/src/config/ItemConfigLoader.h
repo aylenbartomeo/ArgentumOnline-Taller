@@ -1,12 +1,12 @@
 #ifndef SERVER_SRC_CONFIG_ITEMCONFIGLOADER_H
 #define SERVER_SRC_CONFIG_ITEMCONFIGLOADER_H
 
-#include "server/src/model/items/ArmorFactory.h"
-#include "server/src/model/items/WeaponFactory.h"
-
 #include <filesystem>
 #include <string>
 #include <unordered_map>
+
+#include "server/src/model/items/ArmorFactory.h"
+#include "server/src/model/items/WeaponFactory.h"
 
 struct ItemFactories {
     ArmorFactory armorFactory;

@@ -1,55 +1,57 @@
 #include "player.h"
-#include "../combat/CombatManager.h"
 
 #include <algorithm>
 
-Player::Player(uint32_t id, const std::string & name, Race race, CharacterClass char_class, Position pos,
-               FormulaEngine& formulas, CombatManager& combat_manager, const PlayerConfig& playerConfig,
-               const RaceConfig& raceConfig, const CharacterClassConfig& classConfig)
-    : id(id),
-      name(name),
-      race(race),
-      char_class(char_class),
-      pos(pos),
-      equipment(),
-      strength(playerConfig.baseStrength),
-      intelligence(playerConfig.baseIntelligence),
-      agility(playerConfig.baseAgility),
-      constitution(playerConfig.baseConstitution),
-      health(0),
-      max_health(0),
-      mana(0),
-      max_mana(0),
-      gold(playerConfig.startingGold),
-      max_gold(0),
-      experience(playerConfig.startingExperience),
-      level(playerConfig.startingLevel),
-      formulas(formulas),
-      combat_manager(combat_manager),
-      can_use_magic(classConfig.canUseMagic),
-      can_meditate(classConfig.canUseMagic && classConfig.meditationFactor > 0.0f),
-      recovery_factor(raceConfig.recoveryFactor),
-      meditation_factor(classConfig.meditationFactor),
-      state(PlayerState::Alive)
-{
-    this->max_health = this->formulas.calculate_max_life(
-            static_cast<uint16_t>(this->constitution), classConfig.lifeFactor, raceConfig.lifeFactor,
-            this->level);
+#include "../combat/CombatManager.h"
+
+Player::Player(uint32_t id, const std::string& name, Race race, CharacterClass char_class,
+               Position pos, FormulaEngine& formulas, CombatManager& combat_manager,
+               const PlayerConfig& playerConfig, const RaceConfig& raceConfig,
+               const CharacterClassConfig& classConfig):
+        id(id),
+        name(name),
+        race(race),
+        char_class(char_class),
+        pos(pos),
+        equipment(),
+        strength(playerConfig.baseStrength),
+        intelligence(playerConfig.baseIntelligence),
+        agility(playerConfig.baseAgility),
+        constitution(playerConfig.baseConstitution),
+        health(0),
+        max_health(0),
+        mana(0),
+        max_mana(0),
+        gold(playerConfig.startingGold),
+        max_gold(0),
+        experience(playerConfig.startingExperience),
+        level(playerConfig.startingLevel),
+        formulas(formulas),
+        combat_manager(combat_manager),
+        can_use_magic(classConfig.canUseMagic),
+        can_meditate(classConfig.canUseMagic && classConfig.meditationFactor > 0.0f),
+        recovery_factor(raceConfig.recoveryFactor),
+        meditation_factor(classConfig.meditationFactor),
+        state(PlayerState::Alive) {
+    this->max_health = this->formulas.calculate_max_life(static_cast<uint16_t>(this->constitution),
+                                                         classConfig.lifeFactor,
+                                                         raceConfig.lifeFactor, this->level);
     this->health = this->max_health;
 
     this->max_mana = this->can_use_magic ?
                              this->formulas.calculate_max_mana(
-                                     static_cast<uint16_t>(this->intelligence), classConfig.manaFactor,
-                                     raceConfig.manaFactor, this->level) :
+                                     static_cast<uint16_t>(this->intelligence),
+                                     classConfig.manaFactor, raceConfig.manaFactor, this->level) :
                              0;
     this->mana = this->max_mana;
 
     this->max_gold = this->formulas.calculate_safe_gold_limit(this->level);
 }
 
-//IMPORTANTE: Habría que considerar que en vez de pedirle el daño a las armas o defensa al equipamiento del jugador
-// podríamos delegar el cálculo del daño o defensa al objeto, por ejemplo: this->equipment.generate_attack_damage(this->strength, this->formulas)
-// y similar con la defensa
+// IMPORTANTE: Habría que considerar que en vez de pedirle el daño a las armas o defensa al
+// equipamiento del jugador
+//  podríamos delegar el cálculo del daño o defensa al objeto, por ejemplo:
+//  this->equipment.generate_attack_damage(this->strength, this->formulas) y similar con la defensa
 
 void Player::receive_damage(int amount) {
     if (this->isGhost()) {
@@ -61,12 +63,12 @@ void Player::receive_damage(int amount) {
     // 1. Probabilidad de Evadir
     if (this->formulas.is_attack_eluded(static_cast<uint16_t>(this->agility))) {
         // El ataque falló, no restamos nada
-        return; 
+        return;
     }
 
     // 2. Mitigación por defensa equipada.
     int def = this->equipment.getDefense();
-    
+
     // 3. Aplicar daño final
     int final_damage = std::max(0, amount - static_cast<int>(def));
     this->health -= final_damage;
@@ -83,23 +85,19 @@ void Player::attack(Combatant& target) {
 
     this->stopMeditating();
 
-    Weapon* equipped_weapon = this->equipment.getWeapon();
+    const Weapon* equipped_weapon = this->equipment.getWeapon();
     if (equipped_weapon == nullptr) {
-        return; 
+        return;
     }
 
     // Ejecutar el ataque
-    bool attack_success = this->combat_manager.executeAttack(
-        *equipped_weapon, 
-        *this,
-        target,
-        this->formulas
-    );
+    bool attack_success =
+            this->combat_manager.executeAttack(*equipped_weapon, *this, target, this->formulas);
 
     // Si el ataque fue exitoso y el objetivo muere, damos la XP
     if (attack_success && target.is_dead()) {
         // Lógica de ganar experiencia...
-    }    
+    }
 }
 
 bool Player::is_dead() const { return health <= 0; }
@@ -215,60 +213,52 @@ bool Player::resurrect(Position respawnPosition) {
     return true;
 }
 
-void Player::interact(Interactable &interactable, const std::string &action, const std::vector<std::string> &params)
-{
+void Player::interact(Interactable& interactable, const std::string& action,
+                      const std::vector<std::string>& params) {
     this->stopMeditating();
 
     (void)interactable;
     (void)action;
     (void)params;
-    // Aca deberia ocurrir la interaccion con el NPC de ciudad, dependiendo del tipo de NPC y la accion, 
-    // se llamaria a los metodos correspondientes (buy, sell, heal, respawn, etc).
-    // Habria que generar la comunicacion dado que ambos son Interactables
+    // Aca deberia ocurrir la interaccion con el NPC de ciudad, dependiendo del tipo de NPC y la
+    // accion, se llamaria a los metodos correspondientes (buy, sell, heal, respawn, etc). Habria
+    // que generar la comunicacion dado que ambos son Interactables
 }
 
-void Player::buy(const std::vector<std::string> &params)
-{
+void Player::buy(const std::vector<std::string>& params) {
     (void)params;
     // Implementar logica de compra con el comerciante
 }
 
-void Player::sell(const std::vector<std::string> &params)
-{
+void Player::sell(const std::vector<std::string>& params) {
     (void)params;
     // Implementar logica de venta con el comerciante
 }
 
-void Player::respawn()
-{
+void Player::respawn() {
     // Implementar logica de respawn en el punto de inicio o ultimo checkpoint
 }
 
-void Player::heal()
-{
+void Player::heal() {
     // Implementar logica de curacion con el sacerdote
 }
 
-void Player::deposit_object(const std::vector<std::string> &params)
-{
+void Player::deposit_object(const std::vector<std::string>& params) {
     (void)params;
     // Implementar logica de deposito de objetos en el banco
 }
 
-void Player::withdraw_object(const std::vector<std::string> &params)
-{
+void Player::withdraw_object(const std::vector<std::string>& params) {
     (void)params;
     // Implementar logica de retiro de objetos del banco
 }
 
-void Player::deposit_gold(const std::vector<std::string> &params)
-{
+void Player::deposit_gold(const std::vector<std::string>& params) {
     (void)params;
     // Implementar logica de deposito de oro en el banco
 }
 
-void Player::withdraw_gold(const std::vector<std::string> &params)
-{
+void Player::withdraw_gold(const std::vector<std::string>& params) {
     (void)params;
     // Implementar logica de retiro de oro del banco
 }

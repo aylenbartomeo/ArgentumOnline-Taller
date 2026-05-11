@@ -1,9 +1,9 @@
 #ifndef SERVER_SRC_MODEL_ITEMS_BODYARMOR_H
 #define SERVER_SRC_MODEL_ITEMS_BODYARMOR_H
 
-#include "server/src/model/items/Armor.h"
-
 #include <string>
+
+#include "server/src/model/items/Armor.h"
 
 class BodyArmor final: public Armor {
 public:

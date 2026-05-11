@@ -3,12 +3,7 @@
 
 #include <cstdint>
 
-enum class ActionItemType : uint8_t {
-    TAKE,
-    DROP,
-    EQUIP,
-    UNEQUIP
-};
+enum class ActionItemType : uint8_t { TAKE, DROP, EQUIP, UNEQUIP };
 
 struct ItemCommandDTO {
     ActionItemType action;

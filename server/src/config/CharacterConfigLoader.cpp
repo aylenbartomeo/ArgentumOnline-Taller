@@ -1,12 +1,13 @@
 #include "server/src/config/CharacterConfigLoader.h"
 
-#include <toml++/toml.hpp>
-
 #include <cstdint>
 #include <limits>
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
+
+#include <toml++/toml.hpp>
 
 namespace {
 
@@ -14,67 +15,68 @@ toml::table parseConfigFile(const std::filesystem::path& configPath) {
     try {
         return toml::parse_file(configPath.string());
     } catch (const toml::parse_error& error) {
-        throw std::runtime_error("Could not parse character TOML config: " + std::string(error.what()));
+        throw std::runtime_error("Could not parse character TOML config: " +
+                                 std::string(error.what()));
     }
 }
 
-const toml::table& requiredTable(const toml::table& table, const std::string& fieldName) {
+const toml::table& requiredTable(const toml::table& table, std::string_view fieldName) {
     const toml::table* child = table[fieldName].as_table();
     if (child == nullptr) {
-        throw std::runtime_error("Missing character config table: " + fieldName);
+        throw std::runtime_error("Missing character config table: " + std::string(fieldName));
     }
 
     return *child;
 }
 
-int requiredInt(const toml::table& table, const std::string& fieldName) {
+int requiredInt(const toml::table& table, std::string_view fieldName) {
     const std::optional<int64_t> value = table[fieldName].value<int64_t>();
     if (!value.has_value()) {
-        throw std::runtime_error("Missing character integer field: " + fieldName);
+        throw std::runtime_error("Missing character integer field: " + std::string(fieldName));
     }
 
     if (*value < std::numeric_limits<int>::min() || *value > std::numeric_limits<int>::max()) {
-        throw std::runtime_error("Character integer field out of range: " + fieldName);
+        throw std::runtime_error("Character integer field out of range: " + std::string(fieldName));
     }
 
     return static_cast<int>(*value);
 }
 
-uint16_t requiredUInt16(const toml::table& table, const std::string& fieldName) {
+uint16_t requiredUInt16(const toml::table& table, std::string_view fieldName) {
     const int value = requiredInt(table, fieldName);
     if (value < 0 || value > std::numeric_limits<uint16_t>::max()) {
-        throw std::runtime_error("Character uint16 field out of range: " + fieldName);
+        throw std::runtime_error("Character uint16 field out of range: " + std::string(fieldName));
     }
 
     return static_cast<uint16_t>(value);
 }
 
-uint32_t requiredUInt32(const toml::table& table, const std::string& fieldName) {
+uint32_t requiredUInt32(const toml::table& table, std::string_view fieldName) {
     const std::optional<int64_t> value = table[fieldName].value<int64_t>();
     if (!value.has_value()) {
-        throw std::runtime_error("Missing character uint32 field: " + fieldName);
+        throw std::runtime_error("Missing character uint32 field: " + std::string(fieldName));
     }
 
     if (*value < 0 || *value > std::numeric_limits<uint32_t>::max()) {
-        throw std::runtime_error("Character uint32 field out of range: " + fieldName);
+        throw std::runtime_error("Character uint32 field out of range: " + std::string(fieldName));
     }
 
     return static_cast<uint32_t>(*value);
 }
 
-float requiredFloat(const toml::table& table, const std::string& fieldName) {
+float requiredFloat(const toml::table& table, std::string_view fieldName) {
     const std::optional<double> value = table[fieldName].value<double>();
     if (!value.has_value()) {
-        throw std::runtime_error("Missing character float field: " + fieldName);
+        throw std::runtime_error("Missing character float field: " + std::string(fieldName));
     }
 
     return static_cast<float>(*value);
 }
 
-bool requiredBool(const toml::table& table, const std::string& fieldName) {
+bool requiredBool(const toml::table& table, std::string_view fieldName) {
     const std::optional<bool> value = table[fieldName].value<bool>();
     if (!value.has_value()) {
-        throw std::runtime_error("Missing character bool field: " + fieldName);
+        throw std::runtime_error("Missing character bool field: " + std::string(fieldName));
     }
 
     return *value;
@@ -111,7 +113,8 @@ CharacterClassConfig parseClassConfig(const toml::table& classTable) {
 
 }  // namespace
 
-CharacterConfigs CharacterConfigLoader::loadCharacterConfigs(const std::filesystem::path& configPath) {
+CharacterConfigs CharacterConfigLoader::loadCharacterConfigs(
+        const std::filesystem::path& configPath) {
     const toml::table config = parseConfigFile(configPath);
     const toml::table& races = requiredTable(config, "races");
     const toml::table& classes = requiredTable(config, "classes");

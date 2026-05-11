@@ -1,11 +1,11 @@
 #ifndef SERVER_SRC_MODEL_ITEMS_WEAPONFACTORY_H
 #define SERVER_SRC_MODEL_ITEMS_WEAPONFACTORY_H
 
-#include "server/src/model/items/Weapon.h"
-
 #include <memory>
 #include <string>
 #include <unordered_map>
+
+#include "server/src/model/items/Weapon.h"
 
 struct WeaponConfig {
     int id;

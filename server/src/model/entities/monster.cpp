@@ -1,5 +1,7 @@
 #include "monster.h"
 
+#include <utility>
+
 Monster::Monster(uint32_t id, NPCType type, Position pos, FormulaEngine& formulas,
                  const MonsterConfig& config):
         id(id),
@@ -16,18 +18,19 @@ Monster::Monster(uint32_t id, NPCType type, Position pos, FormulaEngine& formula
         attack_min(config.attackMin),
         attack_max(config.attackMax) {}
 
-void Monster::move(const Position &new_pos)
-{
-    // Lógica de movimiento, podría ser aleatorio dentro de un rango o siguiendo al jugador si lo detecta
+void Monster::move(const Position& new_pos) {
+    // Lógica de movimiento, podría ser aleatorio dentro de un rango o siguiendo al jugador si lo
+    // detecta
     this->pos = new_pos;
 }
 
 void Monster::receive_damage(int amount) {
     if (this->formulas.is_attack_eluded(static_cast<uint16_t>(this->agility))) {
-        return; 
+        return;
     }
     this->health -= amount;
-    if (this->health < 0) this->health = 0;
+    if (this->health < 0)
+        this->health = 0;
 }
 
 void Monster::attack(Combatant& target) {
@@ -36,9 +39,9 @@ void Monster::attack(Combatant& target) {
         return;
     }
 
-    uint16_t damage = this->formulas.calculate_base_damage(
-            static_cast<uint16_t>(this->strength), static_cast<uint16_t>(this->attack_min),
-            static_cast<uint16_t>(this->attack_max));
+    uint16_t damage = this->formulas.calculate_base_damage(static_cast<uint16_t>(this->strength),
+                                                           static_cast<uint16_t>(this->attack_min),
+                                                           static_cast<uint16_t>(this->attack_max));
     target.receive_damage(static_cast<int>(damage));
 }
 

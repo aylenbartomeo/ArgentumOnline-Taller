@@ -2,9 +2,9 @@
 #ifndef COMBATANT_H
 #define COMBATANT_H
 
-#include "utils/position.h"
-
 #include <cstdint>
+
+#include "utils/position.h"
 
 class Combatant {
 public:

@@ -2,21 +2,23 @@
 #define MONSTER_H
 
 #include <string>
-#include "server/src/config/MonsterConfig.h"
+#include <utility>
+
 #include "../utils/position.h"
 #include "../utils/types.h"
 #include "interfaces/combatant.h"
-#include "model/FormulaEngine.h"
 #include "interfaces/interactable.h"
+#include "model/FormulaEngine.h"
+#include "server/src/config/MonsterConfig.h"
 
-class Monster : public Combatant {
+class Monster: public Combatant {
 private:
     uint32_t id;
     NPCType type;
-    std::string zone; //bosques, mazmorras
+    std::string zone;  // bosques, mazmorras
     Position pos;
     FormulaEngine& formulas;
-    
+
     int health;
     int max_health;
 
@@ -31,7 +33,7 @@ private:
 public:
     Monster(uint32_t id, NPCType type, Position pos, FormulaEngine& formulas,
             const MonsterConfig& config);
-    
+
     void move(const Position& new_pos);
     void receive_damage(int amount) override;
     void attack(Combatant& target) override;
