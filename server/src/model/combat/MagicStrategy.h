@@ -10,6 +10,8 @@ public:
 
         if (!caster) { return false; }
 
+        if (!caster->canUseMagic()) { return false; }
+
         int mana_cost = weapon.getManaCost();
 
         if (caster->get_mana() < mana_cost) {
