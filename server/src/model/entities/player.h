@@ -80,7 +80,7 @@ public:
     Position get_position() const override;
 
     /* Llamaria adentro a los metodos utilizados con los ciudadanos */
-    void interact(Interactable& interactable, const std::string& action, const std::vector<std::string>& params);
+    void interact(Interactable& interactable, const std::string& action, const std::vector<std::string>& params) override;
 
     uint16_t get_strength() const override;
     uint16_t get_intelligence() const override;
