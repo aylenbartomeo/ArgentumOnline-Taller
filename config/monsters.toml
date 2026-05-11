@@ -1,0 +1,63 @@
+# =========================
+# MONSTERS
+# =========================
+
+[monsters.goblin]
+max_health = 30
+strength = 5
+agility = 8
+attack_min = 1
+attack_max = 4
+detection_range = 6
+attack_range = 1
+zone = "forest"
+
+[monsters.skeleton]
+max_health = 45
+strength = 8
+agility = 5
+attack_min = 2
+attack_max = 6
+detection_range = 6
+attack_range = 1
+zone = "dungeon"
+
+[monsters.zombie]
+max_health = 55
+strength = 9
+agility = 2
+attack_min = 2
+attack_max = 7
+detection_range = 5
+attack_range = 1
+zone = "cemetery"
+
+[monsters.spider]
+max_health = 35
+strength = 6
+agility = 10
+attack_min = 1
+attack_max = 5
+detection_range = 7
+attack_range = 1
+zone = "forest"
+
+[monsters.orc]
+max_health = 80
+strength = 15
+agility = 4
+attack_min = 4
+attack_max = 10
+detection_range = 6
+attack_range = 1
+zone = "wilderness"
+
+[monsters.golem]
+max_health = 140
+strength = 22
+agility = 1
+attack_min = 6
+attack_max = 14
+detection_range = 4
+attack_range = 1
+zone = "dungeon"
