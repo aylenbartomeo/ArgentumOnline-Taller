@@ -18,6 +18,9 @@ target_sources(argentum_online_server
     src/model/entities/MonsterFactory.cpp
     src/model/entities/citizen.cpp
 
+    # Inventory (¡NUEVO!)
+    src/model/inventory/inventory.cpp
+
     # Items
     src/model/items/Armor.cpp
     src/model/items/ArmorFactory.cpp
@@ -27,6 +30,7 @@ target_sources(argentum_online_server
     src/model/items/Shield.cpp
     src/model/items/Weapon.cpp  
     src/model/items/WeaponFactory.cpp
+    src/model/items/ItemRegistry.cpp 
 
     PUBLIC
     # .h files
@@ -38,12 +42,14 @@ target_sources(argentum_online_server
     src/config/MonsterConfigLoader.h
 
     src/model/entities/MonsterFactory.h
+    src/model/inventory/inventory.h 
     src/model/items/Armor.h
     src/model/items/ArmorFactory.h
     src/model/items/BodyArmor.h
     src/model/items/Equipment.h
     src/model/items/Helmet.h
     src/model/items/Item.h
+    src/model/items/ItemRegistry.h
     src/model/items/Shield.h
     src/model/items/Weapon.h
     src/model/items/WeaponFactory.h
@@ -58,6 +64,7 @@ target_include_directories(argentum_online_server
     src/model
     src/model/entities
     src/model/items
+    src/model/inventory # Agregado para que encuentre limpiamente las cabeceras
 )
 
 target_link_libraries(argentum_online_server tomlplusplus::tomlplusplus)

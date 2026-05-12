@@ -3,11 +3,13 @@
 #include <algorithm>
 
 #include "../combat/CombatManager.h"
+#include "server/src/model/inventory/inventory.h"
 
 Player::Player(uint32_t id, const std::string& name, Race race, CharacterClass char_class,
                Position pos, FormulaEngine& formulas, CombatManager& combat_manager,
                const PlayerConfig& playerConfig, const RaceConfig& raceConfig,
-               const CharacterClassConfig& classConfig):
+               const CharacterClassConfig& classConfig, const InventoryConfig& inv_config,
+               const ItemRegistry& item_registry):
         id(id),
         name(name),
         race(race),
@@ -26,6 +28,8 @@ Player::Player(uint32_t id, const std::string& name, Race race, CharacterClass c
         max_gold(0),
         experience(playerConfig.startingExperience),
         level(playerConfig.startingLevel),
+        item_registry(item_registry),
+        inventory(inv_config, formulas.calculate_safe_gold_limit(playerConfig.startingLevel)),
         formulas(formulas),
         combat_manager(combat_manager),
         can_use_magic(classConfig.canUseMagic),
@@ -33,6 +37,7 @@ Player::Player(uint32_t id, const std::string& name, Race race, CharacterClass c
         recovery_factor(raceConfig.recoveryFactor),
         meditation_factor(classConfig.meditationFactor),
         state(PlayerState::Alive) {
+
     this->max_health = this->formulas.calculate_max_life(static_cast<uint16_t>(this->constitution),
                                                          classConfig.lifeFactor,
                                                          raceConfig.lifeFactor, this->level);
@@ -46,12 +51,9 @@ Player::Player(uint32_t id, const std::string& name, Race race, CharacterClass c
     this->mana = this->max_mana;
 
     this->max_gold = this->formulas.calculate_safe_gold_limit(this->level);
-}
 
-// IMPORTANTE: Habría que considerar que en vez de pedirle el daño a las armas o defensa al
-// equipamiento del jugador
-//  podríamos delegar el cálculo del daño o defensa al objeto, por ejemplo:
-//  this->equipment.generate_attack_damage(this->strength, this->formulas) y similar con la defensa
+    this->inventory.add_gold(playerConfig.startingGold);
+}
 
 void Player::receive_damage(int amount) {
     if (this->isGhost()) {
@@ -225,42 +227,75 @@ void Player::interact(Interactable& interactable, const std::string& action,
     // que generar la comunicacion dado que ambos son Interactables
 }
 
-void Player::buy(const std::vector<std::string>& params) {
-    (void)params;
-    // Implementar logica de compra con el comerciante
+// ============================================================================
+// TRANSACCIONES DE COMERCIANTE
+// ============================================================================
+
+bool Player::buy_item(uint32_t item_id, uint16_t amount, uint32_t total_price) {
+    if (!this->item_registry.get_item(item_id))
+        return false;
+
+    if (!this->inventory.remove_gold(total_price)) {
+        return false;
+    }
+
+    if (!this->inventory.add_item(item_id, amount)) {
+        this->inventory.add_gold(total_price);
+        return false;
+    }
+    return true;
 }
 
-void Player::sell(const std::vector<std::string>& params) {
-    (void)params;
-    // Implementar logica de venta con el comerciante
+bool Player::sell_item(uint8_t slot_index, uint16_t amount, uint32_t unit_price) {
+    uint16_t removed = this->inventory.remove_item(slot_index, amount);
+    if (removed == 0)
+        return false;
+    uint32_t gold_gained = static_cast<uint32_t>(removed) * unit_price;
+    this->inventory.add_gold(gold_gained);
+    return true;
 }
 
-void Player::respawn() {
-    // Implementar logica de respawn en el punto de inicio o ultimo checkpoint
+// ============================================================================
+// TRANSACCIONES DE SACERDOTE
+// ============================================================================
+
+void Player::heal() { this->restoreHealthAndMana(); }
+
+void Player::resurrect() { this->resurrect(this->pos); }
+
+// ============================================================================
+// TRANSACCIONES DE BANQUERO (Oro)
+// ============================================================================
+
+bool Player::deposit_gold(uint32_t amount) {
+    if (amount == 0 || this->isGhost())
+        return false;
+    return this->inventory.remove_gold(amount);
 }
 
-void Player::heal() {
-    // Implementar logica de curacion con el sacerdote
+bool Player::withdraw_gold(
+        uint32_t amount) {  // Validar desde el banquero que se tiene el saldo suficiente..
+    if (amount == 0 || this->isGhost())
+        return false;
+    this->inventory.add_gold(amount);
+    return true;
 }
 
-void Player::deposit_object(const std::vector<std::string>& params) {
-    (void)params;
-    // Implementar logica de deposito de objetos en el banco
+// ============================================================================
+// TRANSACCIONES DE BANQUERO (Ítems)
+// ============================================================================
+
+bool Player::deposit_item(uint8_t inv_slot, uint16_t amount) {
+    if (amount == 0 || this->isGhost())
+        return false;
+    uint16_t removed = this->inventory.remove_item(inv_slot, amount);
+    return removed > 0;
 }
 
-void Player::withdraw_object(const std::vector<std::string>& params) {
-    (void)params;
-    // Implementar logica de retiro de objetos del banco
-}
-
-void Player::deposit_gold(const std::vector<std::string>& params) {
-    (void)params;
-    // Implementar logica de deposito de oro en el banco
-}
-
-void Player::withdraw_gold(const std::vector<std::string>& params) {
-    (void)params;
-    // Implementar logica de retiro de oro del banco
+bool Player::withdraw_item(uint32_t item_id, uint16_t amount) {
+    if (amount == 0 || this->isGhost())
+        return false;
+    return this->inventory.add_item(item_id, amount);
 }
 
 uint16_t Player::get_strength() const { return this->strength; }
@@ -294,4 +329,48 @@ void Player::becomeGhost() {
     this->health = 0;
     this->mana = 0;
     this->state = PlayerState::Ghost;
+}
+
+bool Player::equip_from_slot(uint8_t slot_index) {
+    auto maybe_slot = this->inventory.inspect_slot(slot_index);
+    if (!maybe_slot.has_value()) {
+        return false;
+    }
+
+    uint32_t item_id = maybe_slot->item_id;
+
+    const Item* item = this->item_registry.get_item(item_id);
+    if (!item || !item->is_wearable()) {
+        return false;
+    }
+
+    uint32_t unequipped_item_id = this->equipment.equip_item(item);
+    this->inventory.remove_item(slot_index, 1);
+
+    if (unequipped_item_id != 0) {
+        this->inventory.add_item(unequipped_item_id, 1);
+    }
+
+    return true;
+}
+
+bool Player::drop_item_to_map(uint8_t slot_index, uint16_t amount) {
+    auto maybe_slot = this->inventory.inspect_slot(slot_index);
+    if (!maybe_slot.has_value()) {
+        return false;
+    }
+
+    /*uint32_t item_id = maybe_slot->item_id;*/
+
+    uint16_t removed = this->inventory.remove_item(slot_index, amount);
+    if (removed == 0) {
+        return false;
+    }
+
+    // Notificar al mapa para instanciar la entidad visual 'Drop' en nuestra coordenada actual
+    // Descomentar/Ajustar cuando esté integrado el subsistema del mapa en el jugador.
+    // Ejemplo conceptual:
+    // this->current_map.create_drop(item_id, removed, this->pos);
+
+    return true;
 }

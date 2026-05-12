@@ -2,21 +2,45 @@
 
 Equipment::Equipment(): bodyArmor(nullptr), helmet(nullptr), shield(nullptr), weapon(nullptr) {}
 
-void Equipment::equipBodyArmor(BodyArmor& armor) { this->bodyArmor = &armor; }
 
-void Equipment::equipHelmet(Helmet& helmet) { this->helmet = &helmet; }
+uint32_t Equipment::equip_item(const Item* item) {
+    if (!item)
+        return 0;
+    return item->equip_on(*this);
+}
 
-void Equipment::equipShield(Shield& shield) { this->shield = &shield; }
+uint32_t Equipment::equip_body_armor(const BodyArmor* armor) {
+    uint32_t old_id =
+            (this->bodyArmor != nullptr) ? static_cast<uint32_t>(this->bodyArmor->getId()) : 0;
+    this->bodyArmor = armor;
+    return old_id;
+}
 
-void Equipment::equipWeapon(Weapon& weapon) { this->weapon = &weapon; }
+uint32_t Equipment::equip_helmet(const Helmet* helmet) {
+    uint32_t old_id = (this->helmet != nullptr) ? static_cast<uint32_t>(this->helmet->getId()) : 0;
+    this->helmet = helmet;
+    return old_id;
+}
 
-BodyArmor* Equipment::getBodyArmor() const { return this->bodyArmor; }
+uint32_t Equipment::equip_shield(const Shield* shield) {
+    uint32_t old_id = (this->shield != nullptr) ? static_cast<uint32_t>(this->shield->getId()) : 0;
+    this->shield = shield;
+    return old_id;
+}
 
-Helmet* Equipment::getHelmet() const { return this->helmet; }
+uint32_t Equipment::equip_weapon(const Weapon* new_weapon) {
+    uint32_t old_id = (this->weapon != nullptr) ? static_cast<uint32_t>(this->weapon->getId()) : 0;
+    this->weapon = new_weapon;
+    return old_id;
+}
 
-Shield* Equipment::getShield() const { return this->shield; }
+const BodyArmor* Equipment::getBodyArmor() const { return this->bodyArmor; }
 
-Weapon* Equipment::getWeapon() const { return this->weapon; }
+const Helmet* Equipment::getHelmet() const { return this->helmet; }
+
+const Shield* Equipment::getShield() const { return this->shield; }
+
+const Weapon* Equipment::getWeapon() const { return this->weapon; }
 
 int Equipment::getDefense() const {
     int defense = 0;

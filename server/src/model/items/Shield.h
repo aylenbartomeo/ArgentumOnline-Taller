@@ -10,6 +10,8 @@ public:
     Shield(int id, std::string name, int minDefense, int maxDefense);
 
     int getDefense() const override;
+
+    uint32_t equip_on(Equipment& equipment) const override;
 };
 
 #endif

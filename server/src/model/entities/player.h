@@ -11,7 +11,9 @@
 #include "interfaces/interactable.h"
 #include "model/FormulaEngine.h"
 #include "server/src/config/CharacterConfig.h"
+#include "server/src/model/inventory/inventory.h"
 #include "server/src/model/items/Equipment.h"
+#include "server/src/model/items/ItemRegistry.h"
 
 class CombatManager;
 
@@ -48,6 +50,8 @@ private:
     uint32_t experience;
     uint16_t level;
 
+    const ItemRegistry& item_registry;
+    Inventory inventory;
     FormulaEngine& formulas;
     CombatManager& combat_manager;
     bool can_use_magic;
@@ -60,44 +64,11 @@ private:
     void recoverMana(int amount);
     void becomeGhost();
 
-    /** Metodos para usar con los NPCs ciudadanos */
-
-    /* Comprar objetos */
-    // cppcheck-suppress unusedPrivateFunction
-    void buy(const std::vector<std::string>& params);
-
-    /* Vender objetos */
-    // cppcheck-suppress unusedPrivateFunction
-    void sell(const std::vector<std::string>& params);
-
-    /* Revivir*/
-    // cppcheck-suppress unusedPrivateFunction
-    void respawn();
-
-    /* Sanar */
-    // cppcheck-suppress unusedPrivateFunction
-    void heal();
-
-    /* Depositar objeto en el banco */
-    // cppcheck-suppress unusedPrivateFunction
-    void deposit_object(const std::vector<std::string>& params);
-
-    /* Retirar objeto del banco */
-    // cppcheck-suppress unusedPrivateFunction
-    void withdraw_object(const std::vector<std::string>& params);
-
-    /* Despositar el oro en el banco */
-    // cppcheck-suppress unusedPrivateFunction
-    void deposit_gold(const std::vector<std::string>& params);
-
-    /* Retirar oro del banco */
-    // cppcheck-suppress unusedPrivateFunction
-    void withdraw_gold(const std::vector<std::string>& params);
-
 public:
     Player(uint32_t id, const std::string& name, Race race, CharacterClass char_class, Position pos,
            FormulaEngine& formulas, CombatManager& combat_manager, const PlayerConfig& playerConfig,
-           const RaceConfig& raceConfig, const CharacterClassConfig& classConfig);
+           const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,
+           const InventoryConfig& inv_config, const ItemRegistry& item_registry);
 
     /* Métodos de Combatant */
     void receive_damage(int amount) override;
@@ -129,6 +100,30 @@ public:
 
     Equipment& getEquipment();
     const Equipment& getEquipment() const;
+
+    /* ACCIONES DE INVENTARIO Y EQUIPAMIENTO */
+
+    // Procesa el comando de red para equipar un ítem desde un slot (OpCode 0x05).
+    bool equip_from_slot(uint8_t slot_index);
+
+    // Suelta un ítem al suelo (OpCode 0x04).
+    bool drop_item_to_map(uint8_t slot_index, uint16_t amount);
+
+    /* METODOS PARA USAR CON LOS NPCS CIUDADANOS */
+
+    // Transacciones de Comercio
+    bool buy_item(uint32_t item_id, uint16_t amount, uint32_t total_price);
+    bool sell_item(uint8_t slot_index, uint16_t amount, uint32_t unit_price);
+
+    // Transacciones de Sacerdote
+    void heal();
+    void resurrect();
+
+    // Transacciones de Banquero
+    bool deposit_gold(uint32_t amount);
+    bool withdraw_gold(uint32_t amount);
+    bool deposit_item(uint8_t inv_slot, uint16_t amount);
+    bool withdraw_item(uint32_t item_id, uint16_t amount);
 };
 
 #endif

@@ -8,23 +8,25 @@
 
 class Equipment {
 private:
-    BodyArmor* bodyArmor;
-    Helmet* helmet;
-    Shield* shield;
-    Weapon* weapon;
+    const BodyArmor* bodyArmor;
+    const Helmet* helmet;
+    const Shield* shield;
+    const Weapon* weapon;
 
 public:
     Equipment();
 
-    void equipBodyArmor(BodyArmor& armor);
-    void equipHelmet(Helmet& helmet);
-    void equipShield(Shield& shield);
-    void equipWeapon(Weapon& weapon);
+    uint32_t equip_item(const Item* item);
 
-    BodyArmor* getBodyArmor() const;
-    Helmet* getHelmet() const;
-    Shield* getShield() const;
-    Weapon* getWeapon() const;
+    uint32_t equip_body_armor(const BodyArmor* armor);
+    uint32_t equip_helmet(const Helmet* helmet);
+    uint32_t equip_shield(const Shield* shield);
+    uint32_t equip_weapon(const Weapon* weapon);
+
+    const BodyArmor* getBodyArmor() const;
+    const Helmet* getHelmet() const;
+    const Shield* getShield() const;
+    const Weapon* getWeapon() const;
 
     int getDefense() const;
 };
