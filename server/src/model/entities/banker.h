@@ -6,9 +6,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "model/entities/Citizen.h"
+#include "Citizen.h"
 
-#include "BankerCommands.h"
+#include "../commands/BankerCommands.h"
 
 class Banker: public Citizen {
 private:

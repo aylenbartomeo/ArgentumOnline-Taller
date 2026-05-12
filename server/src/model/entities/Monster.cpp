@@ -1,8 +1,8 @@
-#include "monster.h"
+#include "Monster.h"
 
 #include <utility>
 
-#include <FormulaEngine.h>
+#include "FormulaEngine.h"
 Monster::Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config):
         id(id),
         type(type),

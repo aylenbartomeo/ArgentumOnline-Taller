@@ -1,6 +1,6 @@
-#include "citizen.h"
+#include "Citizen.h"
 
-#include "player.h"
+#include "Player.h"
 
 Citizen::Citizen(uint32_t id, Position pos, NPCType type): id(id), pos(pos), type(type) {}
 
