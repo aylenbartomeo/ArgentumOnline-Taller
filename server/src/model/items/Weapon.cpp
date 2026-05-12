@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include "model/FormulaEngine.h"
+#include "server/src/model/items/Equipment.h"
 
 Weapon::Weapon(int id, const std::string& name, int minDamage, int maxDamage, WeaponType type,
                int attackRange, int manaCost):
@@ -50,3 +51,5 @@ uint16_t Weapon::calculateDamage(uint16_t attackPower, const FormulaEngine& form
     return formulas.calculate_base_damage(attackPower, static_cast<uint16_t>(this->minDamage),
                                           static_cast<uint16_t>(this->maxDamage));
 }
+
+uint32_t Weapon::equip_on(Equipment& equipment) const { return equipment.equip_weapon(this); }

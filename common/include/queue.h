@@ -97,7 +97,7 @@ public:
         q.push(val);
     }
 
-
+    // cppcheck-suppress duplInheritedMember
     T pop() {
         std::unique_lock<std::mutex> lck(mtx);
 
@@ -117,7 +117,7 @@ public:
 
         return val;
     }
-
+    // cppcheck-suppress duplInheritedMember
     void close() {
         std::unique_lock<std::mutex> lck(mtx);
 

@@ -30,6 +30,8 @@ public:
     int getMaxDefense() const;
 
     virtual int getDefense() const = 0;
+
+    bool is_wearable() const override { return true; }
 };
 
 #endif
