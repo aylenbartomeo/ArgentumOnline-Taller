@@ -65,9 +65,9 @@ private:
 
 public:
     Player(uint32_t id, const std::string& name, Race race, CharacterClass char_class, Position pos,
-            CombatManager& combat_manager, const PlayerConfig& playerConfig,
-            const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,
-            const InventoryConfig& inv_config, const ItemRegistry& item_registry);
+           CombatManager& combat_manager, const PlayerConfig& playerConfig,
+           const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,
+           const InventoryConfig& inv_config, const ItemRegistry& item_registry);
 
     /* Métodos de Combatant */
     void receive_damage(int amount) override;

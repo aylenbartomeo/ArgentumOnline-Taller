@@ -2,10 +2,10 @@
 
 #include <stdexcept>
 #include <utility>
+
 #include <FormulaEngine.h>
 
-MonsterFactory::MonsterFactory(MonsterConfigs configs):
-        configs(std::move(configs)) {}
+MonsterFactory::MonsterFactory(MonsterConfigs configs): configs(std::move(configs)) {}
 
 Monster MonsterFactory::create(uint32_t id, NPCType type, Position position) const {
     const auto config = this->configs.find(type);

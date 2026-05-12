@@ -12,7 +12,7 @@ private:
     MonsterConfigs configs;
 
 public:
-    MonsterFactory(MonsterConfigs configs);
+    explicit MonsterFactory(MonsterConfigs configs);
 
     Monster create(uint32_t id, NPCType type, Position position) const;
 };

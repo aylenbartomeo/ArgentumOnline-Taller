@@ -1,6 +1,7 @@
 #include "monster.h"
 
 #include <utility>
+
 #include <FormulaEngine.h>
 Monster::Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config):
         id(id),
@@ -37,9 +38,9 @@ void Monster::attack(Combatant& target) {
         return;
     }
 
-    uint16_t damage = FormulaEngine::getInstance().calculate_base_damage(static_cast<uint16_t>(this->strength),
-                                                           static_cast<uint16_t>(this->attack_min),
-                                                           static_cast<uint16_t>(this->attack_max));
+    uint16_t damage = FormulaEngine::getInstance().calculate_base_damage(
+            static_cast<uint16_t>(this->strength), static_cast<uint16_t>(this->attack_min),
+            static_cast<uint16_t>(this->attack_max));
     target.receive_damage(static_cast<int>(damage));
 }
 

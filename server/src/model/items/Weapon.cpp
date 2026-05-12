@@ -48,8 +48,9 @@ int Weapon::getAttackRange() const { return attackRange; }
 int Weapon::getManaCost() const { return manaCost; }
 
 uint16_t Weapon::calculateDamage(uint16_t attackPower) const {
-    return FormulaEngine::getInstance().calculate_base_damage(attackPower, static_cast<uint16_t>(this->minDamage),
-                                                              static_cast<uint16_t>(this->maxDamage));
+    return FormulaEngine::getInstance().calculate_base_damage(
+            attackPower, static_cast<uint16_t>(this->minDamage),
+            static_cast<uint16_t>(this->maxDamage));
 }
 
 uint32_t Weapon::equip_on(Equipment& equipment) const { return equipment.equip_weapon(this); }
