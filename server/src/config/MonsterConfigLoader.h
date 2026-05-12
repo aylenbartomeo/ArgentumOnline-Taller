@@ -3,7 +3,7 @@
 
 #include <filesystem>
 
-#include "server/src/config/MonsterConfig.h"
+#include "MonsterConfig.h"
 
 class MonsterConfigLoader {
 public:

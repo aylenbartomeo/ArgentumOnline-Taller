@@ -20,6 +20,8 @@ target_sources(lib_common
     src/dto/InventoryStatus.h
     src/dto/ItemActionDTO.h
     src/Protocol.h
+    utils/position.h
+    utils/types.h
     foo.h
     )
 
@@ -27,4 +29,5 @@ target_include_directories(lib_common
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils
 )

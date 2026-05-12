@@ -5,7 +5,7 @@
 
 class MagicUser {
 public:
-    virtual ~MagicUser() = default;
+    virtual ~MagicUser() noexcept = default;
 
     virtual uint16_t get_intelligence() const = 0;
     virtual int get_mana() const = 0;

@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "server/src/model/utils/types.h"
+#include "../common/utils/types.h"
 
 struct PlayerConfig {
     int baseStrength;
