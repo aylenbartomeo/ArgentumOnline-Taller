@@ -28,6 +28,13 @@ target_sources(argentum_online_server
     src/model/items/Weapon.cpp  
     src/model/items/WeaponFactory.cpp
 
+    # Network
+    src/Acceptor.cpp
+    src/ClientHandler.cpp
+    src/Receiver.cpp
+    src/Sender.cpp
+    src/Server.cpp
+
     PUBLIC
     # .h files
     src/config/ArmorConfigLoader.h
@@ -47,6 +54,12 @@ target_sources(argentum_online_server
     src/model/items/Shield.h
     src/model/items/Weapon.h
     src/model/items/WeaponFactory.h
+    
+    src/Acceptor.h
+    src/ClientHandler.h
+    src/Receiver.h
+    src/Sender.h
+    src/Server.h
     include/model/FormulaEngine.h
 )
 
