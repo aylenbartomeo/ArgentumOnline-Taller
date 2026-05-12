@@ -8,7 +8,6 @@
 #include "../utils/types.h"
 #include "interfaces/combatant.h"
 #include "interfaces/interactable.h"
-#include "model/FormulaEngine.h"
 #include "server/src/config/MonsterConfig.h"
 
 class Monster: public Combatant {
@@ -17,7 +16,6 @@ private:
     NPCType type;
     std::string zone;  // bosques, mazmorras
     Position pos;
-    FormulaEngine& formulas;
 
     int health;
     int max_health;
@@ -31,8 +29,7 @@ private:
 
 
 public:
-    Monster(uint32_t id, NPCType type, Position pos, FormulaEngine& formulas,
-            const MonsterConfig& config);
+    Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config);
 
     void move(const Position& new_pos);
     void receive_damage(int amount) override;

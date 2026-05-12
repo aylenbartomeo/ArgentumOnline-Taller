@@ -52,7 +52,6 @@ private:
 
     const ItemRegistry& item_registry;
     Inventory inventory;
-    FormulaEngine& formulas;
     CombatManager& combat_manager;
     bool can_use_magic;
     bool can_meditate;
@@ -66,7 +65,7 @@ private:
 
 public:
     Player(uint32_t id, const std::string& name, Race race, CharacterClass char_class, Position pos,
-           FormulaEngine& formulas, CombatManager& combat_manager, const PlayerConfig& playerConfig,
+           CombatManager& combat_manager, const PlayerConfig& playerConfig,
            const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,
            const InventoryConfig& inv_config, const ItemRegistry& item_registry);
 

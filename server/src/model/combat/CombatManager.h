@@ -20,11 +20,10 @@ public:
         strategies[WeaponType::MAGIC] = std::make_unique<MagicStrategy>();
     }
 
-    bool executeAttack(const Weapon& weapon, Combatant& attacker, Combatant& target,
-                       FormulaEngine& formulas) {
+    bool executeAttack(const Weapon& weapon, Combatant& attacker, Combatant& target) {
         auto it = strategies.find(weapon.getType());
         if (it != strategies.end()) {
-            return it->second->execute(weapon, attacker, target, formulas);
+            return it->second->execute(weapon, attacker, target);
         }
         return false;
     }
