@@ -19,7 +19,9 @@ void Server::run() {
 }
 
 Server::~Server() {
-    try { acceptor.stop(); } catch (const std::exception& e) {
+    try {
+        acceptor.stop();
+    } catch (const std::exception& e) {
         std::cerr << "Error apagando acceptor: " << e.what() << std::endl;
     }
     acceptor.join();

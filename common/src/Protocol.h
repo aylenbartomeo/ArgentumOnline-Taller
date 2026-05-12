@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+
 #include "socket/socket.h"
 
 /**
@@ -18,7 +19,7 @@ private:
     /* Aca abajo irian metodos para codificar y decodificar las diferentes acciones*/
 
 public:
-    Protocol(Socket& skt);
+    explicit Protocol(Socket& skt);
 
     /* Deshabilitamos la copia y habilitamos movimiento */
     Protocol(const Protocol&) = delete;

@@ -5,9 +5,9 @@
 #include <string>
 
 #include "../common/include/queue.h"
-#include "../common/src/socket/socket.h"
 #include "../common/include/thread.h"
 #include "../common/src/Protocol.h"
+#include "../common/src/socket/socket.h"
 
 /**
  * @class Receiver
@@ -21,7 +21,7 @@ private:
     std::string username;
 
 public:
-    Receiver(Socket& skt);
+    explicit Receiver(Socket& skt);
 
     void run() override;
 

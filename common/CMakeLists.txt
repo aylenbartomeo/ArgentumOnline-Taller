@@ -6,7 +6,7 @@ target_sources(lib_common
     src/socket/resolver.cpp
     src/socket/resolvererror.cpp
     src/RandomNumberGenerator.cpp
-    src/protocol.cpp
+    src/Protocol.cpp
     foo.cpp
     PUBLIC
     # .h files

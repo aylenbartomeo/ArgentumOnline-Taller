@@ -1,3 +1,3 @@
 #include "Protocol.h"
 
-Protocol::Protocol(Socket& skt) {}
+Protocol::Protocol(Socket& skt): skt(skt) {}
