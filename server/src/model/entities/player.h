@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "../utils/position.h"
-#include "../utils/types.h"
+#include "../common/utils/position.h"
+#include "../common/utils/types.h"
 #include "interfaces/MagicUser.h"
 #include "interfaces/combatant.h"
 #include "interfaces/interactable.h"
@@ -124,6 +124,8 @@ public:
     bool withdraw_gold(uint32_t amount);
     bool deposit_item(uint8_t inv_slot, uint16_t amount);
     bool withdraw_item(uint32_t item_id, uint16_t amount);
+
+    virtual ~Player() noexcept override = default;
 };
 
 #endif
