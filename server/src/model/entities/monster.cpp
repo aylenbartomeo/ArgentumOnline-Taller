@@ -1,14 +1,12 @@
 #include "monster.h"
 
 #include <utility>
-
-Monster::Monster(uint32_t id, NPCType type, Position pos, FormulaEngine& formulas,
-                 const MonsterConfig& config):
+#include <FormulaEngine.h>
+Monster::Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config):
         id(id),
         type(type),
         zone(config.zone),
         pos(pos),
-        formulas(formulas),
         health(config.maxHealth),
         max_health(config.maxHealth),
         detection_range(config.detectionRange),
@@ -25,7 +23,7 @@ void Monster::move(const Position& new_pos) {
 }
 
 void Monster::receive_damage(int amount) {
-    if (this->formulas.is_attack_eluded(static_cast<uint16_t>(this->agility))) {
+    if (FormulaEngine::getInstance().is_attack_eluded(static_cast<uint16_t>(this->agility))) {
         return;
     }
     this->health -= amount;
@@ -39,7 +37,7 @@ void Monster::attack(Combatant& target) {
         return;
     }
 
-    uint16_t damage = this->formulas.calculate_base_damage(static_cast<uint16_t>(this->strength),
+    uint16_t damage = FormulaEngine::getInstance().calculate_base_damage(static_cast<uint16_t>(this->strength),
                                                            static_cast<uint16_t>(this->attack_min),
                                                            static_cast<uint16_t>(this->attack_max));
     target.receive_damage(static_cast<int>(damage));
