@@ -9,6 +9,7 @@ if (NOT DEFINED CMAKE_CXX_STANDARD)
 endif()
 
 set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 project(argentum_online
     VERSION 1.0
