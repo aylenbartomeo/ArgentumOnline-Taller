@@ -4,57 +4,90 @@
 #include <arpa/inet.h>
 #include <stdexcept>
 
-void Protocol::send_login(const LoginDTO& loginDTO, Socket& skt) {
-    std::vector<uint8_t> buffer;
+Protocol::Protocol(Socket& skt) : skt(skt) {}
 
-    buffer.push_back(static_cast<uint8_t>(OPCODE::LOGIN));
+// =======================================================
+// CAPA DE BAJO NIVEL
+// =======================================================
 
-    uint16_t user_len = htons(static_cast<uint16_t>(loginDTO.username.size()));
-
-    const uint8_t* user_len_ptr = reinterpret_cast<const uint8_t*>(&user_len);
-    buffer.insert(buffer.end(), user_len_ptr, user_len_ptr + sizeof(uint16_t));
-
-    buffer.insert(buffer.end(), loginDTO.username.begin(), loginDTO.username.end());
-
-    uint16_t pass_len = htons(static_cast<uint16_t>(loginDTO.password.size()));
-    const uint8_t* pass_len_ptr = reinterpret_cast<const uint8_t*>(&pass_len);
-    buffer.insert(buffer.end(), pass_len_ptr, pass_len_ptr + sizeof(uint16_t));
-
-    buffer.insert(buffer.end(), loginDTO.password.begin(), loginDTO.password.end());
-
-    skt.sendall(buffer.data(), buffer.size());
+void Protocol::send_uint8(uint8_t value) {
+    skt.sendall(&value, sizeof(uint8_t));
 }
 
-LoginDTO Protocol::receive_login(Socket& skt) {
-    uint16_t user_len;
-    skt.recvall(reinterpret_cast<uint8_t*>(&user_len), sizeof(uint16_t));
-    user_len = ntohs(user_len);
+void Protocol::send_uint16(uint16_t value) {
+    uint16_t net_value = htons(value);
 
-    std::vector<char> user_buffer(user_len);
-    skt.recvall(reinterpret_cast<uint8_t*>(user_buffer.data()), user_len);
-    std::string username(user_buffer.begin(), user_buffer.end());
+    skt.sendall(reinterpret_cast<const uint8_t*>(&net_value), sizeof(uint16_t));
+}
+    
+void Protocol::send_uint32(uint32_t value) {
+    uint32_t net_value = htonl(value);
 
-    uint16_t pass_len;
-    skt.recvall(reinterpret_cast<uint8_t*>(&pass_len), sizeof(uint16_t));
-    pass_len = ntohs(pass_len);
+    skt.sendall(reinterpret_cast<const uint8_t*>(&net_value), sizeof(uint32_t));
+}
 
-    std::vector<char> pass_buffer(pass_len);
-    skt.recvall(reinterpret_cast<uint8_t*>(pass_buffer.data()), pass_len);
-    std::string password(pass_buffer.begin(), pass_buffer.end());
+void Protocol::send_string(const std::string& str) {
+    uint16_t length = htons(static_cast<uint16_t>(str.size()));
+
+    skt.sendall(reinterpret_cast<const uint8_t*>(&length), sizeof(uint16_t));
+    skt.sendall(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+}
+
+uint8_t Protocol::recv_uint8() {
+    uint8_t value;
+    skt.recvall(&value, sizeof(value)); 
+
+    return value;
+}
+
+uint16_t Protocol::recv_uint16() {
+    uint16_t net_value;
+    skt.recvall(&net_value, sizeof(net_value));
+
+    return ntohs(net_value);
+}
+
+uint32_t Protocol::recv_uint32() {
+    uint32_t net_value;
+    skt.recvall(&net_value, sizeof(net_value));
+
+    return ntohl(net_value);
+}
+
+std::string Protocol::recv_string() {
+    uint16_t len = recv_uint16();
+    std::vector<char> buffer(len);
+
+    skt.recvall(buffer.data(), len);
+
+    return std::string(buffer.begin(), buffer.end());
+}
+
+// =======================================================
+// CAPA SEMÁNTICA
+// =======================================================
+
+void Protocol::send_login(const LoginDTO& loginDTO) {
+    send_uint8(static_cast<uint8_t>(OPCODE::LOGIN));
+
+    send_string(loginDTO.username);
+    send_string(loginDTO.password);
+}
+
+LoginDTO Protocol::receive_login() {
+    std::string username = recv_string();
+    std::string password = recv_string();
 
     return LoginDTO(username, password);
 }
 
-void Protocol::send_start_move(const StartMoveDTO& startMoveDTO, Socket& skt) {
-    uint8_t opcode = static_cast<uint8_t>(OPCODE::START_MOVE);
-    uint8_t direction = startMoveDTO.direction;
-
-    skt.sendall(&opcode, sizeof(uint8_t));
-    skt.sendall(&direction, sizeof(uint8_t));
+void Protocol::send_start_move(const StartMoveDTO& startMoveDTO) {
+    send_uint8(static_cast<uint8_t>(OPCODE::START_MOVE));
+    send_uint8(startMoveDTO.direction);
 }
 
-StartMoveDTO Protocol::receive_start_move(Socket& skt) {
-    uint8_t direction;
-    skt.recvall(&direction, sizeof(uint8_t));
-    return StartMoveDTO(static_cast<Direction>(direction));
+StartMoveDTO Protocol::receive_start_move() {
+    uint8_t dir = recv_uint8();
+
+    return StartMoveDTO(static_cast<Direction>(dir));
 }

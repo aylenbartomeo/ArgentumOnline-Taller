@@ -5,26 +5,35 @@
 #include "../../include/dto/StartMoveDTO.h"
 #include "../../include/dto/AttackDTO.h"
 #include "../socket/socket.h"
+#include "../../include/OpCodes.h"
+#include "Snapshot.h"
 
-
-enum class OPCODE : uint8_t {
-    LOGIN = 0x01,
-    START_MOVE = 0x02,
-    STOP_MOVE = 0x03,
-    ATTACK = 0x04
-};
 
 class Protocol {
+private:
+    Socket& skt;
+
+    void send_uint8(uint8_t value);
+    void send_uint16(uint16_t value);
+    void send_uint32(uint32_t value);
+
+    void send_string(const std::string& str);
+
+    uint8_t recv_uint8();
+    uint16_t recv_uint16();
+    uint32_t recv_uint32();
+
+    std::string recv_string();
+
 public:
-    static void send_login(const LoginDTO& loginDTO, Socket& skt);
-    static LoginDTO receive_login(Socket& skt);
+    explicit Protocol(Socket& skt);
 
-    static void send_start_move(const StartMoveDTO& startMoveDTO, Socket& skt);
-    static StartMoveDTO receive_start_move(Socket& skt);
+    void send_login(const LoginDTO& loginDTO);
+    LoginDTO receive_login();
 
-    static void send_attack(const AttackDTO& attackDTO, Socket& skt);
-    static AttackDTO receive_attack(Socket& skt);
+    void send_start_move(const StartMoveDTO& dto);
+    StartMoveDTO receive_start_move();
+
 };
-
 
 #endif
