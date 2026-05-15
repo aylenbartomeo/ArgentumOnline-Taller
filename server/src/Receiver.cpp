@@ -10,14 +10,17 @@ void Receiver::run() {
             skt.recvall(&raw_opcode, sizeof(uint8_t));
 
             OPCODE opcode = static_cast<OPCODE>(raw_opcode);
+            Protocol protocol(skt);
 
             switch (opcode) {
                 case OPCODE::LOGIN: {
-                    LoginDTO login = Protocol::receive_login(skt);
+                    LoginDTO login = protocol.receive_login();
                     break;
                 }
                 case OPCODE::START_MOVE: {
-                    StartMoveDTO startMove = Protocol::receive_start_move(skt);
+                    // StartMoveDTO startMove = protocol.receive_start_move();
+                    protocol.receive_start_move(); // prueba sin asignar a variable para evitar warning de variable sin usar
+
                     // Nota: deberiamos de tener una cola ThreadSafeQueue compartida con GameLoop
                     // En lugar de que el DTO muera, se empuja a esta cola para ser procesado.
                     break;
