@@ -1,7 +1,8 @@
-#ifndef SERVER_SRC_CONFIG_CHARACTERCONFIGLOADER_H
-#define SERVER_SRC_CONFIG_CHARACTERCONFIGLOADER_H
+#ifndef CHARACTERCONFIGLOADER_H
+#define CHARACTERCONFIGLOADER_H
 
 #include <filesystem>
+#include "CharacterConfig.h"
 
 class CharacterConfigLoader {
 public:

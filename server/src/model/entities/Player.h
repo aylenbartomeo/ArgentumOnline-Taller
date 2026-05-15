@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "../common/utils/position.h"
-#include "../common/utils/types.h"
+#include "../../common/utils/position.h"
+#include "../../common/utils/types.h"
 #include "interfaces/MagicUser.h"
 #include "interfaces/combatant.h"
 #include "interfaces/interactable.h"

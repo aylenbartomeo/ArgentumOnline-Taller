@@ -4,8 +4,6 @@
 
 #include <cstdint>
 
-#include "utils/position.h"
-
 class Combatant {
 public:
     virtual ~Combatant() = default;
