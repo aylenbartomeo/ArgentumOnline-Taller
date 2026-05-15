@@ -1,7 +1,8 @@
-target_sources(argentum_online_tests
-    PRIVATE
-    # .cpp files
-    foo.cpp
-    PUBLIC
-    # .h files
-    )
+add_executable(taller_tests 
+    TestProtocol.cpp 
+)
+
+target_link_libraries(taller_tests PRIVATE
+    GTest::gtest_main
+    lib_common
+)

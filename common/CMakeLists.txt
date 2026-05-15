@@ -17,8 +17,6 @@ target_sources(lib_common
     include/RandomNumberGenerator.h
     include/queue.h
     include/thread.h
-    src/dto/InventoryStatus.h
-    src/dto/ItemActionDTO.h
     src/Protocol.h
     utils/position.h
     utils/types.h
