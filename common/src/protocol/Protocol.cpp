@@ -92,7 +92,7 @@ StartMoveDTO Protocol::receive_start_move() {
     return StartMoveDTO(static_cast<Direction>(dir));
 }
 
-void Protocol::send_snapshot(const SnapshotDTO& snap, Socket& skt) {
+void Protocol::send_snapshot(const SnapshotDTO& snap) {
     send_uint8(static_cast<uint8_t>(OPCODE::SNAPSHOT));
 
     send_uint16(static_cast<uint16_t>(snap.entities.size()));
@@ -108,7 +108,7 @@ void Protocol::send_snapshot(const SnapshotDTO& snap, Socket& skt) {
     }
 }
 
-SnapshotDTO Protocol::receive_snapshot(Socket& skt) {
+SnapshotDTO Protocol::receive_snapshot() {
     SnapshotDTO snap;
 
     uint16_t count = recv_uint16();
