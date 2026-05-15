@@ -4,32 +4,41 @@
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
-#include "common/foo.h"
-
 int main() try {
-    // Initialize SDL library
     SDL2pp::SDL sdl(SDL_INIT_VIDEO);
 
-    // Create main window: 640x480 dimensions, resizable, "SDL2pp demo" title
-    SDL2pp::Window window("SDL2pp demo", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480,
-                          SDL_WINDOW_RESIZABLE);
+    SDL2pp::Window window(
+        "Argentum Online - Cliente",
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        640, 480,
+        SDL_WINDOW_RESIZABLE);
 
-    // Create accelerated video renderer with default driver
     SDL2pp::Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    // Clear screen
-    renderer.Clear();
+    bool running = true;
+    SDL_Event event;
 
-    // Show rendered frame
-    renderer.Present();
+    while (running) {
+        // 1) Procesar eventos SDL acumulados desde el último frame
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                running = false;
+            } else if (event.type == SDL_KEYDOWN &&
+                       event.key.keysym.sym == SDLK_ESCAPE) {
+                running = false;
+            }
+        }
 
-    // 5 second delay
-    SDL_Delay(5000);
+        // 2) Render del frame (pantalla negra por ahora)
+        renderer.Clear();
+        renderer.Present();
 
-    // Here all resources are automatically released and library deinitialized
+        // 3) Frame pacing: ~60 fps, evita ocupar 100% CPU
+        SDL_Delay(16);
+    }
+
     return 0;
 } catch (std::exception& e) {
-    // If case of error, print it and exit with error
     std::cerr << e.what() << std::endl;
     return 1;
 }
