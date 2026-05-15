@@ -91,3 +91,41 @@ StartMoveDTO Protocol::receive_start_move() {
 
     return StartMoveDTO(static_cast<Direction>(dir));
 }
+
+void Protocol::send_snapshot(const SnapshotDTO& snap, Socket& skt) {
+    send_uint8(static_cast<uint8_t>(OPCODE::SNAPSHOT));
+
+    send_uint16(static_cast<uint16_t>(snap.entities.size()));
+
+    for (const auto& entity : snap.entities) {
+        send_uint32(entity.id);
+        send_uint8(static_cast<uint8_t>(entity.type));
+        send_uint16(entity.x);
+        send_uint16(entity.y);
+        send_uint16(entity.current_hp);
+        send_uint16(entity.max_hp);
+        send_uint16(entity.sprite_id);
+    }
+}
+
+SnapshotDTO Protocol::receive_snapshot(Socket& skt) {
+    SnapshotDTO snap;
+
+    uint16_t count = recv_uint16();
+
+    for (uint16_t i = 0; i < count; ++i) {
+        EntityDTO entity;
+
+        entity.id = recv_uint32();
+        entity.type = static_cast<EntityType>(recv_uint8());
+        entity.x = recv_uint16();
+        entity.y = recv_uint16();
+        entity.current_hp = recv_uint16();
+        entity.max_hp = recv_uint16();
+        entity.sprite_id = recv_uint16();
+
+        snap.entities.push_back(entity);
+    }
+
+    return snap;
+}

@@ -34,6 +34,11 @@ public:
     void send_start_move(const StartMoveDTO& dto);
     StartMoveDTO receive_start_move();
 
+    // --- ENVÍO (SERVIDOR -> CLIENTE) ---
+    void send_snapshot(const SnapshotDTO& snap, Socket& skt);
+
+    // --- RECEPCIÓN (CLIENTE LEYENDO AL SERVIDOR) ---
+    SnapshotDTO receive_snapshot(Socket& skt);
 };
 
 #endif
