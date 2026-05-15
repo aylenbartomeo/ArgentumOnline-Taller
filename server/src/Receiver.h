@@ -4,10 +4,10 @@
 #include <atomic>
 #include <string>
 
-#include "../common/include/queue.h"
-#include "../common/include/thread.h"
-#include "../common/src/Protocol.h"
-#include "../common/src/socket/socket.h"
+#include "../../common/include/queue.h"
+#include "../../common/include/thread.h"
+#include "../../common/src/protocol/Protocol.h"
+#include "../../common/src/socket/socket.h"
 
 /**
  * @class Receiver
@@ -17,8 +17,8 @@
  */
 class Receiver: public Thread {
 private:
-    Protocol protocol;
     std::string username;
+    Socket& skt;
 
 public:
     explicit Receiver(Socket& skt);

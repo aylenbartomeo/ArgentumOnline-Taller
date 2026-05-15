@@ -4,9 +4,9 @@
 #include <atomic>
 #include <string>
 
-#include "../common/include/queue.h"
-#include "../common/include/thread.h"
-#include "../common/src/socket/socket.h"
+#include "../../common/include/queue.h"
+#include "../../common/include/thread.h"
+#include "../../common/src/socket/socket.h"
 
 #include "Receiver.h"
 #include "Sender.h"

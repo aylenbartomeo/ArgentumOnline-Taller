@@ -5,8 +5,8 @@
 #include <memory>
 #include <utility>
 
-#include "../common/include/thread.h"
-#include "../common/src/socket/socket.h"
+#include "../../common/include/thread.h"
+#include "../../common/src/socket/socket.h"
 
 #include "ClientHandler.h"
 
