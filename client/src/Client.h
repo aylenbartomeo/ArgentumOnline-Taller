@@ -5,7 +5,7 @@
 
 class Client {
 private:
-    int clientID;
+    int clientId;
     const char* username;
     Socket skt;
     Protocol protocol;
