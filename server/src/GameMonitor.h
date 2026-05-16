@@ -11,22 +11,24 @@
 
 /**
  * @class GameMonitor
- * @brief Pendiente de implementación. Este monitor se encargaría de gestionar el estado global del juego,
- * como el listado de partidas activas, la asignación de jugadores a partidas, etc.
+ * @brief Pendiente de implementación. 
  */
 class GameMonitor {
 private:
     std::mutex mtx;
-    std::map<int, std::unique_ptr<Match>> Matches;
+    std::map<int, std::unique_ptr<Match>> matches;
+    int GameId = 0;
 
 public:
-    explicit GameMonitor();
+    GameMonitor();
+    int createMatch(int playerId, std::string& creatorPlayerName, Queue<Snapshot>& senderQueue);
+    bool joinMatch(int playerId, int matchId, std::string& playerName, Queue<Snapshot>& senderQueue);
+    void removePlayerFromMatch(int playerId, int matchId);
+    std::vector<std::string> listActiveMatches();
+    void deleteAllMatches();
 
-    int create_match(int playerId);
-    bool join_match(int playerId, int matchId);
-    bool leave_match(int playerId, int matchId);
-    std::vector<std::string> list_active_matches();
-    void delete_all_matches();
+    std::string getMapFromId(int matchId);
+    Queue<CommandDTO>* getQueueFromMatch(int matchId);
 
     /* Deshabilito las copias */
     GameMonitor(const GameMonitor&) = delete;
@@ -36,8 +38,7 @@ public:
     GameMonitor(GameMonitor&&) = default;
     GameMonitor& operator=(GameMonitor&&) = default;
 
-    ~GameMonitor();
-
+    ~GameMonitor() = default;
 };
 
 #endif

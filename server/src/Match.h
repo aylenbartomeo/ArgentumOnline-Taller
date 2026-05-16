@@ -18,19 +18,19 @@ private:
     std::string creatorPlayerName;
     Queue<CommandDTO> queueCMD;
     std::atomic<bool> isOnline;
-    GameLoop gameLoop;
-    int cantPlayers = 0;
+    int cantPlayers;
     int cantMaxPlayers;
+    GameLoop gameLoop;
 
 public:
     explicit Match(int matchId, const std::string& creatorPlayerName);
     
     std::string getCreatorPlayerName() const;
     int getMatchId() const;
-    bool addPlayer(const std::string& playerName, Queue<Snapshot>& sender_queue);
+    bool addPlayer(int playerId, const std::string& playerName, Queue<Snapshot>& sender_queue);
     bool isFull() const;  
-    bool removePlayer(const std::string& playerName);
-    Queue<CommandDTO>& getQueue() { return this->queueCMD; };
+    bool removePlayer(int playerId);
+    Queue<CommandDTO>& getQueue();
     std::string getMap();
 
     ~Match();

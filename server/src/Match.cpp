@@ -5,15 +5,17 @@ Match::Match(int matchId, const std::string& creatorPlayerName) :
         creatorPlayerName(creatorPlayerName),
         queueCMD(),
         isOnline(true),
-        gameLoop() {
+        cantPlayers(0),
+        cantMaxPlayers(10),
+        gameLoop(queueCMD) {
             gameLoop.start();
         }
-
+        
 std::string Match::getCreatorPlayerName() const { return this->creatorPlayerName; }
 
 int Match::getMatchId() const { return this->matchId; }
 
-bool Match::addPlayer(const std::string& playerName, Queue<Snapshot>& sender_queue) {
+bool Match::addPlayer(int playerId, const std::string& playerName, Queue<Snapshot>& sender_queue) {
     if (isFull()) {
         return false;
     }
@@ -23,13 +25,15 @@ bool Match::addPlayer(const std::string& playerName, Queue<Snapshot>& sender_que
 
 bool Match::isFull() const { return cantPlayers >= cantMaxPlayers; }
 
-bool Match::removePlayer(const std::string& playerName) {
+bool Match::removePlayer(int playerId) {
     if (cantPlayers <= 0) {
         return false;
     }
     cantPlayers--;
     return true;
 }
+
+Queue<CommandDTO>& Match::getQueue() { return this->queueCMD; }
 
 std::string Match::getMap() { return std::string(); }
 
