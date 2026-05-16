@@ -225,9 +225,17 @@ endif()
 
 # --- SECCIÓN DEL INSTALADOR ---
 
-# Instalamos los binarios que ya fueron definidos arriba
-install(TARGETS argentum_online_server argentum_online_client 
-        DESTINATION bin)
+# Instalamos los binarios que ya fueron definidos arriba (solo los que se hayan habilitado)
+if(TARGET argentum_online_server AND TARGET argentum_online_client)
+    install(TARGETS argentum_online_server argentum_online_client
+            DESTINATION bin)
+elseif(TARGET argentum_online_client)
+    install(TARGETS argentum_online_client
+            DESTINATION bin)
+elseif(TARGET argentum_online_server)
+    install(TARGETS argentum_online_server
+            DESTINATION bin)
+endif()
 
 # Instalamos los recursos (muy importante para que el cliente encuentre las imágenes)
 # Usamos CMAKE_SOURCE_DIR para referenciar la carpeta de origen
