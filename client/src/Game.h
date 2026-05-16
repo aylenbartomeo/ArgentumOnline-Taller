@@ -12,6 +12,9 @@ private:
     Window window;
     EventHandler events;
 
+    float playerX;
+    float playerY;
+
 public:
     Game();
     ~Game() = default;
@@ -25,6 +28,10 @@ public:
     /* Permito movimientos */
     Game(Game&&) = default;
     Game& operator=(Game&&) = default;
+
+private:
+    void update(const FrameInput& input, float dt);
+    void render();
 };
 
 #endif

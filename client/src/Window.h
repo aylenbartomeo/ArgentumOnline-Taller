@@ -14,8 +14,9 @@ public:
     Window(const std::string& title, int width, int height);
     ~Window() = default;
 
-    void clear();
-    void present();
+    SDL2pp::Renderer& getRenderer();
+    int getWidth();
+    int getHeight();
 
     /* No permito copias */
     Window(const Window&) = delete;

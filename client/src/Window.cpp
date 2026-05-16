@@ -9,10 +9,14 @@ Window::Window(const std::string& title, int width, int height)
              SDL_WINDOW_RESIZABLE)
     , renderer(window, -1, SDL_RENDERER_ACCELERATED) {}
 
-void Window::clear() {
-    renderer.Clear();
+SDL2pp::Renderer& Window::getRenderer() {
+    return renderer;
 }
 
-void Window::present() {
-    renderer.Present();
+int Window::getWidth() {
+    return window.GetWidth();
+}
+
+int Window::getHeight() {
+    return window.GetHeight();
 }
