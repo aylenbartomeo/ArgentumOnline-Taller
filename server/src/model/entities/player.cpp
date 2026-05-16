@@ -36,7 +36,7 @@ Player::Player(uint32_t id, const std::string& name, Race race, CharacterClass c
         can_meditate(classConfig.canUseMagic && classConfig.meditationFactor > 0.0f),
         recovery_factor(raceConfig.recoveryFactor),
         meditation_factor(classConfig.meditationFactor),
-        state(PlayerState::Alive) {
+        state(PlayerState::ALIVE) {
 
     this->max_health = this->formulas.calculate_max_life(static_cast<uint16_t>(this->constitution),
                                                          classConfig.lifeFactor,
@@ -108,22 +108,24 @@ Position Player::get_position() const { return this->pos; }
 
 PlayerState Player::getState() const { return this->state; }
 
-bool Player::isMeditating() const { return this->state == PlayerState::Meditating; }
+int Player::getId() const { return this->id; }
 
-bool Player::isGhost() const { return this->state == PlayerState::Ghost; }
+bool Player::isMeditating() const { return this->state == PlayerState::MEDITATING; }
+
+bool Player::isGhost() const { return this->state == PlayerState::GHOST; }
 
 bool Player::startMeditating() {
-    if (this->state != PlayerState::Alive || !this->can_meditate || this->mana >= this->max_mana) {
+    if (this->state != PlayerState::ALIVE || !this->can_meditate || this->mana >= this->max_mana) {
         return false;
     }
 
-    this->state = PlayerState::Meditating;
+    this->state = PlayerState::MEDITATING;
     return true;
 }
 
-void Player::stopMeditating() {
-    if (this->state == PlayerState::Meditating) {
-        this->state = PlayerState::Alive;
+void Player::stopMEDITATING() {
+    if (this->state == PlayerState::MEDITATING) {
+        this->state = PlayerState::ALIVE;
     }
 }
 
@@ -205,7 +207,7 @@ bool Player::resurrect(Position respawnPosition) {
     }
 
     this->pos = respawnPosition;
-    this->state = PlayerState::Alive;
+    this->state = PlayerState::ALIVE;
     this->health = this->max_health;
 
     if (this->can_use_magic) {
