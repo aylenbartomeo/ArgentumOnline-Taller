@@ -1,10 +1,10 @@
-#ifndef SERVER_SRC_CONFIG_CHARACTERCONFIG_H
-#define SERVER_SRC_CONFIG_CHARACTERCONFIG_H
+#ifndef CHARACTERCONFIG_H
+#define CHARACTERCONFIG_H
 
 #include <cstdint>
 #include <unordered_map>
 
-#include "../common/utils/types.h"
+#include "../../common/utils/types.h"
 
 struct PlayerConfig {
     int baseStrength;

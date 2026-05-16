@@ -4,10 +4,10 @@
 #include <atomic>
 #include <string>
 
-#include "../common/include/queue.h"
-#include "../common/include/thread.h"
-#include "../common/src/Protocol.h"
-#include "../common/src/socket/socket.h"
+#include "../../common/include/queue.h"
+#include "../../common/include/thread.h"
+#include "../../common/src/Protocol.h"
+#include "../../common/src/socket/socket.h"
 
 /**
  * @class Sender

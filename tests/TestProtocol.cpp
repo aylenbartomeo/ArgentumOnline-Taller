@@ -8,20 +8,25 @@
 TEST(ProtocolTest, LoginSerializationIsSymmetric) {
     // 1. Arrange (Preparar)
     LoginDTO original_dto("jugador1", "mi_password_secreta");
+    
     Socket acceptor_skt("8080");
     Socket client_skt("localhost", "8080");
     Socket server_skt = acceptor_skt.accept();
 
+    // NUEVO: Instanciamos un protocolo para cada lado de la comunicación
+    Protocol client_protocol(client_skt);
+    Protocol server_protocol(server_skt);
+
     // 2. Act (Ejecutar)
-    // El cliente envía el DTO
-    Protocol::send_login(original_dto, client_skt);
+    // El cliente usa su protocolo para enviar el DTO
+    client_protocol.send_login(original_dto);
     
-    // (Simulamos que el Receiver leyó el OpCode del socket servidor)
+    // (Simulamos que el Receiver leyó el OpCode del socket servidor manualmente)
     uint8_t opcode;
     server_skt.recvall(&opcode, 1);
     
-    // El servidor recibe y reconstruye el DTO
-    LoginDTO received_dto = Protocol::receive_login(server_skt);
+    // El servidor usa su protocolo para recibir y reconstruir el DTO
+    LoginDTO received_dto = server_protocol.receive_login();
 
     // 3. Assert (Verificar)
     // Comprobamos que lo que salió del servidor sea idéntico a lo que entró por el cliente
@@ -39,11 +44,17 @@ TEST(ProtocolTest, StartMoveSerializationIsSymmetric) {
     Socket client_skt("localhost", "8081");
     Socket server_skt = acceptor_skt.accept();
 
+    // NUEVO: Instanciamos un protocolo para cada lado
+    Protocol client_protocol(client_skt);
+    Protocol server_protocol(server_skt);
+
     // 2. Act
-    Protocol::send_start_move(original_dto, client_skt);
+    client_protocol.send_start_move(original_dto);
+    
     uint8_t opcode;
     server_skt.recvall(&opcode, 1);
-    StartMoveDTO received_dto = Protocol::receive_start_move(server_skt);
+    
+    StartMoveDTO received_dto = server_protocol.receive_start_move();
 
     // 3. Assert
     EXPECT_EQ(opcode, static_cast<uint8_t>(OPCODE::START_MOVE));
