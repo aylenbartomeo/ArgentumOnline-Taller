@@ -5,15 +5,14 @@
 #include <unordered_map>
 
 #include "server/src/config/MonsterConfig.h"
-#include "server/src/model/entities/monster.h"
+#include "server/src/model/entities/Monster.h"
 
 class MonsterFactory {
 private:
     MonsterConfigs configs;
-    FormulaEngine& formulas;
 
 public:
-    MonsterFactory(MonsterConfigs configs, FormulaEngine& formulas);
+    explicit MonsterFactory(MonsterConfigs configs);
 
     Monster create(uint32_t id, NPCType type, Position position) const;
 };

@@ -1,6 +1,11 @@
 #ifndef COMMAND_DTO_H
 #define COMMAND_DTO_H
 
+#include <cstdint>
+#include <string>
+#include <variant>
+#include <vector>
+
 #define MEDITATE_CMD "/meditar"
 #define RESPAWN_CMD "/resucitar"
 #define HEAL_CMD "/curar"
@@ -19,7 +24,7 @@
 #define REJECT_CLAN_CMD "/rechazar-clan"
 #define KICK_CLAN_CMD "/clan-kick"
 
-enum class PlayerState {
+enum PlayerState {
     ALIVE,
     GHOST,
     MEDITATING,
@@ -42,65 +47,44 @@ struct InventoryStateDTO {
     uint32_t equippedShieldId;
 };
 
-enum class ActionItemType : uint8_t { 
-    TAKE, 
-    DROP, 
-    EQUIP, 
-    UNEQUIP 
-};
+enum ActionItemType { TAKE, DROP, EQUIP, UNEQUIP };
 
 struct ItemCommandDTO {
     ActionItemType action;
     uint8_t inventorySlot;
 };
 
-enum class Movement : uint8_t { 
-    UP, 
-    DOWN, 
-    LEFT, 
-    RIGHT, 
+enum Movement {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT,
     DIAGONAL_UP_LEFT,
     DIAGONAL_UP_RIGHT,
     DIAGONAL_DOWN_LEFT,
     DIAGONAL_DOWN_RIGHT,
-    STOP 
+    STOP
 };
 
-enum class interactCitizen : uint8_t {
-    RESPAWN,
-    HEAL,
-    BUY,
-    SELL,
-    DEPOSIT,
-    WITHDRAW
-};
+enum interactCitizen { RESPAWN, HEAL, BUY, SELL, DEPOSIT, WITHDRAW };
 
-enum class ClanCommandType : uint8_t {
-    FOUND,
-    JOIN,
-    LEAVE,
-    CHECK,
-    ACCEPT,
-    REJECT,
-    KICK
-};
+enum ClanCommandType { FOUND, JOIN, LEAVE, CHECK, ACCEPT, REJECT, KICK };
 
-enum class ActionType : uint8_t {
-    MOVE,
-    ATTACK,
-    INTERACT,
-    USE_ITEM,
-    CLAN_ACTION
-};
+enum ActionType { MOVE, ATTACK, INTERACT, USE_ITEM, CLAN_ACTION, DISCONNECT };
 
 struct CommandDTO {
     enum ActionType type;
     enum Movement movement;
     enum interactCitizen interactAction;
     enum ClanCommandType clanAction;
-    uint8_t id_jugador;
-    float angle;
-
+    uint32_t playerId;
 };
+
+struct JoinEvent {
+    uint32_t playerId;
+    std::string username;
+};
+
+using GameEvent = std::variant<JoinEvent, CommandDTO>;
 
 #endif

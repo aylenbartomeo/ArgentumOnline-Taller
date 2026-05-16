@@ -4,13 +4,21 @@
 #include <cstdint>
 
 class FormulaEngine {
-public:
+private:
     FormulaEngine() = default;
+
+public:
     ~FormulaEngine() = default;
 
     // Evitamos copias para garantizar que sea una instancia única
     FormulaEngine(const FormulaEngine&) = delete;
     FormulaEngine& operator=(const FormulaEngine&) = delete;
+
+    // Método estático que devuelve la única instancia
+    static FormulaEngine& getInstance() {
+        static FormulaEngine instance;
+        return instance;
+    }
 
     // Calcula la vida máxima: Constitucion * FClaseVida * FRazaVida * Nivel
     uint16_t calculate_max_life(uint16_t constitution, float class_factor, float race_factor,

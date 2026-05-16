@@ -13,10 +13,10 @@ target_sources(argentum_online_server
     src/model/FormulaEngine.cpp
 
     # Entities
-    src/model/entities/player.cpp
-    src/model/entities/monster.cpp
+    src/model/entities/Player.cpp
+    src/model/entities/Monster.cpp
     src/model/entities/MonsterFactory.cpp
-    src/model/entities/citizen.cpp
+    src/model/entities/Citizen.cpp
 
     # Inventory (¡NUEVO!)
     src/model/inventory/inventory.cpp
@@ -38,6 +38,8 @@ target_sources(argentum_online_server
     src/Receiver.cpp
     src/Sender.cpp
     src/Server.cpp
+    src/ConnectionMonitor.cpp
+    src/GameLoop.cpp
 
     PUBLIC
     # .h files
@@ -66,6 +68,8 @@ target_sources(argentum_online_server
     src/Receiver.h
     src/Sender.h
     src/Server.h
+    src/ConnectionMonitor.h
+    src/GameLoop.h
     include/model/FormulaEngine.h
 )
 

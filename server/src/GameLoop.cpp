@@ -1,135 +1,81 @@
 #include "GameLoop.h"
-#include <chrono>
 
-#define SKIN_CIUDADANO_INICIAL 1
-#define SPEED 5.0f
+GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor):
+        isRunning(true), gameQueue(gameQueue), monitor(monitor) {}
 
-GameLoop::GameLoop(Queue<CommandDTO>& queueCMD): 
-        queueCMD(queueCMD), 
-        map(),
-        anyPlayers(false) {}
+void GameLoop::run() {
+    const int MS_PER_FRAME = 33;
 
-void GameLoop::addPlayerToMatch(const int playerId, std::string& playerName) {
-    auto player = std::make_unique<Player>(playerId, playerName);
-    // Asignar posición inicial en el mapa
-    std::pair<float, float> initPos = map.getInitialPosition();
-    player->setX(initPos.first);
-    player->setY(initPos.second);
+    try {
+        while (isRunning) {
+            auto start_time = std::chrono::steady_clock::now();
 
-    // Configuración inicial por defecto (Skin/Ropa inicial del AO)
-    player->setSkin(SKIN_CIUDADANO_INICIAL); 
-    players.push_back(player.release());
-    // Control de estado de la partida
-    if (!anyPlayers) {
-        anyPlayers = true; 
-    }
-}
+            processInputs();
 
-void GameLoop::removePlayerFromMatch(int playerId) {}
+            updateWorld(MS_PER_FRAME);
 
-bool GameLoop::PlayerColisionOnTheMap(float new_x, float new_y) {
-    return this->map.playerColision(new_x, new_y);
-}
+            broadcastState();
 
-void GameLoop::exec_movement(Player* player) {
-    float diagonalSpeed = SPEED / std::sqrt(2.0f);
-    float new_x = player->getX();
-    float new_y = player->getY();
-    switch (player->getMovement()) {
-        case Movement::UP:
-            new_y += SPEED;
-            if (map.heightLimit() < new_y) 
-                return; 
-            break;
-        case Movement::DOWN:
-            new_y -= SPEED;
-            if (new_y < 0) 
-                return; 
-            break;
-        case Movement::LEFT:
-            new_x -= SPEED;
-            if (new_x < 0) 
-                return; 
-            break;
-        case Movement::RIGHT:
-            new_x += SPEED;
-            if (map.widthLimit() < new_x) 
-                return; 
-            break;
-        case Movement::DIAGONAL_UP_LEFT:
-            new_x -= diagonalSpeed;
-            new_y += diagonalSpeed;
-            if (new_x < 0 || map.heightLimit() < new_y) 
-                return; 
-            break;
-        case Movement::DIAGONAL_UP_RIGHT:
-            new_x += diagonalSpeed;
-            new_y += diagonalSpeed;
-            if (map.widthLimit() < new_x || map.heightLimit() < new_y) 
-                return; 
-            break;
-        case Movement::DIAGONAL_DOWN_LEFT:
-            new_x -= diagonalSpeed;
-            new_y -= diagonalSpeed;
-            if (new_x < 0 || new_y < 0) 
-                return; 
-            break;
-        case Movement::DIAGONAL_DOWN_RIGHT:
-            new_x += diagonalSpeed;
-            new_y -= diagonalSpeed;
-            if (map.widthLimit() < new_x || new_y < 0) 
-                return; 
-            break;
-        case Movement::STOP:
-            break;
-    }
-    if (PlayerColisionOnTheMap(new_x, new_y)) {
-        // Si hay colisión, no se actualizan las coordenadas
-       return;
-    }
-    player->setX(new_x);
-    player->setY(new_y);
+            auto end_time = std::chrono::steady_clock::now();
+            auto elapsed =
+                    std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time)
+                            .count();
 
-}
-
-Player* GameLoop::getPlayer(int playerId) {
-     for (Player *p : players) {
-        if(p->getId() == playerId)
-            return p;
-    }
-    return nullptr;
-}
-
-void GameLoop::run() {    
-    // 20 Ticks por segundo = 50 milisegundos por ciclo
-    const std::chrono::milliseconds TICK_RATE(50);
-    auto next_tick = std::chrono::steady_clock::now();
-
-    while (should_keep_running()) {
-        next_tick += TICK_RATE;
-
-        // --- PROCESAR COMANDOS DE RED ---
-        CommandDTO cmd;
-        // Vaciamos todos los comandos que se acumularon en los últimos 50ms
-        while (this->queueCMD.try_pop(cmd)) {
-            // Acá asocias el comando al player correspondiente
-            Player* player = this->getPlayer(cmd.id_jugador);
-            player->setMovement(cmd.movement);
+            if (elapsed < MS_PER_FRAME) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(MS_PER_FRAME - elapsed));
+            }
         }
-
-        // --- ACTUALIZAR LÓGICA ---
-        // Iterar sobre tus jugadores y aplicar la física/colisiones
-        for (auto& player : this->players) {
-            this->exec_movement(player); 
-        }
-
-        // --- BROADCAST SNAPSHOT ---
-        // Aquí generarías el WorldSnapshot y lo meterías en las sendersQueues 
-        // de los jugadores para que el cliente de tu compañera dibuje.
-
-        // --- SUEÑO INTELIGENTE ---
-        // Se duerme el tiempo justo que sobre. Si la lógica tardó 10ms, se duerme 40ms.
-        std::this_thread::sleep_until(next_tick);
+    } catch (const std::exception& e) {
+        isRunning = false;
     }
 }
 
+void GameLoop::processInputs() {
+    GameEvent event;
+
+    while (gameQueue.try_pop(event)) {
+        if (std::holds_alternative<JoinEvent>(event)) {
+            JoinEvent joinData = std::get<JoinEvent>(event);
+
+            // world.add_player(joinData.clientId, joinData.username);
+            std::cout << "[GAMELOOP] Nace el jugador: " << joinData.username << std::endl;
+        } else if (std::holds_alternative<CommandDTO>(event)) {
+            CommandDTO comando = std::get<CommandDTO>(event);
+
+            switch (comando.type) {
+                case ActionType::MOVE:
+                    // world.move_entity(comando.clientId, comando.movement);
+                    break;
+
+                case ActionType::ATTACK:
+                    // world.player_attack(comando.clientId);
+                    break;
+
+                case ActionType::DISCONNECT:
+                    // world.remove_player(comando.clientId);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+void GameLoop::updateWorld(float delta_time) {
+    // Acá se apdatea todo..
+    (void)delta_time;
+    // world.update_monsters(delta_time);
+    // world.update_spawns(delta_time);
+}
+
+void GameLoop::broadcastState() {
+    // 1. Le pedimos al mundo la foto actual
+    // SnapshotDTO snap = world.get_snapshot();
+    SnapshotDTO snap;  // (Dummy temporal para que compile)
+
+    // 2. Le pasamos el paquete al Monitor para que lo distribuya a las colas de los clientes
+    monitor.broadcast(snap);
+}
+
+void GameLoop::stop() { isRunning = false; }

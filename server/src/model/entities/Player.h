@@ -4,9 +4,14 @@
 #include <string>
 #include <vector>
 
+<<<<<<< HEAD:server/src/model/entities/player.h
 #include "../common/utils/position.h"
 #include "../common/utils/types.h"
 #include "../common/src/CommandDTO.h"
+=======
+#include "../../common/utils/position.h"
+#include "../../common/utils/types.h"
+>>>>>>> origin/feature/server:server/src/model/entities/Player.h
 #include "interfaces/MagicUser.h"
 #include "interfaces/combatant.h"
 #include "interfaces/interactable.h"
@@ -54,7 +59,6 @@ private:
 
     const ItemRegistry& item_registry;
     Inventory inventory;
-    FormulaEngine& formulas;
     CombatManager& combat_manager;
     bool can_use_magic;
     bool can_meditate;
@@ -68,7 +72,7 @@ private:
 
 public:
     Player(uint32_t id, const std::string& name, Race race, CharacterClass char_class, Position pos,
-           FormulaEngine& formulas, CombatManager& combat_manager, const PlayerConfig& playerConfig,
+           CombatManager& combat_manager, const PlayerConfig& playerConfig,
            const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,
            const InventoryConfig& inv_config, const ItemRegistry& item_registry);
 

@@ -4,8 +4,7 @@
 
 class MagicStrategy: public AttackStrategy {
 public:
-    bool execute(const Weapon& weapon, Combatant& attacker, Combatant& target,
-                 FormulaEngine& formulas) override {
+    bool execute(const Weapon& weapon, Combatant& attacker, Combatant& target) override {
         // Intentamos convertir al atacante en un usuario de magia
         MagicUser* caster = dynamic_cast<MagicUser*>(&attacker);
 
@@ -26,7 +25,7 @@ public:
 
         caster->consume_mana(mana_cost);
 
-        uint16_t damage = weapon.calculateDamage(caster->get_intelligence(), formulas);
+        uint16_t damage = weapon.calculateDamage(caster->get_intelligence());
 
         target.receive_damage(static_cast<int>(damage));
 

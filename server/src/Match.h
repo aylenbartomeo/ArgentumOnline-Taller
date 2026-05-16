@@ -1,10 +1,13 @@
 #ifndef MATCH_H
 #define MATCH_H
 
-#include "GameLoop.h"
+#include <string>
+
 #include "../common/include/queue.h"
 #include "../common/src/CommandDTO.h"
 #include "../common/src/Snapshot.h"
+
+#include "GameLoop.h"
 
 /**
  * @class Match
@@ -24,17 +27,23 @@ private:
 
 public:
     explicit Match(int matchId, const std::string& creatorPlayerName);
-    
+
     std::string getCreatorPlayerName() const;
     int getMatchId() const;
+<<<<<<< HEAD
     bool addPlayer(int playerId, const std::string& playerName, Queue<Snapshot>& sender_queue);
     bool isFull() const;  
     bool removePlayer(int playerId);
     Queue<CommandDTO>& getQueue();
+=======
+    bool addPlayer(const std::string& playerName, Queue<Snapshot>& sender_queue);
+    bool isFull() const;
+    bool removePlayer(const std::string& playerName);
+    Queue<CommandDTO>& getQueue() { return this->queueCMD; }
+>>>>>>> origin/feature/server
     std::string getMap();
 
     ~Match();
-
 };
 
 #endif

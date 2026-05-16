@@ -32,7 +32,7 @@ public:
     WeaponType getType() const;
     int getAttackRange() const;
     int getManaCost() const;
-    uint16_t calculateDamage(uint16_t attackPower, const FormulaEngine& formulas) const;
+    uint16_t calculateDamage(uint16_t attackPower) const;
     bool is_wearable() const override { return true; }
     uint32_t equip_on(Equipment& equipment) const override;
 };
