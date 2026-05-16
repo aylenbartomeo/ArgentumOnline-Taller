@@ -3,7 +3,6 @@
 
 class EventHandler {
 private:
-
 public:
     EventHandler();
 

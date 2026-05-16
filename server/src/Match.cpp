@@ -1,13 +1,16 @@
 #include "Match.h"
 
-Match::Match(int matchId, const std::string& creatorPlayerName) : 
-        matchId(matchId), 
+#include <string>
+
+Match::Match(int matchId, const std::string& creatorPlayerName):
+        matchId(matchId),
         creatorPlayerName(creatorPlayerName),
         queueCMD(),
         isOnline(true),
-        gameLoop() {
-            gameLoop.start();
-        }
+        gameLoop(),
+        cantMaxPlayers(0) {
+    gameLoop.start();
+}
 
 std::string Match::getCreatorPlayerName() const { return this->creatorPlayerName; }
 

@@ -1,25 +1,26 @@
 #include "Protocol.h"
-#include <vector>
-#include <cstring>
-#include <arpa/inet.h>
-#include <stdexcept>
 
-Protocol::Protocol(Socket& skt) : skt(skt) {}
+#include <cstring>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+#include <arpa/inet.h>
+
+Protocol::Protocol(Socket& skt): skt(skt) {}
 
 // =======================================================
 // CAPA DE BAJO NIVEL
 // =======================================================
 
-void Protocol::send_uint8(uint8_t value) {
-    skt.sendall(&value, sizeof(uint8_t));
-}
+void Protocol::send_uint8(uint8_t value) { skt.sendall(&value, sizeof(uint8_t)); }
 
 void Protocol::send_uint16(uint16_t value) {
     uint16_t net_value = htons(value);
 
     skt.sendall(reinterpret_cast<const uint8_t*>(&net_value), sizeof(uint16_t));
 }
-    
+
 void Protocol::send_uint32(uint32_t value) {
     uint32_t net_value = htonl(value);
 
@@ -35,7 +36,7 @@ void Protocol::send_string(const std::string& str) {
 
 uint8_t Protocol::recv_uint8() {
     uint8_t value;
-    skt.recvall(&value, sizeof(value)); 
+    skt.recvall(&value, sizeof(value));
 
     return value;
 }
@@ -69,27 +70,29 @@ std::string Protocol::recv_string() {
 
 void Protocol::send_login(const LoginDTO& loginDTO) {
     send_uint8(static_cast<uint8_t>(OPCODE::LOGIN));
-
     send_string(loginDTO.username);
     send_string(loginDTO.password);
 }
 
-LoginDTO Protocol::receive_login() {
-    std::string username = recv_string();
-    std::string password = recv_string();
+/*void Protocol::receive_login(CommandDTO& dto) {
+    dto.username = recv_string();
+    dto.password = recv_string();
+}*/
 
-    return LoginDTO(username, password);
-}
+uint8_t Protocol::receiveAction() { return recv_uint8(); }
 
-void Protocol::send_start_move(const StartMoveDTO& startMoveDTO) {
+std::string Protocol::receiveUsername() { return recv_string(); }
+
+std::string Protocol::receivePassword() { return recv_string(); }
+
+void Protocol::send_start_move(const CommandDTO& dto) {
     send_uint8(static_cast<uint8_t>(OPCODE::START_MOVE));
-    send_uint8(startMoveDTO.direction);
+    send_uint8(static_cast<uint8_t>(dto.movement));
 }
 
-StartMoveDTO Protocol::receive_start_move() {
-    uint8_t dir = recv_uint8();
-
-    return StartMoveDTO(static_cast<Direction>(dir));
+void Protocol::receive_start_move(CommandDTO& dto) {
+    dto.type = ActionType::MOVE;
+    dto.movement = static_cast<Movement>(recv_uint8());
 }
 
 void Protocol::send_snapshot(const SnapshotDTO& snap) {
@@ -97,7 +100,7 @@ void Protocol::send_snapshot(const SnapshotDTO& snap) {
 
     send_uint16(static_cast<uint16_t>(snap.entities.size()));
 
-    for (const auto& entity : snap.entities) {
+    for (const auto& entity: snap.entities) {
         send_uint32(entity.id);
         send_uint8(static_cast<uint8_t>(entity.type));
         send_uint16(entity.x);
@@ -128,4 +131,19 @@ SnapshotDTO Protocol::receive_snapshot() {
     }
 
     return snap;
+}
+
+void Protocol::receive_command(CommandDTO& dto) {
+    uint8_t opcode_raw = recv_uint8();
+    OPCODE opcode = static_cast<OPCODE>(opcode_raw);
+
+    switch (opcode) {
+        case OPCODE::START_MOVE:
+            dto.type = ActionType::MOVE;
+            receive_start_move(dto);
+            break;
+
+        default:
+            throw std::runtime_error("Comando desconocido en recepción in-game");
+    }
 }

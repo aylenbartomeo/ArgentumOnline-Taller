@@ -3,20 +3,14 @@
 
 #include <cstdint>
 
-enum class Direction : uint8_t {
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT
-};
+enum class Direction : uint8_t { UP, DOWN, LEFT, RIGHT };
 
 struct StartMoveDTO {
-    uint8_t direction;
+    uint8_t direction = 0;
 
     StartMoveDTO() = default;
 
-    StartMoveDTO(Direction direction) : direction(static_cast<uint8_t>(direction)) {}
-
+    explicit StartMoveDTO(Direction direction): direction(static_cast<uint8_t>(direction)) {}
 };
 
 #endif

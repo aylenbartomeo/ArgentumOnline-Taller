@@ -11,8 +11,8 @@ int main() try {
     SDL2pp::SDL sdl(SDL_INIT_VIDEO);
 
     // Create main window: 640x480 dimensions, resizable, "ARGENTUM ONLINE" title
-    SDL2pp::Window window("ARGENTUM ONLINE", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480,
-                          SDL_WINDOW_RESIZABLE);
+    SDL2pp::Window window("ARGENTUM ONLINE", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640,
+                          480, SDL_WINDOW_RESIZABLE);
 
     // Create accelerated video renderer with default driver
     SDL2pp::Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED);

@@ -10,9 +10,8 @@ struct LoginDTO {
 
     LoginDTO() = default;
 
-    LoginDTO(const std::string& username, const std::string& password)
-        : username(std::move(username)), password(std::move(password)) {}
-
+    LoginDTO(const std::string& username, const std::string& password):
+            username(std::move(username)), password(std::move(password)) {}
 };
 
 

@@ -38,6 +38,8 @@ target_sources(argentum_online_server
     src/Receiver.cpp
     src/Sender.cpp
     src/Server.cpp
+    src/ConnectionMonitor.cpp
+    src/GameLoop.cpp
 
     PUBLIC
     # .h files
@@ -66,6 +68,8 @@ target_sources(argentum_online_server
     src/Receiver.h
     src/Sender.h
     src/Server.h
+    src/ConnectionMonitor.h
+    src/GameLoop.h
     include/model/FormulaEngine.h
 )
 

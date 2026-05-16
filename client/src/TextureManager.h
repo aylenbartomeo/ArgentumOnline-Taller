@@ -1,8 +1,7 @@
 #ifndef TEXTURE_MANAGER_H
 #define TEXTURE_MANAGER_H
 
-class TextureManager
-{
+class TextureManager {
 private:
     /* data */
 public:

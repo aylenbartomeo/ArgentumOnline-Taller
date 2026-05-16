@@ -1,35 +1,25 @@
 #ifndef SENDER_H
 #define SENDER_H
 
-#include <atomic>
-#include <string>
-
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
-#include "../../common/src/Protocol.h"
+#include "../../common/src/Snapshot.h"
+#include "../../common/src/protocol/Protocol.h"
 #include "../../common/src/socket/socket.h"
 
-/**
- * @class Sender
- * @brief Hilo especializado en el envío de mensajes desde el servidor hacia un cliente.
- * * Consume eventos de una cola sincronizada y los serializa a través del protocolo
- * para su transmisión mediante un socket.
- */
 class Sender: public Thread {
 private:
+    Queue<SnapshotDTO>& senderQueue;
     Protocol protocol;
 
 public:
-    explicit Sender(Socket& skt);
+    explicit Sender(Socket& skt, Queue<SnapshotDTO>& senderQueue);
 
     void run() override;
-    void stop() override;
 
-    /* Deshabilito las copias */
     Sender(const Sender&) = delete;
     Sender& operator=(const Sender&) = delete;
 
-    /* Permito movimiento */
     Sender(Sender&&) = default;
     Sender& operator=(Sender&&) = default;
 };

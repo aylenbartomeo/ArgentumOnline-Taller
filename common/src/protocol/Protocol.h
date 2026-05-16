@@ -1,11 +1,15 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
+#include <string>
+
+#include "../../include/OpCodes.h"
+#include "../../include/dto/AttackDTO.h"
 #include "../../include/dto/LoginDTO.h"
 #include "../../include/dto/StartMoveDTO.h"
-#include "../../include/dto/AttackDTO.h"
+#include "../CommandDTO.h"
 #include "../socket/socket.h"
-#include "../../include/OpCodes.h"
+
 #include "Snapshot.h"
 
 
@@ -28,11 +32,20 @@ private:
 public:
     explicit Protocol(Socket& skt);
 
+    // --- FASE LOBBY / HANDSHAKE ---
     void send_login(const LoginDTO& loginDTO);
-    LoginDTO receive_login();
+    // void receive_login(CommandDTO& dto);
 
-    void send_start_move(const StartMoveDTO& dto);
-    StartMoveDTO receive_start_move();
+    uint8_t receiveAction();
+    std::string receiveUsername();
+    std::string receivePassword();
+
+    // --- FASE IN-GAME ---
+    void send_start_move(const CommandDTO& dto);
+    void receive_start_move(CommandDTO& dto);
+
+    // --- RECIBIR COMANDOS DE CLIENTES EN JUEGO ---
+    void receive_command(CommandDTO& dto);
 
     // --- ENVÍO (SERVIDOR -> CLIENTE) ---
     void send_snapshot(const SnapshotDTO& snap);

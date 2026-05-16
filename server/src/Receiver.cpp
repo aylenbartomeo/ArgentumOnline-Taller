@@ -1,35 +1,47 @@
 #include "Receiver.h"
 
-Receiver::Receiver(Socket& skt) : skt(skt) {}
+Receiver::Receiver(Socket& skt, uint32_t clientId, Queue<GameEvent>& gameQueue):
+        skt(skt), clientId(clientId), gameQueue(gameQueue), protocolo(skt) {}
 
-
-void Receiver::run() {
+bool Receiver::authenticatePlayer() {
     try {
-        while (true) {
-            uint8_t raw_opcode;
-            skt.recvall(&raw_opcode, sizeof(uint8_t));
+        uint8_t action = this->protocolo.receiveAction();
 
-            OPCODE opcode = static_cast<OPCODE>(raw_opcode);
-            Protocol protocol(skt);
+        if (action == static_cast<uint8_t>(OPCODE::LOGIN)) {
+            std::string clientUsername = this->protocolo.receiveUsername();
+            this->protocolo.receivePassword();
+            // std::string clientPassword = this->protocolo.receivePassword();
 
-            switch (opcode) {
-                case OPCODE::LOGIN: {
-                    LoginDTO login = protocol.receive_login();
-                    break;
-                }
-                case OPCODE::START_MOVE: {
-                    // StartMoveDTO startMove = protocol.receive_start_move();
-                    protocol.receive_start_move(); // prueba sin asignar a variable para evitar warning de variable sin usar
+            JoinEvent joinEvent{this->clientId, clientUsername};
+            this->gameQueue.push(joinEvent);
 
-                    // Nota: deberiamos de tener una cola ThreadSafeQueue compartida con GameLoop
-                    // En lugar de que el DTO muera, se empuja a esta cola para ser procesado.
-                    break;
-                }
-                default:
-                    throw std::runtime_error("Opcode desconocido");
-            }
+            return true;
+        }
+    } catch (...) {
+        return false;
+    }
+    return false;
+}
+
+void Receiver::inGameCommunication() {
+    try {
+        while (should_keep_running()) {
+            CommandDTO command;
+            command.playerId = this->clientId;
+
+            this->protocolo.receive_command(command);
+            this->gameQueue.push(command);
         }
     } catch (const std::exception& e) {
-        // cerrar conexión, loggear, etc.
+        CommandDTO disconnectCommand;
+        disconnectCommand.type = ActionType::DISCONNECT;
+        disconnectCommand.playerId = this->clientId;
+        this->gameQueue.push(disconnectCommand);
+    }
+}
+
+void Receiver::run() {
+    if (authenticatePlayer()) {
+        inGameCommunication();
     }
 }

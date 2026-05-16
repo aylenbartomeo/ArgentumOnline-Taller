@@ -2,38 +2,39 @@
 #define CLIENT_HANDLER_H
 
 #include <atomic>
-#include <string>
 
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
+#include "../../common/src/CommandDTO.h"
+#include "../../common/src/Snapshot.h"
 #include "../../common/src/socket/socket.h"
 
 #include "Receiver.h"
 #include "Sender.h"
 
-/**
- * @class ClientHandler
- * @brief Gestiona la conexión individual de un cliente y sus hilos de comunicación.
- * * Coordina el ciclo de vida del Sender y Receiver, administrando sus hilos
- * y la cola de eventos específica para el envío de datos hacia el cliente.
- */
 class ClientHandler {
 private:
+    uint32_t client_id;
     Socket skt;
+
+    Queue<SnapshotDTO> sender_queue;
+
     Receiver receiver;
     Sender sender;
 
 public:
-    explicit ClientHandler(Socket&& skt);
+    explicit ClientHandler(Socket&& skt, uint32_t client_id, Queue<GameEvent>& gameQueue);
 
-    void start_threads();
-    void stop_threads();
-    void join_threads();
+    void startThreads();
+    void stopThreads();
+    void joinThreads();
 
-    bool is_online() const;
+    bool isOnline() const;
 
-
-    // Queue<EventDTO>& get_event_queue();
+    // El GameLoop usará este método en el momento del LOGIN para registrar adónde enviarle los
+    // datos
+    Queue<SnapshotDTO>& getSenderQueue();
+    uint32_t getId() const;
 
     ClientHandler(const ClientHandler&) = delete;
     ClientHandler& operator=(const ClientHandler&) = delete;

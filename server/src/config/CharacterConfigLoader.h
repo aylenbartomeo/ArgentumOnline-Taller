@@ -2,6 +2,7 @@
 #define CHARACTERCONFIGLOADER_H
 
 #include <filesystem>
+
 #include "CharacterConfig.h"
 
 class CharacterConfigLoader {
