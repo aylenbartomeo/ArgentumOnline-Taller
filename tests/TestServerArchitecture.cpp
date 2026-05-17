@@ -1,8 +1,11 @@
 #include <gtest/gtest.h>
+#include <variant>
 
 #include "../common/include/queue.h"
-#include "../common/src/CommandDTO.h"
 #include "../common/src/Snapshot.h"
+#include "../common/src/CommandDTO.h"
+#include "../common/include/dto/ClientCommands.h" 
+#include "../server/include/model/ServerEvents.h" 
 #include "../server/src/ConnectionMonitor.h"
 
 // =======================================================================
@@ -14,7 +17,7 @@ TEST(ServerArchitectureTest, Queue_CanPushAndPopJoinEvent) {
 
     // Simulamos lo que hace el Receiver cuando alguien se loguea
     JoinEvent joinEvent;
-    joinEvent.playerId = 100;
+    joinEvent.clientId = 100;
     joinEvent.username = "Franco";
 
     gameQueue.push(joinEvent);
@@ -27,32 +30,38 @@ TEST(ServerArchitectureTest, Queue_CanPushAndPopJoinEvent) {
 
     // Extraemos y validamos los datos
     JoinEvent receivedJoin = std::get<JoinEvent>(poppedEvent);
-    EXPECT_EQ(receivedJoin.playerId, (uint32_t)100);
+    EXPECT_EQ(receivedJoin.clientId, (uint32_t)100);
     EXPECT_EQ(receivedJoin.username, "Franco");
 }
 
-TEST(ServerArchitectureTest, Queue_CanPushAndPopCommandDTO) {
+TEST(ServerArchitectureTest, Queue_CanPushAndPopPlayerCommand) {
     Queue<GameEvent> gameQueue;
 
-    // Simulamos lo que hace el Receiver en medio del juego
-    CommandDTO moveCmd;
-    moveCmd.type = ActionType::MOVE;
-    moveCmd.movement = Movement::UP;
-    moveCmd.playerId = 50;
+    // Simulamos lo que hace el Receiver en medio del juego usando la nueva arquitectura
+    StartMoveDTO moveDto;
+    moveDto.direction = static_cast<uint8_t>(Movement::UP);
+    
+    // Envolvemos el movimiento en un PlayerCommand indicando quién lo envió
+    PlayerCommand pCmd;
+    pCmd.clientId = 50;
+    pCmd.command = moveDto;
 
-    gameQueue.push(moveCmd);
+    gameQueue.push(pCmd);
 
     // Simulamos el GameLoop
     GameEvent poppedEvent = gameQueue.pop();
 
-    // Verificamos que el paquete NO sea un JoinEvent, sino un CommandDTO
-    ASSERT_TRUE(std::holds_alternative<CommandDTO>(poppedEvent));
+    // Verificamos que el paquete sea un PlayerCommand
+    ASSERT_TRUE(std::holds_alternative<PlayerCommand>(poppedEvent));
 
-    // Extraemos y validamos
-    CommandDTO receivedCmd = std::get<CommandDTO>(poppedEvent);
-    EXPECT_EQ(receivedCmd.type, ActionType::MOVE);
-    EXPECT_EQ(receivedCmd.movement, Movement::UP);
-    EXPECT_EQ(receivedCmd.playerId, (uint32_t)50);
+    // Extraemos el PlayerCommand
+    PlayerCommand receivedCmd = std::get<PlayerCommand>(poppedEvent);
+    EXPECT_EQ(receivedCmd.clientId, (uint32_t)50);
+
+    // Verificamos que adentro del PlayerCommand haya un StartMoveDTO
+    ASSERT_TRUE(std::holds_alternative<StartMoveDTO>(receivedCmd.command));
+    StartMoveDTO receivedMove = std::get<StartMoveDTO>(receivedCmd.command);
+    EXPECT_EQ(receivedMove.direction, static_cast<uint8_t>(Movement::UP));
 }
 
 // =======================================================================
@@ -62,33 +71,27 @@ TEST(ServerArchitectureTest, Queue_CanPushAndPopCommandDTO) {
 TEST(ServerArchitectureTest, ConnectionMonitor_BroadcastsToMultipleClients) {
     ConnectionMonitor monitor;
 
-    // Creamos las colas de 3 jugadores simulados
     Queue<SnapshotDTO> queuePlayer1;
     Queue<SnapshotDTO> queuePlayer2;
     Queue<SnapshotDTO> queuePlayer3;
 
-    // Los conectamos al monitor
     monitor.addClient(1, &queuePlayer1);
     monitor.addClient(2, &queuePlayer2);
     monitor.addClient(3, &queuePlayer3);
 
-    // Creamos un Snapshot simulado
     SnapshotDTO snap;
     EntityDTO dummyEntity;
     dummyEntity.id = 999;
     snap.entities.push_back(dummyEntity);
 
-    // Ejecutamos el broadcast (lo que hace el GameLoop al final de cada frame)
     monitor.broadcast(snap);
 
-    // Verificamos que los 3 jugadores hayan recibido exactamente la misma foto
     SnapshotDTO received1 = queuePlayer1.pop();
     SnapshotDTO received2 = queuePlayer2.pop();
     SnapshotDTO received3 = queuePlayer3.pop();
 
     EXPECT_EQ(received1.entities.size(), (size_t)1);
     EXPECT_EQ(received1.entities[0].id, (uint32_t)999);
-
     EXPECT_EQ(received2.entities.size(), (size_t)1);
     EXPECT_EQ(received3.entities.size(), (size_t)1);
 }
@@ -101,7 +104,7 @@ TEST(ServerArchitectureTest, ConnectionMonitor_IgnoresRemovedClients) {
     monitor.addClient(1, &queuePlayer1);
     monitor.addClient(2, &queuePlayer2);
 
-    // El jugador 2 se desconecta y el Acceptor lo saca del monitor
+    // El jugador 2 se desconecta
     monitor.removeClient(2);
 
     SnapshotDTO snap;
