@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <utility>
 
-#include <FormulaEngine.h>
+#include "../include/model/FormulaEngine.h"
 
 MonsterFactory::MonsterFactory(MonsterConfigs configs): configs(std::move(configs)) {}
 

@@ -23,7 +23,7 @@ public:
     Client(Client&&) = default;
     Client& operator=(Client&&) = default;
 
-    ~Client();  
+    ~Client();
 };
 
 #endif

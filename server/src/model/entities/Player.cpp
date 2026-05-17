@@ -36,7 +36,7 @@ Player::Player(uint32_t id, const std::string& name, Race race, CharacterClass c
         can_meditate(classConfig.canUseMagic && classConfig.meditationFactor > 0.0f),
         recovery_factor(raceConfig.recoveryFactor),
         meditation_factor(classConfig.meditationFactor),
-        state(PlayerState::Alive) {
+        state(PlayerState::ALIVE) {
 
     this->max_health = FormulaEngine::getInstance().calculate_max_life(
             static_cast<uint16_t>(this->constitution), classConfig.lifeFactor,
@@ -107,22 +107,22 @@ Position Player::get_position() const { return this->pos; }
 
 PlayerState Player::getState() const { return this->state; }
 
-bool Player::isMeditating() const { return this->state == PlayerState::Meditating; }
+bool Player::isMeditating() const { return this->state == PlayerState::MEDITATING; }
 
-bool Player::isGhost() const { return this->state == PlayerState::Ghost; }
+bool Player::isGhost() const { return this->state == PlayerState::GHOST; }
 
 bool Player::startMeditating() {
-    if (this->state != PlayerState::Alive || !this->can_meditate || this->mana >= this->max_mana) {
+    if (this->state != PlayerState::ALIVE || !this->can_meditate || this->mana >= this->max_mana) {
         return false;
     }
 
-    this->state = PlayerState::Meditating;
+    this->state = PlayerState::MEDITATING;
     return true;
 }
 
 void Player::stopMeditating() {
-    if (this->state == PlayerState::Meditating) {
-        this->state = PlayerState::Alive;
+    if (this->state == PlayerState::MEDITATING) {
+        this->state = ALIVE;
     }
 }
 
@@ -204,7 +204,7 @@ bool Player::resurrect(Position respawnPosition) {
     }
 
     this->pos = respawnPosition;
-    this->state = PlayerState::Alive;
+    this->state = PlayerState::ALIVE;
     this->health = this->max_health;
 
     if (this->can_use_magic) {
@@ -327,7 +327,7 @@ void Player::recoverMana(int amount) {
 void Player::becomeGhost() {
     this->health = 0;
     this->mana = 0;
-    this->state = PlayerState::Ghost;
+    this->state = PlayerState::GHOST;
 }
 
 bool Player::equip_from_slot(uint8_t slot_index) {
@@ -372,4 +372,8 @@ bool Player::drop_item_to_map(uint8_t slot_index, uint16_t amount) {
     // this->current_map.create_drop(item_id, removed, this->pos);
 
     return true;
+}
+
+void Player::setSkin(int skinId) {
+    (void)skinId;
 }

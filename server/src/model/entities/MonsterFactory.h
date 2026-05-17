@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 #include "server/src/config/MonsterConfig.h"
-#include "server/src/model/entities/monster.h"
+#include "server/src/model/entities/Monster.h"
 
 class MonsterFactory {
 private:

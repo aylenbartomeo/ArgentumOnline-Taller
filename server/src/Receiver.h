@@ -4,11 +4,11 @@
 #include <atomic>
 #include <string>
 
-#include "../common/include/queue.h"
-#include "../common/include/thread.h"
-#include "../common/src/Protocol.h"
-#include "../common/src/socket/socket.h"
-
+#include "../../common/include/queue.h"
+#include "../../common/include/thread.h"
+#include "../../common/src/CommandDTO.h"
+#include "../../common/src/protocol/Protocol.h"
+#include "../../common/src/socket/socket.h"
 /**
  * @class Receiver
  * @brief Hilo encargado de la recepción de mensajes desde el cliente hacia el servidor.
@@ -17,19 +17,23 @@
  */
 class Receiver: public Thread {
 private:
-    Protocol protocol;
     std::string username;
+    Socket& skt;
+    uint32_t clientId;
+    Queue<GameEvent>& gameQueue;
+    Protocol protocolo;
 
 public:
-    explicit Receiver(Socket& skt);
+    explicit Receiver(Socket& skt, uint32_t clientId, Queue<GameEvent>& gameQueue);
+
+    bool authenticatePlayer();
+    void inGameCommunication();
 
     void run() override;
 
-    /* Deshabilito las copias */
     Receiver(const Receiver&) = delete;
     Receiver& operator=(const Receiver&) = delete;
 
-    /* Permito movimiento */
     Receiver(Receiver&&) = default;
     Receiver& operator=(Receiver&&) = default;
 };

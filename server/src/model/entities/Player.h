@@ -3,9 +3,9 @@
 
 #include <string>
 #include <vector>
-
-#include "../common/utils/position.h"
-#include "../common/utils/types.h"
+#include "position.h"
+#include "types.h"
+#include "CommandDTO.h"
 #include "interfaces/MagicUser.h"
 #include "interfaces/combatant.h"
 #include "interfaces/interactable.h"
@@ -17,12 +17,6 @@
 
 class CombatManager;
 
-enum class PlayerState {
-    Alive,
-    Ghost,
-    Meditating,
-};
-
 class Player: public Combatant, public Interactable, public MagicUser {
 private:
     // Identidad y Posición
@@ -32,7 +26,8 @@ private:
     CharacterClass char_class;
     Position pos;
     Equipment equipment;
-
+    Movement actualMove;
+    
     // --- Atributos de Rol (Influyen en fórmulas) ---
     int strength;      // Fuerza (Daño)
     int intelligence;  // Inteligencia (Maná)
@@ -75,6 +70,14 @@ public:
     bool is_dead() const override;
     Position get_position() const override;
     PlayerState getState() const;
+    Movement getMovement() const { return actualMove; }
+    void setMovement(Movement m){ this->actualMove = m; }
+    bool is_moving() const { return this->actualMove != Movement::STOP; }
+    int getX() const { return this->pos.x; }
+    int getY() const { return this->pos.y; }
+    void setX(int x) { this->pos.x = x; }
+    void setY(int y) { this->pos.y = y; }
+    void setSkin(int skinId);
     bool isMeditating() const;
     bool isGhost() const;
     bool startMeditating();

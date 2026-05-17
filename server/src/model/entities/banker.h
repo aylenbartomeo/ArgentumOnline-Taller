@@ -6,9 +6,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Citizen.h"
-
 #include "../commands/BankerCommands.h"
+
+#include "Citizen.h"
 
 class Banker: public Citizen {
 private:

@@ -1,25 +1,38 @@
 #ifndef GAME_LOOP_H
 #define GAME_LOOP_H
 
-#include "../common/include/thread.h"
+#include <string>
+#include <atomic>
+#include <chrono>
+#include <thread>
 
-/**
- * @class GameLoop
- * @brief Esta clase representaría el bucle principal del juego
- * Responsabilidad: Gestionar el ciclo de actualización del juego, incluyendo la lógica de juego, la interacción entre entidades y la sincronización con los clientes.
- */
-class GameLoop : public Thread {
+#include "../../common/include/queue.h"
+#include "../../common/include/thread.h"
+#include "../../common/src/CommandDTO.h"
+#include "../../common/src/Snapshot.h"
+
+#include "ConnectionMonitor.h"
+#include "World.h"
+
+class GameLoop: public Thread {
 private:
+    std::atomic<bool> isRunning;
+    Queue<GameEvent>& gameQueue;
+    ConnectionMonitor& monitor;
+    World world;
+
+    void processInputs();
+    void updateWorld(float delta_time);
+    void broadcastState();
 
 public:
-    explicit GameLoop();
+    GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor);
 
-    void add_player_to_match(int playerId, int matchId);
-    void remove_player_from_match(int playerId, int matchId); 
+    void run() override;
+    void stop() override;
 
-    virtual void run() override;
-
-     ~GameLoop() override;
+    GameLoop(const GameLoop&) = delete;
+    GameLoop& operator=(const GameLoop&) = delete;
 };
 
 #endif
