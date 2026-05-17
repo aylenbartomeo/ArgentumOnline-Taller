@@ -86,9 +86,9 @@ void Protocol::send_snapshot(const SnapshotDTO& snap) {
 
 SnapshotDTO Protocol::receive_snapshot() {
     SnapshotDTO snap;
-
+    uint8_t opcode = recv_uint8();
+    (void)opcode;
     uint16_t count = recv_uint16();
-
     for (uint16_t i = 0; i < count; ++i) {
         EntityDTO entity;
 
@@ -129,6 +129,10 @@ void Protocol::send_drop_item(const DropItemDTO& dto) {
     send_uint8(static_cast<uint8_t>(OPCODE::DROP_ITEM));
     send_uint8(dto.slot);
     send_uint16(dto.amount);
+}
+
+void Protocol::send_stop_move() {
+    send_uint8(static_cast<uint8_t>(OPCODE::STOP_MOVE));
 }
 
 void Protocol::send_equip_item(const EquipItemDTO& dto) {
