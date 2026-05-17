@@ -65,35 +65,8 @@ std::string Protocol::recv_string() {
 }
 
 // =======================================================
-// CAPA SEMÁNTICA
+// ACTUALIZACIONES DE ESTADO (SERVIDOR -> CLIENTE)
 // =======================================================
-
-void Protocol::send_login(const LoginDTO& loginDTO) {
-    send_uint8(static_cast<uint8_t>(OPCODE::LOGIN));
-    send_string(loginDTO.username);
-    send_string(loginDTO.password);
-}
-
-/*void Protocol::receive_login(CommandDTO& dto) {
-    dto.username = recv_string();
-    dto.password = recv_string();
-}*/
-
-uint8_t Protocol::receiveAction() { return recv_uint8(); }
-
-std::string Protocol::receiveUsername() { return recv_string(); }
-
-std::string Protocol::receivePassword() { return recv_string(); }
-
-void Protocol::send_start_move(const CommandDTO& dto) {
-    send_uint8(static_cast<uint8_t>(OPCODE::START_MOVE));
-    send_uint8(static_cast<uint8_t>(dto.movement));
-}
-
-void Protocol::receive_start_move(CommandDTO& dto) {
-    dto.type = ActionType::MOVE;
-    dto.movement = static_cast<Movement>(recv_uint8());
-}
 
 void Protocol::send_snapshot(const SnapshotDTO& snap) {
     send_uint8(static_cast<uint8_t>(OPCODE::SNAPSHOT));
@@ -133,17 +106,101 @@ SnapshotDTO Protocol::receive_snapshot() {
     return snap;
 }
 
-void Protocol::receive_command(CommandDTO& dto) {
+// =======================================================
+// CAPA SEMÁNTICA (ENVÍO DEL CLIENTE)
+// =======================================================
+
+void Protocol::send_login(const LoginDTO& loginDTO) {
+    send_uint8(static_cast<uint8_t>(OPCODE::LOGIN));
+    send_string(loginDTO.username);
+    send_string(loginDTO.password);
+}
+
+void Protocol::send_start_move(const StartMoveDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::START_MOVE));
+    send_uint8(static_cast<uint8_t>(dto.direction));
+}
+
+void Protocol::send_attack() {
+    send_uint8(static_cast<uint8_t>(OPCODE::ATTACK));
+}
+
+void Protocol::send_drop_item(const DropItemDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::DROP_ITEM));
+    send_uint8(dto.slot);
+    send_uint16(dto.amount);
+}
+
+void Protocol::send_equip_item(const EquipItemDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::EQUIP_ITEM));
+    send_uint8(dto.slot);
+}
+
+void Protocol::send_use_item(const UseItemDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::USE_ITEM));
+    send_uint8(dto.slot);
+}
+
+void Protocol::send_grab_item() {
+    send_uint8(static_cast<uint8_t>(OPCODE::GRAB_ITEM));
+}
+
+void Protocol::send_chat(const ChatDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::CHAT));
+    send_string(dto.message);
+}
+
+// =======================================================
+// CAPA SEMÁNTICA (RECEPCIÓN DEL SERVIDOR)
+// =======================================================
+
+CommandVariant Protocol::receive_command() {
     uint8_t opcode_raw = recv_uint8();
     OPCODE opcode = static_cast<OPCODE>(opcode_raw);
 
     switch (opcode) {
-        case OPCODE::START_MOVE:
-            dto.type = ActionType::MOVE;
-            receive_start_move(dto);
-            break;
-
+        case OPCODE::LOGIN: {
+            LoginDTO dto;
+            dto.username = recv_string();
+            return dto;
+        }
+        case OPCODE::START_MOVE: {
+            StartMoveDTO dto;
+            dto.direction = recv_uint8();
+            return dto;
+        }
+        case OPCODE::STOP_MOVE: {
+            return StopMoveDTO{};
+        }
+        case OPCODE::ATTACK: {
+            return AttackDTO{};
+        }
+        case OPCODE::DROP_ITEM: {
+            DropItemDTO dto;
+            dto.slot = recv_uint8();
+            dto.amount = recv_uint16();
+            return dto;
+        }
+        case OPCODE::EQUIP_ITEM: {
+            EquipItemDTO dto;
+            dto.slot = recv_uint8();
+            return dto;
+        }
+        case OPCODE::GRAB_ITEM: {
+            return GrabItemDTO{};
+        }
+        case OPCODE::CHAT: {
+            ChatDTO dto;
+            dto.message = recv_string();
+            return dto;
+        }
+        case OPCODE::USE_ITEM: {
+            UseItemDTO dto;
+            dto.slot = recv_uint8();
+            return dto;
+        }
         default:
             throw std::runtime_error("Comando desconocido en recepción in-game");
     }
 }
+

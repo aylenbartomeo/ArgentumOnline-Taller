@@ -7,7 +7,6 @@ target_sources(lib_common
     src/socket/resolvererror.cpp
     src/RandomNumberGenerator.cpp
     src/protocol/Protocol.cpp
-    foo.cpp
     PUBLIC
     # .h files
     src/socket/socket.h
@@ -20,7 +19,6 @@ target_sources(lib_common
     src/protocol/Protocol.h
     utils/position.h
     utils/types.h
-    foo.h
     )
 
 target_include_directories(lib_common
