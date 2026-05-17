@@ -9,6 +9,8 @@
 #include "../../common/src/CommandDTO.h"
 #include "../../common/src/protocol/Protocol.h"
 #include "../../common/src/socket/socket.h"
+#include "../include/model/ServerEvents.h"
+
 /**
  * @class Receiver
  * @brief Hilo encargado de la recepción de mensajes desde el cliente hacia el servidor.

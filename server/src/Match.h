@@ -8,6 +8,8 @@
 #include "../common/src/Snapshot.h"
 
 #include "GameLoop.h"
+#include "ServerEvents.h"
+#include "ConnectionMonitor.h"
 
 /**
  * @class Match
@@ -19,7 +21,8 @@ class Match {
 private:
     int matchId;
     std::string creatorPlayerName;
-    Queue<CommandDTO> queueCMD;
+    Queue<GameEvent> gameQueue;
+    ConnectionMonitor monitor;
     std::atomic<bool> isOnline;
     GameLoop gameLoop;
     int cantPlayers = 0;
@@ -30,10 +33,10 @@ public:
 
     std::string getCreatorPlayerName() const;
     int getMatchId() const;
-    bool addPlayer(const std::string& playerName, Queue<Snapshot>& sender_queue);
+    bool addPlayer(const std::string& playerName, Queue<SnapshotDTO>& sender_queue);
     bool isFull() const;
     bool removePlayer(const std::string& playerName);
-    Queue<CommandDTO>& getQueue() { return this->queueCMD; }
+    Queue<GameEvent>& getQueue() { return this->gameQueue; }
     std::string getMap();
 
     ~Match();

@@ -1,4 +1,6 @@
 #include "GameLoop.h"
+#include "../include/model/ServerEvents.h"
+#include <iostream>
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor):
         isRunning(true), gameQueue(gameQueue), monitor(monitor) {}
@@ -39,25 +41,25 @@ void GameLoop::processInputs() {
 
             // world.add_player(joinData.clientId, joinData.username);
             std::cout << "[GAMELOOP] Nace el jugador: " << joinData.username << std::endl;
-        } else if (std::holds_alternative<CommandDTO>(event)) {
-            CommandDTO comando = std::get<CommandDTO>(event);
+        } else if (std::holds_alternative<DisconnectEvent>(event)) {
+            DisconnectEvent discData = std::get<DisconnectEvent>(event);
 
-            switch (comando.type) {
-                case ActionType::MOVE:
-                    // world.move_entity(comando.clientId, comando.movement);
-                    break;
+            // switch (comando.type) {
+            //     case ActionType::MOVE:
+            //         // world.move_entity(comando.clientId, comando.movement);
+            //         break;
 
-                case ActionType::ATTACK:
-                    // world.player_attack(comando.clientId);
-                    break;
+            //     case ActionType::ATTACK:
+            //         // world.player_attack(comando.clientId);
+            //         break;
 
-                case ActionType::DISCONNECT:
-                    // world.remove_player(comando.clientId);
-                    break;
+            //     case ActionType::DISCONNECT:
+            //         // world.remove_player(comando.clientId);
+            //         break;
 
-                default:
-                    break;
-            }
+            //     default:
+            //         break;
+            // }
         }
     }
 }

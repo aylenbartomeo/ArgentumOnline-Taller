@@ -5,16 +5,13 @@ Receiver::Receiver(Socket& skt, uint32_t clientId, Queue<GameEvent>& gameQueue):
 
 bool Receiver::authenticatePlayer() {
     try {
-        uint8_t action = this->protocolo.receiveAction();
+        CommandVariant cmd = this->protocolo.receive_command();
 
-        if (action == static_cast<uint8_t>(OPCODE::LOGIN)) {
-            std::string clientUsername = this->protocolo.receiveUsername();
-            this->protocolo.receivePassword();
-            // std::string clientPassword = this->protocolo.receivePassword();
+        if (std::holds_alternative<LoginDTO>(cmd)) {
+            LoginDTO login_data = std::get<LoginDTO>(cmd);
 
-            JoinEvent joinEvent{this->clientId, clientUsername};
+            JoinEvent joinEvent{this->clientId, login_data.username};
             this->gameQueue.push(joinEvent);
-
             return true;
         }
     } catch (...) {
@@ -26,17 +23,15 @@ bool Receiver::authenticatePlayer() {
 void Receiver::inGameCommunication() {
     try {
         while (should_keep_running()) {
-            CommandDTO command;
-            command.playerId = this->clientId;
+            CommandVariant cmd = this->protocolo.receive_command();
+            
+            PlayerCommand playerCmd{this->clientId, cmd};
 
-            this->protocolo.receive_command(command);
-            this->gameQueue.push(command);
+            this->gameQueue.push(playerCmd);
         }
     } catch (const std::exception& e) {
-        CommandDTO disconnectCommand;
-        disconnectCommand.type = ActionType::DISCONNECT;
-        disconnectCommand.playerId = this->clientId;
-        this->gameQueue.push(disconnectCommand);
+        DisconnectEvent disconnect{this->clientId};
+        this->gameQueue.push(disconnect);
     }
 }
 
