@@ -198,37 +198,37 @@ TEST(ProtocolTest, ChatSerializationIsSymmetric) {
 // =================================================================
 // --- TEST PARA EL VIAJE DE VUELTA: SERVIDOR -> CLIENTE (SNAPSHOT)
 // =================================================================
-// TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
-//     // 1. Armamos un Snapshot simulado (lo que haría el GameLoop)
-//     SnapshotDTO original_snap;
+TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
+    // 1. Armamos un Snapshot simulado (lo que haría el GameLoop)
+    SnapshotDTO original_snap;
     
-//     EntityDTO entity1;
-//     entity1.id = 100;
-//     entity1.x = 15;
-//     entity1.y = 20;
-//     entity1.current_hp = 50;
-//     entity1.max_hp = 100;
+    EntityDTO entity1;
+    entity1.id = 100;
+    entity1.x = 15;
+    entity1.y = 20;
+    entity1.current_hp = 50;
+    entity1.max_hp = 100;
     
-//     original_snap.entities.push_back(entity1);
+    original_snap.entities.push_back(entity1);
 
-//     Socket acceptor_skt("8089");
-//     Socket client_skt("localhost", "8089");
-//     Socket server_skt = acceptor_skt.accept();
+    Socket acceptor_skt("8089");
+    Socket client_skt("localhost", "8089");
+    Socket server_skt = acceptor_skt.accept();
 
-//     Protocol client_protocol(client_skt);
-//     Protocol server_protocol(server_skt);
+    Protocol client_protocol(client_skt);
+    Protocol server_protocol(server_skt);
 
-//     // ACT: El SERVIDOR envía el snapshot
-//     server_protocol.send_snapshot(original_snap);
+    // ACT: El SERVIDOR envía el snapshot
+    server_protocol.send_snapshot(original_snap);
 
-//     // ACT: El CLIENTE recibe el snapshot
-//     SnapshotDTO received_snap = client_protocol.receive_snapshot();
+    // ACT: El CLIENTE recibe el snapshot
+    SnapshotDTO received_snap = client_protocol.receive_snapshot();
 
-//     // ASSERT: Validamos que haya llegado la misma cantidad de entidades y con los mismos datos
-//     ASSERT_EQ(received_snap.entities.size(), 1);
-//     EXPECT_EQ(received_snap.entities[0].id, original_snap.entities[0].id);
-//     EXPECT_EQ(received_snap.entities[0].x, original_snap.entities[0].x);
-//     EXPECT_EQ(received_snap.entities[0].y, original_snap.entities[0].y);
-//     EXPECT_EQ(received_snap.entities[0].current_hp, original_snap.entities[0].current_hp);
-// }
+    // ASSERT: Validamos que haya llegado la misma cantidad de entidades y con los mismos datos
+    ASSERT_EQ(received_snap.entities.size(), 1);
+    EXPECT_EQ(received_snap.entities[0].id, original_snap.entities[0].id);
+    EXPECT_EQ(received_snap.entities[0].x, original_snap.entities[0].x);
+    EXPECT_EQ(received_snap.entities[0].y, original_snap.entities[0].y);
+    EXPECT_EQ(received_snap.entities[0].current_hp, original_snap.entities[0].current_hp);
+}
 
