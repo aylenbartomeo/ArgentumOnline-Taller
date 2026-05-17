@@ -3,15 +3,9 @@
 
 #include <string>
 #include <vector>
-
-<<<<<<< HEAD:server/src/model/entities/player.h
-#include "../common/utils/position.h"
-#include "../common/utils/types.h"
-#include "../common/src/CommandDTO.h"
-=======
-#include "../../common/utils/position.h"
-#include "../../common/utils/types.h"
->>>>>>> origin/feature/server:server/src/model/entities/Player.h
+#include "position.h"
+#include "types.h"
+#include "CommandDTO.h"
 #include "interfaces/MagicUser.h"
 #include "interfaces/combatant.h"
 #include "interfaces/interactable.h"
@@ -22,12 +16,6 @@
 #include "server/src/model/items/ItemRegistry.h"
 
 class CombatManager;
-
-enum class PlayerState {
-    Alive,
-    Ghost,
-    Meditating,
-};
 
 class Player: public Combatant, public Interactable, public MagicUser {
 private:
@@ -82,7 +70,6 @@ public:
     bool is_dead() const override;
     Position get_position() const override;
     PlayerState getState() const;
-    int getId() const;
     Movement getMovement() const { return actualMove; }
     void setMovement(Movement m){ this->actualMove = m; }
     bool is_moving() const { return this->actualMove != Movement::STOP; }
@@ -90,7 +77,7 @@ public:
     int getY() const { return this->pos.y; }
     void setX(int x) { this->pos.x = x; }
     void setY(int y) { this->pos.y = y; }
-    void setSkin(int skinId) { /* Implementar lógica para cambiar la apariencia del jugador */ }    
+    void setSkin(int skinId);
     bool isMeditating() const;
     bool isGhost() const;
     bool startMeditating();

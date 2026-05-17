@@ -107,8 +107,6 @@ Position Player::get_position() const { return this->pos; }
 
 PlayerState Player::getState() const { return this->state; }
 
-int Player::getId() const { return this->id; }
-
 bool Player::isMeditating() const { return this->state == PlayerState::MEDITATING; }
 
 bool Player::isGhost() const { return this->state == PlayerState::GHOST; }
@@ -122,9 +120,9 @@ bool Player::startMeditating() {
     return true;
 }
 
-void Player::stopMEDITATING() {
+void Player::stopMeditating() {
     if (this->state == PlayerState::MEDITATING) {
-        this->state = PlayerState::ALIVE;
+        this->state = ALIVE;
     }
 }
 
@@ -329,7 +327,7 @@ void Player::recoverMana(int amount) {
 void Player::becomeGhost() {
     this->health = 0;
     this->mana = 0;
-    this->state = PlayerState::Ghost;
+    this->state = PlayerState::GHOST;
 }
 
 bool Player::equip_from_slot(uint8_t slot_index) {
@@ -374,4 +372,8 @@ bool Player::drop_item_to_map(uint8_t slot_index, uint16_t amount) {
     // this->current_map.create_drop(item_id, removed, this->pos);
 
     return true;
+}
+
+void Player::setSkin(int skinId) {
+    (void)skinId;
 }

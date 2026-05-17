@@ -1,7 +1,8 @@
 #include "GameLoop.h"
+#include <variant>
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor):
-        isRunning(true), gameQueue(gameQueue), monitor(monitor) {}
+        isRunning(true), gameQueue(gameQueue), monitor(monitor), world(1, "Server") {}
 
 void GameLoop::run() {
     const int MS_PER_FRAME = 33;
@@ -33,26 +34,33 @@ void GameLoop::run() {
 void GameLoop::processInputs() {
     GameEvent event;
 
+    // Tu try_pop real de tu clase Queue devuelve bool. Desencolamos de forma segura.
     while (gameQueue.try_pop(event)) {
+        
+        // 1. CHEQUEO DE JOIN_EVENT
         if (std::holds_alternative<JoinEvent>(event)) {
+            // std::get extrae el tipo exacto de la variante
             JoinEvent joinData = std::get<JoinEvent>(event);
-
-            // world.add_player(joinData.clientId, joinData.username);
-            std::cout << "[GAMELOOP] Nace el jugador: " << joinData.username << std::endl;
-        } else if (std::holds_alternative<CommandDTO>(event)) {
+            world.addPlayer(joinData.playerId, joinData.username);
+        } 
+        
+        // 2. CHEQUEO DE COMMAND_DTO
+        else if (std::holds_alternative<CommandDTO>(event)) {
             CommandDTO comando = std::get<CommandDTO>(event);
-
             switch (comando.type) {
                 case ActionType::MOVE:
-                    // world.move_entity(comando.clientId, comando.movement);
+                    world.moveEntity(comando.playerId, comando.movement);
+                    std::cout << "[GAMELOOP] Jugador " << comando.playerId << " se mueve en dirección: " << comando.movement << std::endl;
                     break;
 
                 case ActionType::ATTACK:
-                    // world.player_attack(comando.clientId);
+                    world.playerAttack(comando.playerId);
+                    std::cout << "[GAMELOOP] Jugador " << comando.playerId << " ejecutó un ataque." << std::endl;
                     break;
 
                 case ActionType::DISCONNECT:
-                    // world.remove_player(comando.clientId);
+                    world.removePlayer(comando.playerId);
+                    std::cout << "[GAMELOOP] Jugador " << comando.playerId << " solicita desconexión." << std::endl;
                     break;
 
                 default:
@@ -63,18 +71,14 @@ void GameLoop::processInputs() {
 }
 
 void GameLoop::updateWorld(float delta_time) {
-    // Acá se apdatea todo..
-    (void)delta_time;
-    // world.update_monsters(delta_time);
-    // world.update_spawns(delta_time);
+    // Le pasamos el tiempo transcurrido a tu partida para físicas o efectos temporales
+    world.update(delta_time);
 }
 
 void GameLoop::broadcastState() {
-    // 1. Le pedimos al mundo la foto actual
-    // SnapshotDTO snap = world.get_snapshot();
-    SnapshotDTO snap;  // (Dummy temporal para que compile)
-
-    // 2. Le pasamos el paquete al Monitor para que lo distribuya a las colas de los clientes
+    // Sacamos la foto del estado actual de tu partida y mapa
+    SnapshotDTO snap = world.generateSnapshot();
+    // El monitor lo distribuye concurrentemente
     monitor.broadcast(snap);
 }
 

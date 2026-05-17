@@ -18,7 +18,7 @@ target_sources(argentum_online_server
     src/model/entities/MonsterFactory.cpp
     src/model/entities/Citizen.cpp
 
-    # Inventory (¡NUEVO!)
+    # Inventory
     src/model/inventory/inventory.cpp
 
     # Items
@@ -40,6 +40,10 @@ target_sources(argentum_online_server
     src/Server.cpp
     src/ConnectionMonitor.cpp
     src/GameLoop.cpp
+
+    # Game
+    src/Map.cpp
+    src/World.cpp
 
     PUBLIC
     # .h files
@@ -71,6 +75,9 @@ target_sources(argentum_online_server
     src/ConnectionMonitor.h
     src/GameLoop.h
     include/model/FormulaEngine.h
+
+    src/Map.h
+    src/World.h
 )
 
 # Include directories
@@ -84,4 +91,4 @@ target_include_directories(argentum_online_server
     src/model/inventory # Agregado para que encuentre limpiamente las cabeceras
 )
 
-target_link_libraries(argentum_online_server tomlplusplus::tomlplusplus)
+target_link_libraries(argentum_online_server tomlplusplus::tomlplusplus pthread)
