@@ -1,7 +1,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include "common/src/Protocol.h"
+#include "common/src/protocol/Protocol.h"
 
 class Client {
 private:
@@ -23,7 +23,7 @@ public:
     Client(Client&&) = default;
     Client& operator=(Client&&) = default;
 
-    ~Client();  
+    ~Client();
 };
 
 #endif

@@ -1,48 +1,49 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <mutex>
+#include <iostream>
 #include <string>
-#include <vector>
+
+#include "../../common/include/queue.h"
 
 #include "Acceptor.h"
+#include "CommandDTO.h"
+#include "ConnectionMonitor.h"
+#include "GameLoop.h"
+
+// #include "GameLoop.h"
 
 /**
  * @class Server
- * @brief Orquestador principal que gestiona el ciclo de vida de los componentes del servidor.
- * * Administra la sincronización entre el Acceptor y el GameLoop, coordinando el inicio,
- * la ejecución y el apagado controlado del sistema.
+ * @brief Orquestador principal del juego. Administra la cola central,
+ * el hilo aceptador de conexiones y el GameLoop.
  */
 class Server {
 private:
     static constexpr const char* EXIT_CMD = "q";
 
+    Queue<GameEvent> gameQueue;
+
+    ConnectionMonitor monitor;
+
+    GameLoop gameLoop;
+
     Acceptor acceptor;
 
-    /**
-     * @brief Inicializa y lanza el hilo del Acceptor para comenzar a recibir conexiones.
-     */
-    void start_acceptor();
-
-    /**
-     * @brief Bloquea el hilo principal y espera la instrucción de salida por entrada estándar.
-     */
     void wait_for_exit();
 
 public:
     explicit Server(const char* port);
 
-    /* Deshabilito las copias */
-    Server(const Server&) = delete;
-    Server& operator=(const Server&) = delete;
-
-    /* Permito movimiento */
-    Server(Server&&) = default;
-    Server& operator=(Server&&) = default;
-
     void run();
 
     ~Server();
+
+    Server(const Server&) = delete;
+    Server& operator=(const Server&) = delete;
+
+    Server(Server&&) = default;
+    Server& operator=(Server&&) = default;
 };
 
 #endif

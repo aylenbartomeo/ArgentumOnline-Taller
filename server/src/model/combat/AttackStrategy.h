@@ -12,8 +12,7 @@ class AttackStrategy {
 public:
     virtual ~AttackStrategy() = default;
 
-    virtual bool execute(const Weapon& weapon, Combatant& attacker, Combatant& target,
-                         FormulaEngine& formulas) = 0;
+    virtual bool execute(const Weapon& weapon, Combatant& attacker, Combatant& target) = 0;
 };
 
 #endif

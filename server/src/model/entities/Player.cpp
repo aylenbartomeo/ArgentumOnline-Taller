@@ -1,15 +1,15 @@
-#include "player.h"
+#include "Player.h"
 
 #include <algorithm>
 
 #include "../combat/CombatManager.h"
+#include "model/FormulaEngine.h"
 #include "server/src/model/inventory/inventory.h"
 
 Player::Player(uint32_t id, const std::string& name, Race race, CharacterClass char_class,
-               Position pos, FormulaEngine& formulas, CombatManager& combat_manager,
-               const PlayerConfig& playerConfig, const RaceConfig& raceConfig,
-               const CharacterClassConfig& classConfig, const InventoryConfig& inv_config,
-               const ItemRegistry& item_registry):
+               Position pos, CombatManager& combat_manager, const PlayerConfig& playerConfig,
+               const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,
+               const InventoryConfig& inv_config, const ItemRegistry& item_registry):
         id(id),
         name(name),
         race(race),
@@ -29,28 +29,28 @@ Player::Player(uint32_t id, const std::string& name, Race race, CharacterClass c
         experience(playerConfig.startingExperience),
         level(playerConfig.startingLevel),
         item_registry(item_registry),
-        inventory(inv_config, formulas.calculate_safe_gold_limit(playerConfig.startingLevel)),
-        formulas(formulas),
+        inventory(inv_config, FormulaEngine::getInstance().calculate_safe_gold_limit(
+                                      playerConfig.startingLevel)),
         combat_manager(combat_manager),
         can_use_magic(classConfig.canUseMagic),
         can_meditate(classConfig.canUseMagic && classConfig.meditationFactor > 0.0f),
         recovery_factor(raceConfig.recoveryFactor),
         meditation_factor(classConfig.meditationFactor),
-        state(PlayerState::Alive) {
+        state(PlayerState::ALIVE) {
 
-    this->max_health = this->formulas.calculate_max_life(static_cast<uint16_t>(this->constitution),
-                                                         classConfig.lifeFactor,
-                                                         raceConfig.lifeFactor, this->level);
+    this->max_health = FormulaEngine::getInstance().calculate_max_life(
+            static_cast<uint16_t>(this->constitution), classConfig.lifeFactor,
+            raceConfig.lifeFactor, this->level);
     this->health = this->max_health;
 
     this->max_mana = this->can_use_magic ?
-                             this->formulas.calculate_max_mana(
+                             FormulaEngine::getInstance().calculate_max_mana(
                                      static_cast<uint16_t>(this->intelligence),
                                      classConfig.manaFactor, raceConfig.manaFactor, this->level) :
                              0;
     this->mana = this->max_mana;
 
-    this->max_gold = this->formulas.calculate_safe_gold_limit(this->level);
+    this->max_gold = FormulaEngine::getInstance().calculate_safe_gold_limit(this->level);
 
     this->inventory.add_gold(playerConfig.startingGold);
 }
@@ -63,7 +63,7 @@ void Player::receive_damage(int amount) {
     this->stopMeditating();
 
     // 1. Probabilidad de Evadir
-    if (this->formulas.is_attack_eluded(static_cast<uint16_t>(this->agility))) {
+    if (FormulaEngine::getInstance().is_attack_eluded(static_cast<uint16_t>(this->agility))) {
         // El ataque falló, no restamos nada
         return;
     }
@@ -93,8 +93,7 @@ void Player::attack(Combatant& target) {
     }
 
     // Ejecutar el ataque
-    bool attack_success =
-            this->combat_manager.executeAttack(*equipped_weapon, *this, target, this->formulas);
+    bool attack_success = this->combat_manager.executeAttack(*equipped_weapon, *this, target);
 
     // Si el ataque fue exitoso y el objetivo muere, damos la XP
     if (attack_success && target.is_dead()) {
@@ -108,22 +107,22 @@ Position Player::get_position() const { return this->pos; }
 
 PlayerState Player::getState() const { return this->state; }
 
-bool Player::isMeditating() const { return this->state == PlayerState::Meditating; }
+bool Player::isMeditating() const { return this->state == PlayerState::MEDITATING; }
 
-bool Player::isGhost() const { return this->state == PlayerState::Ghost; }
+bool Player::isGhost() const { return this->state == PlayerState::GHOST; }
 
 bool Player::startMeditating() {
-    if (this->state != PlayerState::Alive || !this->can_meditate || this->mana >= this->max_mana) {
+    if (this->state != PlayerState::ALIVE || !this->can_meditate || this->mana >= this->max_mana) {
         return false;
     }
 
-    this->state = PlayerState::Meditating;
+    this->state = PlayerState::MEDITATING;
     return true;
 }
 
 void Player::stopMeditating() {
-    if (this->state == PlayerState::Meditating) {
-        this->state = PlayerState::Alive;
+    if (this->state == PlayerState::MEDITATING) {
+        this->state = ALIVE;
     }
 }
 
@@ -132,13 +131,13 @@ void Player::recoverOverTime(float secondsElapsed) {
         return;
     }
 
-    const uint16_t recoveredHealth =
-            this->formulas.calculate_passive_recovery(this->recovery_factor, secondsElapsed);
+    const uint16_t recoveredHealth = FormulaEngine::getInstance().calculate_passive_recovery(
+            this->recovery_factor, secondsElapsed);
     this->recoverHealth(static_cast<int>(recoveredHealth));
 
     if (!this->isMeditating() && this->can_use_magic) {
-        const uint16_t recoveredMana =
-                this->formulas.calculate_passive_recovery(this->recovery_factor, secondsElapsed);
+        const uint16_t recoveredMana = FormulaEngine::getInstance().calculate_passive_recovery(
+                this->recovery_factor, secondsElapsed);
         this->recoverMana(static_cast<int>(recoveredMana));
     }
 }
@@ -148,7 +147,7 @@ void Player::recoverMeditating(float secondsElapsed) {
         return;
     }
 
-    const uint16_t recoveredMana = this->formulas.calculate_meditation_recovery(
+    const uint16_t recoveredMana = FormulaEngine::getInstance().calculate_meditation_recovery(
             this->meditation_factor, static_cast<uint16_t>(this->intelligence), secondsElapsed);
     this->recoverMana(static_cast<int>(recoveredMana));
 
@@ -205,7 +204,7 @@ bool Player::resurrect(Position respawnPosition) {
     }
 
     this->pos = respawnPosition;
-    this->state = PlayerState::Alive;
+    this->state = PlayerState::ALIVE;
     this->health = this->max_health;
 
     if (this->can_use_magic) {
@@ -328,7 +327,7 @@ void Player::recoverMana(int amount) {
 void Player::becomeGhost() {
     this->health = 0;
     this->mana = 0;
-    this->state = PlayerState::Ghost;
+    this->state = PlayerState::GHOST;
 }
 
 bool Player::equip_from_slot(uint8_t slot_index) {
@@ -373,4 +372,8 @@ bool Player::drop_item_to_map(uint8_t slot_index, uint16_t amount) {
     // this->current_map.create_drop(item_id, removed, this->pos);
 
     return true;
+}
+
+void Player::setSkin(int skinId) {
+    (void)skinId;
 }

@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "model/entities/Player.h"
+#include "../entities/Player.h"
 
 #include "NPCCommand.h"
 

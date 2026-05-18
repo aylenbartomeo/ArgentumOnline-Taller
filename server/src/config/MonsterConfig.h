@@ -1,10 +1,10 @@
-#ifndef SERVER_SRC_CONFIG_MONSTERCONFIG_H
-#define SERVER_SRC_CONFIG_MONSTERCONFIG_H
+#ifndef MONSTERCONFIG_H
+#define MONSTERCONFIG_H
 
 #include <string>
 #include <unordered_map>
 
-#include "../common/utils/types.h"
+#include "../../common/utils/types.h"
 
 struct MonsterConfig {
     int maxHealth;

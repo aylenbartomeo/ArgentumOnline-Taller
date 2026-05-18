@@ -1,21 +1,21 @@
 #include "Server.h"
 
-Server::Server(const char* port): acceptor(port) {}
+Server::Server(const char* port):
+        gameQueue(), monitor(), gameLoop(gameQueue, monitor), acceptor(port, gameQueue, monitor) {}
 
-void Server::start_acceptor() { acceptor.start(); }
+void Server::run() {
+    gameLoop.start();
+    acceptor.start();
+    wait_for_exit();
+}
 
 void Server::wait_for_exit() {
     std::string cmd;
-    while (getline(std::cin, cmd)) {
+    while (std::getline(std::cin, cmd)) {
         if (cmd == EXIT_CMD) {
             break;
         }
     }
-}
-
-void Server::run() {
-    start_acceptor();
-    wait_for_exit();
 }
 
 Server::~Server() {
@@ -25,4 +25,7 @@ Server::~Server() {
         std::cerr << "Error apagando acceptor: " << e.what() << std::endl;
     }
     acceptor.join();
+    gameLoop.stop();
+    gameQueue.close();
+    gameLoop.join();
 }
