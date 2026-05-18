@@ -57,6 +57,7 @@ void GameLoop::processInputs() {
 
             if (std::holds_alternative<StartMoveDTO>(pCmd.command)) {
                 StartMoveDTO move_dto = std::get<StartMoveDTO>(pCmd.command);
+                std::cout << "[GAMELOOP] Jugador " << pCmd.clientId << " solicita moverse hacia: " << static_cast<int>(move_dto.direction) << std::endl;
                 world.moveEntity(pCmd.clientId, move_dto.direction);
 
             } else if (std::holds_alternative<AttackDTO>(pCmd.command)) {

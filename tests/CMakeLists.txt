@@ -3,25 +3,11 @@ add_executable(taller_tests
     TestServerArchitecture.cpp
     TestMap.cpp
     TestWorld.cpp
+    TestGameLoop.cpp
     ../server/src/ConnectionMonitor.cpp
+    ../server/src/GameLoop.cpp
     ../server/src/Map.cpp
     ../server/src/World.cpp
-
-    # === Núcleo del Modelo ===
-    ${CMAKE_SOURCE_DIR}/server/src/model/entities/Player.cpp
-    ${CMAKE_SOURCE_DIR}/server/src/model/FormulaEngine.cpp
-    ${CMAKE_SOURCE_DIR}/server/src/model/inventory/inventory.cpp
-    ${CMAKE_SOURCE_DIR}/server/src/model/items/Equipment.cpp
-    ${CMAKE_SOURCE_DIR}/server/src/model/items/ItemRegistry.cpp
-    ${CMAKE_SOURCE_DIR}/server/src/config/ItemConfigLoader.cpp
-    # === Ítems y Armas (Esenciales para que cierre el Linker) ===
-    ${CMAKE_SOURCE_DIR}/server/src/model/items/Weapon.cpp
-    ${CMAKE_SOURCE_DIR}/server/src/model/items/WeaponFactory.cpp
-    ${CMAKE_SOURCE_DIR}/server/src/model/items/Armor.cpp
-    ${CMAKE_SOURCE_DIR}/server/src/model/items/ArmorFactory.cpp
-    ${CMAKE_SOURCE_DIR}/server/src/model/items/BodyArmor.cpp
-    ${CMAKE_SOURCE_DIR}/server/src/model/items/Helmet.cpp
-    ${CMAKE_SOURCE_DIR}/server/src/model/items/Shield.cpp
 )
 
 target_include_directories(taller_tests PRIVATE 
