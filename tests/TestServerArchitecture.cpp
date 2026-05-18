@@ -39,7 +39,7 @@ TEST(ServerArchitectureTest, Queue_CanPushAndPopPlayerCommand) {
 
     // Simulamos lo que hace el Receiver en medio del juego usando la nueva arquitectura
     StartMoveDTO moveDto;
-    moveDto.direction = static_cast<uint8_t>(Movement::UP);
+    moveDto.direction = Movement::UP;
     
     // Envolvemos el movimiento en un PlayerCommand indicando quién lo envió
     PlayerCommand pCmd;
@@ -61,7 +61,7 @@ TEST(ServerArchitectureTest, Queue_CanPushAndPopPlayerCommand) {
     // Verificamos que adentro del PlayerCommand haya un StartMoveDTO
     ASSERT_TRUE(std::holds_alternative<StartMoveDTO>(receivedCmd.command));
     StartMoveDTO receivedMove = std::get<StartMoveDTO>(receivedCmd.command);
-    EXPECT_EQ(receivedMove.direction, static_cast<uint8_t>(Movement::UP));
+    EXPECT_EQ(receivedMove.direction, Movement::UP);
 }
 
 // =======================================================================

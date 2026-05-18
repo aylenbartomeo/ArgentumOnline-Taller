@@ -1,16 +1,14 @@
 #ifndef STARTMOVEDTO_H
 #define STARTMOVEDTO_H
 
-#include <cstdint>
-
-enum class Direction : uint8_t { UP, DOWN, LEFT, RIGHT };
+#include "CommandDTO.h"
 
 struct StartMoveDTO {
-    uint8_t direction = 0;
+    Movement direction = Movement::STOP;
 
     StartMoveDTO() = default;
 
-    explicit StartMoveDTO(Direction direction): direction(static_cast<uint8_t>(direction)) {}
+    explicit StartMoveDTO(Movement direction): direction(direction) {}
 };
 
 #endif

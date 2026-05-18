@@ -32,7 +32,7 @@ public:
     bool removePlayer(uint32_t playerId);
 
     /* Metodos de acciones de los personajes en el mundo */
-    void moveEntity(uint32_t playerId, uint8_t movement);
+    void moveEntity(uint32_t playerId, Movement movement);
     void playerAttack(uint32_t playerId);
     
     /* actualización del estado del mundo */

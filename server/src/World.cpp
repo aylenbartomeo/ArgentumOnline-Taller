@@ -33,18 +33,18 @@ bool World::removePlayer(uint32_t playerId) {
     return true;
 }
 
-void World::moveEntity(uint32_t playerId, uint8_t direction) {
+void World::moveEntity(uint32_t playerId, Movement direction) {
     auto it = this->players.find(playerId);
     if (it == this->players.end()) return;
 
     PlayerMock& player = *(it->second);
-    Position pos = player.getPosition(); 
+    Position pos = player.getPosition();
 
-    switch (static_cast<int>(direction)) {
-        case static_cast<int>(Movement::UP):    pos.y -= 1; break;
-        case static_cast<int>(Movement::DOWN):  pos.y += 1; break;
-        case static_cast<int>(Movement::LEFT):  pos.x -= 1; break;
-        case static_cast<int>(Movement::RIGHT): pos.x += 1; break;
+    switch (direction) {
+        case Movement::UP:    pos.y -= 1; break;
+        case Movement::DOWN:  pos.y += 1; break;
+        case Movement::LEFT:  pos.x -= 1; break;
+        case Movement::RIGHT: pos.x += 1; break;
         default: break; // Ignoramos diagonales o STOP por ahora
     }
 

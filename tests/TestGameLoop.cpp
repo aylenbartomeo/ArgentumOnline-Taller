@@ -19,7 +19,7 @@ TEST(GameLoopTest, GameLoop_RunsAndProcessesEventsAsynchronously) {
     gameQueue.push(join);
 
     StartMoveDTO moveCmd;
-    moveCmd.direction = 2; // Suponiendo Direction::LEFT en tu enum
+    moveCmd.direction = Movement::LEFT;
 
     PlayerCommand pCmd;
     pCmd.clientId = 888;

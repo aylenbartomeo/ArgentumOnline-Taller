@@ -37,7 +37,7 @@ TEST(ProtocolTest, LoginSerializationIsSymmetric) {
 // --- TEST PARA EL MENSAJE DE START_MOVE ---
 TEST(ProtocolTest, StartMoveSerializationIsSymmetric) {
     StartMoveDTO original_dto;
-    original_dto.direction = static_cast<uint8_t>(Movement::UP);
+    original_dto.direction = Movement::UP;
 
     Socket acceptor_skt("8081");
     Socket client_skt("localhost", "8081");

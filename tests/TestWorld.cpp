@@ -66,8 +66,8 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
 
     // 3. Modificamos la posición de uno para testear que el snapshot arrastre datos vivos
     // (Simula un comando de movimiento previo al snapshot)
-    mundo.moveEntity(100, static_cast<uint8_t>(Movement::DOWN)); // y: 0 -> 1
-    mundo.moveEntity(100, static_cast<uint8_t>(Movement::RIGHT)); // x: 0 -> 1
+    mundo.moveEntity(100, Movement::DOWN); // y: 0 -> 1
+    mundo.moveEntity(100, Movement::RIGHT); // x: 0 -> 1
 
     // 4. Generamos el Snapshot que se le enviaría al cliente
     SnapshotDTO snapshotActual = mundo.generateSnapshot();

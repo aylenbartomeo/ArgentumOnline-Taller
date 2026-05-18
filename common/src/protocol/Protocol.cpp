@@ -170,7 +170,7 @@ CommandVariant Protocol::receive_command() {
         }
         case OPCODE::START_MOVE: {
             StartMoveDTO dto;
-            dto.direction = recv_uint8();
+            dto.direction = static_cast<Movement>(recv_uint8());
             return dto;
         }
         case OPCODE::STOP_MOVE: {
