@@ -27,7 +27,7 @@ public:
 
         uint16_t damage = weapon.calculateDamage(caster->get_intelligence());
 
-        target.receive_damage(static_cast<int>(damage));
+        target.receiveDamage(static_cast<int>(damage));
 
         return true;
     }

@@ -11,7 +11,7 @@
 class HealCommand: public NPCCommand {
 public:
     bool execute(Player& player, const std::vector<std::string>& params) override {
-        if (player.is_dead())
+        if (player.isDead())
             return false;
         player.heal();
         return true;
@@ -21,7 +21,7 @@ public:
 class ResurrectCommand: public NPCCommand {
 public:
     bool execute(Player& player, const std::vector<std::string>& params) override {
-        if (!player.is_dead())
+        if (!player.isDead())
             return false;
         player.resurrect();
         return true;

@@ -32,12 +32,12 @@ public:
     Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config);
 
     void move(const Position& new_pos);
-    void receive_damage(int amount) override;
+    void receiveDamage(int amount) override;
     void attack(Combatant& target) override;
-    bool is_dead() const override;
-    Position get_position() const override;
-
-    uint16_t get_strength() const override;
+    bool isDead() const override;
+    Position getPosition()const override;
+    void setPosition(const Position& newPos) override;
+    uint16_t getStrength() const override;
     int get_detection_range() const;
     int get_attack_range() const;
     const std::string& get_zone() const;

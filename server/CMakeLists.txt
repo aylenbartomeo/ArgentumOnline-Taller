@@ -55,6 +55,7 @@ target_sources(argentum_online_server
     src/config/MonsterConfigLoader.h
 
     src/model/entities/MonsterFactory.h
+    src/model/entities/PlayerMock.h
     src/model/inventory/inventory.h 
     src/model/items/Armor.h
     src/model/items/ArmorFactory.h

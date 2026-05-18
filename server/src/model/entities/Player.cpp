@@ -55,7 +55,7 @@ Player::Player(uint32_t id, const std::string& name, Race race, CharacterClass c
     this->inventory.add_gold(playerConfig.startingGold);
 }
 
-void Player::receive_damage(int amount) {
+void Player::receiveDamage(int amount) {
     if (this->isGhost()) {
         return;
     }
@@ -96,14 +96,16 @@ void Player::attack(Combatant& target) {
     bool attack_success = this->combat_manager.executeAttack(*equipped_weapon, *this, target);
 
     // Si el ataque fue exitoso y el objetivo muere, damos la XP
-    if (attack_success && target.is_dead()) {
+    if (attack_success && target.isDead()) {
         // Lógica de ganar experiencia...
     }
 }
 
-bool Player::is_dead() const { return health <= 0; }
+bool Player::isDead() const { return health <= 0; }
 
-Position Player::get_position() const { return this->pos; }
+Position Player::getPosition() const { return this->pos; }
+
+void Player::setPosition(const Position& newPos) { this->pos = newPos; }
 
 PlayerState Player::getState() const { return this->state; }
 
@@ -122,7 +124,7 @@ bool Player::startMeditating() {
 
 void Player::stopMeditating() {
     if (this->state == PlayerState::MEDITATING) {
-        this->state = ALIVE;
+        this->state = PlayerState::ALIVE;
     }
 }
 
@@ -156,7 +158,7 @@ void Player::recoverMeditating(float secondsElapsed) {
     }
 }
 
-bool Player::healHealth(int amount) {
+bool Player::healHealth(uint16_t amount) {
     if (this->isGhost() || amount <= 0 || this->health >= this->max_health) {
         return false;
     }
@@ -297,9 +299,11 @@ bool Player::withdraw_item(uint32_t item_id, uint16_t amount) {
     return this->inventory.add_item(item_id, amount);
 }
 
-uint16_t Player::get_strength() const { return this->strength; }
+uint16_t Player::getStrength() const { return this->strength; }
 uint16_t Player::get_intelligence() const { return this->intelligence; }
 int Player::get_mana() const { return this->mana; }
+uint16_t Player::getHp() const { return this->health; }
+uint16_t Player::getMaxHp() const { return this->max_health; }
 void Player::consume_mana(int amount) { this->mana = std::max(0, this->mana - amount); }
 bool Player::canUseMagic() const { return this->can_use_magic; }
 bool Player::canMeditate() const { return this->can_meditate; }
@@ -308,12 +312,12 @@ Equipment& Player::getEquipment() { return this->equipment; }
 
 const Equipment& Player::getEquipment() const { return this->equipment; }
 
-void Player::recoverHealth(int amount) {
+void Player::recoverHealth(uint16_t amount) {
     if (amount <= 0) {
         return;
     }
 
-    this->health = std::min(this->max_health, this->health + amount);
+    // this->health = std::min(this->max_health, this->health + amount);
 }
 
 void Player::recoverMana(int amount) {

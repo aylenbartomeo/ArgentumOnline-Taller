@@ -9,7 +9,7 @@
 #include "CommandDTO.h"
 #include "Snapshot.h"
 #include "Map.h"            
-#include "model/entities/Player.h"
+#include "model/entities/PlayerMock.h"
 #include "../include/model/ServerEvents.h"
 
 class World {
@@ -22,7 +22,7 @@ private:
     Queue<GameEvent> queueCMD; 
     
     Map map;
-    std::unordered_map<uint32_t, std::unique_ptr<Player>> players;
+    std::unordered_map<uint32_t, std::unique_ptr<PlayerMock>> players;
 
 public:
     explicit World(int worldId, const std::string& creatorPlayerName);
@@ -32,7 +32,7 @@ public:
     bool removePlayer(uint32_t playerId);
 
     /* Metodos de acciones de los personajes en el mundo */
-    void moveEntity(uint32_t playerId, Movement movement);
+    void moveEntity(uint32_t playerId, uint8_t movement);
     void playerAttack(uint32_t playerId);
     
     /* actualización del estado del mundo */

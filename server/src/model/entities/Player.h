@@ -35,8 +35,8 @@ private:
     int constitution;  // Constitución (Vida)
 
     // --- Estados Dinámicos ---
-    int health;
-    int max_health;  // Calculado por Constitución + Clase + Nivel
+    uint16_t health;
+    uint16_t max_health;  // Calculado por Constitución + Clase + Nivel
     int mana;
     int max_mana;  // Calculado por Inteligencia + Clase + Nivel
     uint32_t gold;
@@ -54,7 +54,7 @@ private:
     float meditation_factor;
     PlayerState state;
 
-    void recoverHealth(int amount);
+    void recoverHealth(uint16_t amount);
     void recoverMana(int amount);
     void becomeGhost();
 
@@ -65,43 +65,37 @@ public:
            const InventoryConfig& inv_config, const ItemRegistry& item_registry);
 
     /* Métodos de Combatant */
-    void receive_damage(int amount) override;
+    void receiveDamage(int amount) override;
     void attack(Combatant& target) override;
-    bool is_dead() const override;
-    Position get_position() const override;
-    PlayerState getState() const;
-    Movement getMovement() const { return actualMove; }
-    void setMovement(Movement m){ this->actualMove = m; }
-    bool is_moving() const { return this->actualMove != Movement::STOP; }
-    int getX() const { return this->pos.x; }
-    int getY() const { return this->pos.y; }
-    void setX(int x) { this->pos.x = x; }
-    void setY(int y) { this->pos.y = y; }
-    void setSkin(int skinId);
-    bool isMeditating() const;
-    bool isGhost() const;
+    bool isDead() const override;
+    Position getPosition() const override;
+    void setPosition(const Position& newPos) override;
+
+    /* Acciones del Player */
     bool startMeditating();
     void stopMeditating();
     void recoverOverTime(float secondsElapsed);
     void recoverMeditating(float secondsElapsed);
-    bool healHealth(int amount);
+    bool healHealth(uint16_t amount);
     bool recoverManaAmount(int amount);
     bool restoreHealthAndMana();
     bool resurrect(Position respawnPosition);
-
-    /* Llamaria adentro a los metodos utilizados con los ciudadanos */
-    void interact(Interactable& interactable, const std::string& action,
-                  const std::vector<std::string>& params) override;
-
-    uint16_t get_strength() const override;
-    uint16_t get_intelligence() const override;
-    int get_mana() const override;
     void consume_mana(int amount) override;
     bool canUseMagic() const override;
     bool canMeditate() const;
 
-    Equipment& getEquipment();
-    const Equipment& getEquipment() const;
+    /* Getters y setters del estado del Player */
+    uint32_t getId() const { return this->id; }
+    PlayerState getState() const;
+    bool is_moving() const { return this->actualMove != Movement::STOP; }
+    void setSkin(int skinId);
+    bool isMeditating() const;
+    bool isGhost() const;
+    uint16_t getStrength() const override;
+    uint16_t get_intelligence() const override;
+    int get_mana() const override;
+    uint16_t getHp() const;
+    uint16_t getMaxHp() const;
 
     /* ACCIONES DE INVENTARIO Y EQUIPAMIENTO */
 
@@ -111,7 +105,14 @@ public:
     // Suelta un ítem al suelo (OpCode 0x04).
     bool drop_item_to_map(uint8_t slot_index, uint16_t amount);
 
+    Equipment& getEquipment();
+    const Equipment& getEquipment() const;
+
     /* METODOS PARA USAR CON LOS NPCS CIUDADANOS */
+    
+    // Llamaria adentro a los metodos utilizados con los ciudadanos
+    void interact(Interactable& interactable, const std::string& action,
+                  const std::vector<std::string>& params) override;
 
     // Transacciones de Comercio
     bool buy_item(uint32_t item_id, uint16_t amount, uint32_t total_price);

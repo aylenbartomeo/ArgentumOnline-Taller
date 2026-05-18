@@ -9,19 +9,21 @@ public:
     virtual ~Combatant() = default;
 
     // Contrato para recibir daño
-    virtual void receive_damage(int amount) = 0;
+    virtual void receiveDamage(int amount) = 0;
 
     // Contrato para atacar a otro
     virtual void attack(Combatant& target) = 0;
 
     // Método de consulta de estado
-    virtual bool is_dead() const = 0;
+    virtual bool isDead() const = 0;
 
     // Posición actual para validar alcance y adyacencia.
-    virtual Position get_position() const = 0;
+    virtual Position getPosition() const = 0;
+
+    virtual void setPosition(const Position& newPos) = 0;
 
     // Métodos para el combate físico
-    virtual uint16_t get_strength() const = 0;
+    virtual uint16_t getStrength() const = 0;
 };
 
 #endif
