@@ -9,7 +9,7 @@
 #include "../../include/dto/ClientCommands.h"
 #include "../socket/socket.h"
 
-#include "Snapshot.h"
+#include "dto/Snapshot.h"
 
 
 class Protocol {

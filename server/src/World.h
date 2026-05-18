@@ -6,8 +6,8 @@
 #include <vector>
 #include <memory>
 #include "queue.h"
-#include "CommandDTO.h"
-#include "Snapshot.h"
+#include "dto/CommandDTO.h"
+#include "dto/Snapshot.h"
 #include "Map.h"            
 #include "model/entities/PlayerMock.h"
 #include "../include/model/ServerEvents.h"

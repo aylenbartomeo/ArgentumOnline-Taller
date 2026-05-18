@@ -3,7 +3,7 @@
 #include "../common/include/dto/LoginDTO.h"
 #include "../common/include/dto/StartMoveDTO.h"
 #include "../common/include/dto/ClientCommands.h"
-#include "../common/src/CommandDTO.h"
+#include "dto/CommandDTO.h"
 #include "../common/src/protocol/Protocol.h"
 #include "../common/src/socket/socket.h"
 

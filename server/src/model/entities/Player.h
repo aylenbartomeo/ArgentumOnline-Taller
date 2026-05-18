@@ -5,7 +5,7 @@
 #include <vector>
 #include "position.h"
 #include "types.h"
-#include "CommandDTO.h"
+#include "dto/CommandDTO.h"
 #include "interfaces/MagicUser.h"
 #include "interfaces/combatant.h"
 #include "interfaces/interactable.h"

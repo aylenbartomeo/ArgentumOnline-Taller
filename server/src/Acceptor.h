@@ -11,7 +11,7 @@
 #include "../../common/src/socket/socket.h"
 
 #include "ClientHandler.h"
-#include "CommandDTO.h"
+#include "dto/CommandDTO.h"
 #include "ConnectionMonitor.h"
 
 class Acceptor: public Thread {

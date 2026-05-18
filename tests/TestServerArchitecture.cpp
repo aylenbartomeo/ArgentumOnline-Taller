@@ -2,8 +2,8 @@
 #include <variant>
 
 #include "../common/include/queue.h"
-#include "../common/src/Snapshot.h"
-#include "../common/src/CommandDTO.h"
+#include "dto/Snapshot.h"
+#include "dto/CommandDTO.h"
 #include "../common/include/dto/ClientCommands.h" 
 #include "../server/include/model/ServerEvents.h" 
 #include "../server/src/ConnectionMonitor.h"

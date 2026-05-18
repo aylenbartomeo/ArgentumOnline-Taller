@@ -5,8 +5,8 @@
 
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
-#include "../../common/src/CommandDTO.h"
-#include "../../common/src/Snapshot.h"
+#include "dto/CommandDTO.h"
+#include "dto/Snapshot.h"
 #include "../../common/src/socket/socket.h"
 
 #include "Receiver.h"

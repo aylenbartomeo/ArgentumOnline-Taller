@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 #include "../../common/include/queue.h"
-#include "../../common/src/Snapshot.h"
+#include "dto/Snapshot.h"
 
 /**
  * @class ConnectionMonitor

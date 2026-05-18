@@ -7,7 +7,7 @@
 #include "../../common/include/queue.h"
 
 #include "Acceptor.h"
-#include "CommandDTO.h"
+#include "dto/CommandDTO.h"
 #include "ConnectionMonitor.h"
 #include "GameLoop.h"
 
