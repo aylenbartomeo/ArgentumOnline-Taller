@@ -15,5 +15,5 @@ void Citizen::interact(Interactable& interactable, const std::string& action,
 }
 
 int Citizen::get_distance_to(const Player* player) const {
-    return this->pos.distance_to(player->get_position());
+    return this->pos.distance_to(player->getPosition());
 }

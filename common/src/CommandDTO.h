@@ -54,7 +54,7 @@ struct ItemCommandDTO {
     uint8_t inventorySlot;
 };
 
-enum Movement {
+enum class Movement : uint8_t {
     UP,
     DOWN,
     LEFT,

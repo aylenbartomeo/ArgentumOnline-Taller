@@ -23,7 +23,7 @@ void Monster::move(const Position& new_pos) {
     this->pos = new_pos;
 }
 
-void Monster::receive_damage(int amount) {
+void Monster::receiveDamage(int amount) {
     if (FormulaEngine::getInstance().is_attack_eluded(static_cast<uint16_t>(this->agility))) {
         return;
     }
@@ -33,7 +33,7 @@ void Monster::receive_damage(int amount) {
 }
 
 void Monster::attack(Combatant& target) {
-    const int distance = this->pos.distance_to(target.get_position());
+    const int distance = this->pos.distance_to(target.getPosition());
     if (distance == 0 || distance > this->attack_range) {
         return;
     }
@@ -41,14 +41,16 @@ void Monster::attack(Combatant& target) {
     uint16_t damage = FormulaEngine::getInstance().calculate_base_damage(
             static_cast<uint16_t>(this->strength), static_cast<uint16_t>(this->attack_min),
             static_cast<uint16_t>(this->attack_max));
-    target.receive_damage(static_cast<int>(damage));
+    target.receiveDamage(static_cast<int>(damage));
 }
 
-bool Monster::is_dead() const { return health <= 0; }
+bool Monster::isDead() const { return health <= 0; }
 
-Position Monster::get_position() const { return this->pos; }
+Position Monster::getPosition()const { return this->pos; }
 
-uint16_t Monster::get_strength() const { return this->strength; }
+void Monster::setPosition(const Position& newPos) { this->pos = newPos; }
+
+uint16_t Monster::getStrength() const { return this->strength; }
 
 int Monster::get_detection_range() const { return this->detection_range; }
 

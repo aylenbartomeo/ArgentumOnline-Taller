@@ -19,27 +19,10 @@ bool World::addPlayer(uint32_t playerId, std::string& username) {
     if (this->players.find(playerId) != this->players.end()) {
         return false;
     }
-    CombatManager* dummy_combat = nullptr;
-    ItemRegistry* dummy_registry = nullptr;
 
-    // Llenamos los 11 argumentos que exige Player.h
-    this->players[playerId] = std::make_unique<Player>(
-        playerId, 
-        username, 
-        Race::HUMAN,              // 3. Race
-        CharacterClass::WARRIOR,  // 4. CharacterClass
-        Position{0,0},            // 5. Position
-        *dummy_combat,            // 6. CombatManager&
-        PlayerConfig{},           // 7. PlayerConfig
-        RaceConfig{},             // 8. RaceConfig
-        CharacterClassConfig{},   // 9. CharacterClassConfig
-        InventoryConfig{},        // 10. InventoryConfig
-        *dummy_registry           // 11. ItemRegistry&
-    );
-
+    this->players[playerId] = std::make_unique<PlayerMock>(playerId, username);
     return true;
 }
-
 bool World::removePlayer(uint32_t playerId) {
     auto it = this->players.find(playerId);
     if (it == this->players.end()) {
@@ -50,13 +33,22 @@ bool World::removePlayer(uint32_t playerId) {
     return true;
 }
 
-void World::moveEntity(uint32_t playerId, Movement movement) {
-    // 1. Buscás al jugador en tu mapa de players
-    // 2. Le pedís su posición actual
-    // 3. Le preguntás a Map: ¿Es válida la posición de destino (actual + dirección)?
-    // 4. Si no hay colisión ni límite de mapa, actualizás la posición del jugador.
-    (void)playerId;
-    (void)movement;
+void World::moveEntity(uint32_t playerId, uint8_t direction) {
+    auto it = this->players.find(playerId);
+    if (it == this->players.end()) return;
+
+    PlayerMock& player = *(it->second);
+    Position pos = player.getPosition(); 
+
+    switch (static_cast<int>(direction)) {
+        case static_cast<int>(Movement::UP):    pos.y -= 1; break;
+        case static_cast<int>(Movement::DOWN):  pos.y += 1; break;
+        case static_cast<int>(Movement::LEFT):  pos.x -= 1; break;
+        case static_cast<int>(Movement::RIGHT): pos.x += 1; break;
+        default: break; // Ignoramos diagonales o STOP por ahora
+    }
+
+    player.setPosition(pos);
 }
 
 void World::playerAttack(uint32_t playerId) {
@@ -79,19 +71,23 @@ void World::update(float delta_time) {
 
 SnapshotDTO World::generateSnapshot() const {
     SnapshotDTO snapshot;
-    
-    // Mapeamos el estado actual de los jugadores del modelo al DTO de red
-    // Suponiendo que tu SnapshotDTO tiene un diccionario o vector de posiciones:
+    uint16_t spriteId = 1; // Un ID de sprite por defecto para que el cliente dibuje
     for (const auto& pair : this->players) {
         uint32_t id = pair.first;
-        // const Player& player = pair.second;
-        
-        // Simulación de llenado de DTO según tus estructuras comunes:
-        // PlayerDataDTO data;
-        // data.x = player.getX();
-        // data.y = player.getY();
-        // snapshot.playersData[id] = data;
-        (void)id; 
+        const PlayerMock& player = *(pair.second);
+        Position pos = player.getPosition();
+
+        // Creamos el DTO de la entidad con datos mockeados/reales para el MVP
+        EntityDTO entityData;
+        entityData.id = id;
+        entityData.type = EntityType::PLAYER;
+        entityData.x = pos.x;
+        entityData.y = pos.y;
+        entityData.current_hp = player.getHp();       // Si player tiene get_hp(), usalo
+        entityData.max_hp = player.getMaxHp();   // Si player tiene get_max_hp(), usalo
+        entityData.sprite_id = spriteId;  // Un ID de sprite por defecto para que el cliente dibuje
+        spriteId++; // Incrementamos el spriteId para que cada jugador tenga un sprite diferente (solo para demo)   
+        snapshot.entities.push_back(entityData);
     }
 
     return snapshot;
