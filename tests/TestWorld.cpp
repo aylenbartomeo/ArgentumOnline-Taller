@@ -48,3 +48,64 @@ TEST(WorldTest, World_RemoveNonExistentPlayerReturnsFalse) {
     // Intentar sacar a alguien de un mundo vacío no debería romper nada
     EXPECT_FALSE(mundo.removePlayer(999));
 }
+
+TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
+    // 1. Inicializamos un mundo vacío
+    World mundo(42, "PaladinGM");
+
+    // Verificamos que el snapshot inicial esté vacío
+    SnapshotDTO snapshotInicial = mundo.generateSnapshot();
+    EXPECT_TRUE(snapshotInicial.entities.empty());
+
+    // 2. Simulamos el login de dos jugadores (gatilla la creación de PlayerMocks)
+    std::string user1 = "Aoki";
+    std::string user2 = "Beren";
+    
+    ASSERT_TRUE(mundo.addPlayer(100, user1));
+    ASSERT_TRUE(mundo.addPlayer(200, user2));
+
+    // 3. Modificamos la posición de uno para testear que el snapshot arrastre datos vivos
+    // (Simula un comando de movimiento previo al snapshot)
+    mundo.moveEntity(100, static_cast<uint8_t>(Movement::DOWN)); // y: 0 -> 1
+    mundo.moveEntity(100, static_cast<uint8_t>(Movement::RIGHT)); // x: 0 -> 1
+
+    // 4. Generamos el Snapshot que se le enviaría al cliente
+    SnapshotDTO snapshotActual = mundo.generateSnapshot();
+
+    // 5. Validaciones de la estructura del SnapshotDTO
+    ASSERT_EQ(snapshotActual.entities.size(), 2);
+
+    bool encontroPlayer1 = false;
+    bool encontroPlayer2 = false;
+    int spritesEvaluados = 0;
+
+    for (const auto& entity : snapshotActual.entities) {
+        spritesEvaluados++; // El primero que salga se lleva el 1, el segundo el 2
+
+        if (entity.id == 100) {
+            encontroPlayer1 = true;
+            EXPECT_EQ(entity.type, EntityType::PLAYER);
+            EXPECT_EQ(entity.x, 1);
+            EXPECT_EQ(entity.y, 1);
+            EXPECT_EQ(entity.current_hp, 100);
+            EXPECT_EQ(entity.max_hp, 100);
+            
+            // Validamos que su sprite coincida con el orden de salida real en el loop
+            EXPECT_EQ(entity.sprite_id, spritesEvaluados);
+        } 
+        else if (entity.id == 200) {
+            encontroPlayer2 = true;
+            EXPECT_EQ(entity.type, EntityType::PLAYER);
+            EXPECT_EQ(entity.x, 0);
+            EXPECT_EQ(entity.y, 0);
+            EXPECT_EQ(entity.current_hp, 100);
+            EXPECT_EQ(entity.max_hp, 100);
+            
+            // Validamos que su sprite coincida con el orden de salida real en el loop
+            EXPECT_EQ(entity.sprite_id, spritesEvaluados);
+        }
+    }
+
+    EXPECT_TRUE(encontroPlayer1);
+    EXPECT_TRUE(encontroPlayer2);
+}

@@ -71,7 +71,7 @@ void World::update(float delta_time) {
 
 SnapshotDTO World::generateSnapshot() const {
     SnapshotDTO snapshot;
-    uint16_t spriteId = 1; // Un ID de sprite por defecto para que el cliente dibuje
+    uint16_t spriteId = 1;
     for (const auto& pair : this->players) {
         uint32_t id = pair.first;
         const PlayerMock& player = *(pair.second);
@@ -83,8 +83,8 @@ SnapshotDTO World::generateSnapshot() const {
         entityData.type = EntityType::PLAYER;
         entityData.x = pos.x;
         entityData.y = pos.y;
-        entityData.current_hp = player.getHp();       // Si player tiene get_hp(), usalo
-        entityData.max_hp = player.getMaxHp();   // Si player tiene get_max_hp(), usalo
+        entityData.current_hp = player.getHp();
+        entityData.max_hp = player.getMaxHp();
         entityData.sprite_id = spriteId;  // Un ID de sprite por defecto para que el cliente dibuje
         spriteId++; // Incrementamos el spriteId para que cada jugador tenga un sprite diferente (solo para demo)   
         snapshot.entities.push_back(entityData);
