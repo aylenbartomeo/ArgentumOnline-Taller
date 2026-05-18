@@ -1,5 +1,7 @@
 #include "GameLoop.h"
 #include <variant>
+#include "../include/model/ServerEvents.h"
+#include <iostream>
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor):
         isRunning(true), gameQueue(gameQueue), monitor(monitor), world(1, "Server") {}
@@ -39,32 +41,30 @@ void GameLoop::processInputs() {
         
         // 1. CHEQUEO DE JOIN_EVENT
         if (std::holds_alternative<JoinEvent>(event)) {
-            // std::get extrae el tipo exacto de la variante
             JoinEvent joinData = std::get<JoinEvent>(event);
-            world.addPlayer(joinData.playerId, joinData.username);
-        } 
-        
-        // 2. CHEQUEO DE COMMAND_DTO
-        else if (std::holds_alternative<CommandDTO>(event)) {
-            CommandDTO comando = std::get<CommandDTO>(event);
-            switch (comando.type) {
-                case ActionType::MOVE:
-                    world.moveEntity(comando.playerId, comando.movement);
-                    std::cout << "[GAMELOOP] Jugador " << comando.playerId << " se mueve en dirección: " << comando.movement << std::endl;
-                    break;
+            std::cout << "[GAMELOOP] Nace el jugador: " << joinData.username << std::endl;
+            // world.add_player(joinData.clientId, joinData.username);
+            
+        // 2. Un jugador se desconecta
+        } else if (std::holds_alternative<DisconnectEvent>(event)) {
+            DisconnectEvent discData = std::get<DisconnectEvent>(event);
+            std::cout << "[GAMELOOP] Jugador " << discData.clientId << " solicita desconexión." << std::endl;
+            // world.remove_player(discData.clientId);
 
-                case ActionType::ATTACK:
-                    world.playerAttack(comando.playerId);
-                    std::cout << "[GAMELOOP] Jugador " << comando.playerId << " ejecutó un ataque." << std::endl;
-                    break;
+        // 3. Checkeo de comandos in-game
+        } else if (std::holds_alternative<PlayerCommand>(event)) {
+            PlayerCommand pCmd = std::get<PlayerCommand>(event);
 
-                case ActionType::DISCONNECT:
-                    world.removePlayer(comando.playerId);
-                    std::cout << "[GAMELOOP] Jugador " << comando.playerId << " solicita desconexión." << std::endl;
-                    break;
+            if (std::holds_alternative<StartMoveDTO>(pCmd.command)) {
+                // StartMoveDTO move_dto = std::get<StartMoveDTO>(pCmd.command);
+                // world.move_entity(pCmd.clientId, move_dto.direction);
 
-                default:
-                    break;
+            } else if (std::holds_alternative<AttackDTO>(pCmd.command)) {
+                // world.player_attack(pCmd.clientId);
+
+            } else if (std::holds_alternative<DropItemDTO>(pCmd.command)) {
+                // DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
+                // world.drop_item(pCmd.clientId, drop_dto.slot, drop_dto.amount);
             }
         }
     }

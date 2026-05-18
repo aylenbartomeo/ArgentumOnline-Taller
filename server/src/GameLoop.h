@@ -8,6 +8,7 @@
 
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
+#include "../../common/include/dto/ClientCommands.h"
 #include "../../common/src/CommandDTO.h"
 #include "../../common/src/Snapshot.h"
 

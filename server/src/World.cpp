@@ -63,7 +63,7 @@ void World::playerAttack(uint32_t playerId) {
     (void)playerId;
 }
 
-Queue<CommandDTO>& World::getQueue() {
+Queue<GameEvent>& World::getQueue() {
     return this->queueCMD;
 }
 

@@ -10,6 +10,7 @@
 #include "Snapshot.h"
 #include "Map.h"            
 #include "model/entities/Player.h"
+#include "../include/model/ServerEvents.h"
 
 class World {
 private:
@@ -18,7 +19,7 @@ private:
     
     // La cola de entrada única de la partida donde los Receivers de los clientes 
     // depositan comandos concurrentemente.
-    Queue<CommandDTO> queueCMD; 
+    Queue<GameEvent> queueCMD; 
     
     Map map;
     std::unordered_map<uint32_t, std::unique_ptr<Player>> players;
@@ -41,7 +42,7 @@ public:
     SnapshotDTO generateSnapshot() const;
 
     /* Getters y setters */
-    Queue<CommandDTO>& getQueue();
+    Queue<GameEvent>& getQueue();
     std::string getCreatorPlayerName() const;
     int getWorldId() const;
     int getPlayerCount() const; 

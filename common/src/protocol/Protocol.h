@@ -4,10 +4,9 @@
 #include <string>
 
 #include "../../include/OpCodes.h"
-#include "../../include/dto/AttackDTO.h"
 #include "../../include/dto/LoginDTO.h"
 #include "../../include/dto/StartMoveDTO.h"
-#include "../CommandDTO.h"
+#include "../../include/dto/ClientCommands.h"
 #include "../socket/socket.h"
 
 #include "Snapshot.h"
@@ -32,25 +31,22 @@ private:
 public:
     explicit Protocol(Socket& skt);
 
-    // --- FASE LOBBY / HANDSHAKE ---
+
+    CommandVariant receive_command();
+
+    // --- MÉTODOS DE ENVÍO (Cliente -> Servidor) ---
     void send_login(const LoginDTO& loginDTO);
-    // void receive_login(CommandDTO& dto);
+    void send_start_move(const StartMoveDTO& dto);
+    void send_stop_move();
+    void send_attack();
+    void send_drop_item(const DropItemDTO& dto);
+    void send_equip_item(const EquipItemDTO& dto);
+    void send_use_item(const UseItemDTO& dto);
+    void send_grab_item();
+    void send_chat(const ChatDTO& dto);
 
-    uint8_t receiveAction();
-    std::string receiveUsername();
-    std::string receivePassword();
-
-    // --- FASE IN-GAME ---
-    void send_start_move(const CommandDTO& dto);
-    void receive_start_move(CommandDTO& dto);
-
-    // --- RECIBIR COMANDOS DE CLIENTES EN JUEGO ---
-    void receive_command(CommandDTO& dto);
-
-    // --- ENVÍO (SERVIDOR -> CLIENTE) ---
+    // --- MÉTODOS DE ENVÍO (Servidor -> Cliente) ---
     void send_snapshot(const SnapshotDTO& snap);
-
-    // --- RECEPCIÓN (CLIENTE LEYENDO AL SERVIDOR) ---
     SnapshotDTO receive_snapshot();
 };
 

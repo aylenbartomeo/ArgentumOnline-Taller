@@ -70,21 +70,4 @@ enum interactCitizen { RESPAWN, HEAL, BUY, SELL, DEPOSIT, WITHDRAW };
 
 enum ClanCommandType { FOUND, JOIN, LEAVE, CHECK, ACCEPT, REJECT, KICK };
 
-enum ActionType { MOVE, ATTACK, INTERACT, USE_ITEM, CLAN_ACTION, DISCONNECT };
-
-struct CommandDTO {
-    enum ActionType type;
-    enum Movement movement;
-    enum interactCitizen interactAction;
-    enum ClanCommandType clanAction;
-    uint32_t playerId;
-};
-
-struct JoinEvent {
-    uint32_t playerId;
-    std::string username;
-};
-
-using GameEvent = std::variant<JoinEvent, CommandDTO>;
-
 #endif
