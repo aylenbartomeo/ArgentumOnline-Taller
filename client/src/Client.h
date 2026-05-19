@@ -1,11 +1,13 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include "common/include/dto/ClientCommands.h"
 #include "common/include/dto/Snapshot.h"
 #include "common/include/queue.h"
 #include "common/src/protocol/Protocol.h"
 
 #include "Receiver.h"
+#include "Sender.h"
 
 class Client {
 private:
@@ -15,8 +17,10 @@ private:
     Protocol protocol;
 
     Queue<SnapshotDTO> snapshotQueue;
+    Queue<CommandVariant> commandQueue;
 
     Receiver receiver;
+    Sender sender;
     bool wasStarted;
 
 public:
@@ -27,6 +31,8 @@ public:
 
     void pushSnapshot(const SnapshotDTO& snap);
     bool tryPopSnapshot(SnapshotDTO& out);
+
+    void sendCommand(const CommandVariant& cmd);
 
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;

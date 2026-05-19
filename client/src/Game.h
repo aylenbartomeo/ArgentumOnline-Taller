@@ -16,6 +16,7 @@ private:
     EventHandler events;
     Client& client;
     SnapshotDTO lastSnapshot;
+    Uint32 lastMoveSentMs;
 
 public:
     explicit Game(Client& client);
@@ -31,6 +32,7 @@ public:
 
 private:
     void render();
+    void sendMoveIfDue(const FrameInput& input);
 };
 
 #endif
