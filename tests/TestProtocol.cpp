@@ -232,3 +232,46 @@ TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
     EXPECT_EQ(received_snap.entities[0].current_hp, original_snap.entities[0].current_hp);
 }
 
+// --- TESTS PARA LA RESPUESTA DE LOGIN (SERVIDOR -> CLIENTE) ---
+TEST(ProtocolTest, LoginResponseSuccessIsSymmetric) {
+    Socket acceptor_skt("8090");
+    Socket client_skt("localhost", "8090");
+    Socket server_skt = acceptor_skt.accept();
+
+    Protocol client_protocol(client_skt);
+    Protocol server_protocol(server_skt);
+
+    uint32_t expected_client_id = 42;
+
+    // SERVER envia respuesta de exito
+    server_protocol.send_login_success(expected_client_id);
+
+    // CLIENT recibe y procesa respuesta
+    LoginResponseDTO response = client_protocol.recv_login_response();
+
+    // Validamos que la respuesta indique exito y tenga el ID correcto
+    EXPECT_TRUE(response.success);
+    EXPECT_EQ(response.clientId, expected_client_id);
+    EXPECT_EQ(response.errorMessage, "");
+}
+
+TEST(ProtocolTest, LoginResponseFailureIsSymmetric) {
+    Socket acceptor_skt("8091");
+    Socket client_skt("localhost", "8091");
+    Socket server_skt = acceptor_skt.accept();
+
+    Protocol client_protocol(client_skt);
+    Protocol server_protocol(server_skt);
+
+    std::string expected_error = "Usuario o contraseña incorrecta";
+
+    // SERVER rechaza login y envia un error
+    server_protocol.send_login_failed(expected_error);
+
+    // CLIENT recibe y procesa la respuesta
+    LoginResponseDTO response = client_protocol.recv_login_response();
+
+    // Validamos que la respuesta indique fallo y traiga el mensaje correcto
+    EXPECT_FALSE(response.success);
+    EXPECT_EQ(response.errorMessage, expected_error);
+}
