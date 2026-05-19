@@ -9,7 +9,7 @@ void Receiver::run() {
     try {
         while (should_keep_running()) {
             SnapshotDTO snap = protocol.receive_snapshot();
-            client.updateSnapshot(snap);
+            client.pushSnapshot(snap);
         }
     } catch (...) {}
 }

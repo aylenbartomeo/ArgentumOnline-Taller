@@ -3,6 +3,8 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
+#include "common/include/dto/Snapshot.h"
+
 #include "Client.h"
 #include "EventHandler.h"
 #include "Window.h"
@@ -13,6 +15,7 @@ private:
     Window window;
     EventHandler events;
     Client& client;
+    SnapshotDTO lastSnapshot;
 
 public:
     explicit Game(Client& client);

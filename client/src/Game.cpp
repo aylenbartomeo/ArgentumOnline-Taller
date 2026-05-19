@@ -12,7 +12,8 @@ Game::Game(Client& client):
         sdl(SDL_INIT_VIDEO),
         window("Argentum Online - Cliente", WINDOW_WIDTH, WINDOW_HEIGHT),
         events(),
-        client(client) {}
+        client(client),
+        lastSnapshot() {}
 
 void Game::run() {
     while (true) {
@@ -26,6 +27,11 @@ void Game::run() {
 }
 
 void Game::render() {
+    SnapshotDTO incoming;
+    while (client.tryPopSnapshot(incoming)) {
+        lastSnapshot = incoming;
+    }
+
     SDL2pp::Renderer& renderer = window.getRenderer();
 
     renderer.SetDrawColor(0, 0, 0, 255);
@@ -33,8 +39,7 @@ void Game::render() {
 
     renderer.SetDrawColor(255, 255, 255, 255);
 
-    SnapshotDTO snap = client.getLatestSnapshot();
-    for (const EntityDTO& entity: snap.entities) {
+    for (const EntityDTO& entity: lastSnapshot.entities) {
         const SDL2pp::Rect rect(
                 entity.x * TILE_SIZE,
                 entity.y * TILE_SIZE,

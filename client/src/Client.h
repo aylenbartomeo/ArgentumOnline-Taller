@@ -1,9 +1,8 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <mutex>
-
 #include "common/include/dto/Snapshot.h"
+#include "common/include/queue.h"
 #include "common/src/protocol/Protocol.h"
 
 #include "Receiver.h"
@@ -15,8 +14,7 @@ private:
     Socket skt;
     Protocol protocol;
 
-    std::mutex snapshotMutex;
-    SnapshotDTO latestSnapshot;
+    Queue<SnapshotDTO> snapshotQueue;
 
     Receiver receiver;
     bool wasStarted;
@@ -27,8 +25,8 @@ public:
     void start();
     void stop();
 
-    void updateSnapshot(const SnapshotDTO& snap);
-    SnapshotDTO getLatestSnapshot();
+    void pushSnapshot(const SnapshotDTO& snap);
+    bool tryPopSnapshot(SnapshotDTO& out);
 
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;

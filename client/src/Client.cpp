@@ -9,7 +9,7 @@ Client::Client(const char* hostname, const char* servname, const char* username)
         username(username),
         skt(hostname, servname),
         protocol(skt),
-        latestSnapshot(),
+        snapshotQueue(),
         receiver(protocol, *this),
         wasStarted(false) {}
 
@@ -27,19 +27,20 @@ void Client::stop() {
         skt.shutdown(SHUT_RDWR);
         skt.close();
     } catch (...) {}
+    snapshotQueue.close();
     receiver.stop();
     receiver.join();
     wasStarted = false;
 }
 
-void Client::updateSnapshot(const SnapshotDTO& snap) {
-    std::lock_guard<std::mutex> lock(snapshotMutex);
-    latestSnapshot = snap;
+void Client::pushSnapshot(const SnapshotDTO& snap) {
+    try {
+        snapshotQueue.push(snap);
+    } catch (...) {}
 }
 
-SnapshotDTO Client::getLatestSnapshot() {
-    std::lock_guard<std::mutex> lock(snapshotMutex);
-    return latestSnapshot;
+bool Client::tryPopSnapshot(SnapshotDTO& out) {
+    return snapshotQueue.try_pop(out);
 }
 
 Client::~Client() {
