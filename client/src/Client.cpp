@@ -21,7 +21,7 @@ void Client::start() {
     receiver.start();
     sender.start();
     wasStarted = true;
-    std::cout << "[CLIENTE] conectado como " << this->username << std::endl;
+    std::cout << "[CLIENT] connected as " << this->username << std::endl;
 }
 
 void Client::stop() {

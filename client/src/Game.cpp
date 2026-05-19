@@ -15,7 +15,7 @@ constexpr Uint32 MOVE_INTERVAL_MS = 200;
 
 Game::Game(Client& client):
         sdl(SDL_INIT_VIDEO),
-        window("Argentum Online - Cliente", WINDOW_WIDTH, WINDOW_HEIGHT),
+        window("Argentum Online - Client", WINDOW_WIDTH, WINDOW_HEIGHT),
         events(),
         client(client),
         lastSnapshot(),
