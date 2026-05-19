@@ -20,6 +20,7 @@ enum class OPCODE : uint8_t {
     STATS_UPDATE = 0x83, // Envía el Oro, Maná, Exp, Nivel y el Inventario completo.
     INVENTORY_UPDATE = 0x84,
     LOGIN_SUCCESS = 0x85,
+    LOGIN_FAILED = 0x86,
 };
 
 #endif

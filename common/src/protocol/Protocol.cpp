@@ -89,10 +89,24 @@ void Protocol::send_login_success(uint32_t clientId) {
     send_uint32(clientId);
 }
 
-uint32_t Protocol::recv_login_success() {
-    uint8_t opcode = recv_uint8();
-    (void)opcode;
-    return recv_uint32();
+void Protocol::send_login_failed(const std::string& errorMessage) {
+    send_uint8(static_cast<uint8_t>(OPCODE::LOGIN_FAILED));
+    send_string(errorMessage);
+}
+
+LoginResponseDTO Protocol::recv_login_response() {
+    uint8_t opcode_raw = recv_uint8();
+    OPCODE opcode = static_cast<OPCODE>(opcode_raw);
+
+    if (opcode == OPCODE::LOGIN_SUCCESS) {
+        uint32_t clientId = recv_uint32();
+        return LoginResponseDTO{true, clientId, ""};
+    } else if (opcode == OPCODE::LOGIN_FAILED) {
+        std::string errorMessage = recv_string();
+        return LoginResponseDTO{false, 0, errorMessage};
+    } else {
+        throw std::runtime_error("Unexpected opcode received when expecting login response");
+    }
 }
 
 SnapshotDTO Protocol::receive_snapshot() {

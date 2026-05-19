@@ -18,7 +18,15 @@ Client::Client(const char* hostname, const char* servname, const char* username)
 void Client::start() {
     LoginDTO loginDTO(this->username, "1234");
     protocol.send_login(loginDTO);
-    this->clientId = protocol.recv_login_success();
+
+    LoginResponseDTO response = protocol.recv_login_response();
+
+    if (!response.success){
+        std::cerr << "[CLIENT] Error de autenticación: " << response.errorMessage << std::endl;
+        throw std::runtime_error("Fallo el login: " + response.errorMessage);
+    }
+    
+    this->clientId = response.clientId;
     receiver.start();
     sender.start();
     wasStarted = true;

@@ -5,12 +5,12 @@
 
 #include "../../include/OpCodes.h"
 #include "../../include/dto/LoginDTO.h"
+#include "../../include/dto/LoginResponseDTO.h"
 #include "../../include/dto/StartMoveDTO.h"
 #include "../../include/dto/ClientCommands.h"
 #include "../socket/socket.h"
 
 #include "dto/Snapshot.h"
-
 
 class Protocol {
 private:
@@ -50,7 +50,9 @@ public:
     SnapshotDTO receive_snapshot();
 
     void send_login_success(uint32_t clientId);
-    uint32_t recv_login_success();
+    void send_login_failed(const std::string& errorMessage);
+
+    LoginResponseDTO recv_login_response();
 };
 
 #endif
