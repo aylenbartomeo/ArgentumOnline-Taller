@@ -1,11 +1,11 @@
 #include <exception>
 #include <iostream>
 
-#include "Game.h"
+#include "Client.h"
 
 int main() try {
-    Game game;
-    game.run();
+    Client client("localhost", "8080", "Aylu");
+    client.start();
     return 0;
 } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;

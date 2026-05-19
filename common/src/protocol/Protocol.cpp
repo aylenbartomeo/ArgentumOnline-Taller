@@ -166,6 +166,7 @@ CommandVariant Protocol::receive_command() {
         case OPCODE::LOGIN: {
             LoginDTO dto;
             dto.username = recv_string();
+            dto.password = recv_string();
             return dto;
         }
         case OPCODE::START_MOVE: {
