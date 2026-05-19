@@ -1,6 +1,8 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <cstdint>
+
 #include "common/include/dto/ClientCommands.h"
 #include "common/include/dto/Snapshot.h"
 #include "common/include/queue.h"
@@ -11,7 +13,7 @@
 
 class Client {
 private:
-    int clientId;
+    uint32_t clientId;
     const char* username;
     Socket skt;
     Protocol protocol;
@@ -33,6 +35,8 @@ public:
     bool tryPopSnapshot(SnapshotDTO& out);
 
     void sendCommand(const CommandVariant& cmd);
+
+    uint32_t getClientId() const;
 
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;

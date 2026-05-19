@@ -18,10 +18,12 @@ Client::Client(const char* hostname, const char* servname, const char* username)
 void Client::start() {
     LoginDTO loginDTO(this->username, "1234");
     protocol.send_login(loginDTO);
+    this->clientId = protocol.recv_login_success();
     receiver.start();
     sender.start();
     wasStarted = true;
-    std::cout << "[CLIENT] connected as " << this->username << std::endl;
+    std::cout << "[CLIENT] connected as " << this->username
+              << " (id=" << this->clientId << ")" << std::endl;
 }
 
 void Client::stop() {
@@ -53,6 +55,10 @@ void Client::sendCommand(const CommandVariant& cmd) {
     try {
         commandQueue.push(cmd);
     } catch (...) {}
+}
+
+uint32_t Client::getClientId() const {
+    return clientId;
 }
 
 Client::~Client() {
