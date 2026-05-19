@@ -3,6 +3,7 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
+#include "Client.h"
 #include "EventHandler.h"
 #include "Window.h"
 
@@ -11,26 +12,21 @@ private:
     SDL2pp::SDL sdl;
     Window window;
     EventHandler events;
-
-    float playerX;
-    float playerY;
+    Client& client;
 
 public:
-    Game();
+    explicit Game(Client& client);
     ~Game() = default;
 
     void run();
 
-    /* No permito copias */
     Game(const Game&) = delete;
     Game& operator=(const Game&) = delete;
 
-    /* Permito movimientos */
     Game(Game&&) = default;
     Game& operator=(Game&&) = default;
 
 private:
-    void update(const FrameInput& input, float dt);
     void render();
 };
 

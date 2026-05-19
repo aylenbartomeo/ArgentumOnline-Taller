@@ -5,6 +5,7 @@ target_sources(argentum_online_client
     src/Client.cpp
     src/EventHandler.cpp
     src/Game.cpp
+    src/Receiver.cpp
     src/TextureManager.cpp
     src/Window.cpp
 
@@ -13,6 +14,7 @@ target_sources(argentum_online_client
     src/Client.h
     src/EventHandler.h
     src/Game.h
+    src/Receiver.h
     src/TextureManager.h
     src/Window.h
     )
