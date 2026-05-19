@@ -22,7 +22,7 @@ Server::~Server() {
     try {
         acceptor.stop();
     } catch (const std::exception& e) {
-        std::cerr << "Error apagando acceptor: " << e.what() << std::endl;
+        std::cerr << "Error shutting down acceptor: " << e.what() << std::endl;
     }
     acceptor.join();
     gameLoop.stop();

@@ -42,13 +42,13 @@ void GameLoop::processInputs() {
         // 1. CHEQUEO DE JOIN_EVENT
         if (std::holds_alternative<JoinEvent>(event)) {
             JoinEvent joinData = std::get<JoinEvent>(event);
-            std::cout << "[GAMELOOP] Nace el jugador: " << joinData.username << std::endl;
+            std::cout << "[GAMELOOP] Player joined: " << joinData.username << std::endl;
             world.addPlayer(joinData.clientId, joinData.username);
             
         // 2. Un jugador se desconecta
         } else if (std::holds_alternative<DisconnectEvent>(event)) {
             DisconnectEvent discData = std::get<DisconnectEvent>(event);
-            std::cout << "[GAMELOOP] Jugador " << discData.clientId << " solicita desconexión." << std::endl;
+            std::cout << "[GAMELOOP] Player " << discData.clientId << " requested disconnect." << std::endl;
             world.removePlayer(discData.clientId);
 
         // 3. Checkeo de comandos in-game
@@ -57,7 +57,7 @@ void GameLoop::processInputs() {
 
             if (std::holds_alternative<StartMoveDTO>(pCmd.command)) {
                 StartMoveDTO move_dto = std::get<StartMoveDTO>(pCmd.command);
-                std::cout << "[GAMELOOP] Jugador " << pCmd.clientId << " solicita moverse hacia: " << static_cast<int>(move_dto.direction) << std::endl;
+                std::cout << "[GAMELOOP] Player " << pCmd.clientId << " requested move to: " << static_cast<int>(move_dto.direction) << std::endl;
                 world.moveEntity(pCmd.clientId, move_dto.direction);
 
             } else if (std::holds_alternative<AttackDTO>(pCmd.command)) {

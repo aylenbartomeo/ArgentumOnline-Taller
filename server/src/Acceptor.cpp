@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#define EXE_KNOWN_MSG "Error en Acceptor: "
+#define EXE_KNOWN_MSG "Error in Acceptor: "
 
 Acceptor::Acceptor(const char* port, Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor):
         skt(port), gameQueue(gameQueue), monitor(monitor) {}

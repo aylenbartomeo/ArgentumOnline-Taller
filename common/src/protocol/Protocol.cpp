@@ -205,7 +205,7 @@ CommandVariant Protocol::receive_command() {
             return dto;
         }
         default:
-            throw std::runtime_error("Comando desconocido en recepción in-game");
+            throw std::runtime_error("Unknown command received in-game");
     }
 }
 

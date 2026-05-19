@@ -6,7 +6,7 @@
 
 #define ERROR_MSG "Usage: ./server <port>"
 #define EXE_KNOWN_MSG "Error: "
-#define EXE_NKNOWN_MSG "Se produjo un error desconocido en el server."
+#define EXE_NKNOWN_MSG "Unknown error occurred in the server."
 #define VALID_ARGS 2
 #define ARGV_PORT 1
 
