@@ -62,9 +62,13 @@ void Game::render() {
     renderer.SetDrawColor(0, 0, 0, 255);
     renderer.Clear();
 
-    renderer.SetDrawColor(255, 255, 255, 255);
-
+    const uint32_t myId = client.getClientId();
     for (const EntityDTO& entity: lastSnapshot.entities) {
+        if (entity.id == myId) {
+            renderer.SetDrawColor(0, 255, 0, 255);
+        } else {
+            renderer.SetDrawColor(255, 255, 255, 255);
+        }
         const SDL2pp::Rect rect(
                 entity.x * TILE_SIZE,
                 entity.y * TILE_SIZE,
