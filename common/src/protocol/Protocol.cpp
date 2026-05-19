@@ -84,6 +84,17 @@ void Protocol::send_snapshot(const SnapshotDTO& snap) {
     }
 }
 
+void Protocol::send_login_success(uint32_t clientId) {
+    send_uint8(static_cast<uint8_t>(OPCODE::LOGIN_SUCCESS));
+    send_uint32(clientId);
+}
+
+uint32_t Protocol::recv_login_success() {
+    uint8_t opcode = recv_uint8();
+    (void)opcode;
+    return recv_uint32();
+}
+
 SnapshotDTO Protocol::receive_snapshot() {
     SnapshotDTO snap;
     uint8_t opcode = recv_uint8();

@@ -48,6 +48,9 @@ public:
     // --- MÉTODOS DE ENVÍO (Servidor -> Cliente) ---
     void send_snapshot(const SnapshotDTO& snap);
     SnapshotDTO receive_snapshot();
+
+    void send_login_success(uint32_t clientId);
+    uint32_t recv_login_success();
 };
 
 #endif
