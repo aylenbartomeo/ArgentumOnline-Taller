@@ -40,10 +40,14 @@ void Game::sendMoveIfDue(const FrameInput& input) {
     }
 
     std::optional<Movement> direction;
-    if (input.moveNorth) direction = Movement::UP;
-    else if (input.moveSouth) direction = Movement::DOWN;
-    else if (input.moveEast) direction = Movement::RIGHT;
-    else if (input.moveWest) direction = Movement::LEFT;
+    if (input.moveNorth)
+        direction = Movement::UP;
+    else if (input.moveSouth)
+        direction = Movement::DOWN;
+    else if (input.moveEast)
+        direction = Movement::RIGHT;
+    else if (input.moveWest)
+        direction = Movement::LEFT;
 
     if (direction) {
         client.sendCommand(StartMoveDTO(*direction));
@@ -69,11 +73,7 @@ void Game::render() {
         } else {
             renderer.SetDrawColor(255, 255, 255, 255);
         }
-        const SDL2pp::Rect rect(
-                entity.x * TILE_SIZE,
-                entity.y * TILE_SIZE,
-                TILE_SIZE,
-                TILE_SIZE);
+        const SDL2pp::Rect rect(entity.x * TILE_SIZE, entity.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         renderer.FillRect(rect);
     }
 

@@ -1,19 +1,15 @@
 #include "World.h"
+
 #include <iostream>
+
 #include "model/entities/Player.h"
 
 World::World(int worldId, const std::string& creatorPlayerName):
-        worldId(worldId),
-        creatorPlayerName(creatorPlayerName),
-        map() {}
+        worldId(worldId), creatorPlayerName(creatorPlayerName), map() {}
 
-std::string World::getCreatorPlayerName() const {
-    return this->creatorPlayerName;
-}
+std::string World::getCreatorPlayerName() const { return this->creatorPlayerName; }
 
-int World::getWorldId() const {
-    return this->worldId;
-}
+int World::getWorldId() const { return this->worldId; }
 
 bool World::addPlayer(uint32_t playerId, std::string& username) {
     if (this->players.find(playerId) != this->players.end()) {
@@ -26,7 +22,7 @@ bool World::addPlayer(uint32_t playerId, std::string& username) {
 bool World::removePlayer(uint32_t playerId) {
     auto it = this->players.find(playerId);
     if (it == this->players.end()) {
-        return false; // El jugador no pertenecía a este mundo
+        return false;  // El jugador no pertenecía a este mundo
     }
 
     this->players.erase(it);
@@ -35,29 +31,33 @@ bool World::removePlayer(uint32_t playerId) {
 
 void World::moveEntity(uint32_t playerId, Movement direction) {
     auto it = this->players.find(playerId);
-    if (it == this->players.end()) return;
+    if (it == this->players.end())
+        return;
 
     PlayerMock& player = *(it->second);
     Position pos = player.getPosition();
 
     switch (direction) {
-        case Movement::UP:    pos.y -= 1; break;
-        case Movement::DOWN:  pos.y += 1; break;
-        case Movement::LEFT:  pos.x -= 1; break;
-        case Movement::RIGHT: pos.x += 1; break;
-        default: break; // Ignoramos diagonales o STOP por ahora
+        case Movement::UP:
+            pos.y -= 1;
+            break;
+        case Movement::DOWN:
+            pos.y += 1;
+            break;
+        case Movement::LEFT:
+            pos.x -= 1;
+            break;
+        case Movement::RIGHT:
+            pos.x += 1;
+            break;
+        default:
+            break;  // Ignoramos diagonales o STOP por ahora
     }
 
     player.setPosition(pos);
 }
 
-void World::playerAttack(uint32_t playerId) {
-    (void)playerId;
-}
-
-Queue<GameEvent>& World::getQueue() {
-    return this->queueCMD;
-}
+void World::playerAttack(uint32_t playerId) { (void)playerId; }
 
 void World::update(float delta_time) {
     // Evitamos advertencias de compilación si delta_time no se usa en stubs
@@ -72,7 +72,7 @@ void World::update(float delta_time) {
 SnapshotDTO World::generateSnapshot() const {
     SnapshotDTO snapshot;
     uint16_t spriteId = 1;
-    for (const auto& pair : this->players) {
+    for (const auto& pair: this->players) {
         uint32_t id = pair.first;
         const PlayerMock& player = *(pair.second);
         Position pos = player.getPosition();
@@ -86,17 +86,14 @@ SnapshotDTO World::generateSnapshot() const {
         entityData.current_hp = player.getHp();
         entityData.max_hp = player.getMaxHp();
         entityData.sprite_id = spriteId;  // Un ID de sprite por defecto para que el cliente dibuje
-        spriteId++; // Incrementamos el spriteId para que cada jugador tenga un sprite diferente (solo para demo)   
+        spriteId++;  // Incrementamos el spriteId para que cada jugador tenga un sprite diferente
+                     // (solo para demo)
         snapshot.entities.push_back(entityData);
     }
 
     return snapshot;
 }
 
-int World::getPlayerCount() const {
-    return static_cast<int>(this->players.size());
-}
+int World::getPlayerCount() const { return static_cast<int>(this->players.size()); }
 
-bool World::isEmpty() const {
-    return this->players.empty();
-}
+bool World::isEmpty() const { return this->players.empty(); }

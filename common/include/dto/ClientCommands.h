@@ -4,8 +4,9 @@
 #include <cstdint>
 #include <string>
 #include <variant>
-#include "StartMoveDTO.h"
+
 #include "LoginDTO.h"
+#include "StartMoveDTO.h"
 
 // DTOs vacíos (solo indican la intención)
 struct StopMoveDTO {};
@@ -18,23 +19,20 @@ struct DropItemDTO {
     uint16_t amount;
 };
 
-struct EquipItemDTO { uint8_t slot;};
+struct EquipItemDTO {
+    uint8_t slot;
+};
 
-struct UseItemDTO { uint8_t slot; };
+struct UseItemDTO {
+    uint8_t slot;
+};
 
-struct ChatDTO { std::string message; };
+struct ChatDTO {
+    std::string message;
+};
 
 // Esto es lo que la cola del Servidor va a recibir.
-using CommandVariant = std::variant<
-    LoginDTO, 
-    StartMoveDTO, 
-    StopMoveDTO, 
-    AttackDTO, 
-    UseItemDTO, 
-    EquipItemDTO, 
-    DropItemDTO, 
-    GrabItemDTO, 
-    ChatDTO
->;
+using CommandVariant = std::variant<LoginDTO, StartMoveDTO, StopMoveDTO, AttackDTO, UseItemDTO,
+                                    EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO>;
 
-#endif // CLIENT_COMMANDS_H
+#endif  // CLIENT_COMMANDS_H

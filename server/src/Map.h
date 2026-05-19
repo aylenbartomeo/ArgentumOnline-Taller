@@ -1,10 +1,11 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include <vector>
 #include <string>
+#include <utility>
+#include <vector>
 
-typedef enum {BACK, OBSTACLE, FLOOR, WEAPON} MapElementType;
+typedef enum { BACK, OBSTACLE, FLOOR, WEAPON } MapElementType;
 
 struct Area {
     int x;
@@ -30,14 +31,15 @@ private:
     std::pair<float, float> spawn_point;
     // Una matriz de booleanos (o de una estructura Tile) donde true = bloqueado
     std::vector<std::vector<bool>> collision_grid;
-    Area initArea(const int x, const int y, const int weight, const int height);
-    void load_from_toml(const std::string& filepath);
+    //Area initArea(const int x, const int y, const int weight, const int height);
+    //void load_from_toml(const std::string& filepath);
     // Inicializa la matriz de colisiones en base a los mapElements cargados
     void generate_collision_grid();
+
 public:
     // Es mejor pasarle la ruta del mapa a cargar desde el inicio
-    explicit Map(const std::string& toml_filepath); 
-    explicit Map(); // Para pruebas con mapa vacío  
+    explicit Map(const std::string& toml_filepath);
+    explicit Map();  // Para pruebas con mapa vacío
 
     /* Devuelven las dimensiones del mapa */
     int heightLimit() const;
@@ -61,7 +63,6 @@ public:
     void setCitizenArea(int x, int y, int w, int h);
     void setSpawnPoint(float x, float y);
     void setObstacleInGrid(int cell_x, int cell_y, bool is_solid);
-
 };
 
 #endif

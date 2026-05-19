@@ -3,8 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "position.h"
-#include "types.h"
+
 #include "dto/CommandDTO.h"
 #include "interfaces/MagicUser.h"
 #include "interfaces/combatant.h"
@@ -14,6 +13,9 @@
 #include "server/src/model/inventory/inventory.h"
 #include "server/src/model/items/Equipment.h"
 #include "server/src/model/items/ItemRegistry.h"
+
+#include "position.h"
+#include "types.h"
 
 class CombatManager;
 
@@ -27,7 +29,7 @@ private:
     Position pos;
     Equipment equipment;
     Movement actualMove;
-    
+
     // --- Atributos de Rol (Influyen en fórmulas) ---
     int strength;      // Fuerza (Daño)
     int intelligence;  // Inteligencia (Maná)
@@ -109,7 +111,7 @@ public:
     const Equipment& getEquipment() const;
 
     /* METODOS PARA USAR CON LOS NPCS CIUDADANOS */
-    
+
     // Llamaria adentro a los metodos utilizados con los ciudadanos
     void interact(Interactable& interactable, const std::string& action,
                   const std::vector<std::string>& params) override;

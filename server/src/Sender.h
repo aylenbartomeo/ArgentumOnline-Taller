@@ -3,9 +3,9 @@
 
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
-#include "dto/Snapshot.h"
 #include "../../common/src/protocol/Protocol.h"
 #include "../../common/src/socket/socket.h"
+#include "dto/Snapshot.h"
 
 class Sender: public Thread {
 private:

@@ -35,7 +35,7 @@ public:
     void receiveDamage(int amount) override;
     void attack(Combatant& target) override;
     bool isDead() const override;
-    Position getPosition()const override;
+    Position getPosition() const override;
     void setPosition(const Position& newPos) override;
     uint16_t getStrength() const override;
     int get_detection_range() const;

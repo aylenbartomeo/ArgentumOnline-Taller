@@ -21,7 +21,7 @@ FrameInput EventHandler::pollEvents() {
     input.quit = quitRequested;
     input.moveNorth = pressedKeys.count(SDLK_w) || pressedKeys.count(SDLK_UP);
     input.moveSouth = pressedKeys.count(SDLK_s) || pressedKeys.count(SDLK_DOWN);
-    input.moveEast  = pressedKeys.count(SDLK_d) || pressedKeys.count(SDLK_RIGHT);
-    input.moveWest  = pressedKeys.count(SDLK_a) || pressedKeys.count(SDLK_LEFT);
+    input.moveEast = pressedKeys.count(SDLK_d) || pressedKeys.count(SDLK_RIGHT);
+    input.moveWest = pressedKeys.count(SDLK_a) || pressedKeys.count(SDLK_LEFT);
     return input;
 }

@@ -1,15 +1,16 @@
 #include "Map.h"
+
 #include <cmath>
+#include <utility>
 
-Map::Map(const std::string& toml_filepath) {
-    (void)toml_filepath;
+//Map::Map(const std::string& toml_filepath) { (void)toml_filepath; }
+Map::Map(const std::string& toml_filepath) : width(100), height(100), citizenArea({45, 45, 10, 10}) { 
+    (void)toml_filepath; 
 }
 
-void Map::load_from_toml(const std::string& filepath) {
-    (void)filepath;
-}
+void Map::load_from_toml(const std::string& filepath) { (void)filepath; }
 
-Map::Map() : width(100), height(100), citizenArea({45, 45, 10, 10}), spawn_point({50.0f, 50.0f}) {
+Map::Map(): width(100), height(100), citizenArea({45, 45, 10, 10}), spawn_point({50.0f, 50.0f}) {
     // Inicializa la grilla por defecto limpia
     collision_grid.assign(height, std::vector<bool>(width, false));
 }
@@ -21,9 +22,7 @@ void Map::setDimensions(int w, int h) {
     collision_grid.assign(h, std::vector<bool>(w, false));
 }
 
-void Map::setCitizenArea(int x, int y, int w, int h) {
-    this->citizenArea = {x, y, w, h};
-}
+void Map::setCitizenArea(int x, int y, int w, int h) { this->citizenArea = {x, y, w, h}; }
 
 void Map::setObstacleInGrid(int cell_x, int cell_y, bool is_solid) {
     if (cell_x >= 0 && cell_x < width && cell_y >= 0 && cell_y < height) {
@@ -41,21 +40,13 @@ void Map::setObstacleInGrid(int cell_x, int cell_y, bool is_solid) {
     generate_collision_grid();
 }
 
-std::pair<float, float> Map::getInitialPosition() {
-    return this->spawn_point;
-}
+std::pair<float, float> Map::getInitialPosition() { return this->spawn_point; }
 
-void Map::setSpawnPoint(float x, float y) {
-    this->spawn_point = {x, y};
-}
+void Map::setSpawnPoint(float x, float y) { this->spawn_point = {x, y}; }
 
-int Map::heightLimit() const {
-    return this->height;
-}
+int Map::heightLimit() const { return this->height; }
 
-int Map::widthLimit() const {
-    return this->width;
-}
+int Map::widthLimit() const { return this->width; }
 
 Area Map::initArea(const int x, const int y, const int width, const int height) {
     Area area;
@@ -68,7 +59,7 @@ Area Map::initArea(const int x, const int y, const int width, const int height) 
 
 void Map::generate_collision_grid() {
     // Marcamos en la matriz qué celdas específicas están ocupadas
-    for (const auto& element : mapElements) {
+    for (const auto& element: mapElements) {
         if (element.type == MapElementType::OBSTACLE) {
             // Si el obstáculo abarca varias celdas, las marcamos todas
             for (int x = element.area.x; x < element.area.x + element.area.width; ++x) {
@@ -82,12 +73,13 @@ void Map::generate_collision_grid() {
     }
 }
 
-bool Map::attackColision(float pos_x, float pos_y) const{
-    float maxPosXPlayer = pos_x + 20; 
+bool Map::attackColision(float pos_x, float pos_y) const {
+    float maxPosXPlayer = pos_x + 20;
     float minPosXPlayer = pos_x - 20;
-    float maxPosYPlayer = pos_y + 20; 
+    float maxPosYPlayer = pos_y + 20;
     float minPosYPlayer = pos_y - 20;
-    for (const MapElement &element : this->mapElements) {
+    // cppcheck-suppress useStlAlgorithm
+    for (const MapElement& element: this->mapElements) {
         if (element.type == MapElementType::OBSTACLE) {
             float maxPosXObstaculo = element.area.x + element.area.width;
             float minPosXObstaculo = element.area.x;
@@ -95,7 +87,7 @@ bool Map::attackColision(float pos_x, float pos_y) const{
             float minPosYObstaculo = element.area.y;
             if (maxPosXPlayer > minPosXObstaculo && minPosXPlayer < maxPosXObstaculo &&
                 maxPosYPlayer > minPosYObstaculo && minPosYPlayer < maxPosYObstaculo) {
-                return true; 
+                return true;
             }
         }
     }
@@ -114,15 +106,13 @@ bool Map::playerColision(float pos_x, float pos_y) const {
 
     // 1. Validar límites del mapa
     if (min_tile_x < 0 || max_tile_x >= width || min_tile_y < 0 || max_tile_y >= height) {
-        return true; // Colisión con el fin del mundo
+        return true;  // Colisión con el fin del mundo
     }
 
     // 2. Validar contra la matriz en O(1). Si cualquiera de las esquinas pisa un bloqueo, rebota.
-    if (collision_grid[min_tile_x][min_tile_y] ||
-        collision_grid[max_tile_x][min_tile_y] ||
-        collision_grid[min_tile_x][max_tile_y] ||
-        collision_grid[max_tile_x][max_tile_y]) {
-        return true; 
+    if (collision_grid[min_tile_x][min_tile_y] || collision_grid[max_tile_x][min_tile_y] ||
+        collision_grid[min_tile_x][max_tile_y] || collision_grid[max_tile_x][max_tile_y]) {
+        return true;
     }
 
     return false;
@@ -134,10 +124,8 @@ bool Map::isCitizenArea(float pos_x, float pos_y) const {
     float maxPosYCitizen = citizenArea.area.y + citizenArea.area.height;
     float minPosYCitizen = citizenArea.area.y;
 
-    return (pos_x >= minPosXCitizen && pos_x <= maxPosXCitizen &&
-            pos_y >= minPosYCitizen && pos_y <= maxPosYCitizen);
+    return (pos_x >= minPosXCitizen && pos_x <= maxPosXCitizen && pos_y >= minPosYCitizen &&
+            pos_y <= maxPosYCitizen);
 }
 
-const std::vector<MapElement>& Map::getElements() const {
-    return this->mapElements;
-}
+const std::vector<MapElement>& Map::getElements() const { return this->mapElements; }

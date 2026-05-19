@@ -146,9 +146,7 @@ void Protocol::send_start_move(const StartMoveDTO& dto) {
     send_uint8(static_cast<uint8_t>(dto.direction));
 }
 
-void Protocol::send_attack() {
-    send_uint8(static_cast<uint8_t>(OPCODE::ATTACK));
-}
+void Protocol::send_attack() { send_uint8(static_cast<uint8_t>(OPCODE::ATTACK)); }
 
 void Protocol::send_drop_item(const DropItemDTO& dto) {
     send_uint8(static_cast<uint8_t>(OPCODE::DROP_ITEM));
@@ -156,9 +154,7 @@ void Protocol::send_drop_item(const DropItemDTO& dto) {
     send_uint16(dto.amount);
 }
 
-void Protocol::send_stop_move() {
-    send_uint8(static_cast<uint8_t>(OPCODE::STOP_MOVE));
-}
+void Protocol::send_stop_move() { send_uint8(static_cast<uint8_t>(OPCODE::STOP_MOVE)); }
 
 void Protocol::send_equip_item(const EquipItemDTO& dto) {
     send_uint8(static_cast<uint8_t>(OPCODE::EQUIP_ITEM));
@@ -170,9 +166,7 @@ void Protocol::send_use_item(const UseItemDTO& dto) {
     send_uint8(dto.slot);
 }
 
-void Protocol::send_grab_item() {
-    send_uint8(static_cast<uint8_t>(OPCODE::GRAB_ITEM));
-}
+void Protocol::send_grab_item() { send_uint8(static_cast<uint8_t>(OPCODE::GRAB_ITEM)); }
 
 void Protocol::send_chat(const ChatDTO& dto) {
     send_uint8(static_cast<uint8_t>(OPCODE::CHAT));
@@ -233,4 +227,3 @@ CommandVariant Protocol::receive_command() {
             throw std::runtime_error("Unknown command received in-game");
     }
 }
-

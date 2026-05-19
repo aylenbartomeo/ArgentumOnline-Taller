@@ -1,14 +1,14 @@
 #ifndef GAME_LOOP_H
 #define GAME_LOOP_H
 
-#include <string>
 #include <atomic>
 #include <chrono>
+#include <string>
 #include <thread>
 
+#include "../../common/include/dto/ClientCommands.h"
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
-#include "../../common/include/dto/ClientCommands.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
 

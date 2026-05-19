@@ -1,13 +1,15 @@
-#include <gtest/gtest.h>
-#include <thread>
 #include <chrono>
-#include "../server/src/GameLoop.h"
+#include <thread>
+
+#include <gtest/gtest.h>
+
 #include "../common/include/queue.h"
+#include "../server/src/GameLoop.h"
 
 TEST(GameLoopTest, GameLoop_RunsAndProcessesEventsAsynchronously) {
     // 1. Inicializamos la cola de eventos y el monitor
     Queue<GameEvent> gameQueue;
-    ConnectionMonitor monitor; // Ajustá si tu constructor pide parámetros
+    ConnectionMonitor monitor;  // Ajustá si tu constructor pide parámetros
 
     // Creación del GameLoop (nace con isRunning = true pero sin morder el hilo aún)
     GameLoop loop(gameQueue, monitor);
@@ -47,8 +49,9 @@ TEST(GameLoopTest, GameLoop_RunsAndProcessesEventsAsynchronously) {
     }
 
     // Si el test llega acá sin quedarse congelado (deadlock) y sin lanzar excepciones,
-    // significa que el pipeline interno (cola -> loop -> world -> monitor) funciona de punta a punta.
-    SUCCEED(); 
+    // significa que el pipeline interno (cola -> loop -> world -> monitor) funciona de punta a
+    // punta.
+    SUCCEED();
 }
 
 TEST(GameLoopTest, GameLoop_StopsCleanlyEvenWithEmptyQueue) {
@@ -58,9 +61,9 @@ TEST(GameLoopTest, GameLoop_StopsCleanlyEvenWithEmptyQueue) {
 
     // Lanzamos con la cola vacía
     std::thread hiloGameLoop(&GameLoop::run, &loop);
-    
+
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    
+
     // Frenamos inmediatamente
     loop.stop();
 

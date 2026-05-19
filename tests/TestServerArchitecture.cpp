@@ -1,12 +1,13 @@
-#include <gtest/gtest.h>
 #include <variant>
 
+#include <gtest/gtest.h>
+
+#include "../common/include/dto/ClientCommands.h"
 #include "../common/include/queue.h"
-#include "dto/Snapshot.h"
-#include "dto/CommandDTO.h"
-#include "../common/include/dto/ClientCommands.h" 
-#include "../server/include/model/ServerEvents.h" 
+#include "../server/include/model/ServerEvents.h"
 #include "../server/src/ConnectionMonitor.h"
+#include "dto/CommandDTO.h"
+#include "dto/Snapshot.h"
 
 // =======================================================================
 // TESTS DE LA COLA CENTRAL (GameEvent y std::variant)
@@ -40,7 +41,7 @@ TEST(ServerArchitectureTest, Queue_CanPushAndPopPlayerCommand) {
     // Simulamos lo que hace el Receiver en medio del juego usando la nueva arquitectura
     StartMoveDTO moveDto;
     moveDto.direction = Movement::UP;
-    
+
     // Envolvemos el movimiento en un PlayerCommand indicando quién lo envió
     PlayerCommand pCmd;
     pCmd.clientId = 50;

@@ -5,9 +5,9 @@
 #include <string>
 
 #include "../../common/include/queue.h"
+#include "dto/CommandDTO.h"
 
 #include "Acceptor.h"
-#include "dto/CommandDTO.h"
 #include "ConnectionMonitor.h"
 #include "GameLoop.h"
 

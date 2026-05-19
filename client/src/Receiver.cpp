@@ -2,8 +2,7 @@
 
 #include "Client.h"
 
-Receiver::Receiver(Protocol& protocol, Client& client):
-        protocol(protocol), client(client) {}
+Receiver::Receiver(Protocol& protocol, Client& client): protocol(protocol), client(client) {}
 
 void Receiver::run() {
     try {

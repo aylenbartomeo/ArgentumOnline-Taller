@@ -1,8 +1,8 @@
 #ifndef LOGIN_RESPONSE_DTO_H
 #define LOGIN_RESPONSE_DTO_H
 
-#include <string>
 #include <cstdint>
+#include <string>
 
 struct LoginResponseDTO {
     bool success;

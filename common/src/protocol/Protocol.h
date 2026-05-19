@@ -4,12 +4,11 @@
 #include <string>
 
 #include "../../include/OpCodes.h"
+#include "../../include/dto/ClientCommands.h"
 #include "../../include/dto/LoginDTO.h"
 #include "../../include/dto/LoginResponseDTO.h"
 #include "../../include/dto/StartMoveDTO.h"
-#include "../../include/dto/ClientCommands.h"
 #include "../socket/socket.h"
-
 #include "dto/Snapshot.h"
 
 class Protocol {

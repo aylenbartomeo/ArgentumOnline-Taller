@@ -46,7 +46,7 @@ void Monster::attack(Combatant& target) {
 
 bool Monster::isDead() const { return health <= 0; }
 
-Position Monster::getPosition()const { return this->pos; }
+Position Monster::getPosition() const { return this->pos; }
 
 void Monster::setPosition(const Position& newPos) { this->pos = newPos; }
 

@@ -6,10 +6,10 @@
 
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
-#include "dto/CommandDTO.h"
 #include "../../common/src/protocol/Protocol.h"
 #include "../../common/src/socket/socket.h"
 #include "../include/model/ServerEvents.h"
+#include "dto/CommandDTO.h"
 
 /**
  * @class Receiver

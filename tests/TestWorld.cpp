@@ -1,7 +1,10 @@
-#include <gtest/gtest.h>
 #include <memory>
-#include "World.h"
+
+#include <gtest/gtest.h>
+
 #include "model/entities/Player.h"
+
+#include "World.h"
 
 TEST(WorldTest, World_InitializesCorrectly) {
     World mundo(42, "PaladinGM");
@@ -32,7 +35,7 @@ TEST(WorldTest, World_HandlesPlayerLifecycleWithUniquePtr) {
     uint32_t id3 = 100;
     std::string username3 = "PlayerThree";
     EXPECT_FALSE(mundo.addPlayer(id3, username3));
-    EXPECT_EQ(mundo.getPlayerCount(), 2); // Sigue teniendo 2 originales
+    EXPECT_EQ(mundo.getPlayerCount(), 2);  // Sigue teniendo 2 originales
 
     // Remoción y limpieza del mapa
     EXPECT_TRUE(mundo.removePlayer(id1));
@@ -44,7 +47,7 @@ TEST(WorldTest, World_HandlesPlayerLifecycleWithUniquePtr) {
 
 TEST(WorldTest, World_RemoveNonExistentPlayerReturnsFalse) {
     World mundo(1, "Tester");
-    
+
     // Intentar sacar a alguien de un mundo vacío no debería romper nada
     EXPECT_FALSE(mundo.removePlayer(999));
 }
@@ -60,14 +63,14 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
     // 2. Simulamos el login de dos jugadores (gatilla la creación de PlayerMocks)
     std::string user1 = "Aoki";
     std::string user2 = "Beren";
-    
+
     ASSERT_TRUE(mundo.addPlayer(100, user1));
     ASSERT_TRUE(mundo.addPlayer(200, user2));
 
     // 3. Modificamos la posición de uno para testear que el snapshot arrastre datos vivos
     // (Simula un comando de movimiento previo al snapshot)
-    mundo.moveEntity(100, Movement::DOWN); // y: 0 -> 1
-    mundo.moveEntity(100, Movement::RIGHT); // x: 0 -> 1
+    mundo.moveEntity(100, Movement::DOWN);   // y: 0 -> 1
+    mundo.moveEntity(100, Movement::RIGHT);  // x: 0 -> 1
 
     // 4. Generamos el Snapshot que se le enviaría al cliente
     SnapshotDTO snapshotActual = mundo.generateSnapshot();
@@ -79,8 +82,8 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
     bool encontroPlayer2 = false;
     int spritesEvaluados = 0;
 
-    for (const auto& entity : snapshotActual.entities) {
-        spritesEvaluados++; // El primero que salga se lleva el 1, el segundo el 2
+    for (const auto& entity: snapshotActual.entities) {
+        spritesEvaluados++;  // El primero que salga se lleva el 1, el segundo el 2
 
         if (entity.id == 100) {
             encontroPlayer1 = true;
@@ -89,18 +92,17 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
             EXPECT_EQ(entity.y, 1);
             EXPECT_EQ(entity.current_hp, 100);
             EXPECT_EQ(entity.max_hp, 100);
-            
+
             // Validamos que su sprite coincida con el orden de salida real en el loop
             EXPECT_EQ(entity.sprite_id, spritesEvaluados);
-        } 
-        else if (entity.id == 200) {
+        } else if (entity.id == 200) {
             encontroPlayer2 = true;
             EXPECT_EQ(entity.type, EntityType::PLAYER);
             EXPECT_EQ(entity.x, 0);
             EXPECT_EQ(entity.y, 0);
             EXPECT_EQ(entity.current_hp, 100);
             EXPECT_EQ(entity.max_hp, 100);
-            
+
             // Validamos que su sprite coincida con el orden de salida real en el loop
             EXPECT_EQ(entity.sprite_id, spritesEvaluados);
         }

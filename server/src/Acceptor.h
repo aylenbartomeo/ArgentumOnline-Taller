@@ -9,9 +9,9 @@
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
 #include "../../common/src/socket/socket.h"
+#include "dto/CommandDTO.h"
 
 #include "ClientHandler.h"
-#include "dto/CommandDTO.h"
 #include "ConnectionMonitor.h"
 
 class Acceptor: public Thread {

@@ -2,21 +2,13 @@
 
 #include <SDL2/SDL.h>
 
-Window::Window(const std::string& title, int width, int height)
-    : window(title,
-             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-             width, height,
-             SDL_WINDOW_RESIZABLE)
-    , renderer(window, -1, SDL_RENDERER_ACCELERATED) {}
+Window::Window(const std::string& title, int width, int height):
+        window(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
+               SDL_WINDOW_RESIZABLE),
+        renderer(window, -1, SDL_RENDERER_ACCELERATED) {}
 
-SDL2pp::Renderer& Window::getRenderer() {
-    return renderer;
-}
+SDL2pp::Renderer& Window::getRenderer() { return renderer; }
 
-int Window::getWidth() {
-    return window.GetWidth();
-}
+int Window::getWidth() { return window.GetWidth(); }
 
-int Window::getHeight() {
-    return window.GetHeight();
-}
+int Window::getHeight() { return window.GetHeight(); }

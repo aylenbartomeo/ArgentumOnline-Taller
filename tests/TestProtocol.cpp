@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "../common/include/dto/ClientCommands.h"
 #include "../common/include/dto/LoginDTO.h"
 #include "../common/include/dto/StartMoveDTO.h"
-#include "../common/include/dto/ClientCommands.h"
-#include "dto/CommandDTO.h"
 #include "../common/src/protocol/Protocol.h"
 #include "../common/src/socket/socket.h"
+#include "dto/CommandDTO.h"
 
 // --- TEST PARA EL MENSAJE DE LOGIN ---
 TEST(ProtocolTest, LoginSerializationIsSymmetric) {
@@ -54,7 +54,7 @@ TEST(ProtocolTest, StartMoveSerializationIsSymmetric) {
     // ASSERT
     ASSERT_TRUE(std::holds_alternative<StartMoveDTO>(received_cmd));
     StartMoveDTO received_dto = std::get<StartMoveDTO>(received_cmd);
-    
+
     EXPECT_EQ(original_dto.direction, received_dto.direction);
 }
 
@@ -62,7 +62,7 @@ TEST(ProtocolTest, StartMoveSerializationIsSymmetric) {
 TEST(ProtocolTest, DropItemSerializationIsSymmetric) {
     DropItemDTO original_dto;
     original_dto.slot = 5;
-    original_dto.amount = 1500; // Valor mayor a 255 para asegurar que usa 2 bytes
+    original_dto.amount = 1500;  // Valor mayor a 255 para asegurar que usa 2 bytes
 
     Socket acceptor_skt("8082");
     Socket client_skt("localhost", "8082");
@@ -77,7 +77,7 @@ TEST(ProtocolTest, DropItemSerializationIsSymmetric) {
 
     ASSERT_TRUE(std::holds_alternative<DropItemDTO>(received_cmd));
     DropItemDTO received_dto = std::get<DropItemDTO>(received_cmd);
-    
+
     EXPECT_EQ(original_dto.slot, received_dto.slot);
     EXPECT_EQ(original_dto.amount, received_dto.amount);
 }
@@ -130,11 +130,12 @@ TEST(ProtocolTest, EquipItemSerializationIsSymmetric) {
     client_protocol.send_equip_item(original_dto);
 
     CommandVariant received_cmd = server_protocol.receive_command();
-    
+
     // Se valida que el tipo sea correcto
     ASSERT_TRUE(std::holds_alternative<EquipItemDTO>(received_cmd));
-    EquipItemDTO received_dto = std::get<EquipItemDTO>(received_cmd); // Se extrae el DTO del variant
-    EXPECT_EQ(original_dto.slot, received_dto.slot); // Se compara el contenido
+    EquipItemDTO received_dto =
+            std::get<EquipItemDTO>(received_cmd);     // Se extrae el DTO del variant
+    EXPECT_EQ(original_dto.slot, received_dto.slot);  // Se compara el contenido
 }
 
 // --- TEST PARA USE ITEM (Payload: 1 byte) ---
@@ -153,9 +154,9 @@ TEST(ProtocolTest, UseItemSerializationIsSymmetric) {
 
     CommandVariant received_cmd = server_protocol.receive_command();
 
-    ASSERT_TRUE(std::holds_alternative<UseItemDTO>(received_cmd)); // Validación de tipo
-    UseItemDTO received_dto = std::get<UseItemDTO>(received_cmd); // Extracción del DTO
-    EXPECT_EQ(original_dto.slot, received_dto.slot); // Comparación de datos
+    ASSERT_TRUE(std::holds_alternative<UseItemDTO>(received_cmd));  // Validación de tipo
+    UseItemDTO received_dto = std::get<UseItemDTO>(received_cmd);   // Extracción del DTO
+    EXPECT_EQ(original_dto.slot, received_dto.slot);                // Comparación de datos
 }
 
 // --- TEST PARA GRAB ITEM (DTO Vacío) ---
@@ -188,11 +189,11 @@ TEST(ProtocolTest, ChatSerializationIsSymmetric) {
 
     client_protocol.send_chat(original_dto);
 
-    CommandVariant received_cmd = server_protocol.receive_command(); // Recepción y parseo
+    CommandVariant received_cmd = server_protocol.receive_command();  // Recepción y parseo
 
     ASSERT_TRUE(std::holds_alternative<ChatDTO>(received_cmd));
     ChatDTO received_dto = std::get<ChatDTO>(received_cmd);
-    EXPECT_EQ(original_dto.message, received_dto.message); // Comparación del contenido del string
+    EXPECT_EQ(original_dto.message, received_dto.message);  // Comparación del contenido del string
 }
 
 // =================================================================
@@ -201,14 +202,14 @@ TEST(ProtocolTest, ChatSerializationIsSymmetric) {
 TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
     // 1. Armamos un Snapshot simulado (lo que haría el GameLoop)
     SnapshotDTO original_snap;
-    
+
     EntityDTO entity1;
     entity1.id = 100;
     entity1.x = 15;
     entity1.y = 20;
     entity1.current_hp = 50;
     entity1.max_hp = 100;
-    
+
     original_snap.entities.push_back(entity1);
 
     Socket acceptor_skt("8089");

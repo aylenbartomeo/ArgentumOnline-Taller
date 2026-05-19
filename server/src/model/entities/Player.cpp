@@ -73,9 +73,13 @@ void Player::receiveDamage(int amount) {
 
     // 3. Aplicar daño final
     int final_damage = std::max(0, amount - static_cast<int>(def));
-    this->health -= final_damage;
 
-    if (this->health <= 0) {
+    if (final_damage >= this->health) { 
+        this->health = 0; }
+    else { 
+        this->health -= final_damage; }
+
+    if (this->health == 0) {
         this->becomeGhost();
     }
 }
@@ -101,7 +105,7 @@ void Player::attack(Combatant& target) {
     }
 }
 
-bool Player::isDead() const { return health <= 0; }
+bool Player::isDead() const { return health == 0; }
 
 Position Player::getPosition() const { return this->pos; }
 
@@ -159,7 +163,7 @@ void Player::recoverMeditating(float secondsElapsed) {
 }
 
 bool Player::healHealth(uint16_t amount) {
-    if (this->isGhost() || amount <= 0 || this->health >= this->max_health) {
+    if (this->isGhost() || amount == 0 || this->health >= this->max_health) {
         return false;
     }
 
@@ -313,7 +317,7 @@ Equipment& Player::getEquipment() { return this->equipment; }
 const Equipment& Player::getEquipment() const { return this->equipment; }
 
 void Player::recoverHealth(uint16_t amount) {
-    if (amount <= 0) {
+    if (amount == 0) {
         return;
     }
 
@@ -378,6 +382,4 @@ bool Player::drop_item_to_map(uint8_t slot_index, uint16_t amount) {
     return true;
 }
 
-void Player::setSkin(int skinId) {
-    (void)skinId;
-}
+void Player::setSkin(int skinId) { (void)skinId; }
