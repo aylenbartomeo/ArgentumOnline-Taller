@@ -12,6 +12,7 @@ bool Receiver::authenticatePlayer() {
 
             JoinEvent joinEvent{this->clientId, login_data.username};
             this->gameQueue.push(joinEvent);
+            this->protocolo.send_login_success(this->clientId);
             return true;
         }
     } catch (...) {
