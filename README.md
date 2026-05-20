@@ -1,45 +1,65 @@
-# Ejemplo de CMAKE para el TP Final
+# ARGENTUM ONLINE
 
-**Importante:** el primer commit de este repositorio tiene el setup
-básico para el TP Final que incluye la instalación de la lib de Google
-Tests, `SDL2` y `SDL2pp` (el wrapper de C++).
+Taller de Programacion - Catedra Veiga - Grupo 03
 
-El resto de los commits son a modo de ejemplo de como se pueden
-agregar mas código fuente al proyecto.
+__Integrantes__
 
-Este ejemplo **no** incluye instalarse otras libs que son dependencias
-tanto de `SDL2` como de `SDL2pp` (pero si estan documentadas en el
-`CMakeFile` para Xubuntu 24.04).
+- Alexander Coronado 11256 
+- Aylen Bartomeo 111738
+- Bruno Pezman 110457
+- Franco Bustos 
 
-Este repo **no** incluye tampoco un instalador.
+__Corrector__
 
-**Se deben agregar las librerias necesarias y el instalador.**
+- Leonardo Giampieri Mutti
 
-También el ejemplo usa una estructura de carpetas muy simple:
+## Manual de Usuario
 
-```
-client/
-server/
-editor/
-common/
+**Importante:** el usuario previo a la compilacion debe instalar:
+```sh
+sudo apt install qt6-base-dev qt6-multimedia-dev
+sudo apt-get install libyaml-cpp-dev
 ```
 
-Bien se puede mejorar (cambiando el cmakefile) agregando mas
-sub-carpetas.
+__Compilacion:__
+```sh
+make
+```
+__Instalacion:__
+```sh
+make install
+```
+__Borrar Ejecutables:__
+```sh
+make clean
+```
 
-Asi tambien **deben** ser cambiados los *targets* del cmake (`taller_client`,
-`taller_server`, ...) por nombres mas acordes al TP que se este
-haciendo.
+### Instalador 
 
-Tambien, por default solo se compila una version *debug* sin
-optimizar. Si se quiere compilar binarios optimizados
-(lo que cmake llama *release*) se puede, solo hay modificar
-cmake.
+### Controles del Juego
 
-Aprender del ejemplo para saber como extenderlo!
+## Lógica General del Juego
 
-**Importante:** este repositorio **no** incluye pre-commits hooks,
-ni scripts adicionales (como correr valgrind).
+## Editor de Niveles
 
-**Eso esta a cargo de los estudiantes,** tal como fue mostrado
-en los tps individuales, recaps y hands-on.
+## Anexo
+
+### Documentacion
+
+Dentro de la carpeta 'doc' se encuentran los 5 manuales e informes del juego.
+
+- [Manual de Instalación]
+- [Manual de Uso]
+- [Informe Técnico]
+- [Informe del Proyecto]
+- [Enunciado del Argentum Online](doc/EnunciadoArgentumOnline.pdf)
+
+### Créditos
+Se han usado las siguiente bibliotecas desarrolladas por [Di Paola, Martin](https://www.github.com/eldipa):
+
+- ***Socket***
+- ***Resolver***
+- ***ResolverError***
+- ***LibError***
+- ***Queue***
+- ***Thread***
