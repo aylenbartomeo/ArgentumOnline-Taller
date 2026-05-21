@@ -24,6 +24,10 @@ public:
 
     // Métodos para el combate físico
     virtual uint16_t getStrength() const = 0;
+
+    virtual uint16_t getAgility() const = 0;
+
+    virtual uint16_t getTotalDefense() const = 0;
 };
 
 #endif

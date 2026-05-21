@@ -53,6 +53,7 @@ public:
     const Helmet* getHelmet() const { return helmet; }
     const Shield* getShield() const { return shield; }
     const Weapon* getWeapon() const { return weapon; }
+    Weapon* getEquippedWeapon() const { return const_cast<Weapon*>(this->weapon); }
 
     // Calcula la defensa total acumulada sumando la defensa de la armadura, casco y escudo
     int getDefense() const;
