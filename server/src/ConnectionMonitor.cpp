@@ -10,6 +10,11 @@ void ConnectionMonitor::removeClient(uint32_t clientId) {
     this->clientQueues.erase(clientId);
 }
 
+bool ConnectionMonitor::isClientConnected(uint32_t clientId) {
+    std::lock_guard<std::mutex> lock(this->mtx);
+    return this->clientQueues.find(clientId) != this->clientQueues.end();
+}
+
 void ConnectionMonitor::broadcast(const SnapshotDTO& snapshot) {
     std::lock_guard<std::mutex> lock(this->mtx);
     for (auto& pair: this->clientQueues) {

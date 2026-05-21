@@ -27,7 +27,16 @@ bool Receiver::authenticatePlayer() {
 
             auto authResult = this->auth.validateUser(login_data.username, login_data.password);
             if (authResult.has_value()) {
-                this->clientId = authResult.value();
+
+                uint32_t targetId = authResult.value();
+
+                if (this->monitor.isClientConnected(targetId)) {
+                    this->protocolo.send_login_failed(
+                            "El usuario ya está conectado en otra sesión.");
+                    return false;
+                }
+
+                this->clientId = targetId;
                 std::cout << "[SERVER] Jugador autenticado exitosamente: " << login_data.username
                           << " (id=" << this->clientId << ")" << std::endl;
 
