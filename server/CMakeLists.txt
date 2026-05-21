@@ -1,3 +1,12 @@
+include(FetchContent)
+
+FetchContent_Declare(
+    libbcrypt
+    GIT_REPOSITORY https://github.com/trusch/libbcrypt.git
+    GIT_TAG        master
+)
+FetchContent_MakeAvailable(libbcrypt)
+
 target_sources(argentum_online_server
     PRIVATE
     # .cpp files
@@ -40,6 +49,7 @@ target_sources(argentum_online_server
     src/Server.cpp
     src/ConnectionMonitor.cpp
     src/GameLoop.cpp
+    src/auth/AuthManager.cpp
 
     # Game
     src/Map.cpp
@@ -79,6 +89,7 @@ target_sources(argentum_online_server
 
     src/Map.h
     src/World.h
+    src/auth/AuthManager.h
 )
 
 # Include directories
@@ -92,4 +103,5 @@ target_include_directories(argentum_online_server
     src/model/inventory # Agregado para que encuentre limpiamente las cabeceras
 )
 
-target_link_libraries(argentum_online_server tomlplusplus::tomlplusplus pthread)
+target_link_libraries(argentum_online_server tomlplusplus::tomlplusplus pthread bcrypt)
+target_include_directories(argentum_online_server PRIVATE ${libbcrypt_SOURCE_DIR}/include)
