@@ -5,7 +5,6 @@
 #include <vector>
 #include <algorithm>
 
-// Reutilizamos la estructura Slot que ya definiste para el inventario
 #include "InventoryComponent.h" 
 
 class BankComponent {

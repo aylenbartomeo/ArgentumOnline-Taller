@@ -5,6 +5,7 @@ add_executable(taller_tests
     TestWorld.cpp
     TestGameLoop.cpp
     TestPlayer.cpp
+    TestBank.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
     ../server/src/Map.cpp
