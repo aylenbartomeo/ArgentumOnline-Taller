@@ -121,3 +121,24 @@ TEST(ServerArchitectureTest, ConnectionMonitor_IgnoresRemovedClients) {
     bool success2 = queuePlayer2.try_pop(received2);
     EXPECT_FALSE(success2);
 }
+
+TEST(ServerArchitectureTest, ConnectionMonitor_TracksActiveSessions) {
+    ConnectionMonitor monitor;
+    Queue<SnapshotDTO> dummyQueue;
+    uint32_t playerId = 1;
+
+    // 1. Al principio no hay nadie conectado
+    EXPECT_FALSE(monitor.isClientConnected(playerId));
+
+    // 2. El jugador se loguea exitosamente (se agrega al monitor)
+    monitor.addClient(playerId, &dummyQueue);
+
+    // 3. El monitor debe reportar que el jugador ya está adentro (para rebotar el doble login)
+    EXPECT_TRUE(monitor.isClientConnected(playerId));
+
+    // 4. El jugador cierra el juego (el Acceptor llama a removeClient)
+    monitor.removeClient(playerId);
+
+    // 5. El monitor debe liberar el estado para que pueda volver a entrar más tarde
+    EXPECT_FALSE(monitor.isClientConnected(playerId));
+}
