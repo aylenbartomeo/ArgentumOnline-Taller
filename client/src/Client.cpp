@@ -1,8 +1,10 @@
 #include "Client.h"
 
 #include <iostream>
+#include <string>
 
 #include "common/include/dto/LoginDTO.h"
+#include "common/include/dto/RegisterDTO.h"
 
 Client::Client(const char* hostname, const char* servname, const char* username):
         clientId(0),
@@ -15,22 +17,45 @@ Client::Client(const char* hostname, const char* servname, const char* username)
         sender(protocol, commandQueue),
         wasStarted(false) {}
 
-void Client::start() {
-    LoginDTO loginDTO(this->username, "1234");
-    protocol.send_login(loginDTO);
+bool Client::authenticate(const std::string& action, const std::string& username,
+                          const std::string& password) {
+    if (action == "login") {
+        LoginDTO dto(username, password);
+        protocol.send_login(dto);
 
-    LoginResponseDTO response = protocol.recv_login_response();
+        LoginResponseDTO response = protocol.recv_login_response();
+        if (response.success) {
+            std::cout << "[CLIENT] Login successful. Entering the world...\n";
+            this->clientId = response.clientId;
+            return true;
+        } else {
+            std::cerr << "[CLIENT] Login error: " << response.errorMessage << "\n";
+            return false;
+        }
 
-    if (!response.success) {
-        std::cerr << "[CLIENT] Error de autenticación: " << response.errorMessage << std::endl;
-        throw std::runtime_error("Fallo el login: " + response.errorMessage);
+    } else if (action == "register") {
+        RegisterDTO dto(username, password);
+        protocol.send_register(dto);
+        LoginResponseDTO response = protocol.recv_register_response();
+        if (response.success) {
+            std::cout << "[CLIENT] Registration successful. Entering the world...\n";
+            this->clientId = response.clientId;
+            return true;
+        } else {
+            std::cerr << "[CLIENT] Registration error: " << response.errorMessage << "\n";
+            return false;
+        }
     }
 
-    this->clientId = response.clientId;
+    std::cerr << "[CLIENT] Unknown action.\n";
+    return false;
+}
+
+void Client::start() {
     receiver.start();
     sender.start();
     wasStarted = true;
-    std::cout << "[CLIENT] connected as " << this->username << " (id=" << this->clientId << ")"
+    std::cout << "[CLIENT] Connected as " << this->username << " (id=" << this->clientId << ")"
               << std::endl;
 }
 

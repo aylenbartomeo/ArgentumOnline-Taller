@@ -1,7 +1,10 @@
 #include "Server.h"
 
 Server::Server(const char* port):
-        gameQueue(), monitor(), gameLoop(gameQueue, monitor), acceptor(port, gameQueue, monitor) {}
+        gameQueue(),
+        monitor(),
+        gameLoop(gameQueue, monitor),
+        acceptor(port, gameQueue, monitor, auth) {}
 
 void Server::run() {
     gameLoop.start();

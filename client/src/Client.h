@@ -2,6 +2,7 @@
 #define CLIENT_H
 
 #include <cstdint>
+#include <string>
 
 #include "common/include/dto/ClientCommands.h"
 #include "common/include/dto/Snapshot.h"
@@ -37,6 +38,9 @@ public:
     void sendCommand(const CommandVariant& cmd);
 
     uint32_t getClientId() const;
+
+    bool authenticate(const std::string& action, const std::string& username,
+                      const std::string& password);
 
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;

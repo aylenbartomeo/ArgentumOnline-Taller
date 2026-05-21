@@ -6,6 +6,7 @@
 #include <variant>
 
 #include "LoginDTO.h"
+#include "RegisterDTO.h"
 #include "StartMoveDTO.h"
 
 // DTOs vacíos (solo indican la intención)
@@ -32,7 +33,7 @@ struct ChatDTO {
 };
 
 // Esto es lo que la cola del Servidor va a recibir.
-using CommandVariant = std::variant<LoginDTO, StartMoveDTO, StopMoveDTO, AttackDTO, UseItemDTO,
-                                    EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO>;
+using CommandVariant = std::variant<RegisterDTO, LoginDTO, StartMoveDTO, StopMoveDTO, AttackDTO,
+                                    UseItemDTO, EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO>;
 
 #endif  // CLIENT_COMMANDS_H

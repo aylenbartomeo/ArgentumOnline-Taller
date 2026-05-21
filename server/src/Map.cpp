@@ -3,12 +3,12 @@
 #include <cmath>
 #include <utility>
 
-//Map::Map(const std::string& toml_filepath) { (void)toml_filepath; }
-Map::Map(const std::string& toml_filepath) : width(100), height(100), citizenArea({45, 45, 10, 10}) { 
-    (void)toml_filepath; 
+// Map::Map(const std::string& toml_filepath) { (void)toml_filepath; }
+Map::Map(const std::string& toml_filepath): width(100), height(100), citizenArea({45, 45, 10, 10}) {
+    (void)toml_filepath;
 }
 
-void Map::load_from_toml(const std::string& filepath) { (void)filepath; }
+// void Map::load_from_toml(const std::string& filepath) { (void)filepath; }
 
 Map::Map(): width(100), height(100), citizenArea({45, 45, 10, 10}), spawn_point({50.0f, 50.0f}) {
     // Inicializa la grilla por defecto limpia
@@ -48,14 +48,14 @@ int Map::heightLimit() const { return this->height; }
 
 int Map::widthLimit() const { return this->width; }
 
-Area Map::initArea(const int x, const int y, const int width, const int height) {
+/*Area Map::initArea(const int x, const int y, const int width, const int height) {
     Area area;
     area.x = x;
     area.y = this->height - y - height;
     area.width = width;
     area.height = height;
     return area;
-}
+}*/
 
 void Map::generate_collision_grid() {
     // Marcamos en la matriz qué celdas específicas están ocupadas

@@ -74,10 +74,11 @@ void Player::receiveDamage(int amount) {
     // 3. Aplicar daño final
     int final_damage = std::max(0, amount - static_cast<int>(def));
 
-    if (final_damage >= this->health) { 
-        this->health = 0; }
-    else { 
-        this->health -= final_damage; }
+    if (final_damage >= this->health) {
+        this->health = 0;
+    } else {
+        this->health -= final_damage;
+    }
 
     if (this->health == 0) {
         this->becomeGhost();

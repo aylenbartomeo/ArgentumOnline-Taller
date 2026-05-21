@@ -7,6 +7,7 @@
 #include "../../include/dto/ClientCommands.h"
 #include "../../include/dto/LoginDTO.h"
 #include "../../include/dto/LoginResponseDTO.h"
+#include "../../include/dto/RegisterDTO.h"
 #include "../../include/dto/StartMoveDTO.h"
 #include "../socket/socket.h"
 #include "dto/Snapshot.h"
@@ -34,6 +35,7 @@ public:
     CommandVariant receive_command();
 
     // --- MÉTODOS DE ENVÍO (Cliente -> Servidor) ---
+    void send_register(const RegisterDTO& dto);
     void send_login(const LoginDTO& loginDTO);
     void send_start_move(const StartMoveDTO& dto);
     void send_stop_move();
@@ -48,9 +50,11 @@ public:
     void send_snapshot(const SnapshotDTO& snap);
     SnapshotDTO receive_snapshot();
 
+    void send_register_success(uint32_t clientId);
+    void send_register_failed(const std::string& errorMessage);
+    LoginResponseDTO recv_register_response();
     void send_login_success(uint32_t clientId);
     void send_login_failed(const std::string& errorMessage);
-
     LoginResponseDTO recv_login_response();
 };
 

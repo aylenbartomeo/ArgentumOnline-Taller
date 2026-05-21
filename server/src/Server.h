@@ -5,6 +5,7 @@
 #include <string>
 
 #include "../../common/include/queue.h"
+#include "auth/AuthManager.h"
 #include "dto/CommandDTO.h"
 
 #include "Acceptor.h"
@@ -25,6 +26,8 @@ private:
     Queue<GameEvent> gameQueue;
 
     ConnectionMonitor monitor;
+
+    AuthManager auth;
 
     GameLoop gameLoop;
 

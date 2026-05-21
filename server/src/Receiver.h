@@ -9,7 +9,12 @@
 #include "../../common/src/protocol/Protocol.h"
 #include "../../common/src/socket/socket.h"
 #include "../include/model/ServerEvents.h"
+#include "auth/AuthManager.h"
 #include "dto/CommandDTO.h"
+#include "dto/Snapshot.h"
+
+#include "ConnectionMonitor.h"
+
 
 /**
  * @class Receiver
@@ -24,12 +29,17 @@ private:
     uint32_t clientId;
     Queue<GameEvent>& gameQueue;
     Protocol protocolo;
+    ConnectionMonitor& monitor;
+    AuthManager& auth;
+    Queue<SnapshotDTO>& senderQueue;
 
 public:
-    explicit Receiver(Socket& skt, uint32_t clientId, Queue<GameEvent>& gameQueue);
+    explicit Receiver(Socket& skt, Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
+                      AuthManager& auth, Queue<SnapshotDTO>& senderQueue);
 
     bool authenticatePlayer();
     void inGameCommunication();
+    uint32_t getClientId() const;
 
     void run() override;
 

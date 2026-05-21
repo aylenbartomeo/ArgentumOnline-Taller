@@ -2,12 +2,14 @@
 
 #include <utility>
 
-ClientHandler::ClientHandler(Socket&& skt, uint32_t id, Queue<GameEvent>& gameQueue):
-        client_id(id),
+ClientHandler::ClientHandler(Socket&& skt, Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
+                             AuthManager& auth):
         skt(std::move(skt)),
         sender_queue(),
-        receiver(this->skt, this->client_id, gameQueue),
+        receiver(this->skt, gameQueue, monitor, auth, this->sender_queue),
         sender(this->skt, this->sender_queue) {}
+
+uint32_t ClientHandler::getId() const { return receiver.getClientId(); }
 
 void ClientHandler::startThreads() {
     receiver.start();
@@ -30,5 +32,3 @@ void ClientHandler::joinThreads() {
 bool ClientHandler::isOnline() const { return receiver.is_alive() && sender.is_alive(); }
 
 Queue<SnapshotDTO>& ClientHandler::getSenderQueue() { return sender_queue; }
-
-uint32_t ClientHandler::getId() const { return client_id; }
