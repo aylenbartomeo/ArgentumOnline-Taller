@@ -9,6 +9,7 @@
 #include "components/InventoryComponent.h"
 #include "components/EquipmentComponent.h"
 #include "components/BankComponent.h"
+#include "components/StateComponent.h"
 /*
  * Esta clase es un mock súper básico para representar a un jugador en el mundo.
  * No tiene lógica de juego ni interacciones, solo atributos esenciales y métodos de acceso.
@@ -25,6 +26,8 @@ private:
     InventoryComponent inventory;
     EquipmentComponent equipment;
     BankComponent bank;
+    StateComponent state;
+
 public:
     PlayerMock(uint32_t id, const std::string& name) :
         id(id), 
@@ -35,7 +38,8 @@ public:
         // Inventario ahora absorbe la economía: 20 slots, 5000 seguro, 100000 tope máximo
         inventory(20, 5000, 100000),
         equipment(),
-        bank(50, 999999) {}
+        bank(50, 999999),
+        state() {}
 
     uint32_t getId() const { return this->id; }
     std::string getName() const { return this->name; }
@@ -53,6 +57,9 @@ public:
     const EquipmentComponent& getEquipment() const { return this->equipment; }
 
     BankComponent& getBank() { return this->bank; }
+
+    StateComponent& getState() { return this->state; }
+    const StateComponent& getState() const { return this->state; }
 };
 
 #endif
