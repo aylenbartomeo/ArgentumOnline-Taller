@@ -10,6 +10,9 @@
 #include "components/EquipmentComponent.h"
 #include "components/BankComponent.h"
 #include "components/StateComponent.h"
+#include "components/CombatComponent.h"
+#include "interfaces/Combatant.h"
+#include "combat/CombatManager.h"
 /*
  * Esta clase es un mock súper básico para representar a un jugador en el mundo.
  * No tiene lógica de juego ni interacciones, solo atributos esenciales y métodos de acceso.
@@ -17,7 +20,7 @@
  * sin complicaciones de configuración o lógica de juego.
  */
 
-class PlayerMock {
+class PlayerMock : Combatant{
 private:
     uint32_t id;
     std::string name;
@@ -27,6 +30,7 @@ private:
     EquipmentComponent equipment;
     BankComponent bank;
     StateComponent state;
+    CombatComponent combat;
 
 public:
     PlayerMock(uint32_t id, const std::string& name) :
@@ -39,12 +43,26 @@ public:
         inventory(20, 5000, 100000),
         equipment(),
         bank(50, 999999),
-        state() {}
+        state(),
+        combat(stats, state) {}
 
     uint32_t getId() const { return this->id; }
     std::string getName() const { return this->name; }
     Position getPosition() const { return this->pos; }
     void setPosition(const Position& newPos) { this->pos = newPos; }
+
+    // IMPLEMENTACIÓN DE LA INTERFAZ COMBATANT
+    void receiveDamage(int amount) override { this->combat.takeDamage(amount); }
+    bool isDead() const override { return this->stats.getHp() <= 0; }
+    uint16_t getStrength() const override { return this->stats.getStrength(); }
+    uint16_t getAgility() const override { return this->stats.getAgility(); }
+    uint16_t getTotalDefense() const override { return this->equipment.getDefense(); }
+    
+    void attack(Combatant& target) override {
+        if (this->isDead()) return;
+        Weapon* myWeapon = this->equipment.getEquippedWeapon();
+        CombatManager::getInstance().executeAttack(*this, target, myWeapon);
+    }
 
     // Acceso a los componentes
     StatsComponent& getStats() { return this->stats; }
@@ -59,7 +77,7 @@ public:
     BankComponent& getBank() { return this->bank; }
 
     StateComponent& getState() { return this->state; }
-    const StateComponent& getState() const { return this->state; }
+    const StateComponent& getState() const { return this->state; }    
 };
 
 #endif
