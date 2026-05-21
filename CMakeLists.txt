@@ -132,7 +132,7 @@ if(ARGENTUM_ONLINE_CLIENT)
     target_include_directories(argentum_online_client PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(argentum_online_client lib_common SDL2pp::SDL2pp)
+    target_link_libraries(argentum_online_client lib_common SDL2pp::SDL2pp pthread)
 endif()
 
 if(ARGENTUM_ONLINE_SERVER)

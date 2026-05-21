@@ -83,8 +83,8 @@ SnapshotDTO World::generateSnapshot() const {
         entityData.type = EntityType::PLAYER;
         entityData.x = pos.x;
         entityData.y = pos.y;
-        entityData.current_hp = player.getHp();
-        entityData.max_hp = player.getMaxHp();
+        entityData.current_hp = player.getStats().getHp();
+        entityData.max_hp = player.getStats().getMaxHp();
         entityData.sprite_id = spriteId;  // Un ID de sprite por defecto para que el cliente dibuje
         spriteId++;  // Incrementamos el spriteId para que cada jugador tenga un sprite diferente
                      // (solo para demo)

@@ -6,6 +6,7 @@
 
 #include "Item.h"
 
+class EquipmentComponent;
 class FormulaEngine;
 
 enum class WeaponType { MELEE, RANGED, MAGIC };
@@ -34,7 +35,7 @@ public:
     int getManaCost() const;
     uint16_t calculateDamage(uint16_t attackPower) const;
     bool is_wearable() const override { return true; }
-    uint32_t equip_on(Equipment& equipment) const override;
+    uint32_t equip_on(EquipmentComponent& equipment) const override;
 };
 
 #endif

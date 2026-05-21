@@ -45,6 +45,11 @@ target_sources(argentum_online_server
     src/Map.cpp
     src/World.cpp
 
+    # Components
+    src/model/entities/components/InventoryComponent.cpp
+    src/model/entities/components/EquipmentComponent.cpp
+    src/model/entities/components/BankComponent.cpp
+
     PUBLIC
     # .h files
     src/config/ArmorConfigLoader.h
@@ -56,6 +61,11 @@ target_sources(argentum_online_server
 
     src/model/entities/MonsterFactory.h
     src/model/entities/PlayerMock.h
+    src/model/entities/components/StatsComponent.h
+    src/model/entities/components/InventoryComponent.h
+    src/model/entities/components/EquipmentComponent.h
+    src/model/entities/components/BankComponent.h
+
     src/model/inventory/inventory.h 
     src/model/items/Armor.h
     src/model/items/ArmorFactory.h
@@ -90,6 +100,7 @@ target_include_directories(argentum_online_server
     src/model/entities
     src/model/items
     src/model/inventory # Agregado para que encuentre limpiamente las cabeceras
+    src/model/entities/components
 )
 
 target_link_libraries(argentum_online_server tomlplusplus::tomlplusplus pthread)

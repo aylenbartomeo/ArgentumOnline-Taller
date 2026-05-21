@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <string>
 
-class Equipment;
+class EquipmentComponent;
 
 class Item {
 public:
@@ -15,7 +15,7 @@ public:
 
     virtual bool is_wearable() const { return false; }
 
-    virtual uint32_t equip_on(Equipment& equipment) const {
+    virtual uint32_t equip_on(EquipmentComponent& equipment) const {
         (void)equipment;
         return 0;
     }

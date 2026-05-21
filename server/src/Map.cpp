@@ -8,7 +8,7 @@ Map::Map(const std::string& toml_filepath) : width(100), height(100), citizenAre
     (void)toml_filepath; 
 }
 
-void Map::load_from_toml(const std::string& filepath) { (void)filepath; }
+void Map::loadFromToml(const std::string& filepath) { (void)filepath; }
 
 Map::Map(): width(100), height(100), citizenArea({45, 45, 10, 10}), spawn_point({50.0f, 50.0f}) {
     // Inicializa la grilla por defecto limpia

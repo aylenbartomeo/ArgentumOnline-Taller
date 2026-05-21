@@ -1,8 +1,8 @@
-// server/src/model/interfaces/combatant.h
 #ifndef COMBATANT_H
 #define COMBATANT_H
 
 #include <cstdint>
+#include "position.h"
 
 class Combatant {
 public:

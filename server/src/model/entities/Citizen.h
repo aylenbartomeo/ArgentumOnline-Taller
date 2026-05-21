@@ -9,7 +9,7 @@
 #include "../utils/types.h"
 #include "interfaces/interactable.h"
 
-class Player;
+// class Player;
 
 class Citizen: public Interactable {
 private:
@@ -23,7 +23,7 @@ public:
     void interact(Interactable& interactable, const std::string& action,
                   const std::vector<std::string>& params) override;
 
-    int get_distance_to(const Player* player) const;
+    // int get_distance_to(const Player* player) const;
 };
 
 #endif
