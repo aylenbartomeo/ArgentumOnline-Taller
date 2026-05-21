@@ -24,12 +24,6 @@
 #define REJECT_CLAN_CMD "/rechazar-clan"
 #define KICK_CLAN_CMD "/clan-kick"
 
-enum PlayerState {
-    ALIVE,
-    GHOST,
-    MEDITATING,
-};
-
 struct ItemInfoDTO {
     uint32_t itemId;
     uint16_t quantity;
