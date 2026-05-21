@@ -111,3 +111,44 @@ TEST(PlayerEquipmentIntegrationTest, EquippingNullptrDoesNothingAndReturnsZero) 
     EXPECT_EQ(result, 0);
     EXPECT_EQ(player.getEquipment().getWeapon(), nullptr);
 }
+
+// =======================================================================
+// TESTS DE STATE COMPONENT
+// =======================================================================
+
+TEST(PlayerStateTest, NormalPlayerCanDoEverything) {
+    PlayerMock player(1, "Aventurero");
+    
+    EXPECT_TRUE(player.getState().canMove());
+    EXPECT_TRUE(player.getState().canAttack());
+    EXPECT_TRUE(player.getState().canUseItems());
+    EXPECT_FALSE(player.getState().isGhost());
+}
+
+TEST(PlayerStateTest, GhostPlayerCannotAttackOrUseItems) {
+    PlayerMock player(1, "Difunto");
+    
+    player.getState().die(); // Transición a GhostState
+    
+    // Verificamos filtros del estado Ghost
+    EXPECT_TRUE(player.getState().isGhost());
+    EXPECT_TRUE(player.getState().canMove());
+    EXPECT_FALSE(player.getState().canAttack());
+    EXPECT_FALSE(player.getState().canUseItems());
+}
+
+TEST(PlayerStateTest, MeditatingPlayerCannotMoveOrAttack) {
+    PlayerMock player(1, "Monje");
+    
+    player.getState().startMeditating(); // Transición a MeditatingState
+    
+    // Verificamos filtros del estado Meditar
+    EXPECT_TRUE(player.getState().isMeditating());
+    EXPECT_FALSE(player.getState().canMove());
+    EXPECT_FALSE(player.getState().canAttack());
+    EXPECT_FALSE(player.getState().canUseItems()); 
+    
+    // Si lo cortamos, vuelve a la normalidad
+    player.getState().stopMeditating();
+    EXPECT_TRUE(player.getState().canMove());
+}
