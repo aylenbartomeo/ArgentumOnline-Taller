@@ -58,6 +58,8 @@ target_sources(argentum_online_server
     src/model/components/StatsComponent.cpp
     src/model/components/CombatComponent.cpp
     src/model/combat/CombatManager.cpp
+    src/model/components/RegenerationComponent.cpp
+
 
     PUBLIC
     # .h files

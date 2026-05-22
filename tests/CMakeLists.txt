@@ -8,7 +8,8 @@ add_executable(taller_tests
     TestAuthManager.cpp
     TestEquipmentComponent.cpp
     TestInventoryComponent.cpp
-    TestEquipmentComponent.cpp
+    TestStatsComponent.cpp
+    TestRegenerationComponent.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
     ../server/src/Map.cpp
@@ -22,6 +23,7 @@ add_executable(taller_tests
     ../server/src/model/components/EquipmentComponent.cpp
     ../server/src/model/components/BankComponent.cpp
     ../server/src/model/components/CombatComponent.cpp
+    ../server/src/model/components/RegenerationComponent.cpp
     ../server/src/model/combat/CombatManager.cpp
     ../server/src/model/FormulaEngine.cpp
     ../server/src/model/items/Armor.cpp
