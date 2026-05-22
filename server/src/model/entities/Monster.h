@@ -6,7 +6,7 @@
 
 #include "../utils/position.h"
 #include "../utils/types.h"
-#include "interfaces/combatant.h"
+#include "interfaces/Combatant.h"
 #include "interfaces/interactable.h"
 #include "server/src/config/MonsterConfig.h"
 
@@ -36,7 +36,7 @@ public:
     void attack(Combatant& target) override;
     bool isDead() const override;
     Position getPosition() const override;
-    void setPosition(const Position& newPos) override;
+    void setPosition(const Position& newPos);
     uint16_t getStrength() const override;
     int get_detection_range() const;
     int get_attack_range() const;
