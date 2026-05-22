@@ -26,6 +26,8 @@ public:
 
     void removeClient(uint32_t clientId);
 
+    bool isClientConnected(uint32_t clientId);
+
     void broadcast(const SnapshotDTO& snapshot);
 
     ConnectionMonitor(const ConnectionMonitor&) = delete;

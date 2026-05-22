@@ -6,6 +6,7 @@ add_executable(taller_tests
     TestGameLoop.cpp
     TestPlayer.cpp
     TestBank.cpp
+    TestAuthManager.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
     ../server/src/Map.cpp
@@ -20,6 +21,7 @@ add_executable(taller_tests
     ../server/src/model/items/BodyArmor.cpp
     ../server/src/model/items/Helmet.cpp
     ../server/src/model/items/Shield.cpp
+    ../server/src/auth/AuthManager.cpp
 )
 
 target_include_directories(taller_tests PRIVATE 
@@ -28,6 +30,8 @@ target_include_directories(taller_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/server/src/model
     ${CMAKE_SOURCE_DIR}/server/src/model/entities
     ${CMAKE_SOURCE_DIR}/server/src/model/items
+    ${CMAKE_SOURCE_DIR}/server/src/model/inventory
+    ${CMAKE_BINARY_DIR}/_deps/libbcrypt-src/include
     .
 )
 
@@ -35,4 +39,5 @@ target_link_libraries(taller_tests PRIVATE
     GTest::gtest_main
     lib_common
     tomlplusplus::tomlplusplus
+    bcrypt
 )

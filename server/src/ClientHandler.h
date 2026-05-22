@@ -6,15 +6,16 @@
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
 #include "../../common/src/socket/socket.h"
+#include "auth/AuthManager.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
 
+#include "ConnectionMonitor.h"
 #include "Receiver.h"
 #include "Sender.h"
 
 class ClientHandler {
 private:
-    uint32_t client_id;
     Socket skt;
 
     Queue<SnapshotDTO> sender_queue;
@@ -23,7 +24,8 @@ private:
     Sender sender;
 
 public:
-    explicit ClientHandler(Socket&& skt, uint32_t client_id, Queue<GameEvent>& gameQueue);
+    explicit ClientHandler(Socket&& skt, Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
+                           AuthManager& auth);
 
     void startThreads();
     void stopThreads();

@@ -9,6 +9,7 @@
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
 #include "../../common/src/socket/socket.h"
+#include "auth/AuthManager.h"
 #include "dto/CommandDTO.h"
 
 #include "ClientHandler.h"
@@ -20,13 +21,14 @@ private:
     std::list<ClientHandler*> clients;
     Queue<GameEvent>& gameQueue;
     ConnectionMonitor& monitor;
-    std::atomic<uint32_t> next_client_id{1};
+    AuthManager& auth;
 
     void reap();
     void close_clients();
 
 public:
-    Acceptor(const char* port, Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor);
+    Acceptor(const char* port, Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
+             AuthManager& auth);
 
     virtual void run() override;
     virtual void stop() override;

@@ -109,6 +109,37 @@ LoginResponseDTO Protocol::recv_login_response() {
     }
 }
 
+void Protocol::send_register(const RegisterDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::REGISTER));
+    send_string(dto.username);
+    send_string(dto.password);
+}
+
+void Protocol::send_register_success(uint32_t clientId) {
+    send_uint8(static_cast<uint8_t>(OPCODE::REGISTER_SUCCESS));
+    send_uint32(clientId);
+}
+
+void Protocol::send_register_failed(const std::string& errorMessage) {
+    send_uint8(static_cast<uint8_t>(OPCODE::REGISTER_FAILED));
+    send_string(errorMessage);
+}
+
+LoginResponseDTO Protocol::recv_register_response() {
+    uint8_t opcode_raw = recv_uint8();
+    OPCODE opcode = static_cast<OPCODE>(opcode_raw);
+
+    if (opcode == OPCODE::REGISTER_SUCCESS) {
+        uint32_t clientId = recv_uint32();
+        return LoginResponseDTO{true, clientId, ""};
+    } else if (opcode == OPCODE::REGISTER_FAILED) {
+        std::string errorMessage = recv_string();
+        return LoginResponseDTO{false, 0, errorMessage};
+    } else {
+        throw std::runtime_error("Unexpected opcode received when expecting register response");
+    }
+}
+
 SnapshotDTO Protocol::receive_snapshot() {
     SnapshotDTO snap;
     uint8_t opcode = recv_uint8();
@@ -184,6 +215,12 @@ CommandVariant Protocol::receive_command() {
     switch (opcode) {
         case OPCODE::LOGIN: {
             LoginDTO dto;
+            dto.username = recv_string();
+            dto.password = recv_string();
+            return dto;
+        }
+        case OPCODE::REGISTER: {
+            RegisterDTO dto;
             dto.username = recv_string();
             dto.password = recv_string();
             return dto;

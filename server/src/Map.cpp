@@ -3,9 +3,9 @@
 #include <cmath>
 #include <utility>
 
-//Map::Map(const std::string& toml_filepath) { (void)toml_filepath; }
-Map::Map(const std::string& toml_filepath) : width(100), height(100), citizenArea({45, 45, 10, 10}) { 
-    (void)toml_filepath; 
+// Map::Map(const std::string& toml_filepath) { (void)toml_filepath; }
+Map::Map(const std::string& toml_filepath): width(100), height(100), citizenArea({45, 45, 10, 10}) {
+    (void)toml_filepath;
 }
 
 void Map::loadFromToml(const std::string& filepath) { (void)filepath; }
@@ -48,14 +48,14 @@ int Map::heightLimit() const { return this->height; }
 
 int Map::widthLimit() const { return this->width; }
 
-Area Map::initArea(const int x, const int y, const int width, const int height) {
+/*Area Map::initArea(const int x, const int y, const int width, const int height) {
     Area area;
     area.x = x;
     area.y = this->height - y - height;
     area.width = width;
     area.height = height;
     return area;
-}
+}*/
 
 void Map::generate_collision_grid() {
     // Marcamos en la matriz qué celdas específicas están ocupadas

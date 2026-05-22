@@ -2,40 +2,82 @@
 
 #include <iostream>
 
-Receiver::Receiver(Socket& skt, uint32_t clientId, Queue<GameEvent>& gameQueue):
-        skt(skt), clientId(clientId), gameQueue(gameQueue), protocolo(skt) {}
+#include "../../common/include/dto/RegisterDTO.h"
+#include "../auth/AuthManager.h"
+
+Receiver::Receiver(Socket& skt, Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
+                   AuthManager& auth, Queue<SnapshotDTO>& senderQueue):
+        skt(skt),
+        clientId(0),
+        gameQueue(gameQueue),
+        protocolo(skt),
+        monitor(monitor),
+        auth(auth),
+        senderQueue(senderQueue) {}
 
 bool Receiver::authenticatePlayer() {
     try {
         CommandVariant cmd = this->protocolo.receive_command();
-
         if (std::holds_alternative<LoginDTO>(cmd)) {
             LoginDTO login_data = std::get<LoginDTO>(cmd);
-
-            // Logica de validacion (hardcodeado)
-            if (login_data.password != "1234") {
-                this->protocolo.send_login_failed("Contraseña incorrecta. Intente nuevamente.");
-                return false;
-            }
-
             if (login_data.username.empty()) {
-                this->protocolo.send_login_failed("El nombre de usuario no puede estar vacío.");
+                this->protocolo.send_login_failed("The username cannot be empty.");
                 return false;
             }
 
-            std::cout << "[SERVER] Jugador autenticado exitosamente: " << login_data.username
-                      << std::endl;
+            auto authResult = this->auth.validateUser(login_data.username, login_data.password);
+            if (authResult.has_value()) {
 
-            JoinEvent joinEvent{this->clientId, login_data.username};
-            this->gameQueue.push(joinEvent);
-            this->protocolo.send_login_success(this->clientId);
-            return true;
+                uint32_t targetId = authResult.value();
+
+                if (this->monitor.isClientConnected(targetId)) {
+                    this->protocolo.send_login_failed(
+                            "The user is already connected in another session.");
+                    return false;
+                }
+
+                this->clientId = targetId;
+                std::cout << "[SERVER] Authenticated player: " << login_data.username
+                          << " (id=" << this->clientId << ")" << std::endl;
+
+                this->protocolo.send_login_success(this->clientId);
+                this->monitor.addClient(this->clientId, &this->senderQueue);
+                JoinEvent joinEvent{this->clientId, login_data.username};
+                this->gameQueue.push(joinEvent);
+                return true;
+            } else {
+                this->protocolo.send_login_failed("Incorrect password or user does not exist.");
+                return false;
+            }
+        } else if (std::holds_alternative<RegisterDTO>(cmd)) {
+            RegisterDTO register_data = std::get<RegisterDTO>(cmd);
+            if (register_data.username.empty()) {
+                this->protocolo.send_register_failed("The username cannot be empty.");
+                return false;
+            }
+
+            auto authResult =
+                    this->auth.registerUser(register_data.username, register_data.password);
+            if (authResult.has_value()) {
+                this->clientId = authResult.value();
+                std::cout << "[SERVER] New registered player: " << register_data.username
+                          << " (id=" << this->clientId << ")" << std::endl;
+
+                this->protocolo.send_register_success(this->clientId);
+                this->monitor.addClient(this->clientId, &this->senderQueue);
+                JoinEvent joinEvent{this->clientId, register_data.username};
+                this->gameQueue.push(joinEvent);
+                return true;
+            } else {
+                this->protocolo.send_register_failed("The user already exists.");
+                return false;
+            }
         } else {
             return false;
         }
     } catch (const std::exception& e) {
-        std::cerr << "[SERVER] Error durante la autenticación del cliente " << this->clientId
-                  << ": " << e.what() << std::endl;
+        std::cerr << "[SERVER] Error during authentication: " << e.what() << std::endl;
+        this->stop();
         return false;
     }
 }
@@ -55,8 +97,13 @@ void Receiver::inGameCommunication() {
     }
 }
 
+uint32_t Receiver::getClientId() const { return this->clientId; }
+
 void Receiver::run() {
-    if (authenticatePlayer()) {
-        inGameCommunication();
+    while (should_keep_running()) {
+        if (authenticatePlayer()) {
+            inGameCommunication();
+            break;
+        }
     }
 }

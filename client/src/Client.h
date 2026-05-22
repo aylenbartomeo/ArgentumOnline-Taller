@@ -2,6 +2,7 @@
 #define CLIENT_H
 
 #include <cstdint>
+#include <string>
 
 #include "common/include/dto/ClientCommands.h"
 #include "common/include/dto/Snapshot.h"
@@ -14,7 +15,7 @@
 class Client {
 private:
     uint32_t clientId;
-    const char* username;
+    std::string username;
     Socket skt;
     Protocol protocol;
 
@@ -26,7 +27,7 @@ private:
     bool wasStarted;
 
 public:
-    explicit Client(const char* hostname, const char* servname, const char* username);
+    explicit Client(const char* hostname, const char* servname);
 
     void start();
     void stop();
@@ -37,6 +38,9 @@ public:
     void sendCommand(const CommandVariant& cmd);
 
     uint32_t getClientId() const;
+
+    bool authenticate(const std::string& action, const std::string& username,
+                      const std::string& password, std::string& errorMessage);
 
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;

@@ -116,14 +116,24 @@ endif()
 # Program section
 # ---------------
 if(ARGENTUM_ONLINE_CLIENT)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
+    find_package(Qt5 COMPONENTS Widgets REQUIRED)
+
+    # HEY!!
+    # TODO XXX: Change the name of the executable to the one you like!
     add_executable(argentum_online_client)
+
+    set_target_properties(argentum_online_client PROPERTIES
+        AUTOUIC ON
+        AUTOMOC ON
+        AUTORCC ON
+    )
 
     # Make them depend on taller_common lib
     add_dependencies(argentum_online_client lib_common SDL2pp::SDL2pp)
 
     # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
+    # HEY!!
+    # TODO XXX: add more subfolders here
     add_subdirectory(client)
 
     set_project_warnings(argentum_online_client ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
@@ -132,7 +142,7 @@ if(ARGENTUM_ONLINE_CLIENT)
     target_include_directories(argentum_online_client PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(argentum_online_client lib_common SDL2pp::SDL2pp pthread)
+    target_link_libraries(argentum_online_client lib_common SDL2pp::SDL2pp Qt5::Widgets)
 endif()
 
 if(ARGENTUM_ONLINE_SERVER)
