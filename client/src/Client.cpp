@@ -6,9 +6,9 @@
 #include "common/include/dto/LoginDTO.h"
 #include "common/include/dto/RegisterDTO.h"
 
-Client::Client(const char* hostname, const char* servname, const char* username):
+Client::Client(const char* hostname, const char* servname):
         clientId(0),
-        username(username),
+        username(""),
         skt(hostname, servname),
         protocol(skt),
         snapshotQueue(),
@@ -18,7 +18,7 @@ Client::Client(const char* hostname, const char* servname, const char* username)
         wasStarted(false) {}
 
 bool Client::authenticate(const std::string& action, const std::string& username,
-                          const std::string& password) {
+                          const std::string& password, std::string& errorMessage) {
     if (action == "login") {
         LoginDTO dto(username, password);
         protocol.send_login(dto);
@@ -27,9 +27,11 @@ bool Client::authenticate(const std::string& action, const std::string& username
         if (response.success) {
             std::cout << "[CLIENT] Login successful. Entering the world...\n";
             this->clientId = response.clientId;
+            this->username = username;
             return true;
         } else {
             std::cerr << "[CLIENT] Login error: " << response.errorMessage << "\n";
+            errorMessage = response.errorMessage;
             return false;
         }
 
@@ -40,13 +42,16 @@ bool Client::authenticate(const std::string& action, const std::string& username
         if (response.success) {
             std::cout << "[CLIENT] Registration successful. Entering the world...\n";
             this->clientId = response.clientId;
+            this->username = username;
             return true;
         } else {
             std::cerr << "[CLIENT] Registration error: " << response.errorMessage << "\n";
+            errorMessage = response.errorMessage;
             return false;
         }
     }
 
+    errorMessage = "Acción desconocida.";
     std::cerr << "[CLIENT] Unknown action.\n";
     return false;
 }

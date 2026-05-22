@@ -77,6 +77,7 @@ bool Receiver::authenticatePlayer() {
         }
     } catch (const std::exception& e) {
         std::cerr << "[SERVER] Error durante la autenticación: " << e.what() << std::endl;
+        this->stop();
         return false;
     }
 }
@@ -99,7 +100,10 @@ void Receiver::inGameCommunication() {
 uint32_t Receiver::getClientId() const { return this->clientId; }
 
 void Receiver::run() {
-    if (authenticatePlayer()) {
-        inGameCommunication();
+    while (should_keep_running()) {
+        if (authenticatePlayer()) {
+            inGameCommunication();
+            break;
+        }
     }
 }
