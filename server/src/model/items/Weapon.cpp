@@ -2,8 +2,8 @@
 
 #include <stdexcept>
 
+#include "../components/EquipmentComponent.h"
 #include "model/FormulaEngine.h"
-#include "server/src/model/items/Equipment.h"
 
 Weapon::Weapon(int id, const std::string& name, int minDamage, int maxDamage, WeaponType type,
                int attackRange, int manaCost):
@@ -53,4 +53,4 @@ uint16_t Weapon::calculateDamage(uint16_t attackPower) const {
             static_cast<uint16_t>(this->maxDamage));
 }
 
-uint32_t Weapon::equip_on(Equipment& equipment) const { return equipment.equip_weapon(this); }
+uint32_t Weapon::equip_on(EquipmentComponent& equipment) const { return equipment.equipWeapon(this); }

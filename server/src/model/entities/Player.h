@@ -1,136 +1,89 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#ifndef PLAYER_MOCK_H
+#define PLAYER_MOCK_H
 
+#include <cstdint>
 #include <string>
-#include <vector>
-
-#include "dto/CommandDTO.h"
-#include "interfaces/MagicUser.h"
-#include "interfaces/combatant.h"
-#include "interfaces/interactable.h"
-#include "model/FormulaEngine.h"
-#include "server/src/config/CharacterConfig.h"
-#include "server/src/model/inventory/inventory.h"
-#include "server/src/model/items/Equipment.h"
-#include "server/src/model/items/ItemRegistry.h"
 
 #include "position.h"
-#include "types.h"
+#include "../components/StatsComponent.h"
+#include "../components/InventoryComponent.h"
+#include "../components/EquipmentComponent.h"
+#include "../components/BankComponent.h"
+#include "../components/StateComponent.h"
+#include "../components/CombatComponent.h"
+#include "../interfaces/Combatant.h"
+#include "combat/CombatManager.h"
 
-class CombatManager;
+/*
+ * Esta clase es un mock súper básico para representar a un jugador en el mundo.
+ * No tiene lógica de juego ni interacciones, solo atributos esenciales y métodos de acceso.
+ * La idea es que sea fácil de usar en tu Snapshot para mostrar información del jugador
+ * sin complicaciones de configuración o lógica de juego.
+ */
 
-class Player: public Combatant, public Interactable, public MagicUser {
+class Player : Combatant {
 private:
-    // Identidad y Posición
     uint32_t id;
     std::string name;
-    Race race;
-    CharacterClass char_class;
     Position pos;
-    Equipment equipment;
-    Movement actualMove;
-
-    // --- Atributos de Rol (Influyen en fórmulas) ---
-    int strength;      // Fuerza (Daño)
-    int intelligence;  // Inteligencia (Maná)
-    int agility;       // Agilidad (Esquivar)
-    int constitution;  // Constitución (Vida)
-
-    // --- Estados Dinámicos ---
-    uint16_t health;
-    uint16_t max_health;  // Calculado por Constitución + Clase + Nivel
-    int mana;
-    int max_mana;  // Calculado por Inteligencia + Clase + Nivel
-    uint32_t gold;
-    uint32_t max_gold;  // Limitado por el Nivel
-
-    uint32_t experience;
-    uint16_t level;
-
-    const ItemRegistry& item_registry;
-    Inventory inventory;
-    CombatManager& combat_manager;
-    bool can_use_magic;
-    bool can_meditate;
-    float recovery_factor;
-    float meditation_factor;
-    PlayerState state;
-
-    void recoverHealth(uint16_t amount);
-    void recoverMana(int amount);
-    void becomeGhost();
+    StatsComponent stats; 
+    InventoryComponent inventory;
+    EquipmentComponent equipment;
+    BankComponent bank;
+    StateComponent state;
+    CombatComponent combat;
 
 public:
-    Player(uint32_t id, const std::string& name, Race race, CharacterClass char_class, Position pos,
-           CombatManager& combat_manager, const PlayerConfig& playerConfig,
-           const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,
-           const InventoryConfig& inv_config, const ItemRegistry& item_registry);
+    Player(uint32_t id, 
+                const std::string& name, 
+                const RaceConfig& race, 
+                const CharacterClassConfig& characterClass,
+                const PlayerConfig& playerBase);
 
-    /* Métodos de Combatant */
-    void receiveDamage(int amount) override;
-    void attack(Combatant& target) override;
-    bool isDead() const override;
-    Position getPosition() const override;
-    void setPosition(const Position& newPos) override;
-
-    /* Acciones del Player */
-    bool startMeditating();
-    void stopMeditating();
-    void recoverOverTime(float secondsElapsed);
-    void recoverMeditating(float secondsElapsed);
-    bool healHealth(uint16_t amount);
-    bool recoverManaAmount(int amount);
-    bool restoreHealthAndMana();
-    bool resurrect(Position respawnPosition);
-    void consume_mana(int amount) override;
-    bool canUseMagic() const override;
-    bool canMeditate() const;
-
-    /* Getters y setters del estado del Player */
+    // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
+    // de valores random
+    Player(uint32_t id, const std::string& name, const RaceConfig& race, 
+               const CharacterClassConfig& characterClass,
+               const PlayerConfig& playerBase,
+               const FormulaEngine& testEngine);
+    
+    // -- GETTERS/SETTERS --
     uint32_t getId() const { return this->id; }
-    PlayerState getState() const;
-    bool is_moving() const { return this->actualMove != Movement::STOP; }
-    void setSkin(int skinId);
-    bool isMeditating() const;
-    bool isGhost() const;
-    uint16_t getStrength() const override;
-    uint16_t get_intelligence() const override;
-    int get_mana() const override;
-    uint16_t getHp() const;
-    uint16_t getMaxHp() const;
+    std::string getName() const { return this->name; }
+    Position getPosition() const override { return this->pos; }
+    void setPosition(const Position& newPos) { this->pos = newPos; }
+    
+    // -- LOGICA DE NEGOCIO
+    void gainExperience(uint32_t amount) { stats.addExperience(amount); }
 
-    /* ACCIONES DE INVENTARIO Y EQUIPAMIENTO */
+    // IMPLEMENTACIÓN DE LA INTERFAZ COMBATANT
+    void receiveDamage(int amount) override { this->combat.takeDamage(amount); }
+    bool isDead() const override { return this->stats.getHp() <= 0; }
+    uint16_t getStrength() const override { return this->stats.getStrength(); }
+    uint16_t getAgility() const override { return this->stats.getAgility(); }
+    uint16_t getTotalDefense() const override { return this->equipment.getDefense(); }
+    
+    void attack(Combatant& target) override {
+        if (this->isDead()) return;
+        Weapon* myWeapon = this->equipment.getEquippedWeapon();
+        CombatManager::getInstance().executeAttack(*this, target, myWeapon);
+    }
 
-    // Procesa el comando de red para equipar un ítem desde un slot (OpCode 0x05).
-    bool equip_from_slot(uint8_t slot_index);
+    // Acceso a los componentes
+    StatsComponent& getStats() { return this->stats; }
+    const StatsComponent& getStats() const { return this->stats;}
 
-    // Suelta un ítem al suelo (OpCode 0x04).
-    bool drop_item_to_map(uint8_t slot_index, uint16_t amount);
+    InventoryComponent& getInventory() { return this->inventory; }
+    const InventoryComponent& getInventory() const { return this->inventory; }
 
-    Equipment& getEquipment();
-    const Equipment& getEquipment() const;
+    EquipmentComponent& getEquipment() { return this->equipment; }
+    const EquipmentComponent& getEquipment() const { return this->equipment; }
 
-    /* METODOS PARA USAR CON LOS NPCS CIUDADANOS */
+    BankComponent& getBank() { return this->bank; }
 
-    // Llamaria adentro a los metodos utilizados con los ciudadanos
-    void interact(Interactable& interactable, const std::string& action,
-                  const std::vector<std::string>& params) override;
-
-    // Transacciones de Comercio
-    bool buy_item(uint32_t item_id, uint16_t amount, uint32_t total_price);
-    bool sell_item(uint8_t slot_index, uint16_t amount, uint32_t unit_price);
-
-    // Transacciones de Sacerdote
-    void heal();
-    void resurrect();
-
-    // Transacciones de Banquero
-    bool deposit_gold(uint32_t amount);
-    bool withdraw_gold(uint32_t amount);
-    bool deposit_item(uint8_t inv_slot, uint16_t amount);
-    bool withdraw_item(uint32_t item_id, uint16_t amount);
-
-    virtual ~Player() noexcept override = default;
+    StateComponent& getState() { return this->state; }
+    const StateComponent& getState() const { return this->state; }    
 };
 
 #endif
+

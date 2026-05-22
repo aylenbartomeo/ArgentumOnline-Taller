@@ -16,7 +16,12 @@ bool World::addPlayer(uint32_t playerId, std::string& username) {
         return false;
     }
 
-    this->players[playerId] = std::make_unique<PlayerMock>(playerId, username);
+    PlayerConfig baseConfig = {15, 15, 15, 15, 1, 0, 0};
+    RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
+    CharacterClassConfig classConfig = {1.0f, 1.0f, 1.0f, false};
+
+    this->players[playerId] = std::make_unique<Player>(playerId, username, raceConfig, classConfig, baseConfig);
+
     return true;
 }
 bool World::removePlayer(uint32_t playerId) {
@@ -34,7 +39,7 @@ void World::moveEntity(uint32_t playerId, Movement direction) {
     if (it == this->players.end())
         return;
 
-    PlayerMock& player = *(it->second);
+    Player& player = *(it->second);
     Position pos = player.getPosition();
 
     switch (direction) {
@@ -74,7 +79,7 @@ SnapshotDTO World::generateSnapshot() const {
     uint16_t spriteId = 1;
     for (const auto& pair: this->players) {
         uint32_t id = pair.first;
-        const PlayerMock& player = *(pair.second);
+        const Player& player = *(pair.second);
         Position pos = player.getPosition();
 
         // Creamos el DTO de la entidad con datos mockeados/reales para el MVP
@@ -83,8 +88,8 @@ SnapshotDTO World::generateSnapshot() const {
         entityData.type = EntityType::PLAYER;
         entityData.x = pos.x;
         entityData.y = pos.y;
-        entityData.current_hp = player.getHp();
-        entityData.max_hp = player.getMaxHp();
+        entityData.current_hp = player.getStats().getHp();
+        entityData.max_hp = player.getStats().getMaxHp();
         entityData.sprite_id = spriteId;  // Un ID de sprite por defecto para que el cliente dibuje
         spriteId++;  // Incrementamos el spriteId para que cada jugador tenga un sprite diferente
                      // (solo para demo)

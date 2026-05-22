@@ -8,6 +8,7 @@ if (NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 20)
 endif()
 
+set(CMAKE_POLICY_VERSION_MINIMUM "3.5")
 set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
@@ -142,7 +143,7 @@ if(ARGENTUM_ONLINE_CLIENT)
     target_include_directories(argentum_online_client PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(argentum_online_client lib_common SDL2pp::SDL2pp Qt5::Widgets)
+    target_link_libraries(argentum_online_client lib_common SDL2pp::SDL2pp Qt5::Widgets pthread)
 endif()
 
 if(ARGENTUM_ONLINE_SERVER)
@@ -179,7 +180,7 @@ if(ARGENTUM_ONLINE_EDITOR)
     target_include_directories(argentum_online_editor PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(argentum_online_editor lib_common SDL2pp::SDL2pp)
+    target_link_libraries(argentum_online_editor lib_common SDL2pp::SDL2pp pthread)
 endif()
 
 
@@ -233,26 +234,3 @@ if(ARGENTUM_ONLINE_TESTS)
         GTest::gtest_main
     )
 endif()
-
-# --- SECCIÓN DEL INSTALADOR ---
-
-# Instalamos los binarios que ya fueron definidos arriba (solo los que se hayan habilitado)
-if(TARGET argentum_online_server AND TARGET argentum_online_client)
-    install(TARGETS argentum_online_server argentum_online_client
-            DESTINATION bin)
-elseif(TARGET argentum_online_client)
-    install(TARGETS argentum_online_client
-            DESTINATION bin)
-elseif(TARGET argentum_online_server)
-    install(TARGETS argentum_online_server
-            DESTINATION bin)
-endif()
-
-# Instalamos los recursos (muy importante para que el cliente encuentre las imágenes)
-# Usamos CMAKE_SOURCE_DIR para referenciar la carpeta de origen
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/client/resources 
-        DESTINATION share/argentum_online)
-
-# Instalamos configuraciones básicas
-install(FILES ${CMAKE_SOURCE_DIR}/server/config.yaml 
-        DESTINATION /etc/argentum_online OPTIONAL)

@@ -57,3 +57,13 @@ int Monster::get_detection_range() const { return this->detection_range; }
 int Monster::get_attack_range() const { return this->attack_range; }
 
 const std::string& Monster::get_zone() const { return this->zone; }
+
+uint16_t Monster::getAgility() const {
+    // Podés retornar un valor base del monstruo o delegarlo a sus stats internas
+    return agility; // O el atributo que use tu struct de NPC
+}
+
+uint16_t Monster::getTotalDefense() const {
+    // La defensa del monstruo según el balance de tu servidor
+    return 0; 
+}

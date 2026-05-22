@@ -5,13 +5,15 @@
 
 #include "server/src/model/items/Armor.h"
 
+class EquipmentComponent;
+
 class BodyArmor final: public Armor {
 public:
     BodyArmor(int id, std::string name, int minDefense, int maxDefense);
 
     int getDefense() const override;
 
-    uint32_t equip_on(Equipment& equipment) const override;
+    uint32_t equip_on(EquipmentComponent& equipment) const override;
 };
 
 #endif

@@ -1,0 +1,62 @@
+#ifndef STATS_COMPONENT_H
+#define STATS_COMPONENT_H
+
+#include <cstdint>
+#include <algorithm>
+#include "../../include/model/FormulaEngine.h"
+#include "../config/CharacterConfig.h"
+
+class StatsComponent {
+private:
+    const FormulaEngine& formulaEngine;
+    RaceConfig raceConfig;
+    CharacterClassConfig classConfig;
+
+    // Atributos principales
+    uint8_t strength;      // Fuerza
+    uint8_t intelligence;  // Inteligencia
+    uint8_t agility;       // Agilidad
+    uint8_t constitution;  // Constitución
+
+    // Estadísticas dinámicas
+    uint16_t health;
+    uint16_t max_health;
+    uint16_t mana;
+    uint16_t max_mana;
+
+    // Progresión
+    uint32_t exp;
+    uint16_t level;
+
+    // Método privado auxiliar para recalcular los techos de vida y maná
+    void recalculateMaxStats();
+
+public:
+    // Constructor completo basado en tu nueva lista de atributos
+    StatsComponent(const RaceConfig& race, 
+                   const CharacterClassConfig& characterClass,
+                   const PlayerConfig& playerBase,
+                   const FormulaEngine& engine = FormulaEngine::getInstance());
+
+    // --- GETTERS ---
+    uint8_t getStrength() const { return strength; }
+    uint8_t getIntelligence() const { return intelligence; }
+    uint8_t getAgility() const { return agility; }
+    uint8_t getConstitution() const { return constitution; }
+
+    uint16_t getHp() const { return health; }
+    uint16_t getMaxHp() const { return max_health; }
+    uint16_t getMana() const { return mana; }
+    uint16_t getMaxMana() const { return max_mana; }
+    uint32_t getExp() const { return exp; }
+    uint16_t getLevel() const { return level; }
+    
+    // -- Modificadores de atributos --
+    void addExperience(uint32_t amount);
+    void takeDamage(uint16_t amount);
+    void heal(uint16_t amount);
+    void consumeMana(uint16_t amount);
+    void recoverMana(uint16_t amount);
+};
+
+#endif

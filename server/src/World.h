@@ -9,7 +9,7 @@
 #include "../include/model/ServerEvents.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
-#include "model/entities/PlayerMock.h"
+#include "model/entities/Player.h"
 
 #include "Map.h"
 #include "queue.h"
@@ -20,7 +20,7 @@ private:
     std::string creatorPlayerName;
 
     Map map;
-    std::unordered_map<uint32_t, std::unique_ptr<PlayerMock>> players;
+    std::unordered_map<uint32_t, std::unique_ptr<Player>> players;
 
 public:
     explicit World(int worldId, const std::string& creatorPlayerName);

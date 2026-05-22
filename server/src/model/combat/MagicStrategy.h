@@ -1,4 +1,4 @@
-#include "../entities/interfaces/MagicUser.h"
+#include "../interfaces/MagicUser.h"
 
 #include "AttackStrategy.h"
 

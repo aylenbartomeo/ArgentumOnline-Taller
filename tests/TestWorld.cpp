@@ -60,7 +60,7 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
     SnapshotDTO snapshotInicial = mundo.generateSnapshot();
     EXPECT_TRUE(snapshotInicial.entities.empty());
 
-    // 2. Simulamos el login de dos jugadores (gatilla la creación de PlayerMocks)
+    // 2. Simulamos el login de dos jugadores (gatilla la creación de Players)
     std::string user1 = "Aoki";
     std::string user2 = "Beren";
 
@@ -90,8 +90,8 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
             EXPECT_EQ(entity.type, EntityType::PLAYER);
             EXPECT_EQ(entity.x, 1);
             EXPECT_EQ(entity.y, 1);
-            EXPECT_EQ(entity.current_hp, 100);
-            EXPECT_EQ(entity.max_hp, 100);
+            EXPECT_EQ(entity.current_hp, 15);
+            EXPECT_EQ(entity.max_hp, 15);
 
             // Validamos que su sprite coincida con el orden de salida real en el loop
             EXPECT_EQ(entity.sprite_id, spritesEvaluados);
@@ -100,8 +100,8 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
             EXPECT_EQ(entity.type, EntityType::PLAYER);
             EXPECT_EQ(entity.x, 0);
             EXPECT_EQ(entity.y, 0);
-            EXPECT_EQ(entity.current_hp, 100);
-            EXPECT_EQ(entity.max_hp, 100);
+            EXPECT_EQ(entity.current_hp, 15);
+            EXPECT_EQ(entity.max_hp, 15);
 
             // Validamos que su sprite coincida con el orden de salida real en el loop
             EXPECT_EQ(entity.sprite_id, spritesEvaluados);
