@@ -10,6 +10,7 @@ target_sources(argentum_online_client
     src/Receiver.cpp
     src/Sender.cpp
     src/TextureManager.cpp
+    src/TileMap.cpp
     src/Window.cpp
     src/Launcher.cpp
 
@@ -23,6 +24,7 @@ target_sources(argentum_online_client
     src/Receiver.h
     src/Sender.h
     src/TextureManager.h
+    src/TileMap.h
     src/Window.h
     src/Launcher.h
     )
