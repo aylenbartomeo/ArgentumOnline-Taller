@@ -6,6 +6,9 @@ add_executable(taller_tests
     TestGameLoop.cpp
     TestBank.cpp
     TestAuthManager.cpp
+    TestEquipmentComponent.cpp
+    TestInventoryComponent.cpp
+    TestEquipmentComponent.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
     ../server/src/Map.cpp

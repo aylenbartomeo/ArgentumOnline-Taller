@@ -7,7 +7,7 @@
 // ========================================================================
 TEST(PlayerBankIntegrationTest, DepositAndWithdrawGoldSuccessfully) {
     // Inicializamos inventario con 20 slots, 5000 de límite seguro, 100k máx.
-    InventoryComponent inventory(20, 5000, 100000);
+    InventoryComponent inventory(InventoryConfig{20, 100000}, 5000);
     // Banco con 50 slots y 1 millón de oro máximo.
     BankComponent bank(50, 1000000);
 
@@ -32,7 +32,7 @@ TEST(PlayerBankIntegrationTest, DepositAndWithdrawGoldSuccessfully) {
 // 2. TEST DE DEPOSITAR ÍTEMS CON ÉXITO
 // ========================================================================
 TEST(PlayerBankIntegrationTest, DepositItemSuccessfullyAndCheckStacking) {
-    InventoryComponent inventory(20, 5000, 100000);
+    InventoryComponent inventory(InventoryConfig{20, 100000}, 5000);
     BankComponent bank(50, 1000000);
 
     // Metemos 100 Espadas de Plata (ID: 501) en el slot 0 del inventario
@@ -61,7 +61,7 @@ TEST(PlayerBankIntegrationTest, DepositItemSuccessfullyAndCheckStacking) {
 // ========================================================================
 TEST(PlayerBankIntegrationTest, WithdrawItemFailsIfInventoryIsFullAndDoesNotDupe) {
     // Le damos solo 1 slot al inventario para forzar el llenado rápido
-    InventoryComponent inventory(1, 5000, 100000);
+    InventoryComponent inventory(InventoryConfig{1, 100000}, 5000);
     BankComponent bank(50, 1000000);
 
     // 1. Simulamos que el banco ya tiene guardadas 50 Pociones Rojas (ID: 202)
