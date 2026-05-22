@@ -8,7 +8,7 @@
 Launcher::Launcher(QWidget* parent):
         QWidget(parent), ui(new Ui::Form), client(nullptr), authenticated(false) {
     ui->setupUi(this);
-    this->setWindowTitle("Argentum Online - Conexión");
+    this->setWindowTitle("Argentum Online - Connection");
     ui->stackedWidget->setCurrentIndex(0);
 
     connect(ui->connectBtn, &QPushButton::clicked, this, &Launcher::handleConnectionStage);
@@ -26,7 +26,7 @@ void Launcher::handleConnectionStage() {
     std::string port = ui->portInput->text().toStdString();
 
     if (host.empty() || port.empty()) {
-        ui->connectionStatusLabel->setText("Campos incompletos.");
+        ui->connectionStatusLabel->setText("Incomplete fields.");
         return;
     }
 
@@ -34,11 +34,11 @@ void Launcher::handleConnectionStage() {
         this->client = std::make_unique<Client>(host.c_str(), port.c_str());
 
         ui->connectionStatusLabel->setText("");
-        this->setWindowTitle("Argentum Online - Autenticación");
+        this->setWindowTitle("Argentum Online - Authentication");
         ui->stackedWidget->setCurrentIndex(1);
 
     } catch (const std::exception& e) {
-        ui->connectionStatusLabel->setText("Error de red: No se pudo conectar al host.");
+        ui->connectionStatusLabel->setText("Network error: Failed to connect to the host.");
         this->client.reset();  // Destruimos el intento si falló
     }
 }
@@ -49,7 +49,7 @@ void Launcher::handleAuthenticationStage(const std::string& action) {
     std::string pass = ui->passwordInput->text().toStdString();
 
     if (user.empty() || pass.empty()) {
-        ui->authStatusLabel->setText("Usuario o contraseña vacíos.");
+        ui->authStatusLabel->setText("Username or password are empty.");
         return;
     }
 

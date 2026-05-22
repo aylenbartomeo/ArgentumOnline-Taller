@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) try {
         app.exec();
 
         if (!launcher.isAuthenticated()) {
-            std::cout << "Cierre del Launcher sin autenticación exitosa." << std::endl;
+            std::cout << "Launcher closure" << std::endl;
             return 0;
         }
 
@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) try {
     }
 
     if (activeClient) {
-        std::cout << "Iniciando motor gráfico del juego (SDL)..." << std::endl;
+        std::cout << "Starting game graphics engine (SDL)..." << std::endl;
 
         activeClient->start();
 
@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) try {
     return 0;
 
 } catch (const std::exception& e) {
-    std::cerr << "Excepción crítica en la ejecución: " << e.what() << std::endl;
+    std::cerr << "Critical exception caught in main: " << e.what() << std::endl;
     return 1;
 }
 

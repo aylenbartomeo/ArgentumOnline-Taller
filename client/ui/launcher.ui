@@ -66,7 +66,7 @@
       </font>
      </property>
      <property name="text">
-      <string>PUERTO</string>
+      <string>PORT</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -127,7 +127,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Conectarse</string>
+      <string>Connect</string>
      </property>
     </widget>
     <widget class="QLabel" name="connectionStatusLabel">
@@ -168,7 +168,7 @@
       </font>
      </property>
      <property name="text">
-      <string>USUARIO</string>
+      <string>USER</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -191,7 +191,7 @@
       </font>
      </property>
      <property name="text">
-      <string>CONTRASEÑA</string>
+      <string>PASSWORD</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -243,7 +243,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Ingresar</string>
+      <string>Sign in</string>
      </property>
     </widget>
     <widget class="QPushButton" name="registerBtn">
@@ -264,7 +264,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Crear Cuenta</string>
+      <string>Sign up</string>
      </property>
     </widget>
     <widget class="QLabel" name="authStatusLabel">

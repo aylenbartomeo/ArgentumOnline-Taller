@@ -51,7 +51,7 @@ bool Client::authenticate(const std::string& action, const std::string& username
         }
     }
 
-    errorMessage = "Acción desconocida.";
+    errorMessage = "Unknown action.";
     std::cerr << "[CLIENT] Unknown action.\n";
     return false;
 }
