@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <optional>
 #include <vector>
+#include "../config/InventoryConfig.h"
 
 // Representa un casillero individual dentro de la grilla del inventario.
 struct Slot {
@@ -25,7 +26,7 @@ private:
     uint32_t max_gold;         // Capacidad máxima de la billetera/mochila
 
 public:
-    explicit InventoryComponent(uint8_t total_slots, uint32_t initial_safe_gold, uint32_t max_g);
+    explicit InventoryComponent(const InventoryConfig& config, uint32_t initial_safe_gold);
     ~InventoryComponent() = default;
 
     // Bloqueamos copia para evitar duplicaciones accidentales de ítems en memoria

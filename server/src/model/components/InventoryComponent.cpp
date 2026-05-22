@@ -2,11 +2,11 @@
 
 #include <algorithm>
 
-InventoryComponent::InventoryComponent(uint8_t total_slots, uint32_t initial_safe_gold, uint32_t max_g)
-    : slots(total_slots, Slot{0, 0}),
+InventoryComponent::InventoryComponent(const InventoryConfig& config, uint32_t initial_safe_gold)
+    : slots(config.maxSlots, Slot{0, 0}),
       gold(0),
       safe_gold_limit(initial_safe_gold),
-      max_gold(max_g) {}
+      max_gold(config.maxGold) {}
 
 bool InventoryComponent::addItem(uint32_t item_id, uint16_t amount) {
     if (amount == 0 || item_id == 0)
