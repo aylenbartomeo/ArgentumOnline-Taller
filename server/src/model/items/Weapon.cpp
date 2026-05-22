@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "../entities/components/EquipmentComponent.h"
+#include "../components/EquipmentComponent.h"
 #include "model/FormulaEngine.h"
 
 Weapon::Weapon(int id, const std::string& name, int minDamage, int maxDamage, WeaponType type,

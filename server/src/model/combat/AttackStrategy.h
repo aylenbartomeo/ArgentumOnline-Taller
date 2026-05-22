@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "../entities/interfaces/Combatant.h"
+#include "../interfaces/Combatant.h"
 #include "../items/Weapon.h"
 #include "model/FormulaEngine.h"
 

@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include "../entities/components/EquipmentComponent.h"
+#include "../components/EquipmentComponent.h"
 
 Shield::Shield(const int id, std::string name, const int minDefense, const int maxDefense):
         Armor(id, std::move(name), minDefense, maxDefense) {}

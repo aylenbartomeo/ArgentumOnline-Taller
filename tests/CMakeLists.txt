@@ -4,17 +4,22 @@ add_executable(taller_tests
     TestMap.cpp
     TestWorld.cpp
     TestGameLoop.cpp
-    TestPlayer.cpp
     TestBank.cpp
     TestAuthManager.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
     ../server/src/Map.cpp
     ../server/src/World.cpp
-    ../server/src/model/entities/components/StatsComponent.cpp
-    ../server/src/model/entities/components/InventoryComponent.cpp
-    ../server/src/model/entities/components/EquipmentComponent.cpp
-    ../server/src/model/entities/components/BankComponent.cpp
+    ../server/src/model/entities/Player.cpp
+    ../server/src/model/entities/Monster.cpp
+    ../server/src/model/entities/MonsterFactory.cpp
+    ../server/src/model/entities/Citizen.cpp
+    ../server/src/model/components/StatsComponent.cpp
+    ../server/src/model/components/InventoryComponent.cpp
+    ../server/src/model/components/EquipmentComponent.cpp
+    ../server/src/model/components/BankComponent.cpp
+    ../server/src/model/components/CombatComponent.cpp
+    ../server/src/model/combat/CombatManager.cpp
     ../server/src/model/FormulaEngine.cpp
     ../server/src/model/items/Armor.cpp
     ../server/src/model/items/Weapon.cpp
@@ -30,7 +35,8 @@ target_include_directories(taller_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/server/src/model
     ${CMAKE_SOURCE_DIR}/server/src/model/entities
     ${CMAKE_SOURCE_DIR}/server/src/model/items
-    ${CMAKE_SOURCE_DIR}/server/src/model/inventory
+    ${CMAKE_SOURCE_DIR}/server/src/model/components
+    ${CMAKE_SOURCE_DIR}/common/utils
     ${CMAKE_BINARY_DIR}/_deps/libbcrypt-src/include
     .
 )

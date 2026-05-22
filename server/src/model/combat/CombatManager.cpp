@@ -1,6 +1,6 @@
 #include "CombatManager.h"
-#include "interfaces/Combatant.h"
-#include "items/Weapon.h"
+#include "../interfaces/Combatant.h"
+#include "../items/Weapon.h"
 
 void CombatManager::executeAttack(Combatant& attacker, Combatant& target, Weapon* weapon) {
     if (attacker.isDead() || target.isDead()) return;

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "../model/entities/components/BankComponent.h"
-#include "../model/entities/components/InventoryComponent.h"
+#include "../model/components/BankComponent.h"
+#include "../model/components/InventoryComponent.h"
 
 // ========================================================================
 // 1. TEST DE TRANSACCIONES DE ORO

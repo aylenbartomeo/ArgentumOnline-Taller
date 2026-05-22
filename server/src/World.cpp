@@ -20,8 +20,7 @@ bool World::addPlayer(uint32_t playerId, std::string& username) {
     RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig classConfig = {1.0f, 1.0f, 1.0f, false};
 
-    // Le pasás los 5 argumentos que el constructor del PlayerMock.h te está pidiendo a gritos:
-    std::unique_ptr<PlayerMock> player = std::make_unique<PlayerMock>(playerId, username, raceConfig, classConfig, baseConfig);
+    this->players[playerId] = std::make_unique<Player>(playerId, username, raceConfig, classConfig, baseConfig);
 
     return true;
 }
@@ -40,7 +39,7 @@ void World::moveEntity(uint32_t playerId, Movement direction) {
     if (it == this->players.end())
         return;
 
-    PlayerMock& player = *(it->second);
+    Player& player = *(it->second);
     Position pos = player.getPosition();
 
     switch (direction) {
@@ -80,7 +79,7 @@ SnapshotDTO World::generateSnapshot() const {
     uint16_t spriteId = 1;
     for (const auto& pair: this->players) {
         uint32_t id = pair.first;
-        const PlayerMock& player = *(pair.second);
+        const Player& player = *(pair.second);
         Position pos = player.getPosition();
 
         // Creamos el DTO de la entidad con datos mockeados/reales para el MVP

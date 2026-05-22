@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include "../entities/components/EquipmentComponent.h"
+#include "../components/EquipmentComponent.h"
 
 Helmet::Helmet(const int id, std::string name, const int minDefense, const int maxDefense):
         Armor(id, std::move(name), minDefense, maxDefense) {}

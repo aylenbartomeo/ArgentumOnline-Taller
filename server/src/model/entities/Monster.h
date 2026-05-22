@@ -6,8 +6,8 @@
 
 #include "../utils/position.h"
 #include "../utils/types.h"
-#include "interfaces/Combatant.h"
-#include "interfaces/interactable.h"
+#include "../interfaces/Combatant.h"
+#include "../interfaces/interactable.h"
 #include "server/src/config/MonsterConfig.h"
 
 class Monster: public Combatant {
