@@ -11,6 +11,7 @@
 #include "../components/BankComponent.h"
 #include "../components/StateComponent.h"
 #include "../components/CombatComponent.h"
+#include "../components/RegenerationComponent.h"
 #include "../interfaces/Combatant.h"
 #include "combat/CombatManager.h"
 
@@ -32,6 +33,7 @@ private:
     BankComponent bank;
     StateComponent state;
     CombatComponent combat;
+    RegenerationComponent regeneration;
 
 public:
     Player(uint32_t id, 
@@ -52,6 +54,10 @@ public:
     std::string getName() const { return this->name; }
     Position getPosition() const override { return this->pos; }
     void setPosition(const Position& newPos) { this->pos = newPos; }
+
+    // -- GAME LOOP --
+    // Llamado por el servidor cada tick (delega en RegenerationComponent)
+    void update(float deltaSeconds);
     
     // -- LOGICA DE NEGOCIO
     void gainExperience(uint32_t amount) { stats.addExperience(amount); }

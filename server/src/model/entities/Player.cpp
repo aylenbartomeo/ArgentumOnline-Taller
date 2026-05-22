@@ -15,7 +15,8 @@ Player::Player(uint32_t id,
         equipment(),
         bank(50, 999999),
         state(),
-        combat(stats, state) {}
+        combat(stats, state),
+        regeneration(stats, state, race, characterClass) {}
 
 // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
 // de valores random
@@ -31,7 +32,12 @@ Player::Player(uint32_t id, const std::string& name, const RaceConfig& race,
         equipment(),
         bank(50, 999999),
         state(),
-        combat(stats, state) {}
+        combat(stats, state),
+        regeneration(stats, state, race, characterClass, testEngine) {}
+
+void Player::update(float deltaSeconds) {
+    regeneration.tick(deltaSeconds);
+}
 
 ///                                                              ///       
 /// COSAS DEL PLAYER ANTERIOR QUE PODRIAMOS LLEGAR A IMPLEMENTAR ///
