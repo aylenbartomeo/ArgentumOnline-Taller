@@ -15,7 +15,7 @@
 class Client {
 private:
     uint32_t clientId;
-    const char* username;
+    std::string username;
     Socket skt;
     Protocol protocol;
 
@@ -27,7 +27,7 @@ private:
     bool wasStarted;
 
 public:
-    explicit Client(const char* hostname, const char* servname, const char* username);
+    explicit Client(const char* hostname, const char* servname);
 
     void start();
     void stop();
@@ -40,7 +40,7 @@ public:
     uint32_t getClientId() const;
 
     bool authenticate(const std::string& action, const std::string& username,
-                      const std::string& password);
+                      const std::string& password, std::string& errorMessage);
 
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
