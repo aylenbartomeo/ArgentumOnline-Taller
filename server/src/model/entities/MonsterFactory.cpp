@@ -7,11 +7,12 @@
 
 MonsterFactory::MonsterFactory(MonsterConfigs configs): configs(std::move(configs)) {}
 
-Monster MonsterFactory::create(uint32_t id, NPCType type, Position position) const {
-    const auto config = this->configs.find(type);
-    if (config == this->configs.end()) {
-        throw std::invalid_argument("Unknown monster type");
+std::unique_ptr<Monster> MonsterFactory::create(uint32_t id, NPCType type, Position position) const {
+    auto config = configs.find(type);
+    if (config == configs.end()) {
+        throw std::runtime_error("Tipo de monstruo no configurado");
     }
 
-    return Monster(id, type, position, config->second);
+    // Retornamos un puntero único envolviendo al nuevo objeto
+    return std::make_unique<Monster>(id, type, position, config->second);
 }

@@ -14,6 +14,7 @@ target_sources(argentum_online_server
 
     # Entities
     src/model/entities/Player.cpp
+    src/model/entities/PlayerMock.cpp
     src/model/entities/Monster.cpp
     src/model/entities/MonsterFactory.cpp
     src/model/entities/Citizen.cpp
@@ -49,6 +50,8 @@ target_sources(argentum_online_server
     src/model/entities/components/InventoryComponent.cpp
     src/model/entities/components/EquipmentComponent.cpp
     src/model/entities/components/BankComponent.cpp
+    src/model/entities/components/CombatComponent.cpp
+    src/model/combat/CombatManager.cpp
 
     PUBLIC
     # .h files
@@ -61,10 +64,13 @@ target_sources(argentum_online_server
 
     src/model/entities/MonsterFactory.h
     src/model/entities/PlayerMock.h
+    src/model/entities/PlayerFactory.h
     src/model/entities/components/StatsComponent.h
     src/model/entities/components/InventoryComponent.h
     src/model/entities/components/EquipmentComponent.h
     src/model/entities/components/BankComponent.h
+    src/model/entities/components/CombatComponent.h
+    src/model/combat/CombatManager.h
 
     src/model/inventory/inventory.h 
     src/model/items/Armor.h
@@ -101,6 +107,7 @@ target_include_directories(argentum_online_server
     src/model/items
     src/model/inventory # Agregado para que encuentre limpiamente las cabeceras
     src/model/entities/components
+    
 )
 
 target_link_libraries(argentum_online_server tomlplusplus::tomlplusplus pthread)

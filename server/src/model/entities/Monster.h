@@ -41,6 +41,8 @@ public:
     int get_detection_range() const;
     int get_attack_range() const;
     const std::string& get_zone() const;
+    uint16_t getAgility() const override;
+    uint16_t getTotalDefense() const override;
 };
 
 #endif

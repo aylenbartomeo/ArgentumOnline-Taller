@@ -10,6 +10,7 @@ add_executable(taller_tests
     ../server/src/GameLoop.cpp
     ../server/src/Map.cpp
     ../server/src/World.cpp
+    ../server/src/model/entities/components/StatsComponent.cpp
     ../server/src/model/entities/components/InventoryComponent.cpp
     ../server/src/model/entities/components/EquipmentComponent.cpp
     ../server/src/model/entities/components/BankComponent.cpp

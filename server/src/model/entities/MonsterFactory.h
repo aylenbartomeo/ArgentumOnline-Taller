@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <unordered_map>
-
+#include <memory>
 #include "server/src/config/MonsterConfig.h"
 #include "server/src/model/entities/Monster.h"
 
@@ -14,7 +14,7 @@ private:
 public:
     explicit MonsterFactory(MonsterConfigs configs);
 
-    Monster create(uint32_t id, NPCType type, Position position) const;
+    std::unique_ptr<Monster> create(uint32_t id, NPCType type, Position position) const;
 };
 
 #endif

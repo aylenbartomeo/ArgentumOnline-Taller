@@ -11,7 +11,6 @@
 class AttackStrategy {
 public:
     virtual ~AttackStrategy() = default;
-    virtual uint16_t calculateDamage(Combatant& attacker, Weapon* weapon) = 0;
     virtual bool execute(const Weapon& weapon, Combatant& attacker, Combatant& target) = 0;
 };
 

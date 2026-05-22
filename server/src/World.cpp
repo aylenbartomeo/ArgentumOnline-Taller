@@ -16,7 +16,13 @@ bool World::addPlayer(uint32_t playerId, std::string& username) {
         return false;
     }
 
-    this->players[playerId] = std::make_unique<PlayerMock>(playerId, username);
+    PlayerConfig baseConfig = {15, 15, 15, 15, 1, 0, 0};
+    RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
+    CharacterClassConfig classConfig = {1.0f, 1.0f, 1.0f, false};
+
+    // Le pasás los 5 argumentos que el constructor del PlayerMock.h te está pidiendo a gritos:
+    std::unique_ptr<PlayerMock> player = std::make_unique<PlayerMock>(playerId, username, raceConfig, classConfig, baseConfig);
+
     return true;
 }
 bool World::removePlayer(uint32_t playerId) {

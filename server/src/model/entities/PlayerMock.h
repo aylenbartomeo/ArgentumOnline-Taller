@@ -13,6 +13,7 @@
 #include "components/CombatComponent.h"
 #include "interfaces/Combatant.h"
 #include "combat/CombatManager.h"
+
 /*
  * Esta clase es un mock súper básico para representar a un jugador en el mundo.
  * No tiene lógica de juego ni interacciones, solo atributos esenciales y métodos de acceso.
@@ -33,23 +34,27 @@ private:
     CombatComponent combat;
 
 public:
-    PlayerMock(uint32_t id, const std::string& name) :
-        id(id), 
-        name(name), 
-        pos({0, 0}), 
-        // Stats ahora solo maneja combate (sin max_gold)
-        stats(15, 12, 14, 16, 100, 40),
-        // Inventario ahora absorbe la economía: 20 slots, 5000 seguro, 100000 tope máximo
-        inventory(20, 5000, 100000),
-        equipment(),
-        bank(50, 999999),
-        state(),
-        combat(stats, state) {}
+    PlayerMock(uint32_t id, 
+                const std::string& name, 
+                const RaceConfig& race, 
+                const CharacterClassConfig& characterClass,
+                const PlayerConfig& playerBase);
 
+    // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
+    // de valores random
+    PlayerMock(uint32_t id, const std::string& name, const RaceConfig& race, 
+               const CharacterClassConfig& characterClass,
+               const PlayerConfig& playerBase,
+               const FormulaEngine& testEngine);
+    
+    // -- GETTERS/SETTERS --
     uint32_t getId() const { return this->id; }
     std::string getName() const { return this->name; }
-    Position getPosition() const { return this->pos; }
+    Position getPosition() const override { return this->pos; }
     void setPosition(const Position& newPos) { this->pos = newPos; }
+    
+    // -- LOGICA DE NEGOCIO
+    void gainExperience(uint32_t amount) { stats.addExperience(amount); }
 
     // IMPLEMENTACIÓN DE LA INTERFAZ COMBATANT
     void receiveDamage(int amount) override { this->combat.takeDamage(amount); }

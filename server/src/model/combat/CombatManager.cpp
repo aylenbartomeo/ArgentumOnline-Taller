@@ -17,12 +17,13 @@ void CombatManager::executeAttack(Combatant& attacker, Combatant& target, Weapon
         return;
     }
 
-    uint16_t rawDamage = 0;
+    // uint16_t rawDamage = 0;
     WeaponType type = (weapon != nullptr) ? weapon->getType() : WeaponType::MELEE;
     
     auto it = strategies.find(type);
     if (it != strategies.end()) {
-        rawDamage = it->second->calculateDamage(attacker, weapon); 
+        // rawDamage = it->second->calculateDamage(attacker, weapon); 
+        return;
     }
 
     // Mitigación de Daño (NOTA: chequear esta logica para calcular el daño neto!!!)

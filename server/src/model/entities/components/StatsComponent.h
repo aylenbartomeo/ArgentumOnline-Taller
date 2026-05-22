@@ -3,10 +3,16 @@
 
 #include <cstdint>
 #include <algorithm>
+#include "../../include/model/FormulaEngine.h"
+#include "../config/CharacterConfig.h"
 
 class StatsComponent {
 private:
-    // Atributos principales (Definen el escalado del personaje)
+    const FormulaEngine& formulaEngine;
+    RaceConfig raceConfig;
+    CharacterClassConfig classConfig;
+
+    // Atributos principales
     uint8_t strength;      // Fuerza
     uint8_t intelligence;  // Inteligencia
     uint8_t agility;       // Agilidad
@@ -22,14 +28,15 @@ private:
     uint32_t exp;
     uint16_t level;
 
+    // Método privado auxiliar para recalcular los techos de vida y maná
+    void recalculateMaxStats();
+
 public:
     // Constructor completo basado en tu nueva lista de atributos
-    StatsComponent(uint8_t str, uint8_t intel, uint8_t agi, uint8_t consti,
-                   uint16_t max_hp, uint16_t max_mp)
-        : strength(str), intelligence(intel), agility(agi), constitution(consti),
-          health(max_hp), max_health(max_hp),
-          mana(max_mp), max_mana(max_mp),
-          exp(0), level(1) {}
+    StatsComponent(const RaceConfig& race, 
+                   const CharacterClassConfig& characterClass,
+                   const PlayerConfig& playerBase,
+                   const FormulaEngine& engine = FormulaEngine::getInstance());
 
     // --- GETTERS ---
     uint8_t getStrength() const { return strength; }
@@ -43,21 +50,13 @@ public:
     uint16_t getMaxMana() const { return max_mana; }
     uint32_t getExp() const { return exp; }
     uint16_t getLevel() const { return level; }
-
-    // Manejo de Experiencia simplificado
-    void addExperience(uint32_t amount) {
-        // En un futuro, acá se puede chequear si 'exp' supera el umbral para disparar un levelUp
-        exp += amount;
-    }
-
-    void takeDamage(uint16_t amount) {
-        health = (amount >= health) ? 0 : health - amount;
-    }
-
-    void heal(uint16_t amount) {
-        if (health == 0) return;
-        health = std::min(static_cast<uint16_t>(health + amount), max_health);
-    }
+    
+    // -- Modificadores de atributos --
+    void addExperience(uint32_t amount);
+    void takeDamage(uint16_t amount);
+    void heal(uint16_t amount);
+    void consumeMana(uint16_t amount);
+    void recoverMana(uint16_t amount);
 };
 
 #endif
