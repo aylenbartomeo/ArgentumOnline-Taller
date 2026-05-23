@@ -50,7 +50,6 @@ TEST(WorldTest, World_PlayerCannotMoveOutsideMap) {
     std::string user = "EdgeWalker";
     ASSERT_TRUE(mundo.addPlayer(1, user));
 
-    // Spawnea en (0,0): no debe poder cruzar el borde superior ni el izquierdo.
     mundo.moveEntity(1, Movement::UP);
     mundo.moveEntity(1, Movement::LEFT);
 
