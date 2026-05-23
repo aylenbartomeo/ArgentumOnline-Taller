@@ -15,7 +15,8 @@ Monster::Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& c
         strength(config.strength),
         agility(config.agility),
         attack_min(config.attackMin),
-        attack_max(config.attackMax) {}
+        attack_max(config.attackMax),
+        level(config.level) {}
 
 void Monster::move(const Position& new_pos) {
     // Lógica de movimiento, podría ser aleatorio dentro de un rango o siguiendo al jugador si lo
@@ -30,18 +31,6 @@ void Monster::receiveDamage(int amount) {
     this->health -= amount;
     if (this->health < 0)
         this->health = 0;
-}
-
-void Monster::attack(Combatant& target) {
-    const int distance = this->pos.distance_to(target.getPosition());
-    if (distance == 0 || distance > this->attack_range) {
-        return;
-    }
-
-    uint16_t damage = FormulaEngine::getInstance().calculate_base_damage(
-            static_cast<uint16_t>(this->strength), static_cast<uint16_t>(this->attack_min),
-            static_cast<uint16_t>(this->attack_max));
-    target.receiveDamage(static_cast<int>(damage));
 }
 
 bool Monster::isDead() const { return health <= 0; }
@@ -63,7 +52,4 @@ uint16_t Monster::getAgility() const {
     return agility; // O el atributo que use tu struct de NPC
 }
 
-uint16_t Monster::getTotalDefense() const {
-    // La defensa del monstruo según el balance de tu servidor
-    return 0; 
-}
+uint16_t Monster::getLevel() const { return level; }

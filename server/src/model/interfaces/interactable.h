@@ -1,4 +1,3 @@
-// server/src/model/interfaces/interactable.h
 #ifndef INTERACTABLE_H
 #define INTERACTABLE_H
 

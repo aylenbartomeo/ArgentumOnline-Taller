@@ -68,7 +68,13 @@ void World::moveEntity(uint32_t playerId, Movement direction) {
     player.setPosition(pos);
 }
 
-void World::playerAttack(uint32_t playerId) { (void)playerId; }
+// void World::playerAttack(AttackDTO dto) {
+//     auto it = this->players.find(dto.playerId);
+//     Player& player1 = *(it->second);
+//     Attackable& at = dto.Elsegundo      
+//
+//     CombatManager::getInstance().processAttack(player1, at);    
+// }
 
 void World::update(float delta_time) {
     // Evitamos advertencias de compilación si delta_time no se usa en stubs

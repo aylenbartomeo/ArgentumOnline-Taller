@@ -14,6 +14,7 @@ struct MonsterConfig {
     int attackMax;
     int detectionRange;
     int attackRange;
+    int level;
     std::string zone;
 };
 

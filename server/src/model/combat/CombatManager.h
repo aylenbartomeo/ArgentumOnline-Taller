@@ -8,6 +8,8 @@
 #include "MagicStrategy.h"
 #include "MeleeStrategy.h"
 #include "RangedStrategy.h"
+#include "../entities/Player.h"
+#include "../entities/Monster.h"
 
 class CombatManager {
 private:
@@ -19,6 +21,8 @@ private:
         strategies[WeaponType::RANGED] = std::make_unique<RangedStrategy>();
         strategies[WeaponType::MAGIC] = std::make_unique<MagicStrategy>();
     }
+    const float PVP_CRITICAL_PROBABILITY = 0.05f;
+
 public:
     CombatManager(const CombatManager&) = delete;
     CombatManager& operator=(const CombatManager&) = delete;
@@ -28,7 +32,8 @@ public:
         return instance;
     }
 
-    void executeAttack(Combatant& attacker, Combatant& target, Weapon* weapon);
+    // 1. El jugador inicia la acción (PvP o PvE)
+    void processAttack(Player& attacker, Attackable& target, Weapon* weapon);
 };
 
 #endif

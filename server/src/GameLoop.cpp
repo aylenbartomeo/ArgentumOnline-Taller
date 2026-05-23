@@ -66,7 +66,8 @@ void GameLoop::processInputs() {
                 world.moveEntity(pCmd.clientId, move_dto.direction);
 
             } else if (std::holds_alternative<AttackDTO>(pCmd.command)) {
-                // world.player_attack(pCmd.clientId);
+                // AttackDTO deberia tener una referencia a quien ataca.
+                // world.player_attack(AttackDTO);
 
             } else if (std::holds_alternative<DropItemDTO>(pCmd.command)) {
                 // DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);

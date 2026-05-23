@@ -6,11 +6,11 @@
 
 #include "../utils/position.h"
 #include "../utils/types.h"
-#include "../interfaces/Combatant.h"
+#include "../interfaces/Attackable.h"
 #include "../interfaces/interactable.h"
 #include "server/src/config/MonsterConfig.h"
 
-class Monster: public Combatant {
+class Monster: public Attackable {
 private:
     uint32_t id;
     NPCType type;
@@ -26,23 +26,24 @@ private:
     int agility;
     int attack_min;
     int attack_max;
-
+    int level;
 
 public:
     Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config);
 
     void move(const Position& new_pos);
-    void receiveDamage(int amount) override;
-    void attack(Combatant& target) override;
-    bool isDead() const override;
-    Position getPosition() const override;
     void setPosition(const Position& newPos);
-    uint16_t getStrength() const override;
     int get_detection_range() const;
     int get_attack_range() const;
     const std::string& get_zone() const;
-    uint16_t getAgility() const override;
-    uint16_t getTotalDefense() const override;
+    
+    /* IMPLEMENTACION DE COMBATANT */
+    void receiveDamage(int amount) override;
+    bool isDead() const override;
+    Position getPosition() const override;
+    uint16_t getStrength() const;
+    uint16_t getAgility() const;
+    uint16_t getLevel() const;
 };
 
 #endif

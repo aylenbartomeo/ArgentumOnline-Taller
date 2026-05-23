@@ -11,6 +11,7 @@ attack_max = 4
 detection_range = 6
 attack_range = 1
 zone = "forest"
+level = 1
 
 [monsters.skeleton]
 max_health = 45
@@ -21,6 +22,7 @@ attack_max = 6
 detection_range = 6
 attack_range = 1
 zone = "dungeon"
+level = 1
 
 [monsters.zombie]
 max_health = 55
@@ -31,6 +33,7 @@ attack_max = 7
 detection_range = 5
 attack_range = 1
 zone = "cemetery"
+level = 1
 
 [monsters.spider]
 max_health = 35
@@ -41,6 +44,7 @@ attack_max = 5
 detection_range = 7
 attack_range = 1
 zone = "forest"
+level = 1
 
 [monsters.orc]
 max_health = 80
@@ -51,6 +55,7 @@ attack_max = 10
 detection_range = 6
 attack_range = 1
 zone = "wilderness"
+level = 1
 
 [monsters.golem]
 max_health = 140
@@ -61,3 +66,4 @@ attack_max = 14
 detection_range = 4
 attack_range = 1
 zone = "dungeon"
+level = 1

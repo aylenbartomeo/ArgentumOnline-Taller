@@ -15,7 +15,6 @@ Player::Player(uint32_t id,
         equipment(),
         bank(50, 999999),
         state(),
-        combat(stats, state),
         regeneration(stats, state, race, characterClass) {}
 
 // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
@@ -32,17 +31,31 @@ Player::Player(uint32_t id, const std::string& name, const RaceConfig& race,
         equipment(),
         bank(50, 999999),
         state(),
-        combat(stats, state),
         regeneration(stats, state, race, characterClass, testEngine) {}
 
 void Player::update(float deltaSeconds) {
     regeneration.tick(deltaSeconds);
 }
 
-void Player::attack(Combatant& target) {
-        if (this->isDead()) return;
-        Weapon* myWeapon = this->equipment.getEquippedWeapon();
-        CombatManager::getInstance().executeAttack(*this, target, myWeapon);
+bool Player::canEngageInCombatWith(const Attackable& other) const {
+    // Regla 1: newbie no puede atacar ni ser atacado por jugadores
+    if (FormulaEngine::getInstance().is_newbie(this->stats.getLevel())) {
+        return false;
+    }
+    // Regla 2: diferencia de nivel máxima de 10
+    // Aplica solo contra otros jugadores — Monster::canEngageInCombatWith 
+    // devuelve true siempre, así que esta validación solo se activa 
+    // cuando AMBOS son Players (ambos lados del contrato se evalúan)
+    if (!FormulaEngine::getInstance().is_pvp_level_valid(
+            this->stats.getLevel(), other.getLevel())) {
+        return false;
+    }
+    return true;
+}
+
+void Player::handleDeath() {
+        state.die();
+        // TODO: inventory->dropItems();
 }
 
 ///                                                              ///       

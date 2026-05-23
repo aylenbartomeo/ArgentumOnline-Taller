@@ -10,12 +10,11 @@
 #include "../components/EquipmentComponent.h"
 #include "../components/BankComponent.h"
 #include "../components/StateComponent.h"
-#include "../components/CombatComponent.h"
 #include "../components/RegenerationComponent.h"
-#include "../interfaces/Combatant.h"
-#include "combat/CombatManager.h"
+#include "../interfaces/Attackable.h"
+#include "../combat/CombatManager.h"
 
-class Player : Combatant {
+class Player : Attackable {
 private:
     uint32_t id;
     std::string name;
@@ -25,7 +24,6 @@ private:
     EquipmentComponent equipment;
     BankComponent bank;
     StateComponent state;
-    CombatComponent combat;
     RegenerationComponent regeneration;
 
 public:
@@ -45,25 +43,26 @@ public:
     // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
     void update(float deltaSeconds);
 
-    // -- GETTERS/SETTERS --
+    /* GETTERS/SETTERS de atributos que expone */ 
     uint32_t getId() const { return this->id; }
     std::string getName() const { return this->name; }
-    Position getPosition() const override { return this->pos; }
     void setPosition(const Position& newPos) { this->pos = newPos; }
 
-    // IMPLEMENTACIÓN DE LA INTERFAZ COMBATANT
-    void receiveDamage(int amount) override { this->combat.takeDamage(amount); }
+    /* IMPLEMENTACIÓN DE LA INTERFAZ ATTACKABLE */
+    void receiveDamage(int amount) override {}
     bool isDead() const override { return this->stats.getHp() <= 0; }
     uint16_t getStrength() const override { return this->stats.getStrength(); }
     uint16_t getAgility() const override { return this->stats.getAgility(); }
-    uint16_t getTotalDefense() const override { return this->equipment.getDefense(); }
-    void attack(Combatant& target) override {}
+    Position getPosition() const override { return this->pos; }
+
+    bool canEngageInCombatWith(const Attackable& other) const;
+    uint16_t getLevel() const override { stats.getLevel();}
 
     // Acceso a los componentes
     // Stats
     StatsComponent& getStats() { return this->stats; }
     const StatsComponent& getStats() const { return this->stats;}
-    void gainExperience(uint32_t amount) { stats.addExperience(amount); }
+    void addExperience(uint32_t amount) { stats.addExperience(amount); }
     uint16_t getHp() const { stats.getHp();}
     uint16_t getMaxHp() const { stats.getMaxHp();}
 
@@ -71,9 +70,10 @@ public:
     InventoryComponent& getInventory() { return this->inventory; }
     const InventoryComponent& getInventory() const { return this->inventory; }
 
-    // Component
+    // Equipment
     EquipmentComponent& getEquipment() { return this->equipment; }
     const EquipmentComponent& getEquipment() const { return this->equipment; }
+    int getDefense() const {return this->equipment.calculateCurrentDefense();}
 
     // Bank
     BankComponent& getBank() { return this->bank; }
@@ -81,6 +81,8 @@ public:
     // State
     StateComponent& getState() { return this->state; }
     const StateComponent& getState() const { return this->state; }    
+    bool canAttack() const { return this->state.canAttack();}
+    void handleDeath();
 };
 
 #endif

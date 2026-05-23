@@ -31,7 +31,8 @@ public:
 
     /* Metodos de acciones de los personajes en el mundo */
     void moveEntity(uint32_t playerId, Movement movement);
-    void playerAttack(uint32_t playerId);
+
+    // void playerAttack(AttackDTO& dto);
 
     /* actualización del estado del mundo */
     void update(float delta_time);

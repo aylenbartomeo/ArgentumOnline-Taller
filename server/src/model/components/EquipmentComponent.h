@@ -56,7 +56,7 @@ public:
     Weapon* getEquippedWeapon() const { return const_cast<Weapon*>(this->weapon); }
 
     // Calcula la defensa total acumulada sumando la defensa de la armadura, casco y escudo
-    int getDefense() const;
+    uint16_t calculateCurrentDefense() const;
 };
 
 #endif  // EQUIPMENT_COMPONENT_H
