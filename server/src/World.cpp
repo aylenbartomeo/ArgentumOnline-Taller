@@ -5,7 +5,9 @@
 #include "model/entities/Player.h"
 
 World::World(int worldId, const std::string& creatorPlayerName):
-        worldId(worldId), creatorPlayerName(creatorPlayerName), map() {}
+        worldId(worldId), creatorPlayerName(creatorPlayerName), map() {
+    map.setDimensions(20, 15);
+}
 
 std::string World::getCreatorPlayerName() const { return this->creatorPlayerName; }
 
@@ -57,6 +59,10 @@ void World::moveEntity(uint32_t playerId, Movement direction) {
             break;
         default:
             break;  // Ignoramos diagonales o STOP por ahora
+    }
+
+    if (pos.x < 0 || pos.x >= map.widthLimit() || pos.y < 0 || pos.y >= map.heightLimit()) {
+        return;
     }
 
     player.setPosition(pos);

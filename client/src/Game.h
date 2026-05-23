@@ -7,6 +7,8 @@
 
 #include "Client.h"
 #include "EventHandler.h"
+#include "TextureManager.h"
+#include "TileMap.h"
 #include "Window.h"
 
 class Game {
@@ -15,6 +17,8 @@ private:
     Window window;
     EventHandler events;
     Client& client;
+    TextureManager textures;
+    TileMap map;
     SnapshotDTO lastSnapshot;
     Uint32 lastMoveSentMs;
 
@@ -32,6 +36,8 @@ public:
 
 private:
     void render();
+    void renderTerrain();
+    void renderEntities();
     void sendMoveIfDue(const FrameInput& input);
 };
 

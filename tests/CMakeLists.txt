@@ -1,5 +1,6 @@
-add_executable(taller_tests 
-    TestProtocol.cpp 
+target_sources(argentum_online_tests
+    PRIVATE
+    TestProtocol.cpp
     TestServerArchitecture.cpp
     TestMap.cpp
     TestWorld.cpp
@@ -10,6 +11,7 @@ add_executable(taller_tests
     TestInventoryComponent.cpp
     TestStatsComponent.cpp
     TestRegenerationComponent.cpp
+    TestTileMap.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
     ../server/src/Map.cpp
@@ -32,9 +34,10 @@ add_executable(taller_tests
     ../server/src/model/items/Helmet.cpp
     ../server/src/model/items/Shield.cpp
     ../server/src/auth/AuthManager.cpp
+    ../client/src/TileMap.cpp
 )
 
-target_include_directories(taller_tests PRIVATE 
+target_include_directories(argentum_online_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/server/include
     ${CMAKE_SOURCE_DIR}/server/src
     ${CMAKE_SOURCE_DIR}/server/src/model
@@ -42,13 +45,13 @@ target_include_directories(taller_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/server/src/model/items
     ${CMAKE_SOURCE_DIR}/server/src/model/components
     ${CMAKE_SOURCE_DIR}/common/utils
+    ${CMAKE_SOURCE_DIR}/client/src
     ${CMAKE_BINARY_DIR}/_deps/libbcrypt-src/include
     .
 )
 
-target_link_libraries(taller_tests PRIVATE
-    GTest::gtest_main
-    lib_common
+target_link_libraries(argentum_online_tests
     tomlplusplus::tomlplusplus
     bcrypt
+    nlohmann_json::nlohmann_json
 )

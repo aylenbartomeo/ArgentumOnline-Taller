@@ -45,6 +45,20 @@ TEST(WorldTest, World_HandlesPlayerLifecycleWithUniquePtr) {
     EXPECT_TRUE(mundo.isEmpty());
 }
 
+TEST(WorldTest, World_PlayerCannotMoveOutsideMap) {
+    World mundo(1, "Tester");
+    std::string user = "EdgeWalker";
+    ASSERT_TRUE(mundo.addPlayer(1, user));
+
+    mundo.moveEntity(1, Movement::UP);
+    mundo.moveEntity(1, Movement::LEFT);
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    ASSERT_EQ(snap.entities.size(), 1u);
+    EXPECT_EQ(snap.entities[0].x, 0);
+    EXPECT_EQ(snap.entities[0].y, 0);
+}
+
 TEST(WorldTest, World_RemoveNonExistentPlayerReturnsFalse) {
     World mundo(1, "Tester");
 

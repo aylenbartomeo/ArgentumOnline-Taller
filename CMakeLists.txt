@@ -45,12 +45,16 @@ set_project_warnings(lib_common ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE
 # location (so our dependants will not have to explicitly request this)
 target_include_directories(lib_common PUBLIC .)
 
-# HEY!! TODO XXX: you need to install some runtime and dev libraries *before*
-# compiling the client/editor code.
+# You need to install some system packages *by hand* before compiling the
+# client/editor code. In xubuntu/ubuntu 24.04 these are:
 #
-# In xubuntu 24.04 these are:
+#   - qtbase5-dev qtbase5-dev-tools  -> required by the client launcher (find_package Qt5)
+#   - the audio/font libs below      -> build dependencies of SDL2
 #
-# sudo apt-get install libopus-dev libopusfile-dev libxmp-dev libfluidsynth-dev fluidsynth libwavpack1 libwavpack-dev libfreetype-dev wavpack
+# sudo apt-get install qtbase5-dev qtbase5-dev-tools libopus-dev libopusfile-dev libxmp-dev libfluidsynth-dev fluidsynth libwavpack1 libwavpack-dev libfreetype-dev wavpack
+#
+# SDL2, SDL2pp, toml++, bcrypt and googletest are fetched and built automatically
+# by CMake (FetchContent); those do NOT need to be installed by hand.
 #
 
 # Install libSDL2 and libSDL2pp (for client or editor)
@@ -114,6 +118,15 @@ if(ARGENTUM_ONLINE_SERVER)
     FetchContent_MakeAvailable(tomlplusplus)
 endif()
 
+if(ARGENTUM_ONLINE_CLIENT OR ARGENTUM_ONLINE_TESTS)
+    include(FetchContent)
+    FetchContent_Declare(
+        nlohmann_json
+        URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+    )
+    FetchContent_MakeAvailable(nlohmann_json)
+endif()
+
 # Program section
 # ---------------
 if(ARGENTUM_ONLINE_CLIENT)
@@ -143,7 +156,7 @@ if(ARGENTUM_ONLINE_CLIENT)
     target_include_directories(argentum_online_client PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(argentum_online_client lib_common SDL2pp::SDL2pp Qt5::Widgets pthread)
+    target_link_libraries(argentum_online_client lib_common SDL2pp::SDL2pp SDL2_image::SDL2_image Qt5::Widgets nlohmann_json::nlohmann_json pthread)
 endif()
 
 if(ARGENTUM_ONLINE_SERVER)
