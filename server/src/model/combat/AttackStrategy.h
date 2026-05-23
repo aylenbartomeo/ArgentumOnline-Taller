@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "../entities/interfaces/combatant.h"
+#include "../interfaces/Combatant.h"
 #include "../items/Weapon.h"
 #include "model/FormulaEngine.h"
 
@@ -11,7 +11,6 @@
 class AttackStrategy {
 public:
     virtual ~AttackStrategy() = default;
-
     virtual bool execute(const Weapon& weapon, Combatant& attacker, Combatant& target) = 0;
 };
 

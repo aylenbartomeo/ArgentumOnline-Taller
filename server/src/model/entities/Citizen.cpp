@@ -14,6 +14,6 @@ void Citizen::interact(Interactable& interactable, const std::string& action,
     // Habria que generar la comunicacion dado que ambos son Interactables
 }
 
-int Citizen::get_distance_to(const Player* player) const {
-    return this->pos.distance_to(player->getPosition());
-}
+// int Citizen::get_distance_to(const Player* player) const {
+//     return this->pos.distance_to(player->getPosition());
+// }

@@ -6,8 +6,8 @@
 
 #include "../utils/position.h"
 #include "../utils/types.h"
-#include "interfaces/combatant.h"
-#include "interfaces/interactable.h"
+#include "../interfaces/Combatant.h"
+#include "../interfaces/interactable.h"
 #include "server/src/config/MonsterConfig.h"
 
 class Monster: public Combatant {
@@ -36,11 +36,13 @@ public:
     void attack(Combatant& target) override;
     bool isDead() const override;
     Position getPosition() const override;
-    void setPosition(const Position& newPos) override;
+    void setPosition(const Position& newPos);
     uint16_t getStrength() const override;
     int get_detection_range() const;
     int get_attack_range() const;
     const std::string& get_zone() const;
+    uint16_t getAgility() const override;
+    uint16_t getTotalDefense() const override;
 };
 
 #endif

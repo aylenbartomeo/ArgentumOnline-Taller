@@ -5,12 +5,29 @@ target_sources(argentum_online_tests
     TestMap.cpp
     TestWorld.cpp
     TestGameLoop.cpp
+    TestBank.cpp
     TestAuthManager.cpp
     TestTileMap.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
     ../server/src/Map.cpp
     ../server/src/World.cpp
+    ../server/src/model/entities/Player.cpp
+    ../server/src/model/entities/Monster.cpp
+    ../server/src/model/entities/MonsterFactory.cpp
+    ../server/src/model/entities/Citizen.cpp
+    ../server/src/model/components/StatsComponent.cpp
+    ../server/src/model/components/InventoryComponent.cpp
+    ../server/src/model/components/EquipmentComponent.cpp
+    ../server/src/model/components/BankComponent.cpp
+    ../server/src/model/components/CombatComponent.cpp
+    ../server/src/model/combat/CombatManager.cpp
+    ../server/src/model/FormulaEngine.cpp
+    ../server/src/model/items/Armor.cpp
+    ../server/src/model/items/Weapon.cpp
+    ../server/src/model/items/BodyArmor.cpp
+    ../server/src/model/items/Helmet.cpp
+    ../server/src/model/items/Shield.cpp
     ../server/src/auth/AuthManager.cpp
     ../client/src/TileMap.cpp
 )
@@ -21,7 +38,8 @@ target_include_directories(argentum_online_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/server/src/model
     ${CMAKE_SOURCE_DIR}/server/src/model/entities
     ${CMAKE_SOURCE_DIR}/server/src/model/items
-    ${CMAKE_SOURCE_DIR}/server/src/model/inventory
+    ${CMAKE_SOURCE_DIR}/server/src/model/components
+    ${CMAKE_SOURCE_DIR}/common/utils
     ${CMAKE_SOURCE_DIR}/client/src
     ${CMAKE_BINARY_DIR}/_deps/libbcrypt-src/include
     .
