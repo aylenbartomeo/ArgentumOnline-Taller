@@ -15,13 +15,6 @@
 #include "../interfaces/Combatant.h"
 #include "combat/CombatManager.h"
 
-/*
- * Esta clase es un mock súper básico para representar a un jugador en el mundo.
- * No tiene lógica de juego ni interacciones, solo atributos esenciales y métodos de acceso.
- * La idea es que sea fácil de usar en tu Snapshot para mostrar información del jugador
- * sin complicaciones de configuración o lógica de juego.
- */
-
 class Player : Combatant {
 private:
     uint32_t id;
@@ -49,18 +42,14 @@ public:
                const PlayerConfig& playerBase,
                const FormulaEngine& testEngine);
     
+    // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
+    void update(float deltaSeconds);
+
     // -- GETTERS/SETTERS --
     uint32_t getId() const { return this->id; }
     std::string getName() const { return this->name; }
     Position getPosition() const override { return this->pos; }
     void setPosition(const Position& newPos) { this->pos = newPos; }
-
-    // -- GAME LOOP --
-    // Llamado por el servidor cada tick (delega en RegenerationComponent)
-    void update(float deltaSeconds);
-    
-    // -- LOGICA DE NEGOCIO
-    void gainExperience(uint32_t amount) { stats.addExperience(amount); }
 
     // IMPLEMENTACIÓN DE LA INTERFAZ COMBATANT
     void receiveDamage(int amount) override { this->combat.takeDamage(amount); }
@@ -68,25 +57,28 @@ public:
     uint16_t getStrength() const override { return this->stats.getStrength(); }
     uint16_t getAgility() const override { return this->stats.getAgility(); }
     uint16_t getTotalDefense() const override { return this->equipment.getDefense(); }
-    
-    void attack(Combatant& target) override {
-        if (this->isDead()) return;
-        Weapon* myWeapon = this->equipment.getEquippedWeapon();
-        CombatManager::getInstance().executeAttack(*this, target, myWeapon);
-    }
+    void attack(Combatant& target) override {}
 
     // Acceso a los componentes
+    // Stats
     StatsComponent& getStats() { return this->stats; }
     const StatsComponent& getStats() const { return this->stats;}
+    void gainExperience(uint32_t amount) { stats.addExperience(amount); }
+    uint16_t getHp() const { stats.getHp();}
+    uint16_t getMaxHp() const { stats.getMaxHp();}
 
+    // Inventory
     InventoryComponent& getInventory() { return this->inventory; }
     const InventoryComponent& getInventory() const { return this->inventory; }
 
+    // Component
     EquipmentComponent& getEquipment() { return this->equipment; }
     const EquipmentComponent& getEquipment() const { return this->equipment; }
 
+    // Bank
     BankComponent& getBank() { return this->bank; }
-
+    
+    // State
     StateComponent& getState() { return this->state; }
     const StateComponent& getState() const { return this->state; }    
 };

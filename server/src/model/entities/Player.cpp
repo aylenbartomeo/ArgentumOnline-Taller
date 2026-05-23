@@ -39,6 +39,12 @@ void Player::update(float deltaSeconds) {
     regeneration.tick(deltaSeconds);
 }
 
+void Player::attack(Combatant& target) {
+        if (this->isDead()) return;
+        Weapon* myWeapon = this->equipment.getEquippedWeapon();
+        CombatManager::getInstance().executeAttack(*this, target, myWeapon);
+}
+
 ///                                                              ///       
 /// COSAS DEL PLAYER ANTERIOR QUE PODRIAMOS LLEGAR A IMPLEMENTAR ///
 ///                                                              ///
