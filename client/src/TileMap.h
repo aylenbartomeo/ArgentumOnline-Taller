@@ -4,11 +4,6 @@
 #include <string>
 #include <vector>
 
-/**
- * Modela la grilla de terreno del mundo. Se construye a partir del texto JSON
- * del mapa (sin importar si vino de un archivo local o de la red): asi el render
- * queda desacoplado de la fuente del mapa.
- */
 class TileMap {
 private:
     int width;
@@ -27,7 +22,6 @@ public:
     int getTilesetCols() const;
     const std::string& getTileset() const;
 
-    // Indice al tileset que va en la celda (col, row).
     int tileAt(int col, int row) const;
 };
 

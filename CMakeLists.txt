@@ -118,7 +118,6 @@ if(ARGENTUM_ONLINE_SERVER)
     FetchContent_MakeAvailable(tomlplusplus)
 endif()
 
-# nlohmann/json (header-only) para leer el mapa del mundo en el cliente y testearlo.
 if(ARGENTUM_ONLINE_CLIENT OR ARGENTUM_ONLINE_TESTS)
     include(FetchContent)
     FetchContent_Declare(

@@ -16,12 +16,7 @@ constexpr int WINDOW_WIDTH = 640;
 constexpr int WINDOW_HEIGHT = 480;
 constexpr Uint32 MOVE_INTERVAL_MS = 200;
 
-// Carpeta de recursos relativa a la raiz del proyecto (desde donde se corre el
-// binario: ./build/argentum_online_client).
 constexpr const char* RESOURCES_DIR = "client/resources/";
-
-// Tiny Town no trae sprites de personaje por id, asi que todos los jugadores se
-// dibujan con este tile del tileset y el propio se distingue con un borde.
 constexpr int PLAYER_SPRITE = 104;
 
 std::string readWholeFile(const std::string& path) {
@@ -44,9 +39,7 @@ Game::Game(Client& client):
         map(readWholeFile(std::string(RESOURCES_DIR) + "default.json")),
         lastSnapshot(),
         lastMoveSentMs(0) {
-    // Escalado nearest-neighbor para que el pixel art no se vea borroso.
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-    // El mundo se dibuja siempre a 640x480 y SDL lo escala si agrandan la ventana.
     window.getRenderer().SetLogicalSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 }
 
