@@ -118,7 +118,7 @@ if(ARGENTUM_ONLINE_SERVER)
     FetchContent_MakeAvailable(tomlplusplus)
 endif()
 
-if(ARGENTUM_ONLINE_CLIENT OR ARGENTUM_ONLINE_TESTS)
+if(ARGENTUM_ONLINE_CLIENT OR ARGENTUM_ONLINE_TESTS OR ARGENTUM_ONLINE_EDITOR)
     include(FetchContent)
     FetchContent_Declare(
         nlohmann_json
@@ -190,10 +190,10 @@ if(ARGENTUM_ONLINE_EDITOR)
     set_project_warnings(argentum_online_editor ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
     # add libSDL2pp's headers
-    target_include_directories(argentum_online_editor PRIVATE ${libSDL2pp_SOURCE_DIR})
+    target_include_directories(argentum_online_editor PRIVATE ${libSDL2pp_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/client/src)
 
     # Link the taller_common lib target
-    target_link_libraries(argentum_online_editor lib_common SDL2pp::SDL2pp pthread)
+    target_link_libraries(argentum_online_editor lib_common SDL2pp::SDL2pp SDL2_image::SDL2_image nlohmann_json::nlohmann_json pthread)
 endif()
 
 
