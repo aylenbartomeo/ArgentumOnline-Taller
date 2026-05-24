@@ -16,7 +16,7 @@ constexpr int WINDOW_WIDTH = 640;
 constexpr int WINDOW_HEIGHT = 480;
 constexpr Uint32 MOVE_INTERVAL_MS = 200;
 
-constexpr const char* RESOURCES_DIR = "client/resources/";
+constexpr const char* RESOURCES_DIR = "resources/";
 constexpr int PLAYER_SPRITE = 104;
 
 std::string readWholeFile(const std::string& path) {
@@ -36,7 +36,7 @@ Game::Game(Client& client):
         events(),
         client(client),
         textures(window.getRenderer()),
-        map(readWholeFile(std::string(RESOURCES_DIR) + "default.json")),
+        map(readWholeFile("maps/defaultMap.json")),
         lastSnapshot(),
         lastMoveSentMs(0) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
