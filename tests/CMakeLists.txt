@@ -36,6 +36,8 @@ target_sources(argentum_online_tests
     ../editor/Camera.cpp
     TestPalette.cpp
     ../editor/Palette.cpp
+    TestToolbar.cpp
+    ../editor/Toolbar.cpp
 )
 
 target_include_directories(argentum_online_tests PRIVATE
