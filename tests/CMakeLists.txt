@@ -32,6 +32,8 @@ target_sources(argentum_online_tests
     ../client/src/TileMap.cpp
     TestEditorMap.cpp
     ../editor/EditorMap.cpp
+    TestCamera.cpp
+    ../editor/Camera.cpp
 )
 
 target_include_directories(argentum_online_tests PRIVATE
