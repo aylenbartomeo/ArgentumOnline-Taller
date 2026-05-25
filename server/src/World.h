@@ -15,6 +15,11 @@
 #include "Map.h"
 #include "queue.h"
 
+struct WorldEvent {
+    uint32_t targetDbId;
+    std::string message;
+};
+
 class World {
 private:
     int worldId;
@@ -24,7 +29,10 @@ private:
     std::unordered_map<uint32_t, std::unique_ptr<Player>> players;
     std::unordered_map<uint32_t, std::unique_ptr<Monster>> monsters;
 
-    uint32_t nextMonsterId;
+    uint32_t nextEntityId = 1;
+    std::unordered_map<uint32_t, uint32_t> dbIdToEntityId;
+
+    std::vector<WorldEvent> outgoingEvents;
 
     // Busca un Attackable por ID (busca en players y luego en monsters)
     Attackable* findAttackable(uint32_t id);
@@ -52,6 +60,8 @@ public:
     void playerAttack(uint32_t attackerId, uint32_t targetId);
 
     /* actualización del estado del mundo */
+    std::vector<WorldEvent> pollEvents();
+
     void update(float delta_time);
 
     // Generación del estado actual para ser enviado por red

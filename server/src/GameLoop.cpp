@@ -16,8 +16,10 @@ void GameLoop::run() {
             auto start_time = std::chrono::steady_clock::now();
 
             processInputs();
+            dispatchWorldEvents();
 
             updateWorld(MS_PER_FRAME);
+            dispatchWorldEvents();
 
             broadcastState();
 
@@ -68,8 +70,6 @@ void GameLoop::processInputs() {
             } else if (std::holds_alternative<AttackDTO>(pCmd.command)) {
                 AttackDTO attack_dto = std::get<AttackDTO>(pCmd.command);
                 world.playerAttack(pCmd.clientId, attack_dto.targetId);
-                // Acá habría que hacer que el método devuelva algo para enviar al cliente para el
-                // mini chat...(struct dto o algo así..)
 
             } else if (std::holds_alternative<DropItemDTO>(pCmd.command)) {
                 // DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
@@ -82,8 +82,13 @@ void GameLoop::processInputs() {
 void GameLoop::updateWorld(float delta_time) {
     // Le pasamos el tiempo transcurrido a tu partida para físicas o efectos temporales
     world.update(delta_time);
+}
 
-    // acá sí un monstruo ataca tmbn deberíamos ver si deberíamos mandar un msj de chat...
+void GameLoop::dispatchWorldEvents() {
+    auto events = world.pollEvents();
+    for (const auto& ev: events) {
+        monitor.sendToClient(ev.targetDbId, ChatDTO{ev.message});
+    }
 }
 
 void GameLoop::broadcastState() {

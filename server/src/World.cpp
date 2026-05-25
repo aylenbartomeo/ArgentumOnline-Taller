@@ -6,7 +6,7 @@
 #include "model/entities/Player.h"
 
 World::World(int worldId, const std::string& creatorPlayerName):
-        worldId(worldId), creatorPlayerName(creatorPlayerName), map(), nextMonsterId(10000) {
+        worldId(worldId), creatorPlayerName(creatorPlayerName), map() {
     map.setDimensions(20, 15);
 }
 
@@ -14,35 +14,40 @@ std::string World::getCreatorPlayerName() const { return this->creatorPlayerName
 
 int World::getWorldId() const { return this->worldId; }
 
-bool World::addPlayer(uint32_t playerId, std::string& username) {
-    if (this->players.find(playerId) != this->players.end()) {
+bool World::addPlayer(uint32_t dbId, std::string& username) {
+    if (this->dbIdToEntityId.find(dbId) != this->dbIdToEntityId.end()) {
         return false;
     }
+
+    uint32_t entityId = nextEntityId++;
+    this->dbIdToEntityId[dbId] = entityId;
 
     PlayerConfig baseConfig = {15, 15, 15, 15, 1, 0, 0};
     RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig classConfig = {1.0f, 1.0f, 1.0f, false};
 
-    this->players[playerId] =
-            std::make_unique<Player>(playerId, username, raceConfig, classConfig, baseConfig);
+    this->players[entityId] =
+            std::make_unique<Player>(entityId, dbId, username, raceConfig, classConfig, baseConfig);
 
     return true;
 }
 
-bool World::removePlayer(uint32_t playerId) {
-    auto it = this->players.find(playerId);
-    if (it == this->players.end()) {
+bool World::removePlayer(uint32_t dbId) {
+    auto itMap = this->dbIdToEntityId.find(dbId);
+    if (itMap == this->dbIdToEntityId.end()) {
         return false;  // El jugador no pertenecía a este mundo
     }
 
-    this->players.erase(it);
+    uint32_t entityId = itMap->second;
+    this->players.erase(entityId);
+    this->dbIdToEntityId.erase(itMap);
     return true;
 }
 
 uint32_t World::addMonster(NPCType type, Position pos, const MonsterConfig& config) {
-    uint32_t id = nextMonsterId++;
-    monsters[id] = std::make_unique<Monster>(id, type, pos, config);
-    return id;
+    uint32_t entityId = nextEntityId++;
+    monsters[entityId] = std::make_unique<Monster>(entityId, type, pos, config);
+    return entityId;
 }
 
 // --- Búsqueda polimórfica de entidades ---
@@ -63,8 +68,11 @@ Attackable* World::findAttackable(uint32_t id) {
 
 // --- Acciones del jugador ---
 
-void World::moveEntity(uint32_t playerId, Movement direction) {
-    auto it = this->players.find(playerId);
+void World::moveEntity(uint32_t dbId, Movement direction) {
+    auto itMap = this->dbIdToEntityId.find(dbId);
+    if (itMap == this->dbIdToEntityId.end()) return;
+
+    auto it = this->players.find(itMap->second);
     if (it == this->players.end())
         return;
 
@@ -78,14 +86,16 @@ void World::moveEntity(uint32_t playerId, Movement direction) {
     player.setPosition(candidate);
 }
 
-void World::playerAttack(uint32_t attackerId, uint32_t targetId) {
+void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
+    auto mapIt = this->dbIdToEntityId.find(attackerDbId);
+    if (mapIt == this->dbIdToEntityId.end()) return;
+
     // El atacante siempre es un Player (viene de un comando del cliente)
-    auto itAttacker = this->players.find(attackerId);
+    auto itAttacker = this->players.find(mapIt->second);
     if (itAttacker == this->players.end())
         return;
 
     Player& attacker = *(itAttacker->second);
-    attacker.onActionStarted();
 
     // El target puede ser Player o Monster (IDs globalmente únicos)
     Attackable* target = findAttackable(targetId);
@@ -102,15 +112,40 @@ void World::playerAttack(uint32_t attackerId, uint32_t targetId) {
         return;
     }
 
-    // CombatManager se encarga del arma, maná, daño, XP, etc.
-    CombatManager::getInstance().processAttack(attacker, *target);
+    attacker.onActionStarted();
+
+    CombatResult res = CombatManager::getInstance().processAttack(attacker, *target);
+    
+    if (!res.attackHappened) return;
+
+    if (res.evaded) {
+        outgoingEvents.push_back({attackerDbId, "The target (" + target->getName() + ") evaded your attack."});
+        Player* pTarget = dynamic_cast<Player*>(target);
+        if (pTarget) {
+            outgoingEvents.push_back({pTarget->getDbId(), "You evaded the attack from " + attacker.getName() + "!"});
+        }
+    } else {
+        std::string critMsg = res.critical ? " CRITICAL HIT!" : "";
+        outgoingEvents.push_back({attackerDbId, "You dealt " + std::to_string(res.damage) + " damage to " + target->getName() + "!" + critMsg});
+        Player* pTarget = dynamic_cast<Player*>(target);
+        if (pTarget) {
+            outgoingEvents.push_back({pTarget->getDbId(), "You received " + std::to_string(res.damage) + " damage from " + attacker.getName() + "!"});
+        }
+    }
 }
 
 // --- IA de Monstruos ---
 
 void World::monsterAttack(const Monster& monster, Player& target) {
-    // CombatManager arma los AttackParams desde los stats del monstruo
-    CombatManager::getInstance().processAttack(monster, target);
+    CombatResult res = CombatManager::getInstance().processAttack(monster, target);
+    
+    if (!res.attackHappened) return;
+
+    if (res.evaded) {
+        outgoingEvents.push_back({target.getDbId(), "You evaded the attack from " + monster.getName() + "!"});
+    } else {
+        outgoingEvents.push_back({target.getDbId(), "You received " + std::to_string(res.damage) + " damage from " + monster.getName() + "!"});
+    }
 }
 
 
@@ -191,3 +226,9 @@ int World::getPlayerCount() const { return static_cast<int>(this->players.size()
 bool World::isEmpty() const { return this->players.empty(); }
 
 void World::setObstacleAt(int x, int y) { map.setObstacleInGrid(x, y, true); }
+
+std::vector<WorldEvent> World::pollEvents() {
+    std::vector<WorldEvent> events = std::move(outgoingEvents);
+    outgoingEvents.clear();
+    return events;
+}
