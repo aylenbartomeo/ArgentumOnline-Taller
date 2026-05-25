@@ -148,6 +148,34 @@ void World::monsterAttack(const Monster& monster, Player& target) {
     }
 }
 
+void World::playerInteract(uint32_t clientId, uint32_t targetId) {
+    auto mapIt = this->dbIdToEntityId.find(attackerDbId);
+    if (mapIt == this->dbIdToEntityId.end()) return;
+
+    auto itPlayer = this->players.find(mapIt->second);
+    if (itPlayer == this->players.end())
+        return;
+
+    Player& player = *(itPlayer->second);
+
+    // Las interacciones solo se buscan en el catálogo de NPCs de ciudad
+    auto itNpc = cityNPCs.find(targetId);
+    if (itNpc == cityNPCs.end()) {
+        std::cout << "[WORLD] No puedes interactuar con esa entidad." << std::endl;
+        return;
+    }
+
+    Interactable* npc = itNpc->second.get();
+
+    // Validamos distancia Chebyshev antes de dejarlo hablar
+    if (player->getPosition().chebyshev_distance_to(npc->getPosition()) > 2) {
+        std::cout << "[WORLD] El NPC está demasiado lejos." << std::endl;
+        return;
+    }
+
+    // Polimorfismo puro: El NPC (Merchant/Banker/Priest) toma el control del jugador
+    npc->beInteractedBy(*player);
+}
 
 Player* World::findNearestPlayer(const Monster& monster, int range) {
     Player* nearest = nullptr;

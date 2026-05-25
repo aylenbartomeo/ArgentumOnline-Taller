@@ -31,6 +31,7 @@ private:
     Map map;
     std::unordered_map<uint32_t, std::unique_ptr<Player>> players;
     std::unordered_map<uint32_t, std::unique_ptr<Monster>> monsters;
+    std::unordered_map<uint32_t, std::unique_ptr<Interactable>> cityNPCs;
 
     uint32_t nextEntityId = 1;
     std::unordered_map<uint32_t, uint32_t> dbIdToEntityId;
@@ -62,6 +63,9 @@ public:
     // Ataque genérico: el atacante (Player) busca al target en players Y monsters
     void playerAttack(uint32_t attackerId, uint32_t targetId);
 
+    // El método que busca en 'cityNpcs' cuando el cliente manda un click de interacción
+    void playerInteract(uint32_t clientId, uint32_t targetId);
+    
     /* actualización del estado del mundo */
     std::vector<WorldEvent> pollEvents();
 

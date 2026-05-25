@@ -25,7 +25,9 @@ target_sources(argentum_online_server
     src/model/entities/Player.cpp
     src/model/entities/Monster.cpp
     src/model/entities/MonsterFactory.cpp
-    src/model/entities/Citizen.cpp
+    src/model/entities/Priest.cpp
+    src/model/entities/Merchant.cpp
+    src/model/entities/Banker.cpp
 
     # Items
     src/model/items/Armor.cpp
@@ -72,6 +74,9 @@ target_sources(argentum_online_server
     src/model/entities/MonsterFactory.h
     src/model/entities/Player.h
     src/model/entities/PlayerFactory.h
+    src/model/entities/Priest.h
+    src/model/entities/Merchant.h
+    src/model/entities/Banker.h
     src/model/components/StatsComponent.h
     src/model/components/InventoryComponent.h
     src/model/components/EquipmentComponent.h

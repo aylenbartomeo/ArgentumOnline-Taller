@@ -1,14 +1,16 @@
-#ifndef PRIEST_H
-#define PRIEST_H
+#ifndef BANKER_H
+#define BANKER_H
 
+#include <utility>
+#include <functional>
 #include "Player.h"
 #include "../interfaces/Interactable.h"
 
-class Priest : public Interactable {
+class Banker : public Interactable {
 public:
     void beInteractedBy(Player& player) override {
         player.setCurrentInteractable(this);
     }
 };
 
-#endif  // PRIEST_H_
+#endif  // BANKER_H_

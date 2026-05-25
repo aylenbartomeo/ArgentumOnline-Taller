@@ -5,7 +5,6 @@
 #include <utility>
 
 #include "../interfaces/Attackable.h"
-#include "../interfaces/interactable.h"
 #include "../utils/position.h"
 #include "../utils/types.h"
 #include "server/src/config/MonsterConfig.h"

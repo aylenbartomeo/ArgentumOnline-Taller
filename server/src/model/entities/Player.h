@@ -1,5 +1,5 @@
-#ifndef PLAYER_MOCK_H
-#define PLAYER_MOCK_H
+#ifndef PLAYER_H
+#define PLAYER_H
 
 #include <cstdint>
 #include <string>
@@ -13,6 +13,7 @@
 #include "../components/StateComponent.h"
 #include "../components/StatsComponent.h"
 #include "../interfaces/Attackable.h"
+#include "../interfaces/Interactable.h"
 
 #include "position.h"
 
@@ -31,6 +32,8 @@ private:
     StateComponent state;
     RegenerationComponent regeneration;
     const ItemRegistry* itemRegistry; // Puntero para permitir nullptr en tests
+    // Un único puntero para manejar cualquier interacción activa
+    const Interactable* currentInteractable = nullptr;
 
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
@@ -108,6 +111,11 @@ public:
     // Calcula la posición resultante de moverse en una dirección,
     // sin modificar la posición actual del jugador.
     Position tryMove(Movement direction) const;
+
+    // Interactuar con ciudadanos
+    void setCurrentInteractable(const Interactable* npc) { currentInteractable = npc; }
+    const Interactable* getCurrentInteractable() const { return currentInteractable; }
+    void clearInteractions() { currentInteractable = nullptr; }
 };
 
 #endif

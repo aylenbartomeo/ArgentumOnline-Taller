@@ -74,7 +74,12 @@ void GameLoop::processInputs() {
             } else if (std::holds_alternative<DropItemDTO>(pCmd.command)) {
                 // DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
                 // world.drop_item(pCmd.clientId, drop_dto.slot, drop_dto.amount);
-            }
+            } else if (std::holds_alternative<InteractDTO>(pCmd.command)) {
+                InteractDTO interact_dto = std::get<InteractDTO>(pCmd.command);
+                
+                // Le delegamos al mundo la resolución de la interacción
+                world.playerInteract(pCmd.clientId, interact_dto.targetId);
+            } 
         }
     }
 }
