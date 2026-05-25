@@ -119,7 +119,8 @@ void Game::renderEntities() {
     for (const EntityDTO& entity: lastSnapshot.entities) {
         const SDL2pp::Rect srcRect((PLAYER_SPRITE % cols) * src, (PLAYER_SPRITE / cols) * src, src,
                                    src);
-        const SDL2pp::Rect dstRect(entity.x * TILE_SIZE, entity.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        const SDL2pp::Rect dstRect(entity.x * TILE_SIZE, entity.y * TILE_SIZE, TILE_SIZE,
+                                   TILE_SIZE);
         renderer.Copy(tileset, srcRect, dstRect);
 
         if (entity.id == myId) {

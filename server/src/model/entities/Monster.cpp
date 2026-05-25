@@ -2,7 +2,6 @@
 
 #include <utility>
 
-#include "../include/model/FormulaEngine.h"
 Monster::Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config):
         id(id),
         type(type),
@@ -15,7 +14,8 @@ Monster::Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& c
         strength(config.strength),
         agility(config.agility),
         attack_min(config.attackMin),
-        attack_max(config.attackMax) {}
+        attack_max(config.attackMax),
+        level(config.level) {}
 
 void Monster::move(const Position& new_pos) {
     // Lógica de movimiento, podría ser aleatorio dentro de un rango o siguiendo al jugador si lo
@@ -24,24 +24,11 @@ void Monster::move(const Position& new_pos) {
 }
 
 void Monster::receiveDamage(int amount) {
-    if (FormulaEngine::getInstance().is_attack_eluded(static_cast<uint16_t>(this->agility))) {
+    if (amount < 0)
         return;
-    }
     this->health -= amount;
     if (this->health < 0)
         this->health = 0;
-}
-
-void Monster::attack(Combatant& target) {
-    const int distance = this->pos.distance_to(target.getPosition());
-    if (distance == 0 || distance > this->attack_range) {
-        return;
-    }
-
-    uint16_t damage = FormulaEngine::getInstance().calculate_base_damage(
-            static_cast<uint16_t>(this->strength), static_cast<uint16_t>(this->attack_min),
-            static_cast<uint16_t>(this->attack_max));
-    target.receiveDamage(static_cast<int>(damage));
 }
 
 bool Monster::isDead() const { return health <= 0; }
@@ -51,6 +38,7 @@ Position Monster::getPosition() const { return this->pos; }
 void Monster::setPosition(const Position& newPos) { this->pos = newPos; }
 
 uint16_t Monster::getStrength() const { return this->strength; }
+uint16_t Monster::getIntelligence() const { return 0; }  // Monsters don't use magic yet
 
 int Monster::get_detection_range() const { return this->detection_range; }
 
@@ -58,12 +46,34 @@ int Monster::get_attack_range() const { return this->attack_range; }
 
 const std::string& Monster::get_zone() const { return this->zone; }
 
-uint16_t Monster::getAgility() const {
-    // Podés retornar un valor base del monstruo o delegarlo a sus stats internas
-    return agility; // O el atributo que use tu struct de NPC
+std::string Monster::getName() const {
+    switch (this->type) {
+        case NPCType::GOBLIN: return "Goblin";
+        case NPCType::SKELETON: return "Skeleton";
+        case NPCType::ZOMBIE: return "Zombie";
+        case NPCType::SPIDER: return "Spider";
+        case NPCType::ORC: return "Orc";
+        case NPCType::GOLEM: return "Golem";
+        default: return "Monster";
+    }
 }
 
-uint16_t Monster::getTotalDefense() const {
-    // La defensa del monstruo según el balance de tu servidor
-    return 0; 
+int Monster::getAttackMin() const { return this->attack_min; }
+int Monster::getAttackMax() const { return this->attack_max; }
+
+uint16_t Monster::getAgility() const {
+    // Podés retornar un valor base del monstruo o delegarlo a sus stats internas
+    return agility;  // O el atributo que use tu struct de NPC
 }
+
+uint16_t Monster::getLevel() const { return level; }
+uint16_t Monster::getMaxHp() const { return max_health; }
+int Monster::getDefense() const { return 0; }    // Monsters could have base defense, but for now 0
+
+bool Monster::canBeAttacked() const { return !isDead(); }
+void Monster::handleDeath() {
+    this->health = 0;  // State handled implicitly by isDead()
+}
+bool Monster::canEngageInCombatWith(const Attackable& /*other*/) const {
+    return true;
+}  // Monsters can attack anyone

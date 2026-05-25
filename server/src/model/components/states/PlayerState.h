@@ -8,7 +8,7 @@ public:
     // Filtros de acciones
     virtual bool canMove() const = 0;
     virtual bool canAttack() const = 0;
-    virtual bool  canUseItems() const = 0;
+    virtual bool canUseItems() const = 0;
 
     // Filtros de interaccion
     virtual bool canBeAttacked() const = 0;

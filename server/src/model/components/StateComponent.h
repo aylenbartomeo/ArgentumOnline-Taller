@@ -2,10 +2,11 @@
 #define STATE_COMPONENT_H
 
 #include <memory>
-#include "states/PlayerState.h"
-#include "states/NormalState.h"
+
 #include "states/GhostState.h"
 #include "states/MeditatingState.h"
+#include "states/NormalState.h"
+#include "states/PlayerState.h"
 
 class StateComponent {
 private:
@@ -13,31 +14,29 @@ private:
 
 public:
     // Al nacer/loguear, el jugador arranca en estado normal
-    StateComponent(){
-        currentState = std::make_unique<NormalState>();
-    }
+    StateComponent(): currentState(std::make_unique<NormalState>()) {}
 
     // --- TRANSICIONES DE ESTADO ---
-    void die(){
-        if(!currentState->isGhost()){
+    void die() {
+        if (!currentState->isGhost()) {
             currentState = std::make_unique<GhostState>();
         }
     }
 
-    void resurrect(){
-        if(!currentState->isGhost()){
+    void resurrect() {
+        if (!currentState->isGhost()) {
             currentState = std::make_unique<NormalState>();
         }
     }
 
-    void startMeditating(){
+    void startMeditating() {
         if (!currentState->isGhost() && !currentState->isMeditating()) {
             currentState = std::make_unique<MeditatingState>();
         }
     }
 
     void stopMeditating() {
-        if(currentState->isMeditating()){
+        if (currentState->isMeditating()) {
             currentState = std::make_unique<NormalState>();
         }
     }

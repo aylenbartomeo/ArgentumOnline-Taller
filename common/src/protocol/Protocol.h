@@ -34,6 +34,8 @@ public:
 
     CommandVariant receive_command();
 
+    uint8_t recv_opcode();
+
     // --- MÉTODOS DE ENVÍO (Cliente -> Servidor) ---
     void send_register(const RegisterDTO& dto);
     void send_login(const LoginDTO& loginDTO);
@@ -48,7 +50,9 @@ public:
 
     // --- MÉTODOS DE ENVÍO (Servidor -> Cliente) ---
     void send_snapshot(const SnapshotDTO& snap);
-    SnapshotDTO receive_snapshot();
+    SnapshotDTO receive_snapshot_body();
+    
+    ChatDTO receive_chat_body();
 
     void send_register_success(uint32_t clientId);
     void send_register_failed(const std::string& errorMessage);

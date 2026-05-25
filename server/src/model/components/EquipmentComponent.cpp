@@ -1,11 +1,14 @@
 #include "EquipmentComponent.h"
-#include "model/items/Item.h"
-#include "model/items/Weapon.h"
+
+#include "model/FormulaEngine.h"
 #include "model/items/BodyArmor.h"
 #include "model/items/Helmet.h"
+#include "model/items/Item.h"
 #include "model/items/Shield.h"
+#include "model/items/Weapon.h"
 
-EquipmentComponent::EquipmentComponent(): bodyArmor(nullptr), helmet(nullptr), shield(nullptr), weapon(nullptr) {}
+EquipmentComponent::EquipmentComponent():
+        bodyArmor(nullptr), helmet(nullptr), shield(nullptr), weapon(nullptr) {}
 
 uint32_t EquipmentComponent::equipItem(const Item* item) {
     if (!item)
@@ -38,20 +41,16 @@ uint32_t EquipmentComponent::equipWeapon(const Weapon* new_weapon) {
     return old_id;
 }
 
-int EquipmentComponent::getDefense() const {
-    int defense = 0;
+uint16_t EquipmentComponent::calculateCurrentDefense() const {
+    uint16_t armMin = this->bodyArmor ? this->bodyArmor->getMinDefense() : 0;
+    uint16_t armMax = this->bodyArmor ? this->bodyArmor->getMaxDefense() : 0;
 
-    if (this->bodyArmor != nullptr) {
-        defense += this->bodyArmor->getDefense();
-    }
+    uint16_t shMin = this->shield ? this->shield->getMinDefense() : 0;
+    uint16_t shMax = this->shield ? this->shield->getMaxDefense() : 0;
 
-    if (this->helmet != nullptr) {
-        defense += this->helmet->getDefense();
-    }
+    uint16_t helmMin = this->helmet ? this->helmet->getMinDefense() : 0;
+    uint16_t helmMax = this->helmet ? this->helmet->getMaxDefense() : 0;
 
-    if (this->shield != nullptr) {
-        defense += this->shield->getDefense();
-    }
-
-    return defense;
+    return FormulaEngine::getInstance().calculate_defense(armMin, armMax, shMin, shMax, helmMin,
+                                                          helmMax);
 }

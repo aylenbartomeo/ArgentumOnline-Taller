@@ -64,6 +64,10 @@ std::string Protocol::recv_string() {
     return std::string(buffer.begin(), buffer.end());
 }
 
+uint8_t Protocol::recv_opcode() {
+    return recv_uint8();
+}
+
 // =======================================================
 // ACTUALIZACIONES DE ESTADO (SERVIDOR -> CLIENTE)
 // =======================================================
@@ -140,10 +144,8 @@ LoginResponseDTO Protocol::recv_register_response() {
     }
 }
 
-SnapshotDTO Protocol::receive_snapshot() {
+SnapshotDTO Protocol::receive_snapshot_body() {
     SnapshotDTO snap;
-    uint8_t opcode = recv_uint8();
-    (void)opcode;
     uint16_t count = recv_uint16();
     for (uint16_t i = 0; i < count; ++i) {
         EntityDTO entity;
@@ -160,6 +162,12 @@ SnapshotDTO Protocol::receive_snapshot() {
     }
 
     return snap;
+}
+
+ChatDTO Protocol::receive_chat_body() {
+    ChatDTO chat;
+    chat.message = recv_string();
+    return chat;
 }
 
 // =======================================================

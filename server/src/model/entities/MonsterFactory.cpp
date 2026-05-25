@@ -7,7 +7,8 @@
 
 MonsterFactory::MonsterFactory(MonsterConfigs configs): configs(std::move(configs)) {}
 
-std::unique_ptr<Monster> MonsterFactory::create(uint32_t id, NPCType type, Position position) const {
+std::unique_ptr<Monster> MonsterFactory::create(uint32_t id, NPCType type,
+                                                Position position) const {
     auto config = configs.find(type);
     if (config == configs.end()) {
         throw std::runtime_error("Tipo de monstruo no configurado");

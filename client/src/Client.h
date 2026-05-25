@@ -20,6 +20,7 @@ private:
     Protocol protocol;
 
     Queue<SnapshotDTO> snapshotQueue;
+    Queue<ChatDTO> chatQueue;
     Queue<CommandVariant> commandQueue;
 
     Receiver receiver;
@@ -34,6 +35,9 @@ public:
 
     void pushSnapshot(const SnapshotDTO& snap);
     bool tryPopSnapshot(SnapshotDTO& out);
+
+    void pushChatMessage(const ChatDTO& chat);
+    bool tryPopChatMessage(ChatDTO& out);
 
     void sendCommand(const CommandVariant& cmd);
 

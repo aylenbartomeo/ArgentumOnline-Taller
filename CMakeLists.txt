@@ -245,5 +245,6 @@ if(ARGENTUM_ONLINE_TESTS)
     target_link_libraries(argentum_online_tests
         lib_common
         GTest::gtest_main
+        GTest::gmock
     )
 endif()

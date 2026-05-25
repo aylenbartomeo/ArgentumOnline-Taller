@@ -1,17 +1,18 @@
 #ifndef BANK_COMPONENT_H
 #define BANK_COMPONENT_H
 
+#include <algorithm>
 #include <cstdint>
 #include <vector>
-#include <algorithm>
 
-#include "InventoryComponent.h" 
+#include "InventoryComponent.h"
 
 class BankComponent {
 private:
-    std::vector<Slot> vaulted_slots; // Ítems guardados en la caja fuerte
-    uint32_t vaulted_gold;           // Oro total guardado en el banco
-    uint32_t max_bank_gold;          // Límite máximo de oro en el banco (p.ej. 2^32 - 1 o un tope del juego)
+    std::vector<Slot> vaulted_slots;  // Ítems guardados en la caja fuerte
+    uint32_t vaulted_gold;            // Oro total guardado en el banco
+    uint32_t
+            max_bank_gold;  // Límite máximo de oro en el banco (p.ej. 2^32 - 1 o un tope del juego)
 
 public:
     // Arranca en 0 oro y con un tamaño inicial de slots de banco (ej. 50 slots)
@@ -39,4 +40,4 @@ public:
     bool withdrawItem(uint32_t item_id, uint16_t amount, InventoryComponent& inventory);
 };
 
-#endif // BANK_COMPONENT_H
+#endif  // BANK_COMPONENT_H
