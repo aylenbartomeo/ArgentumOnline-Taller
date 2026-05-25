@@ -44,6 +44,29 @@ uint32_t Player::equipItemById(uint32_t itemId) {
     return equipment.equipItem(item);
 }
 
+bool Player::equipFromSlot(uint8_t slotIndex) {
+    auto slotOpt = inventory.inspectSlot(slotIndex);
+    if (!slotOpt) return false;
+
+    uint32_t itemId = slotOpt->item_id;
+    if (!itemRegistry) return false;
+
+    const Item* item = itemRegistry->get_item(static_cast<int>(itemId));
+    if (!item || !item->is_wearable()) return false;
+
+    // Equipar y recibir el ID del ítem que fue reemplazado
+    uint32_t replacedId = equipment.equipItem(item);
+
+    // Sacar el ítem del inventario (solo consumimos 1, ya que equipamos 1 a la vez)
+    inventory.removeItem(slotIndex, 1);
+
+    // Si había algo equipado antes, devolverlo al inventario
+    if (replacedId != 0) {
+        inventory.addItem(replacedId, 1);
+    }
+    return true;
+}
+
 void Player::update(float deltaSeconds) { regeneration.tick(deltaSeconds); }
 
 bool Player::canEngageInCombatWith(const Attackable& other) const {

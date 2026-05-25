@@ -49,6 +49,10 @@ public:
     // Equipa un ítem resolviendo su ID contra el registry
     uint32_t equipItemById(uint32_t itemId);
 
+    // Equipa un ítem directamente desde un slot del inventario.
+    // Retorna true si pudo equiparlo, false en caso contrario.
+    bool equipFromSlot(uint8_t slotIndex);
+
     /* GETTERS/SETTERS de atributos que expone */
     uint32_t getId() const { return this->id; }
     uint32_t getDbId() const { return this->dbId; }
