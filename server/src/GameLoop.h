@@ -23,6 +23,7 @@ private:
     World world;
 
     void processInputs();
+    void dispatchWorldEvents();
     void updateWorld(float delta_time);
     void broadcastState();
 

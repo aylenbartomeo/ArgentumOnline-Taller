@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
+#include "../interfaces/interactable.h"
 #include "../utils/position.h"
 #include "../utils/types.h"
-#include "../interfaces/interactable.h"
 
 // class Player;
 

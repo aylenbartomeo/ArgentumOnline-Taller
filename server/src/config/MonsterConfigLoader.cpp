@@ -57,7 +57,8 @@ MonsterConfig parseMonsterConfig(const toml::table& monsterTable) {
             requiredInt(monsterTable, "max_health"),   requiredInt(monsterTable, "strength"),
             requiredInt(monsterTable, "agility"),      requiredInt(monsterTable, "attack_min"),
             requiredInt(monsterTable, "attack_max"),   requiredInt(monsterTable, "detection_range"),
-            requiredInt(monsterTable, "attack_range"), requiredString(monsterTable, "zone"),
+            requiredInt(monsterTable, "attack_range"), requiredInt(monsterTable, "level"),
+            requiredString(monsterTable, "zone"),
     };
 
     if (config.maxHealth <= 0) {

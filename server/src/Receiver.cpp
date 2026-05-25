@@ -3,16 +3,16 @@
 #include <iostream>
 
 #include "../../common/include/dto/RegisterDTO.h"
-#include "../auth/AuthManager.h"
+#include "auth/AuthManager.h"
 
 Receiver::Receiver(Socket& skt, Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
-                   AuthManager& auth, Queue<SnapshotDTO>& senderQueue):
+                   AuthManager& authManager, Queue<ServerMessageVariant>& senderQueue):
         skt(skt),
         clientId(0),
         gameQueue(gameQueue),
         protocolo(skt),
         monitor(monitor),
-        auth(auth),
+        auth(authManager),
         senderQueue(senderQueue) {}
 
 bool Receiver::authenticatePlayer() {

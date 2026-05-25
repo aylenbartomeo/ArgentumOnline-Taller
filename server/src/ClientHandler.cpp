@@ -31,4 +31,4 @@ void ClientHandler::joinThreads() {
 
 bool ClientHandler::isOnline() const { return receiver.is_alive() && sender.is_alive(); }
 
-Queue<SnapshotDTO>& ClientHandler::getSenderQueue() { return sender_queue; }
+Queue<ServerMessageVariant>& ClientHandler::getSenderQueue() { return sender_queue; }

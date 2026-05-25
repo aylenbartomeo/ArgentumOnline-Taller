@@ -6,7 +6,7 @@ compile-debug:
 	cmake --build  build/ $(EXTRA_COMPILE)
 
 run-tests: compile-debug
-	./build/tests/taller_tests
+	./build/argentum_online_tests
 
 all: clean run-tests
 

@@ -1,39 +1,90 @@
 #include "Player.h"
 
-Player::Player(uint32_t id, 
-                const std::string& name, 
-                const RaceConfig& race, 
-                const CharacterClassConfig& characterClass,
-                const PlayerConfig& playerBase) :
-        id(id), 
-        name(name), 
-        pos({0, 0}), 
+Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
+               const CharacterClassConfig& characterClass, const PlayerConfig& playerBase):
+        id(entityId),
+        dbId(dbId),
+        name(name),
+        pos({0, 0}),
         // Stats ahora solo maneja combate (sin max_gold)
         stats(race, characterClass, playerBase),
         // Inventario ahora absorbe la economía: 20 slots, 5000 seguro, 100000 tope máximo
-        inventory(20, 5000, 100000),
+        inventory(InventoryConfig{20, 100000}, 5000),
         equipment(),
         bank(50, 999999),
         state(),
-        combat(stats, state) {}
+        regeneration(stats, state, race, characterClass) {}
 
 // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
 // de valores random
-Player::Player(uint32_t id, const std::string& name, const RaceConfig& race, 
-               const CharacterClassConfig& characterClass,
-               const PlayerConfig& playerBase,
-               const FormulaEngine& testEngine)
-        : id(id), 
-        name(name), 
-        pos({0, 0}), 
+Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
+               const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
+               const FormulaEngine& testEngine):
+        id(entityId),
+        dbId(dbId),
+        name(name),
+        pos({0, 0}),
         stats(race, characterClass, playerBase, testEngine),
-        inventory(20, 5000, 100000),
+        inventory(InventoryConfig{20, 100000}, 5000),
         equipment(),
         bank(50, 999999),
         state(),
-        combat(stats, state) {}
+        regeneration(stats, state, race, characterClass, testEngine) {}
 
-///                                                              ///       
+void Player::update(float deltaSeconds) { regeneration.tick(deltaSeconds); }
+
+bool Player::canEngageInCombatWith(const Attackable& other) const {
+    // Regla 1: newbie no puede atacar ni ser atacado por jugadores
+    if (FormulaEngine::getInstance().is_newbie(this->stats.getLevel())) {
+        return false;
+    }
+    // Regla 2: diferencia de nivel máxima de 10
+    // Aplica solo contra otros jugadores — Monster::canEngageInCombatWith
+    // devuelve true siempre, así que esta validación solo se activa
+    // cuando AMBOS son Players (ambos lados del contrato se evalúan)
+    if (!FormulaEngine::getInstance().is_pvp_level_valid(this->stats.getLevel(),
+                                                         other.getLevel())) {
+        return false;
+    }
+    return true;
+}
+
+void Player::handleDeath() {
+    state.die();
+    // TODO: inventory->dropItems();
+}
+
+void Player::onActionStarted() { state.stopMeditating(); }
+
+void Player::receiveDamage(int amount) {
+    state.stopMeditating();
+    if (amount < 0)
+        return;
+    stats.takeDamage(static_cast<uint16_t>(amount));
+}
+
+Position Player::tryMove(Movement direction) const {
+    Position candidate = this->pos;
+    switch (direction) {
+        case Movement::UP:
+            candidate.y -= 1;
+            break;
+        case Movement::DOWN:
+            candidate.y += 1;
+            break;
+        case Movement::LEFT:
+            candidate.x -= 1;
+            break;
+        case Movement::RIGHT:
+            candidate.x += 1;
+            break;
+        default:
+            break;
+    }
+    return candidate;
+}
+
+///                                                              ///
 /// COSAS DEL PLAYER ANTERIOR QUE PODRIAMOS LLEGAR A IMPLEMENTAR ///
 ///                                                              ///
 
@@ -77,7 +128,8 @@ Player::Player(uint32_t id, const std::string& name, const RaceConfig& race,
 //         this->max_mana = this->can_use_magic ?
 //                                 FormulaEngine::getInstance().calculate_max_mana(
 //                                         static_cast<uint16_t>(this->intelligence),
-//                                         classConfig.manaFactor, raceConfig.manaFactor, this->level) :
+//                                         classConfig.manaFactor, raceConfig.manaFactor,
+//                                         this->level) :
 //                                 0;
 //         this->mana = this->max_mana;
 
@@ -87,7 +139,8 @@ Player::Player(uint32_t id, const std::string& name, const RaceConfig& race,
 // }
 
 // bool Player::startMeditating() {
-//     if (this->state != PlayerState::ALIVE || !this->can_meditate || this->mana >= this->max_mana) {
+//     if (this->state != PlayerState::ALIVE || !this->can_meditate || this->mana >= this->max_mana)
+//     {
 //         return false;
 //     }
 

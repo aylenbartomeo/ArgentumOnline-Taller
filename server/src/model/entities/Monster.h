@@ -4,13 +4,13 @@
 #include <string>
 #include <utility>
 
+#include "../interfaces/Attackable.h"
+#include "../interfaces/interactable.h"
 #include "../utils/position.h"
 #include "../utils/types.h"
-#include "../interfaces/Combatant.h"
-#include "../interfaces/interactable.h"
 #include "server/src/config/MonsterConfig.h"
 
-class Monster: public Combatant {
+class Monster: public Attackable {
 private:
     uint32_t id;
     NPCType type;
@@ -26,23 +26,35 @@ private:
     int agility;
     int attack_min;
     int attack_max;
-
+    int level;
 
 public:
     Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config);
 
     void move(const Position& new_pos);
-    void receiveDamage(int amount) override;
-    void attack(Combatant& target) override;
-    bool isDead() const override;
-    Position getPosition() const override;
     void setPosition(const Position& newPos);
-    uint16_t getStrength() const override;
     int get_detection_range() const;
     int get_attack_range() const;
+    int getAttackMin() const;
+    int getAttackMax() const;
     const std::string& get_zone() const;
+
+    /* IMPLEMENTACION DE ATTACKABLE */
+    std::string getName() const override;
+    void receiveDamage(int amount) override;
+    bool isDead() const override;
+    Position getPosition() const override;
+    bool canBeAttacked() const override;
+
+    uint16_t getStrength() const override;
+    uint16_t getIntelligence() const override;
     uint16_t getAgility() const override;
-    uint16_t getTotalDefense() const override;
+    uint16_t getLevel() const override;
+    uint16_t getMaxHp() const override;
+    int getDefense() const override;
+
+    void handleDeath() override;
+    bool canEngageInCombatWith(const Attackable& other) const override;
 };
 
 #endif

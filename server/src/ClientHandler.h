@@ -9,6 +9,7 @@
 #include "auth/AuthManager.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
+#include "../../common/include/dto/ServerMessage.h"
 
 #include "ConnectionMonitor.h"
 #include "Receiver.h"
@@ -18,7 +19,7 @@ class ClientHandler {
 private:
     Socket skt;
 
-    Queue<SnapshotDTO> sender_queue;
+    Queue<ServerMessageVariant> sender_queue;
 
     Receiver receiver;
     Sender sender;
@@ -35,7 +36,7 @@ public:
 
     // El GameLoop usará este método en el momento del LOGIN para registrar adónde enviarle los
     // datos
-    Queue<SnapshotDTO>& getSenderQueue();
+    Queue<ServerMessageVariant>& getSenderQueue();
     uint32_t getId() const;
 
     ClientHandler(const ClientHandler&) = delete;

@@ -3,7 +3,7 @@
 
 #include "PlayerState.h"
 
-class NormalState : public PlayerState {
+class NormalState: public PlayerState {
 public:
     NormalState() = default;
     ~NormalState() override = default;

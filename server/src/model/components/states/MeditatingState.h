@@ -3,7 +3,7 @@
 
 #include "PlayerState.h"
 
-class MeditatingState : public PlayerState {
+class MeditatingState: public PlayerState {
 public:
     MeditatingState() = default;
     ~MeditatingState() override = default;

@@ -8,6 +8,7 @@
 #include "../server/src/ConnectionMonitor.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
+#include "../common/include/dto/ServerMessage.h"
 
 // =======================================================================
 // TESTS DE LA COLA CENTRAL (GameEvent y std::variant)
@@ -72,9 +73,9 @@ TEST(ServerArchitectureTest, Queue_CanPushAndPopPlayerCommand) {
 TEST(ServerArchitectureTest, ConnectionMonitor_BroadcastsToMultipleClients) {
     ConnectionMonitor monitor;
 
-    Queue<SnapshotDTO> queuePlayer1;
-    Queue<SnapshotDTO> queuePlayer2;
-    Queue<SnapshotDTO> queuePlayer3;
+    Queue<ServerMessageVariant> queuePlayer1;
+    Queue<ServerMessageVariant> queuePlayer2;
+    Queue<ServerMessageVariant> queuePlayer3;
 
     monitor.addClient(1, &queuePlayer1);
     monitor.addClient(2, &queuePlayer2);
@@ -87,9 +88,9 @@ TEST(ServerArchitectureTest, ConnectionMonitor_BroadcastsToMultipleClients) {
 
     monitor.broadcast(snap);
 
-    SnapshotDTO received1 = queuePlayer1.pop();
-    SnapshotDTO received2 = queuePlayer2.pop();
-    SnapshotDTO received3 = queuePlayer3.pop();
+    SnapshotDTO received1 = std::get<SnapshotDTO>(queuePlayer1.pop());
+    SnapshotDTO received2 = std::get<SnapshotDTO>(queuePlayer2.pop());
+    SnapshotDTO received3 = std::get<SnapshotDTO>(queuePlayer3.pop());
 
     EXPECT_EQ(received1.entities.size(), (size_t)1);
     EXPECT_EQ(received1.entities[0].id, (uint32_t)999);
@@ -99,8 +100,8 @@ TEST(ServerArchitectureTest, ConnectionMonitor_BroadcastsToMultipleClients) {
 
 TEST(ServerArchitectureTest, ConnectionMonitor_IgnoresRemovedClients) {
     ConnectionMonitor monitor;
-    Queue<SnapshotDTO> queuePlayer1;
-    Queue<SnapshotDTO> queuePlayer2;
+    Queue<ServerMessageVariant> queuePlayer1;
+    Queue<ServerMessageVariant> queuePlayer2;
 
     monitor.addClient(1, &queuePlayer1);
     monitor.addClient(2, &queuePlayer2);
@@ -112,19 +113,19 @@ TEST(ServerArchitectureTest, ConnectionMonitor_IgnoresRemovedClients) {
     monitor.broadcast(snap);
 
     // El jugador 1 recibe el snapshot
-    SnapshotDTO received1;
+    ServerMessageVariant received1;
     bool success = queuePlayer1.try_pop(received1);
     EXPECT_TRUE(success);
 
     // La cola del jugador 2 DEBE estar vacía
-    SnapshotDTO received2;
+    ServerMessageVariant received2;
     bool success2 = queuePlayer2.try_pop(received2);
     EXPECT_FALSE(success2);
 }
 
 TEST(ServerArchitectureTest, ConnectionMonitor_TracksActiveSessions) {
     ConnectionMonitor monitor;
-    Queue<SnapshotDTO> dummyQueue;
+    Queue<ServerMessageVariant> dummyQueue;
     uint32_t playerId = 1;
 
     // 1. Al principio no hay nadie conectado

@@ -11,7 +11,9 @@
 
 // DTOs vacíos (solo indican la intención)
 struct StopMoveDTO {};
-struct AttackDTO {};
+struct AttackDTO {
+    uint32_t targetId;
+};
 struct GrabItemDTO {};
 
 // DTOs con Payload
