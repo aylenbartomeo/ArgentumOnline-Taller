@@ -1,8 +1,11 @@
 #include "Player.h"
 
+#include "server/src/model/items/ItemRegistry.h"
+#include "server/src/model/items/Item.h"
+
 Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
                const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
-               const Position& spawn):
+               const ItemRegistry& itemRegistry, const Position& spawn):
         id(entityId),
         dbId(dbId),
         name(name),
@@ -14,7 +17,8 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const 
         equipment(),
         bank(50, 999999),
         state(),
-        regeneration(stats, state, race, characterClass) {}
+        regeneration(stats, state, race, characterClass),
+        itemRegistry(&itemRegistry) {}
 
 // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
 // de valores random
@@ -30,7 +34,38 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const 
         equipment(),
         bank(50, 999999),
         state(),
-        regeneration(stats, state, race, characterClass, testEngine) {}
+        regeneration(stats, state, race, characterClass, testEngine),
+        itemRegistry(nullptr) {}
+
+uint32_t Player::equipItemById(uint32_t itemId) {
+    if (!itemRegistry) return 0;
+    const Item* item = itemRegistry->get_item(static_cast<int>(itemId));
+    if (!item || !item->is_wearable()) return 0;
+    return equipment.equipItem(item);
+}
+
+bool Player::equipFromSlot(uint8_t slotIndex) {
+    auto slotOpt = inventory.inspectSlot(slotIndex);
+    if (!slotOpt) return false;
+
+    uint32_t itemId = slotOpt->item_id;
+    if (!itemRegistry) return false;
+
+    const Item* item = itemRegistry->get_item(static_cast<int>(itemId));
+    if (!item || !item->is_wearable()) return false;
+
+    // Equipar y recibir el ID del ítem que fue reemplazado
+    uint32_t replacedId = equipment.equipItem(item);
+
+    // Sacar el ítem del inventario (solo consumimos 1, ya que equipamos 1 a la vez)
+    inventory.removeItem(slotIndex, 1);
+
+    // Si había algo equipado antes, devolverlo al inventario
+    if (replacedId != 0) {
+        inventory.addItem(replacedId, 1);
+    }
+    return true;
+}
 
 void Player::update(float deltaSeconds) { regeneration.tick(deltaSeconds); }
 

@@ -16,6 +16,8 @@
 
 #include "position.h"
 
+class ItemRegistry;
+
 class Player: public Attackable {
 private:
     uint32_t id;       // Entity ID de runtime
@@ -28,20 +30,28 @@ private:
     BankComponent bank;
     StateComponent state;
     RegenerationComponent regeneration;
+    const ItemRegistry* itemRegistry; // Puntero para permitir nullptr en tests
 
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
            const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
-           const Position& spawn = {0, 0});
+           const ItemRegistry& itemRegistry, const Position& spawn = {0, 0});
 
     // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
-    // de valores random
+    // de valores random (no requiere ItemRegistry)
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
            const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
            const FormulaEngine& testEngine);
 
     // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
     void update(float deltaSeconds);
+
+    // Equipa un ítem resolviendo su ID contra el registry
+    uint32_t equipItemById(uint32_t itemId);
+
+    // Equipa un ítem directamente desde un slot del inventario.
+    // Retorna true si pudo equiparlo, false en caso contrario.
+    bool equipFromSlot(uint8_t slotIndex);
 
     /* GETTERS/SETTERS de atributos que expone */
     uint32_t getId() const { return this->id; }

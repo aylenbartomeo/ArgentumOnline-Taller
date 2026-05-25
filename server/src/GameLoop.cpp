@@ -5,8 +5,8 @@
 
 #include "../include/model/ServerEvents.h"
 
-GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor):
-        isRunning(true), gameQueue(gameQueue), monitor(monitor), world(1, "Server") {
+GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor, const std::filesystem::path& configPath):
+        isRunning(true), gameQueue(gameQueue), monitor(monitor), itemRegistry(configPath), world(1, "Server", itemRegistry) {
     world.loadMap("maps/defaultMap.json");
 }
 

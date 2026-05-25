@@ -5,8 +5,8 @@
 #include "model/combat/CombatManager.h"
 #include "model/entities/Player.h"
 
-World::World(int worldId, const std::string& creatorPlayerName):
-        worldId(worldId), creatorPlayerName(creatorPlayerName), map() {
+World::World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry):
+        worldId(worldId), creatorPlayerName(creatorPlayerName), itemRegistry(itemRegistry), map() {
     map.setDimensions(20, 15);
     map.setSpawnPoint(0, 0);
 }
@@ -29,7 +29,7 @@ bool World::addPlayer(uint32_t dbId, std::string& username) {
 
     std::pair<float, float> spawn = map.getInitialPosition();
     this->players[entityId] = std::make_unique<Player>(
-            entityId, dbId, username, raceConfig, classConfig, baseConfig,
+            entityId, dbId, username, raceConfig, classConfig, baseConfig, itemRegistry,
             Position{static_cast<int>(spawn.first), static_cast<int>(spawn.second)});
 
     return true;

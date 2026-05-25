@@ -14,12 +14,14 @@
 
 #include "ConnectionMonitor.h"
 #include "World.h"
+#include "model/items/ItemRegistry.h"
 
 class GameLoop: public Thread {
 private:
     std::atomic<bool> isRunning;
     Queue<GameEvent>& gameQueue;
     ConnectionMonitor& monitor;
+    ItemRegistry itemRegistry;
     World world;
 
     void processInputs();
@@ -28,7 +30,7 @@ private:
     void broadcastState();
 
 public:
-    GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor);
+    GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor, const std::filesystem::path& configPath);
 
     void run() override;
     void stop() override;

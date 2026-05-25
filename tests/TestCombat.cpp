@@ -31,7 +31,7 @@ static Player makeTestPlayer(uint32_t id = 1) {
     RaceConfig race = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig cls = {1.0f, 1.0f, 1.0f, false};
     PlayerConfig cfg = {15, 15, 15, 15, 1, 0, 0};
-    return Player(id, id, name, race, cls, cfg);
+    return Player(id, id, name, race, cls, cfg, FormulaEngine::getInstance());
 }
 
 // Helper: crea un Monster base para tests

@@ -15,6 +15,8 @@
 #include "Map.h"
 #include "queue.h"
 
+class ItemRegistry;
+
 struct WorldEvent {
     uint32_t targetDbId;
     std::string message;
@@ -24,6 +26,7 @@ class World {
 private:
     int worldId;
     std::string creatorPlayerName;
+    const ItemRegistry& itemRegistry;
 
     Map map;
     std::unordered_map<uint32_t, std::unique_ptr<Player>> players;
@@ -44,7 +47,7 @@ private:
     void monsterAttack(const Monster& monster, Player& target);
 
 public:
-    explicit World(int worldId, const std::string& creatorPlayerName);
+    explicit World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry);
 
     // Métodos lógicos: Entrar y salir del mundo virtual
     bool addPlayer(uint32_t playerId, std::string& username);

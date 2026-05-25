@@ -33,6 +33,10 @@ target_sources(argentum_online_tests
     ../server/src/model/items/BodyArmor.cpp
     ../server/src/model/items/Helmet.cpp
     ../server/src/model/items/Shield.cpp
+    ../server/src/model/items/ItemRegistry.cpp
+    ../server/src/model/items/ArmorFactory.cpp
+    ../server/src/model/items/WeaponFactory.cpp
+    ../server/src/config/ItemConfigLoader.cpp
     ../server/src/auth/AuthManager.cpp
     ../client/src/TileMap.cpp
     TestEditorMap.cpp
