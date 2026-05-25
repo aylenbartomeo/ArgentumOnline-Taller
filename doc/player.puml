@@ -1,0 +1,108 @@
+@startuml "Player Orchestration"
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Arquitectura del Player
+
+' --- COMPONENTES SUPERIORES ---
+class StateComponent {
+    - currentState : PlayerState
+    --
+    + die() : void
+    + resurrect() : void
+    + startMeditating() : void
+    + stopMeditating() : void
+}
+
+class EquipmentComponent {
+    - bodyArmor : BodyArmor*
+    - helmet : Helmet*
+    - shield : Shield*
+    - weapon : Weapon*
+    --
+    + equipItem(item : Item*) : uint32_t
+    + calculateCurrentDefense() : uint16_t
+}
+
+' --- ENTIDAD CENTRAL ---
+class Player {
+    - id : uint32_t
+    - name : String
+    --
+    + update(deltaSeconds : float) : void
+    + tryMove(direction : Movement) : void
+}
+
+' --- COMPONENTES LATERALES ---
+class InventoryComponent {
+    - slots : vector<Slot>
+    - gold : uint32_t
+    - safeGoldLimit : uint32_t
+    - maxGold : uint32_t
+    --
+    + addItem(itemId : uint32_t, amount : uint32_t) : bool
+    + removeItem(slot_index : uint8_t, amount : uint16_t) : bool
+    + inspectSlot(slot_index : uint8_t) : optional<Slot>
+    + addGold(amount : uint32_t) : bool
+    + removeGold(amount : uint32_t) : bool
+    + updateSafeLimit(new_limit : uint32_t) : void
+    + dropExcessGold() : uint32_t
+}
+
+class BankComponent {
+    - vaulted_slots : vector<Slot>
+    - vaulted_gold : uint32_t
+    - max_bank_gold : uint32_t
+    --
+    + depositGold(amount : uint32_t, inventory : 
+    InventoryComponent) : bool
+    + withdrawGold(amount : uint32_t, inventory : 
+    InventoryComponent) : bool
+    + getVaultedGold() : uint32_t
+    + depositItem(inv_slot : uint8_t, amount : uint16_t, 
+    inventory : InventoryComponent) : bool
+    + withdrawItem(item_id : uint32_t, amount : uint16_t, 
+    inventory : InventoryComponent) : bool
+}
+
+' --- COMPONENTES INFERIORES ---
+class StatsComponent {
+    - strength : uint8_t    
+    - intelligence : uint8_t  
+    - agility : uint8_t      
+    - constitution : uint8_t   
+    - health : uint16_t
+    - max_health : uint16_t
+    - mana : uint16_t
+    - max_mana : uint16_t
+    - exp : uint32_t
+    - level : uint16_t
+    --
+    + addExperience(amount : uint32_t) : void
+    + takeDamage(amount : uint16_t) : void
+    + heal(amount : uint16_t) : void
+    + consumeMana(amount : uint16_t) : bool
+    + recoverMana(amount : uint16_t) : void
+}
+
+class RegenerationComponent {
+    - stats : StatsComponent
+    - state : StateComponent
+    --
+    + tick(secondsElapsed : float) : void
+}
+
+' --- Relaciones Internas de Componentes ---
+RegenerationComponent .right.> StatsComponent : "modifica"
+RegenerationComponent .left.> StateComponent : "consulta"
+BankComponent .up.> InventoryComponent : "intercambia"
+
+' --- Distribución Radial de Composición (Player en el centro) ---
+StateComponent <--* Player
+EquipmentComponent <---* Player
+Player *--> InventoryComponent
+Player *---> BankComponent
+Player *--right-> StatsComponent
+Player *--down-> RegenerationComponent
+
+@enduml
