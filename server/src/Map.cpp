@@ -15,14 +15,14 @@ void Map::loadFromToml(const std::string& filepath) { (void)filepath; }
 
 Map::Map(): width(100), height(100), citizenArea({45, 45, 10, 10}), spawn_point({50.0f, 50.0f}) {
     // Inicializa la grilla por defecto limpia
-    collision_grid.assign(height, std::vector<bool>(width, false));
+    collision_grid.assign(width, std::vector<bool>(height, false));
 }
 
 void Map::setDimensions(int w, int h) {
     this->width = w;
     this->height = h;
     // Redimensionamos la matriz de colisiones para que coincida con el nuevo tamaño
-    collision_grid.assign(h, std::vector<bool>(w, false));
+    collision_grid.assign(w, std::vector<bool>(h, false));
 }
 
 void Map::setCitizenArea(int x, int y, int w, int h) { this->citizenArea = {x, y, w, h}; }

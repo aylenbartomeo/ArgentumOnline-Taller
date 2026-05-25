@@ -124,3 +124,10 @@ TEST(MapTest, Map_LoadSpawnFromJsonFailsOnMissingFile) {
     Map mapa;
     EXPECT_FALSE(mapa.loadSpawnFromJson("/tmp/no_existe_este_mapa_12345.json"));
 }
+
+TEST(MapTest, Map_CanMoveToFarColumnInWideMap) {
+    Map mapa;
+    mapa.setDimensions(20, 15);
+
+    EXPECT_TRUE(mapa.canMoveTo(Position{18, 3}));
+}
