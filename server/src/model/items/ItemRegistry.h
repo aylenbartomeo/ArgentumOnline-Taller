@@ -14,7 +14,10 @@
 
 class ItemRegistry {
 private:
-    std::unordered_map<int, std::unique_ptr<Item>> catalog;
+    std::unordered_map<int, std::unique_ptr<Weapon>> weapons;
+    std::unordered_map<int, std::unique_ptr<Armor>> armors;
+    // Para futuros consumibles/pociones/genéricos
+    std::unordered_map<int, std::unique_ptr<Item>> items;
 
 public:
     // Inicializa el catálogo consumiendo los Loaders existentes.

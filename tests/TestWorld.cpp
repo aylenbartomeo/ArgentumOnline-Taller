@@ -5,9 +5,11 @@
 #include "model/entities/Player.h"
 
 #include "World.h"
+#include "model/items/ItemRegistry.h"
 
 TEST(WorldTest, World_InitializesCorrectly) {
-    World mundo(42, "PaladinGM");
+    ItemRegistry registry("../config/items.toml");
+    World mundo(42, "PaladinGM", registry);
 
     EXPECT_EQ(mundo.getWorldId(), 42);
     EXPECT_EQ(mundo.getCreatorPlayerName(), "PaladinGM");
@@ -16,7 +18,8 @@ TEST(WorldTest, World_InitializesCorrectly) {
 }
 
 TEST(WorldTest, World_HandlesPlayerLifecycleWithUniquePtr) {
-    World mundo(1, "ServerAdmin");
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "ServerAdmin", registry);
 
     uint32_t id1 = 100;
     std::string username1 = "PlayerOne";
@@ -46,7 +49,8 @@ TEST(WorldTest, World_HandlesPlayerLifecycleWithUniquePtr) {
 }
 
 TEST(WorldTest, World_PlayerCannotMoveOutsideMap) {
-    World mundo(1, "Tester");
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
     std::string user = "EdgeWalker";
     ASSERT_TRUE(mundo.addPlayer(1, user));
 
@@ -60,7 +64,8 @@ TEST(WorldTest, World_PlayerCannotMoveOutsideMap) {
 }
 
 TEST(WorldTest, World_RemoveNonExistentPlayerReturnsFalse) {
-    World mundo(1, "Tester");
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
 
     // Intentar sacar a alguien de un mundo vacío no debería romper nada
     EXPECT_FALSE(mundo.removePlayer(999));
@@ -68,7 +73,8 @@ TEST(WorldTest, World_RemoveNonExistentPlayerReturnsFalse) {
 
 TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
     // 1. Inicializamos un mundo vacío
-    World mundo(42, "PaladinGM");
+    ItemRegistry registry("../config/items.toml");
+    World mundo(42, "PaladinGM", registry);
 
     // Verificamos que el snapshot inicial esté vacío
     SnapshotDTO snapshotInicial = mundo.generateSnapshot();
@@ -128,7 +134,8 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
 }
 
 TEST(WorldTest, World_PlayerCannotMoveIntoObstacle) {
-    World mundo(1, "Tester");
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
     std::string user = "Blocker";
     ASSERT_TRUE(mundo.addPlayer(1, user));
 
@@ -144,7 +151,8 @@ TEST(WorldTest, World_PlayerCannotMoveIntoObstacle) {
 }
 
 TEST(WorldTest, World_UpdateTriggersMonsterAttack) {
-    World mundo(1, "Tester");
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
     std::string user = "Player1";
     ASSERT_TRUE(mundo.addPlayer(1, user));
 
@@ -171,7 +179,8 @@ TEST(WorldTest, World_UpdateTriggersMonsterAttack) {
 }
 
 TEST(WorldTest, World_UpdateDoesNotTriggerMonsterAttackIfOutOfRange) {
-    World mundo(1, "Tester");
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
     std::string user = "Player1";
     ASSERT_TRUE(mundo.addPlayer(1, user));
 

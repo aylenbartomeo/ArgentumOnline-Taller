@@ -19,10 +19,8 @@ public:
     MOCK_METHOD(uint16_t, getAgility, (), (const, override));
     MOCK_METHOD(uint16_t, getLevel, (), (const, override));
     MOCK_METHOD(uint16_t, getMaxHp, (), (const, override));
-    MOCK_METHOD(uint16_t, getMana, (), (const, override));
     MOCK_METHOD(int, getDefense, (), (const, override));
     MOCK_METHOD(void, receiveDamage, (int), (override));
-    MOCK_METHOD(bool, consumeMana, (int), (override));
     MOCK_METHOD(void, handleDeath, (), (override));
     MOCK_METHOD(bool, canEngageInCombatWith, (const Attackable&), (const, override));
 };
@@ -33,7 +31,7 @@ static Player makeTestPlayer(uint32_t id = 1) {
     RaceConfig race = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig cls = {1.0f, 1.0f, 1.0f, false};
     PlayerConfig cfg = {15, 15, 15, 15, 1, 0, 0};
-    return Player(id, id, name, race, cls, cfg);
+    return Player(id, id, name, race, cls, cfg, FormulaEngine::getInstance());
 }
 
 // Helper: crea un Monster base para tests

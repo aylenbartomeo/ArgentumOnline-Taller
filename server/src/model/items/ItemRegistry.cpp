@@ -10,37 +10,47 @@ ItemRegistry::ItemRegistry(const std::filesystem::path& configPath) {
     auto armorConfigs = ItemConfigLoader::loadArmorConfigs(configPath);
 
     for (const auto& [name, config]: weaponConfigs) {
-        catalog[config.id] =
+        weapons[config.id] =
                 std::make_unique<Weapon>(config.id, name, config.minDamage, config.maxDamage,
                                          config.type, config.attackRange, config.manaCost);
     }
 
     for (const auto& [name, config]: armorConfigs) {
         if (config.slot == ArmorSlot::Body) {
-            catalog[config.id] = std::make_unique<BodyArmor>(config.id, name, config.minDefense,
+            armors[config.id] = std::make_unique<BodyArmor>(config.id, name, config.minDefense,
                                                              config.maxDefense);
         } else if (config.slot == ArmorSlot::Head) {
-            catalog[config.id] =
+            armors[config.id] =
                     std::make_unique<Helmet>(config.id, name, config.minDefense, config.maxDefense);
         } else if (config.slot == ArmorSlot::Shield) {
-            catalog[config.id] =
+            armors[config.id] =
                     std::make_unique<Shield>(config.id, name, config.minDefense, config.maxDefense);
         }
     }
 }
 
 const Item* ItemRegistry::get_item(int item_id) const {
-    auto it = catalog.find(item_id);
-    if (it != catalog.end()) {
+    if (const Weapon* w = get_weapon(item_id)) return w;
+    if (const Armor* a = get_armor(item_id)) return a;
+    auto it = items.find(item_id);
+    if (it != items.end()) {
         return it->second.get();
     }
     return nullptr;
 }
 
 const Weapon* ItemRegistry::get_weapon(int item_id) const {
-    return dynamic_cast<const Weapon*>(get_item(item_id));
+    auto it = weapons.find(item_id);
+    if (it != weapons.end()) {
+        return it->second.get();
+    }
+    return nullptr;
 }
 
 const Armor* ItemRegistry::get_armor(int item_id) const {
-    return dynamic_cast<const Armor*>(get_item(item_id));
+    auto it = armors.find(item_id);
+    if (it != armors.end()) {
+        return it->second.get();
+    }
+    return nullptr;
 }
