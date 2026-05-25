@@ -1,26 +1,27 @@
 #include <gtest/gtest.h>
+
 #include "model/components/StatsComponent.h"
 
 // Configs representativas de la tabla del juego
-class StatsComponentTest : public ::testing::Test {
+class StatsComponentTest: public ::testing::Test {
 protected:
     // Humano equilibrado
-    RaceConfig humanRace      {1.0f, 1.0f, 1.0f};
+    RaceConfig humanRace{1.0f, 1.0f, 1.0f};
 
     // Elfo: inteligente, ágil, constitución frágil
-    RaceConfig elfRace        {0.8f, 1.5f, 1.2f};
+    RaceConfig elfRace{0.8f, 1.5f, 1.2f};
 
     // Mago: potencia mágica alta, vida baja
-    CharacterClassConfig mageClass    {0.7f, 1.5f, 1.5f, true};
+    CharacterClassConfig mageClass{0.7f, 1.5f, 1.5f, true};
 
     // Guerrero: sin magia (canUseMagic = false, meditationFactor = 0)
-    CharacterClassConfig warriorClass {1.8f, 0.0f, 0.0f, false};
+    CharacterClassConfig warriorClass{1.8f, 0.0f, 0.0f, false};
 
     // Stats base de nivel 1
-    PlayerConfig baseLv1 {15, 15, 15, 15, 1, 0, 0};
+    PlayerConfig baseLv1{15, 15, 15, 15, 1, 0, 0};
 
     // Stats base de nivel 5 (para tests de progresión)
-    PlayerConfig baseLv5 {15, 15, 15, 15, 5, 0, 0};
+    PlayerConfig baseLv5{15, 15, 15, 15, 5, 0, 0};
 };
 
 // ============================================================================
@@ -29,16 +30,16 @@ protected:
 TEST_F(StatsComponentTest, InitialAttributesMatchConfig) {
     StatsComponent stats(humanRace, mageClass, baseLv1);
 
-    EXPECT_EQ(stats.getStrength(),      15);
-    EXPECT_EQ(stats.getIntelligence(),  15);
-    EXPECT_EQ(stats.getAgility(),       15);
-    EXPECT_EQ(stats.getConstitution(),  15);
+    EXPECT_EQ(stats.getStrength(), 15);
+    EXPECT_EQ(stats.getIntelligence(), 15);
+    EXPECT_EQ(stats.getAgility(), 15);
+    EXPECT_EQ(stats.getConstitution(), 15);
 }
 
 TEST_F(StatsComponentTest, InitialLevelAndExpMatchConfig) {
     StatsComponent stats(humanRace, mageClass, baseLv1);
     EXPECT_EQ(stats.getLevel(), 1);
-    EXPECT_EQ(stats.getExp(),   0u);
+    EXPECT_EQ(stats.getExp(), 0u);
 }
 
 // ============================================================================
@@ -86,7 +87,7 @@ TEST_F(StatsComponentTest, WarriorHasZeroMana) {
     // El guerrero no puede usar magia → manaFactor = 0 → MaxMana = 0
     StatsComponent stats(humanRace, warriorClass, baseLv1);
     EXPECT_EQ(stats.getMaxMana(), 0);
-    EXPECT_EQ(stats.getMana(),    0);
+    EXPECT_EQ(stats.getMana(), 0);
 }
 
 TEST_F(StatsComponentTest, MaxManaScalesWithLevel) {
@@ -135,7 +136,7 @@ TEST_F(StatsComponentTest, HealDoesNotExceedMaxHp) {
 TEST_F(StatsComponentTest, HealOnDeadPlayerDoesNothing) {
     // Según la implementación de StatsComponent::heal: if (health == 0) return
     StatsComponent stats(humanRace, mageClass, baseLv1);
-    stats.takeDamage(9999);   // muere
+    stats.takeDamage(9999);  // muere
     ASSERT_EQ(stats.getHp(), 0);
     stats.heal(100);
     EXPECT_EQ(stats.getHp(), 0);
@@ -152,10 +153,16 @@ TEST_F(StatsComponentTest, ConsumeManaReducesMana) {
     EXPECT_EQ(stats.getMana(), maxMana - 5);
 }
 
-TEST_F(StatsComponentTest, ConsumeManaDoesNotGoBelowZero) {
+TEST_F(StatsComponentTest, ConsumeManaFailsIfInsufficient) {
     StatsComponent stats(humanRace, mageClass, baseLv1);
-    stats.consumeMana(9999);
-    EXPECT_EQ(stats.getMana(), 0);
+    uint16_t initialMana = stats.getMana();
+    EXPECT_FALSE(stats.consumeMana(9999));
+    EXPECT_EQ(stats.getMana(), initialMana);  // Mana remains unchanged
+}
+
+TEST_F(StatsComponentTest, ConsumeManaReturnsTrueOnSuccess) {
+    StatsComponent stats(humanRace, mageClass, baseLv1);
+    EXPECT_TRUE(stats.consumeMana(5));
 }
 
 TEST_F(StatsComponentTest, RecoverManaRestoresMana) {
@@ -178,7 +185,7 @@ TEST_F(StatsComponentTest, RecoverManaOnDeadPlayerDoesNothing) {
     stats.consumeMana(10);
     uint16_t manaBeforeDeath = stats.getMana();
 
-    stats.takeDamage(9999);   // muere
+    stats.takeDamage(9999);  // muere
     ASSERT_EQ(stats.getHp(), 0);
     stats.recoverMana(100);
     EXPECT_EQ(stats.getMana(), manaBeforeDeath);  // no cambia
@@ -204,21 +211,21 @@ TEST_F(StatsComponentTest, LevelUpRestoresHpAndMana) {
     StatsComponent stats(humanRace, mageClass, baseLv1);
     stats.takeDamage(5);
     stats.consumeMana(5);
-    ASSERT_LT(stats.getHp(),   stats.getMaxHp());
+    ASSERT_LT(stats.getHp(), stats.getMaxHp());
     ASSERT_LT(stats.getMana(), stats.getMaxMana());
 
-    stats.addExperience(1000);   // level up
-    EXPECT_EQ(stats.getHp(),   stats.getMaxHp());
+    stats.addExperience(1000);  // level up
+    EXPECT_EQ(stats.getHp(), stats.getMaxHp());
     EXPECT_EQ(stats.getMana(), stats.getMaxMana());
 }
 
 TEST_F(StatsComponentTest, LevelUpIncreasesMaxHpAndMaxMana) {
     StatsComponent stats(humanRace, mageClass, baseLv1);
-    uint16_t hpBefore   = stats.getMaxHp();
+    uint16_t hpBefore = stats.getMaxHp();
     uint16_t manaBefore = stats.getMaxMana();
 
-    stats.addExperience(1000);   // sube a lv2
-    EXPECT_GT(stats.getMaxHp(),   hpBefore);
+    stats.addExperience(1000);  // sube a lv2
+    EXPECT_GT(stats.getMaxHp(), hpBefore);
     EXPECT_GT(stats.getMaxMana(), manaBefore);
 }
 
@@ -235,20 +242,20 @@ TEST_F(StatsComponentTest, MultipleConsecutiveLevelUps) {
 // ============================================================================
 TEST_F(StatsComponentTest, ElfMageHasMoreManaThanHumanMage) {
     StatsComponent human(humanRace, mageClass, baseLv1);
-    StatsComponent elf(elfRace,   mageClass, baseLv1);
+    StatsComponent elf(elfRace, mageClass, baseLv1);
     // Elfo tiene FRazaMana = 1.5 vs Humano 1.0
     EXPECT_GT(elf.getMaxMana(), human.getMaxMana());
 }
 
 TEST_F(StatsComponentTest, ElfMageHasLessHpThanHumanMage) {
     StatsComponent human(humanRace, mageClass, baseLv1);
-    StatsComponent elf(elfRace,   mageClass, baseLv1);
+    StatsComponent elf(elfRace, mageClass, baseLv1);
     // Elfo tiene FRazaVida = 0.8 vs Humano 1.0
     EXPECT_LT(elf.getMaxHp(), human.getMaxHp());
 }
 
 TEST_F(StatsComponentTest, WarriorHasMoreHpThanMageSameRace) {
-    StatsComponent mage   (humanRace, mageClass,   baseLv1);
+    StatsComponent mage(humanRace, mageClass, baseLv1);
     StatsComponent warrior(humanRace, warriorClass, baseLv1);
     // Guerrero FClaseVida = 1.8 vs Mago 0.7
     EXPECT_GT(warrior.getMaxHp(), mage.getMaxHp());

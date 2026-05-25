@@ -5,6 +5,7 @@ target_sources(argentum_online_tests
     TestMap.cpp
     TestWorld.cpp
     TestGameLoop.cpp
+    TestCombat.cpp
     TestBank.cpp
     TestAuthManager.cpp
     TestEquipmentComponent.cpp
@@ -24,7 +25,6 @@ target_sources(argentum_online_tests
     ../server/src/model/components/InventoryComponent.cpp
     ../server/src/model/components/EquipmentComponent.cpp
     ../server/src/model/components/BankComponent.cpp
-    ../server/src/model/components/CombatComponent.cpp
     ../server/src/model/components/RegenerationComponent.cpp
     ../server/src/model/combat/CombatManager.cpp
     ../server/src/model/FormulaEngine.cpp

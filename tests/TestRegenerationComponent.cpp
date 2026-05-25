@@ -1,19 +1,20 @@
 #include <gtest/gtest.h>
-#include "model/components/RegenerationComponent.h"
-#include "model/components/StatsComponent.h"
-#include "model/components/StateComponent.h"
 
-class RegenerationComponentTest : public ::testing::Test {
+#include "model/components/RegenerationComponent.h"
+#include "model/components/StateComponent.h"
+#include "model/components/StatsComponent.h"
+
+class RegenerationComponentTest: public ::testing::Test {
 protected:
     // Humano mago: recoveryFactor=2, meditationFactor=3, canUseMagic=true
-    RaceConfig           humanRace  {1.0f, 1.0f, 2.0f};
-    CharacterClassConfig mageClass  {0.7f, 1.5f, 3.0f, true};
+    RaceConfig humanRace{1.0f, 1.0f, 2.0f};
+    CharacterClassConfig mageClass{0.7f, 1.5f, 3.0f, true};
 
     // Guerrero: canUseMagic=false, meditationFactor=0
-    CharacterClassConfig warriorClass {1.8f, 0.0f, 0.0f, false};
+    CharacterClassConfig warriorClass{1.8f, 0.0f, 0.0f, false};
 
     // Nivel 5 para tener margen cómodo de HP/Mana
-    PlayerConfig base {15, 15, 15, 15, 5, 0, 0};
+    PlayerConfig base{15, 15, 15, 15, 5, 0, 0};
 
     // Helpers para construir stats+state+regen para cada test
     // (no usamos un único set de miembros para evitar dependencias entre tests)
@@ -32,13 +33,13 @@ TEST_F(RegenerationComponentTest, GhostDoesNotRecoverHpNorMana) {
     stats.consumeMana(30);
     state.die();
 
-    uint16_t hpBefore   = stats.getHp();
+    uint16_t hpBefore = stats.getHp();
     uint16_t manaBefore = stats.getMana();
 
     RegenerationComponent regen(stats, state, humanRace, mageClass);
     regen.tick(TEN_SECONDS);
 
-    EXPECT_EQ(stats.getHp(),   hpBefore);
+    EXPECT_EQ(stats.getHp(), hpBefore);
     EXPECT_EQ(stats.getMana(), manaBefore);
 }
 
@@ -51,13 +52,13 @@ TEST_F(RegenerationComponentTest, ZeroDeltaDoesNothing) {
     stats.takeDamage(10);
     stats.consumeMana(10);
 
-    uint16_t hpBefore   = stats.getHp();
+    uint16_t hpBefore = stats.getHp();
     uint16_t manaBefore = stats.getMana();
 
     RegenerationComponent regen(stats, state, humanRace, mageClass);
     regen.tick(0.0f);
 
-    EXPECT_EQ(stats.getHp(),   hpBefore);
+    EXPECT_EQ(stats.getHp(), hpBefore);
     EXPECT_EQ(stats.getMana(), manaBefore);
 }
 
@@ -108,10 +109,10 @@ TEST_F(RegenerationComponentTest, PassiveHpRecoveryScalesWithTime) {
 TEST_F(RegenerationComponentTest, HpRecoveryDoesNotExceedMaxHp) {
     StatsComponent stats(humanRace, mageClass, base);
     StateComponent state;
-    stats.takeDamage(1);   // solo 1 punto de daño
+    stats.takeDamage(1);  // solo 1 punto de daño
 
     RegenerationComponent regen(stats, state, humanRace, mageClass);
-    regen.tick(9999.0f);   // tiempo enorme
+    regen.tick(9999.0f);  // tiempo enorme
 
     EXPECT_EQ(stats.getHp(), stats.getMaxHp());
 }
@@ -176,20 +177,20 @@ TEST_F(RegenerationComponentTest, MeditationStopsAutomaticallyWhenManaFull) {
     ASSERT_TRUE(state.isMeditating());
 
     RegenerationComponent regen(stats, state, humanRace, mageClass);
-    regen.tick(ONE_SECOND);   // 45 de recover >> 2 de déficit → se llena
+    regen.tick(ONE_SECOND);  // 45 de recover >> 2 de déficit → se llena
 
     EXPECT_EQ(stats.getMana(), stats.getMaxMana());
-    EXPECT_FALSE(state.isMeditating());   // salió de meditación
+    EXPECT_FALSE(state.isMeditating());  // salió de meditación
 }
 
 TEST_F(RegenerationComponentTest, MeditationContinuesIfManaNotFull) {
     StatsComponent stats(humanRace, mageClass, base);
     StateComponent state;
-    stats.consumeMana(stats.getMaxMana());   // maná en 0
+    stats.consumeMana(stats.getMaxMana());  // maná en 0
     state.startMeditating();
 
     RegenerationComponent regen(stats, state, humanRace, mageClass);
-    regen.tick(ONE_SECOND);   // recupera algo pero no llega al máximo
+    regen.tick(ONE_SECOND);  // recupera algo pero no llega al máximo
 
     // Con mageClass.meditationFactor=3, int=15 → 45 por segundo
     // maxMana = 15*1.5*1.0*5 = 112 → 45 < 112 → sigue meditando

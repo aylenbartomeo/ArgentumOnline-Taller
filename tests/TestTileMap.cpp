@@ -30,14 +30,17 @@ TEST(TileMapTest, ParsesValidMap) {
 }
 
 TEST(TileMapTest, ThrowsWhenTilesDoNotMatchDimensions) {
-    std::string json = R"({
-        "tileSize": 16,
-        "tileset": "x.png",
-        "tilesetCols": 12,
-        "width": 3,
-        "height": 2,
-        "tiles": [[0, 1], [2, 3]]
-    })";
-
-    EXPECT_THROW({ TileMap map(json); }, std::runtime_error);
+    EXPECT_THROW(
+            {
+                std::string json = R"({
+            "tileSize": 16,
+            "tileset": "x.png",
+            "tilesetCols": 12,
+            "width": 3,
+            "height": 2,
+            "tiles": [[0, 1], [2, 3]]
+        })";
+                TileMap map(json);
+            },
+            std::runtime_error);
 }

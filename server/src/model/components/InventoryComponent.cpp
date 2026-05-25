@@ -2,11 +2,11 @@
 
 #include <algorithm>
 
-InventoryComponent::InventoryComponent(const InventoryConfig& config, uint32_t initial_safe_gold)
-    : slots(config.maxSlots, Slot{0, 0}),
-      gold(0),
-      safe_gold_limit(initial_safe_gold),
-      max_gold(config.maxGold) {}
+InventoryComponent::InventoryComponent(const InventoryConfig& config, uint32_t initial_safe_gold):
+        slots(config.maxSlots, Slot{0, 0}),
+        gold(0),
+        safe_gold_limit(initial_safe_gold),
+        max_gold(config.maxGold) {}
 
 bool InventoryComponent::addItem(uint32_t item_id, uint16_t amount) {
     if (amount == 0 || item_id == 0)
@@ -23,23 +23,25 @@ bool InventoryComponent::addItem(uint32_t item_id, uint16_t amount) {
                 uint16_t to_add = std::min(remaining, space_available);
                 slots[i].amount += to_add;
                 remaining -= to_add;
-                
-                if (remaining == 0) return true; // Se ubicó todo con éxito
+
+                if (remaining == 0)
+                    return true;  // Se ubicó todo con éxito
             }
         } else if (slots[i].is_empty()) {
-            empty_slots.push_back(i); // Guardamos los vacíos por si sobra
+            empty_slots.push_back(i);  // Guardamos los vacíos por si sobra
         }
     }
 
     // 2. Segunda pasada: Si todavía queda remanente, usamos los slots vacíos
-    for (size_t empty_idx : empty_slots) {
+    for (size_t empty_idx: empty_slots) {
         slots[empty_idx].item_id = item_id;
-        slots[empty_idx].amount = remaining; // En este punto 'remaining' entra seguro en un slot vacío
-        return true; 
+        slots[empty_idx].amount =
+                remaining;  // En este punto 'remaining' entra seguro en un slot vacío
+        return true;
     }
 
     // Si llegamos acá y 'remaining < amount', significa que se guardó ALGO pero no todo.
-    // Para simplificar tu contrato actual, si no entra TODO el fardo devolvemos false 
+    // Para simplificar tu contrato actual, si no entra TODO el fardo devolvemos false
     // (o podés revertir el estado si preferís transacciones atómicas).
     return remaining == 0;
 }
@@ -70,7 +72,8 @@ std::optional<Slot> InventoryComponent::inspectSlot(uint8_t slot_index) const {
 }
 
 bool InventoryComponent::addGold(uint32_t amount) {
-    if (amount == 0 || gold >= max_gold) return false;
+    if (amount == 0 || gold >= max_gold)
+        return false;
 
     // Protegemos contra desbordamiento usando el tope máximo del juego
     if (max_gold - gold < amount) {

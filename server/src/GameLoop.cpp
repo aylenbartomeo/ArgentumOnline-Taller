@@ -66,8 +66,10 @@ void GameLoop::processInputs() {
                 world.moveEntity(pCmd.clientId, move_dto.direction);
 
             } else if (std::holds_alternative<AttackDTO>(pCmd.command)) {
-                // AttackDTO deberia tener una referencia a quien ataca.
-                // world.player_attack(AttackDTO);
+                AttackDTO attack_dto = std::get<AttackDTO>(pCmd.command);
+                world.playerAttack(pCmd.clientId, attack_dto.targetId);
+                // Acá habría que hacer que el método devuelva algo para enviar al cliente para el
+                // mini chat...(struct dto o algo así..)
 
             } else if (std::holds_alternative<DropItemDTO>(pCmd.command)) {
                 // DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
@@ -80,6 +82,8 @@ void GameLoop::processInputs() {
 void GameLoop::updateWorld(float delta_time) {
     // Le pasamos el tiempo transcurrido a tu partida para físicas o efectos temporales
     world.update(delta_time);
+
+    // acá sí un monstruo ataca tmbn deberíamos ver si deberíamos mandar un msj de chat...
 }
 
 void GameLoop::broadcastState() {

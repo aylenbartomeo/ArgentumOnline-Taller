@@ -5,6 +5,8 @@
 #include <utility>
 #include <vector>
 
+#include "position.h"
+
 typedef enum { BACK, OBSTACLE, FLOOR, WEAPON } MapElementType;
 
 struct Area {
@@ -66,6 +68,10 @@ public:
     void setCitizenArea(int x, int y, int w, int h);
     void setSpawnPoint(float x, float y);
     void setObstacleInGrid(int cell_x, int cell_y, bool is_solid);
+
+    // Retorna true si la posición es válida para moverse:
+    // está dentro de los límites del mapa Y no hay obstáculo en collision_grid.
+    bool canMoveTo(const Position& pos) const;
 };
 
 #endif

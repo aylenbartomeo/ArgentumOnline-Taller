@@ -31,7 +31,8 @@ public:
     // ========================================================================
 
     // Intenta equipar un ítem genérico derivando a la categoría correcta.
-    // Devuelve el ID del ítem que fue reemplazado (para devolverlo al inventario), o 0 si no había nada.
+    // Devuelve el ID del ítem que fue reemplazado (para devolverlo al inventario), o 0 si no había
+    // nada.
     uint32_t equipItem(const Item* item);
 
     // Métodos específicos por slot. Devuelven el ID del ítem desequipado (si lo hubiera).

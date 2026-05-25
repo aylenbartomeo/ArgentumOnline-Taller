@@ -2,8 +2,9 @@
 #define SERVER_SRC_MODEL_ENTITIES_MONSTERFACTORY_H
 
 #include <cstdint>
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
+
 #include "server/src/config/MonsterConfig.h"
 #include "server/src/model/entities/Monster.h"
 

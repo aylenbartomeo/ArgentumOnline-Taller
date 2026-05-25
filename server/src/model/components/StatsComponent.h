@@ -1,8 +1,9 @@
 #ifndef STATS_COMPONENT_H
 #define STATS_COMPONENT_H
 
-#include <cstdint>
 #include <algorithm>
+#include <cstdint>
+
 #include "../../include/model/FormulaEngine.h"
 #include "../config/CharacterConfig.h"
 
@@ -33,8 +34,7 @@ private:
 
 public:
     // Constructor completo basado en tu nueva lista de atributos
-    StatsComponent(const RaceConfig& race, 
-                   const CharacterClassConfig& characterClass,
+    StatsComponent(const RaceConfig& race, const CharacterClassConfig& characterClass,
                    const PlayerConfig& playerBase,
                    const FormulaEngine& engine = FormulaEngine::getInstance());
 
@@ -50,12 +50,12 @@ public:
     uint16_t getMaxMana() const { return max_mana; }
     uint32_t getExp() const { return exp; }
     uint16_t getLevel() const { return level; }
-    
+
     // -- Modificadores de atributos --
     void addExperience(uint32_t amount);
     void takeDamage(uint16_t amount);
     void heal(uint16_t amount);
-    void consumeMana(uint16_t amount);
+    bool consumeMana(uint16_t amount);
     void recoverMana(uint16_t amount);
 };
 

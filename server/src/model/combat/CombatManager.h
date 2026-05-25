@@ -1,27 +1,20 @@
 #ifndef COMBAT_MANAGER_H
 #define COMBAT_MANAGER_H
 
-#include <memory>
-#include <unordered_map>
+#include "../interfaces/Attackable.h"
 
-#include "AttackStrategy.h"
-#include "MagicStrategy.h"
-#include "MeleeStrategy.h"
-#include "RangedStrategy.h"
-#include "../entities/Player.h"
-#include "../entities/Monster.h"
+#include "AttackParams.h"
+
+class Player;
+class Monster;
 
 class CombatManager {
 private:
-    std::unordered_map<WeaponType, std::unique_ptr<AttackStrategy>> strategies;
+    CombatManager() = default;
 
-    // Constructor privado para garantizar que solo exista una instancia (Singleton)
-    CombatManager() {
-        strategies[WeaponType::MELEE] = std::make_unique<MeleeStrategy>();
-        strategies[WeaponType::RANGED] = std::make_unique<RangedStrategy>();
-        strategies[WeaponType::MAGIC] = std::make_unique<MagicStrategy>();
-    }
-    const float PVP_CRITICAL_PROBABILITY = 0.05f;
+    // Lógica compartida de combate. Retorna el daño final infligido, o -1 si
+    // el ataque no se concretó (fuera de rango, esquivado, target muerto).
+    int resolveCombat(const Attackable& attacker, Attackable& target, const AttackParams& params);
 
 public:
     CombatManager(const CombatManager&) = delete;
@@ -32,8 +25,11 @@ public:
         return instance;
     }
 
-    // 1. El jugador inicia la acción (PvP o PvE)
-    void processAttack(Player& attacker, Attackable& target, Weapon* weapon);
+    // Player ataca a cualquier entidad (Player o Monster)
+    void processAttack(Player& attacker, Attackable& target);
+
+    // Monster ataca a cualquier entidad (típicamente un Player)
+    void processAttack(const Monster& attacker, Attackable& target);
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <optional>
 #include <vector>
+
 #include "../config/InventoryConfig.h"
 
 // Representa un casillero individual dentro de la grilla del inventario.
@@ -32,7 +33,7 @@ public:
     // Bloqueamos copia para evitar duplicaciones accidentales de ítems en memoria
     InventoryComponent(const InventoryComponent&) = delete;
     InventoryComponent& operator=(const InventoryComponent&) = delete;
-    
+
     InventoryComponent(InventoryComponent&&) = default;
     InventoryComponent& operator=(InventoryComponent&&) = default;
 

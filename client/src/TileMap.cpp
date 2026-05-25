@@ -1,5 +1,6 @@
 #include "TileMap.h"
 
+#include <algorithm>
 #include <stdexcept>
 
 #include <nlohmann/json.hpp>
@@ -17,10 +18,10 @@ TileMap::TileMap(const std::string& jsonText) {
     if (static_cast<int>(tiles.size()) != height) {
         throw std::runtime_error("TileMap: la cantidad de filas no coincide con height");
     }
-    for (const auto& row: tiles) {
-        if (static_cast<int>(row.size()) != width) {
-            throw std::runtime_error("TileMap: una fila no coincide con width");
-        }
+    if (std::any_of(tiles.begin(), tiles.end(), [this](const std::vector<int>& row) {
+            return static_cast<int>(row.size()) != width;
+        })) {
+        throw std::runtime_error("TileMap: una fila no coincide con width");
     }
 }
 

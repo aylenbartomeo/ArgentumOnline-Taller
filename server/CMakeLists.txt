@@ -56,7 +56,6 @@ target_sources(argentum_online_server
     src/model/components/EquipmentComponent.cpp
     src/model/components/BankComponent.cpp
     src/model/components/StatsComponent.cpp
-    src/model/components/CombatComponent.cpp
     src/model/combat/CombatManager.cpp
     src/model/components/RegenerationComponent.cpp
 
@@ -77,7 +76,6 @@ target_sources(argentum_online_server
     src/model/components/InventoryComponent.h
     src/model/components/EquipmentComponent.h
     src/model/components/BankComponent.h
-    src/model/components/CombatComponent.h
     src/model/combat/CombatManager.h
 
     src/model/items/Armor.h

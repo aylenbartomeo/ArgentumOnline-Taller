@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include "../model/components/BankComponent.h"
 #include "../model/components/InventoryComponent.h"
 
@@ -12,7 +13,7 @@ TEST(PlayerBankIntegrationTest, DepositAndWithdrawGoldSuccessfully) {
     BankComponent bank(50, 1000000);
 
     inventory.addGold(10000);
-    ASSERT_EQ(inventory.getGold(), 10000); // (Ajustá el getter si se llama diferente)
+    ASSERT_EQ(inventory.getGold(), 10000);  // (Ajustá el getter si se llama diferente)
     ASSERT_EQ(bank.getVaultedGold(), 0);
 
     // Depositamos 4000 monedas
@@ -37,7 +38,7 @@ TEST(PlayerBankIntegrationTest, DepositItemSuccessfullyAndCheckStacking) {
 
     // Metemos 100 Espadas de Plata (ID: 501) en el slot 0 del inventario
     inventory.addItem(501, 100);
-    
+
     // Depositamos 40 del slot 0 al banco
     bool dep_ok = bank.depositItem(0, 40, inventory);
     EXPECT_TRUE(dep_ok);
@@ -67,21 +68,21 @@ TEST(PlayerBankIntegrationTest, WithdrawItemFailsIfInventoryIsFullAndDoesNotDupe
     // 1. Simulamos que el banco ya tiene guardadas 50 Pociones Rojas (ID: 202)
     // Para no romper la encapsulación, hacemos el pasamanos legal:
     inventory.addItem(202, 50);
-    bank.depositItem(0, 50, inventory); // El inventario quedó vacío (0 ítems)
-    
+    bank.depositItem(0, 50, inventory);  // El inventario quedó vacío (0 ítems)
+
     // 2. Ahora llenamos el único slot del inventario con OTRO ítem (ID: 999, Raíz de Elfo)
-    inventory.addItem(999, 1); 
+    inventory.addItem(999, 1);
 
     // 3. INTENTO DE RETIRO DE POCIONES (Falla porque no hay slots libres para el ID 202)
     bool wit_ok = bank.withdrawItem(202, 10, inventory);
-    
-    EXPECT_FALSE(wit_ok); // Tiene que rebotar
-    
+
+    EXPECT_FALSE(wit_ok);  // Tiene que rebotar
+
     // VERIFICACIÓN CRÍTICA: El banco NO tuvo que haber perdido las pociones
-    // (Podés verificarlo intentando retirarlo después de vaciar o sumando un getter en tu banco si querés)
-    // Para comprobarlo sin getters, vaciamos el slot 0 del inventario:
-    inventory.removeItem(0, 1); // Sacamos la raíz
-    
+    // (Podés verificarlo intentando retirarlo después de vaciar o sumando un getter en tu banco si
+    // querés) Para comprobarlo sin getters, vaciamos el slot 0 del inventario:
+    inventory.removeItem(0, 1);  // Sacamos la raíz
+
     // Ahora que hay espacio, el retiro de las pociones congeladas en el banco debería funcionar
     EXPECT_TRUE(bank.withdrawItem(202, 10, inventory));
 }

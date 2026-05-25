@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include "model/components/EquipmentComponent.h"
 #include "model/items/BodyArmor.h"
 #include "model/items/Helmet.h"
@@ -6,19 +7,20 @@
 #include "model/items/Weapon.h"
 
 // Centraliza la creación de ítems para no repetirla en cada test.
-// Todos los ítems tienen min == max para que getDefense()/calculateDamage() sean deterministas y los EXPECT sean exactos.
-class EquipmentComponentTest : public ::testing::Test {
+// Todos los ítems tienen min == max para que getDefense()/calculateDamage() sean deterministas y
+// los EXPECT sean exactos.
+class EquipmentComponentTest: public ::testing::Test {
 protected:
     // Armaduras (min == max → rollDefense() siempre devuelve el mismo valor)
-    BodyArmor armor   {1001, "Armadura de cuero",  5,  5};
-    BodyArmor armor2  {1002, "Armadura de placas", 20, 20};
-    Helmet    helmet  {2001, "Casco de hierro",     6,  6};
-    Shield    shield  {3001, "Escudo de tortuga",   2,  2};
+    BodyArmor armor{1001, "Armadura de cuero", 5, 5};
+    BodyArmor armor2{1002, "Armadura de placas", 20, 20};
+    Helmet helmet{2001, "Casco de hierro", 6, 6};
+    Shield shield{3001, "Escudo de tortuga", 2, 2};
 
     // Armas
-    Weapon sword  {4001, "Espada",     3,  3, WeaponType::MELEE,   1};
-    Weapon bow    {4002, "Arco simple",2,  2, WeaponType::RANGED,  5};
-    Weapon staff  {4003, "Vara de fresno", 2, 2, WeaponType::MAGIC, 3, 5};
+    Weapon sword{4001, "Espada", 3, 3, WeaponType::MELEE, 1};
+    Weapon bow{4002, "Arco simple", 2, 2, WeaponType::RANGED, 5};
+    Weapon staff{4003, "Vara de fresno", 2, 2, WeaponType::MAGIC, 3, 5};
 
     EquipmentComponent eq;
 };
@@ -28,13 +30,13 @@ protected:
 // ============================================================================
 TEST_F(EquipmentComponentTest, StartsWithNoEquipment) {
     EXPECT_EQ(eq.getBodyArmor(), nullptr);
-    EXPECT_EQ(eq.getHelmet(),    nullptr);
-    EXPECT_EQ(eq.getShield(),    nullptr);
-    EXPECT_EQ(eq.getWeapon(),    nullptr);
+    EXPECT_EQ(eq.getHelmet(), nullptr);
+    EXPECT_EQ(eq.getShield(), nullptr);
+    EXPECT_EQ(eq.getWeapon(), nullptr);
 }
 
 TEST_F(EquipmentComponentTest, DefenseIsZeroWithNothingEquipped) {
-    EXPECT_EQ(eq.getDefense(), 0);
+    EXPECT_EQ(eq.calculateCurrentDefense(), 0);
 }
 
 // ============================================================================
@@ -43,19 +45,19 @@ TEST_F(EquipmentComponentTest, DefenseIsZeroWithNothingEquipped) {
 TEST_F(EquipmentComponentTest, EquipBodyArmorAndCheckDefense) {
     eq.equipBodyArmor(&armor);
     EXPECT_EQ(eq.getBodyArmor(), &armor);
-    EXPECT_EQ(eq.getDefense(),   5);
+    EXPECT_EQ(eq.calculateCurrentDefense(), 5);
 }
 
 TEST_F(EquipmentComponentTest, EquipHelmetAndCheckDefense) {
     eq.equipHelmet(&helmet);
-    EXPECT_EQ(eq.getHelmet(),  &helmet);
-    EXPECT_EQ(eq.getDefense(), 6);
+    EXPECT_EQ(eq.getHelmet(), &helmet);
+    EXPECT_EQ(eq.calculateCurrentDefense(), 6);
 }
 
 TEST_F(EquipmentComponentTest, EquipShieldAndCheckDefense) {
     eq.equipShield(&shield);
-    EXPECT_EQ(eq.getShield(),  &shield);
-    EXPECT_EQ(eq.getDefense(), 2);
+    EXPECT_EQ(eq.getShield(), &shield);
+    EXPECT_EQ(eq.calculateCurrentDefense(), 2);
 }
 
 TEST_F(EquipmentComponentTest, EquipWeaponAndCheckPointer) {
@@ -67,17 +69,17 @@ TEST_F(EquipmentComponentTest, EquipWeaponAndCheckPointer) {
 // 3. DEFENSA ACUMULADA (varios slots a la vez)
 // ============================================================================
 TEST_F(EquipmentComponentTest, TotalDefenseIsTheSumOfAllSlots) {
-    eq.equipBodyArmor(&armor);   // +5
-    eq.equipHelmet(&helmet);     // +6
-    eq.equipShield(&shield);     // +2
+    eq.equipBodyArmor(&armor);  // +5
+    eq.equipHelmet(&helmet);    // +6
+    eq.equipShield(&shield);    // +2
     // Total esperado: 13
-    EXPECT_EQ(eq.getDefense(), 13);
+    EXPECT_EQ(eq.calculateCurrentDefense(), 13);
 }
 
 TEST_F(EquipmentComponentTest, DefenseWithOnlyArmorAndHelmet) {
-    eq.equipBodyArmor(&armor);   // +5
-    eq.equipHelmet(&helmet);     // +6
-    EXPECT_EQ(eq.getDefense(), 11);
+    eq.equipBodyArmor(&armor);  // +5
+    eq.equipHelmet(&helmet);    // +6
+    EXPECT_EQ(eq.calculateCurrentDefense(), 11);
 }
 
 // ============================================================================
@@ -87,17 +89,17 @@ TEST_F(EquipmentComponentTest, ReplacingArmorReturnsOldId) {
     eq.equipBodyArmor(&armor);
     uint32_t replaced = eq.equipBodyArmor(&armor2);
 
-    EXPECT_EQ(replaced,          static_cast<uint32_t>(armor.getId()));
+    EXPECT_EQ(replaced, static_cast<uint32_t>(armor.getId()));
     EXPECT_EQ(eq.getBodyArmor(), &armor2);
-    EXPECT_EQ(eq.getDefense(),   20);  // ahora tiene la nueva armadura
+    EXPECT_EQ(eq.calculateCurrentDefense(), 20);  // ahora tiene la nueva armadura
 }
 
 TEST_F(EquipmentComponentTest, ReplacingWeaponReturnsOldId) {
     eq.equipWeapon(&sword);
     uint32_t replaced = eq.equipWeapon(&bow);
 
-    EXPECT_EQ(replaced,        static_cast<uint32_t>(sword.getId()));
-    EXPECT_EQ(eq.getWeapon(),  &bow);
+    EXPECT_EQ(replaced, static_cast<uint32_t>(sword.getId()));
+    EXPECT_EQ(eq.getWeapon(), &bow);
 }
 
 TEST_F(EquipmentComponentTest, EquipFirstArmorReturnsZero) {
@@ -165,8 +167,8 @@ TEST_F(EquipmentComponentTest, EquipItemDispatchesToCorrectSlot) {
 
 TEST_F(EquipmentComponentTest, EquipItemWithNullptrDoesNothing) {
     eq.equipItem(nullptr);
-    EXPECT_EQ(eq.getDefense(), 0);
-    EXPECT_EQ(eq.getWeapon(),  nullptr);
+    EXPECT_EQ(eq.calculateCurrentDefense(), 0);
+    EXPECT_EQ(eq.getWeapon(), nullptr);
 }
 
 // ============================================================================
@@ -174,9 +176,9 @@ TEST_F(EquipmentComponentTest, EquipItemWithNullptrDoesNothing) {
 // ============================================================================
 TEST_F(EquipmentComponentTest, MagicWeaponEquipsCorrectly) {
     eq.equipWeapon(&staff);
-    EXPECT_EQ(eq.getWeapon(),              &staff);
+    EXPECT_EQ(eq.getWeapon(), &staff);
     EXPECT_EQ(eq.getWeapon()->getManaCost(), 5);
-    EXPECT_EQ(eq.getWeapon()->getType(),   WeaponType::MAGIC);
+    EXPECT_EQ(eq.getWeapon()->getType(), WeaponType::MAGIC);
 }
 
 // ============================================================================

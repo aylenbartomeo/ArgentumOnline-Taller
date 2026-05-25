@@ -4,10 +4,10 @@
 #include <string>
 #include <utility>
 
-#include "../utils/position.h"
-#include "../utils/types.h"
 #include "../interfaces/Attackable.h"
 #include "../interfaces/interactable.h"
+#include "../utils/position.h"
+#include "../utils/types.h"
 #include "server/src/config/MonsterConfig.h"
 
 class Monster: public Attackable {
@@ -35,15 +35,27 @@ public:
     void setPosition(const Position& newPos);
     int get_detection_range() const;
     int get_attack_range() const;
+    int getAttackMin() const;
+    int getAttackMax() const;
     const std::string& get_zone() const;
-    
-    /* IMPLEMENTACION DE COMBATANT */
+
+    /* IMPLEMENTACION DE ATTACKABLE */
     void receiveDamage(int amount) override;
     bool isDead() const override;
     Position getPosition() const override;
-    uint16_t getStrength() const;
-    uint16_t getAgility() const;
-    uint16_t getLevel() const;
+    bool canBeAttacked() const override;
+
+    uint16_t getStrength() const override;
+    uint16_t getIntelligence() const override;
+    uint16_t getAgility() const override;
+    uint16_t getLevel() const override;
+    uint16_t getMaxHp() const override;
+    uint16_t getMana() const override;
+    int getDefense() const override;
+
+    bool consumeMana(int amount) override;
+    void handleDeath() override;
+    bool canEngageInCombatWith(const Attackable& other) const override;
 };
 
 #endif

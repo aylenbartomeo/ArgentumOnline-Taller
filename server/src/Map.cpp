@@ -129,3 +129,11 @@ bool Map::isCitizenArea(float pos_x, float pos_y) const {
 }
 
 const std::vector<MapElement>& Map::getElements() const { return this->mapElements; }
+
+bool Map::canMoveTo(const Position& pos) const {
+    if (!pos.isWithinBounds(this->width, this->height)) {
+        return false;
+    }
+    // collision_grid[x][y] == true significa que hay obstáculo
+    return !collision_grid[pos.x][pos.y];
+}

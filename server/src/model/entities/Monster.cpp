@@ -2,7 +2,6 @@
 
 #include <utility>
 
-#include "../include/model/FormulaEngine.h"
 Monster::Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config):
         id(id),
         type(type),
@@ -25,9 +24,8 @@ void Monster::move(const Position& new_pos) {
 }
 
 void Monster::receiveDamage(int amount) {
-    if (FormulaEngine::getInstance().is_attack_eluded(static_cast<uint16_t>(this->agility))) {
+    if (amount < 0)
         return;
-    }
     this->health -= amount;
     if (this->health < 0)
         this->health = 0;
@@ -40,6 +38,7 @@ Position Monster::getPosition() const { return this->pos; }
 void Monster::setPosition(const Position& newPos) { this->pos = newPos; }
 
 uint16_t Monster::getStrength() const { return this->strength; }
+uint16_t Monster::getIntelligence() const { return 0; }  // Monsters don't use magic yet
 
 int Monster::get_detection_range() const { return this->detection_range; }
 
@@ -47,9 +46,24 @@ int Monster::get_attack_range() const { return this->attack_range; }
 
 const std::string& Monster::get_zone() const { return this->zone; }
 
+int Monster::getAttackMin() const { return this->attack_min; }
+int Monster::getAttackMax() const { return this->attack_max; }
+
 uint16_t Monster::getAgility() const {
     // Podés retornar un valor base del monstruo o delegarlo a sus stats internas
-    return agility; // O el atributo que use tu struct de NPC
+    return agility;  // O el atributo que use tu struct de NPC
 }
 
 uint16_t Monster::getLevel() const { return level; }
+uint16_t Monster::getMaxHp() const { return max_health; }
+uint16_t Monster::getMana() const { return 0; }  // Monsters don't use mana for now
+int Monster::getDefense() const { return 0; }    // Monsters could have base defense, but for now 0
+
+bool Monster::consumeMana(int /*amount*/) { return true; }  // Monsters don't use mana
+bool Monster::canBeAttacked() const { return !isDead(); }
+void Monster::handleDeath() {
+    this->health = 0;  // State handled implicitly by isDead()
+}
+bool Monster::canEngageInCombatWith(const Attackable& /*other*/) const {
+    return true;
+}  // Monsters can attack anyone

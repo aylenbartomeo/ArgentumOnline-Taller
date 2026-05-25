@@ -125,3 +125,63 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
     EXPECT_TRUE(encontroPlayer1);
     EXPECT_TRUE(encontroPlayer2);
 }
+
+TEST(WorldTest, World_PlayerCannotMoveIntoObstacle) {
+    World mundo(1, "Tester");
+    std::string user = "Blocker";
+    ASSERT_TRUE(mundo.addPlayer(1, user));
+
+    // El jugador empieza en (0,0). Ponemos obstáculo en (1,0).
+    mundo.setObstacleAt(1, 0);
+
+    mundo.moveEntity(1, Movement::RIGHT);  // Intentar ir a (1,0) - bloqueado
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    ASSERT_EQ(snap.entities.size(), 1u);
+    EXPECT_EQ(snap.entities[0].x, 0);  // No se movió
+    EXPECT_EQ(snap.entities[0].y, 0);
+}
+
+TEST(WorldTest, World_UpdateTriggersMonsterAttack) {
+    World mundo(1, "Tester");
+    std::string user = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, user));
+
+    // Config de monstruo con rango de ataque suficiente
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone"};
+    Position mPos = {1, 0};  // Player está en {0, 0}
+    mundo.addMonster(NPCType::GOBLIN, mPos, mConfig);
+
+    // Player en {0,0}, Monster en {1,0}, distancia es 1.
+    // Rango de ataque del monstruo es 2. Debería atacar.
+    // Vida base del player es 15. Puede esquivar (63% chance), así que iteramos
+    // hasta que el golpe conecte para evitar flaky tests.
+    bool tookDamage = false;
+    for (int i = 0; i < 50; ++i) {
+        mundo.update(0.1f);  // 0.1f para minimizar regeneración pasiva
+        SnapshotDTO snap = mundo.generateSnapshot();
+        if (snap.entities[0].current_hp < 15) {
+            tookDamage = true;
+            break;
+        }
+    }
+
+    EXPECT_TRUE(tookDamage);
+}
+
+TEST(WorldTest, World_UpdateDoesNotTriggerMonsterAttackIfOutOfRange) {
+    World mundo(1, "Tester");
+    std::string user = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, user));
+
+    // Config de monstruo con rango de ataque pequeño
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 1, 1, "zone"};
+    Position mPos = {3, 0};  // Player está en {0, 0}, dist = 3.
+    mundo.addMonster(NPCType::GOBLIN, mPos, mConfig);
+
+    mundo.update(1.0f);
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    ASSERT_EQ(snap.entities.size(), 1u);
+    EXPECT_EQ(snap.entities[0].current_hp, 15);  // NO recibió daño
+}
