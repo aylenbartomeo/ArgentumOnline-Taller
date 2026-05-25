@@ -6,7 +6,9 @@
 #include "../include/model/ServerEvents.h"
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor):
-        isRunning(true), gameQueue(gameQueue), monitor(monitor), world(1, "Server") {}
+        isRunning(true), gameQueue(gameQueue), monitor(monitor), world(1, "Server") {
+    world.loadMap("maps/defaultMap.json");
+}
 
 void GameLoop::run() {
     const int MS_PER_FRAME = 33;

@@ -118,7 +118,7 @@ if(ARGENTUM_ONLINE_SERVER)
     FetchContent_MakeAvailable(tomlplusplus)
 endif()
 
-if(ARGENTUM_ONLINE_CLIENT OR ARGENTUM_ONLINE_TESTS OR ARGENTUM_ONLINE_EDITOR)
+if(ARGENTUM_ONLINE_CLIENT OR ARGENTUM_ONLINE_TESTS OR ARGENTUM_ONLINE_EDITOR OR ARGENTUM_ONLINE_SERVER)
     include(FetchContent)
     FetchContent_Declare(
         nlohmann_json
@@ -173,7 +173,7 @@ if(ARGENTUM_ONLINE_SERVER)
     set_project_warnings(argentum_online_server ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
     # Link the taller_common lib target
-    target_link_libraries(argentum_online_server lib_common)
+    target_link_libraries(argentum_online_server lib_common nlohmann_json::nlohmann_json)
 endif()
 
 if(ARGENTUM_ONLINE_EDITOR)

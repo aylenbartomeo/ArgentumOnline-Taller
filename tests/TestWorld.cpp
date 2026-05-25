@@ -1,3 +1,4 @@
+#include <fstream>
 #include <memory>
 
 #include <gtest/gtest.h>
@@ -185,4 +186,23 @@ TEST(WorldTest, World_UpdateDoesNotTriggerMonsterAttackIfOutOfRange) {
     SnapshotDTO snap = mundo.generateSnapshot();
     ASSERT_EQ(snap.entities.size(), 1u);
     EXPECT_EQ(snap.entities[0].current_hp, 15);  // NO recibió daño
+}
+
+TEST(WorldTest, World_AddPlayerSpawnsAtMapSpawn) {
+    const std::string path = "/tmp/test_world_spawn.json";
+    std::ofstream out(path);
+    out << R"({"tileSize":16,"tileset":"x.png","tilesetCols":12,"width":20,"height":15,)"
+        << R"("spawn":{"x":3,"y":4},"tiles":[]})";
+    out.close();
+
+    World mundo(1, "Tester");
+    ASSERT_TRUE(mundo.loadMap(path));
+
+    std::string user = "Spawner";
+    ASSERT_TRUE(mundo.addPlayer(1, user));
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    ASSERT_EQ(snap.entities.size(), 1u);
+    EXPECT_EQ(snap.entities[0].x, 3);
+    EXPECT_EQ(snap.entities[0].y, 4);
 }

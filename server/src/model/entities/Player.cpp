@@ -1,11 +1,12 @@
 #include "Player.h"
 
 Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
-               const CharacterClassConfig& characterClass, const PlayerConfig& playerBase):
+               const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
+               const Position& spawn):
         id(entityId),
         dbId(dbId),
         name(name),
-        pos({0, 0}),
+        pos(spawn),
         // Stats ahora solo maneja combate (sin max_gold)
         stats(race, characterClass, playerBase),
         // Inventario ahora absorbe la economía: 20 slots, 5000 seguro, 100000 tope máximo

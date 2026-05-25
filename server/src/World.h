@@ -50,6 +50,8 @@ public:
     bool addPlayer(uint32_t playerId, std::string& username);
     bool removePlayer(uint32_t playerId);
 
+    bool loadMap(const std::string& path);
+
     // Gestión de monstruos
     uint32_t addMonster(NPCType type, Position pos, const MonsterConfig& config);
 

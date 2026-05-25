@@ -8,6 +8,7 @@
 World::World(int worldId, const std::string& creatorPlayerName):
         worldId(worldId), creatorPlayerName(creatorPlayerName), map() {
     map.setDimensions(20, 15);
+    map.setSpawnPoint(0, 0);
 }
 
 std::string World::getCreatorPlayerName() const { return this->creatorPlayerName; }
@@ -26,8 +27,10 @@ bool World::addPlayer(uint32_t dbId, std::string& username) {
     RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig classConfig = {1.0f, 1.0f, 1.0f, false};
 
-    this->players[entityId] =
-            std::make_unique<Player>(entityId, dbId, username, raceConfig, classConfig, baseConfig);
+    std::pair<float, float> spawn = map.getInitialPosition();
+    this->players[entityId] = std::make_unique<Player>(
+            entityId, dbId, username, raceConfig, classConfig, baseConfig,
+            Position{static_cast<int>(spawn.first), static_cast<int>(spawn.second)});
 
     return true;
 }
@@ -43,6 +46,8 @@ bool World::removePlayer(uint32_t dbId) {
     this->dbIdToEntityId.erase(itMap);
     return true;
 }
+
+bool World::loadMap(const std::string& path) { return map.loadSpawnFromJson(path); }
 
 uint32_t World::addMonster(NPCType type, Position pos, const MonsterConfig& config) {
     uint32_t entityId = nextEntityId++;
