@@ -8,6 +8,7 @@
 #include "../../common/include/thread.h"
 #include "../../common/src/protocol/Protocol.h"
 #include "../../common/src/socket/socket.h"
+#include "../../common/include/dto/ServerMessage.h"
 #include "../include/model/ServerEvents.h"
 #include "auth/AuthManager.h"
 #include "dto/CommandDTO.h"
@@ -31,11 +32,11 @@ private:
     Protocol protocolo;
     ConnectionMonitor& monitor;
     AuthManager& auth;
-    Queue<SnapshotDTO>& senderQueue;
+    Queue<ServerMessageVariant>& senderQueue;
 
 public:
     explicit Receiver(Socket& skt, Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
-                      AuthManager& auth, Queue<SnapshotDTO>& senderQueue);
+                      AuthManager& auth, Queue<ServerMessageVariant>& senderQueue);
 
     bool authenticatePlayer();
     void inGameCommunication();

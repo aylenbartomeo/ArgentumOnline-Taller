@@ -80,13 +80,13 @@ void Client::stop() {
     wasStarted = false;
 }
 
-void Client::pushSnapshot(const SnapshotDTO& snap) {
-    try {
-        snapshotQueue.push(snap);
-    } catch (...) {}
-}
+void Client::pushSnapshot(const SnapshotDTO& snap) { this->snapshotQueue.push(snap); }
 
-bool Client::tryPopSnapshot(SnapshotDTO& out) { return snapshotQueue.try_pop(out); }
+bool Client::tryPopSnapshot(SnapshotDTO& out) { return this->snapshotQueue.try_pop(out); }
+
+void Client::pushChatMessage(const ChatDTO& chat) { this->chatQueue.push(chat); }
+
+bool Client::tryPopChatMessage(ChatDTO& out) { return this->chatQueue.try_pop(out); }
 
 void Client::sendCommand(const CommandVariant& cmd) {
     try {

@@ -7,6 +7,7 @@
 
 #include "../../common/include/queue.h"
 #include "dto/Snapshot.h"
+#include "../../common/include/dto/ServerMessage.h"
 
 /**
  * @class ConnectionMonitor
@@ -17,18 +18,20 @@ class ConnectionMonitor {
 private:
     std::mutex mtx;
     // Mapea el ID único del cliente con el puntero a su respectiva cola del Sender
-    std::unordered_map<uint32_t, Queue<SnapshotDTO>*> clientQueues;
+    std::unordered_map<uint32_t, Queue<ServerMessageVariant>*> clientQueues;
 
 public:
     ConnectionMonitor() = default;
 
-    void addClient(uint32_t clientId, Queue<SnapshotDTO>* queue);
+    void addClient(uint32_t clientId, Queue<ServerMessageVariant>* queue);
 
     void removeClient(uint32_t clientId);
 
     bool isClientConnected(uint32_t clientId);
 
     void broadcast(const SnapshotDTO& snapshot);
+
+    void sendToClient(uint32_t clientId, const ChatDTO& msg);
 
     ConnectionMonitor(const ConnectionMonitor&) = delete;
     ConnectionMonitor& operator=(const ConnectionMonitor&) = delete;

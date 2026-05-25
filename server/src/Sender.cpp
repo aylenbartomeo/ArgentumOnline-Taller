@@ -2,14 +2,19 @@
 
 #include <iostream>
 
-Sender::Sender(Socket& skt, Queue<SnapshotDTO>& senderQueue):
+Sender::Sender(Socket& skt, Queue<ServerMessageVariant>& senderQueue):
         senderQueue(senderQueue), protocol(skt) {}
 
 void Sender::run() {
     try {
         while (should_keep_running()) {
-            SnapshotDTO snap = senderQueue.pop();
-            protocol.send_snapshot(snap);
+            ServerMessageVariant msg = senderQueue.pop();
+
+            if (std::holds_alternative<SnapshotDTO>(msg)) {
+                protocol.send_snapshot(std::get<SnapshotDTO>(msg));
+            } else if (std::holds_alternative<ChatDTO>(msg)) {
+                protocol.send_chat(std::get<ChatDTO>(msg));
+            }
         }
     } catch (const ClosedQueue& e) {
         // Flujo esperado: El ClientHandler cerró la cola durante el apagado general

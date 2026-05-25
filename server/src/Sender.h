@@ -6,14 +6,15 @@
 #include "../../common/src/protocol/Protocol.h"
 #include "../../common/src/socket/socket.h"
 #include "dto/Snapshot.h"
+#include "../../common/include/dto/ServerMessage.h"
 
 class Sender: public Thread {
 private:
-    Queue<SnapshotDTO>& senderQueue;
+    Queue<ServerMessageVariant>& senderQueue;
     Protocol protocol;
 
 public:
-    explicit Sender(Socket& skt, Queue<SnapshotDTO>& senderQueue);
+    explicit Sender(Socket& skt, Queue<ServerMessageVariant>& senderQueue);
 
     void run() override;
 

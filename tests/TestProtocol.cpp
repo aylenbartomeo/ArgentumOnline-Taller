@@ -223,7 +223,9 @@ TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
     server_protocol.send_snapshot(original_snap);
 
     // ACT: El CLIENTE recibe el snapshot
-    SnapshotDTO received_snap = client_protocol.receive_snapshot();
+    uint8_t opcode = client_protocol.recv_opcode();
+    EXPECT_EQ(opcode, static_cast<uint8_t>(OPCODE::SNAPSHOT));
+    SnapshotDTO received_snap = client_protocol.receive_snapshot_body();
 
     // ASSERT: Validamos que haya llegado la misma cantidad de entidades y con los mismos datos
     ASSERT_EQ(received_snap.entities.size(), 1);
