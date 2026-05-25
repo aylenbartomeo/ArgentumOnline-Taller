@@ -56,7 +56,6 @@ uint16_t Monster::getAgility() const {
 
 uint16_t Monster::getLevel() const { return level; }
 uint16_t Monster::getMaxHp() const { return max_health; }
-uint16_t Monster::getMana() const { return 0; }  // Monsters don't use mana for now
 int Monster::getDefense() const { return 0; }    // Monsters could have base defense, but for now 0
 
 bool Monster::consumeMana(int /*amount*/) { return true; }  // Monsters don't use mana
