@@ -1,8 +1,9 @@
 #include "Player.h"
 
-Player::Player(uint32_t id, const std::string& name, const RaceConfig& race,
+Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
                const CharacterClassConfig& characterClass, const PlayerConfig& playerBase):
-        id(id),
+        id(entityId),
+        dbId(dbId),
         name(name),
         pos({0, 0}),
         // Stats ahora solo maneja combate (sin max_gold)
@@ -16,10 +17,11 @@ Player::Player(uint32_t id, const std::string& name, const RaceConfig& race,
 
 // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
 // de valores random
-Player::Player(uint32_t id, const std::string& name, const RaceConfig& race,
+Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
                const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
                const FormulaEngine& testEngine):
-        id(id),
+        id(entityId),
+        dbId(dbId),
         name(name),
         pos({0, 0}),
         stats(race, characterClass, playerBase, testEngine),

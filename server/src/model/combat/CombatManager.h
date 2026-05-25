@@ -8,13 +8,20 @@
 class Player;
 class Monster;
 
+struct CombatResult {
+    bool attackHappened = false;
+    bool evaded = false;
+    bool critical = false;
+    int damage = 0;
+};
+
 class CombatManager {
 private:
     CombatManager() = default;
 
     // Lógica compartida de combate. Retorna el daño final infligido, o -1 si
     // el ataque no se concretó (fuera de rango, esquivado, target muerto).
-    int resolveCombat(const Attackable& attacker, Attackable& target, const AttackParams& params);
+    CombatResult resolveCombat(const Attackable& attacker, Attackable& target, const AttackParams& params);
 
 public:
     CombatManager(const CombatManager&) = delete;
@@ -26,10 +33,10 @@ public:
     }
 
     // Player ataca a cualquier entidad (Player o Monster)
-    void processAttack(Player& attacker, Attackable& target);
+    CombatResult processAttack(Player& attacker, Attackable& target);
 
     // Monster ataca a cualquier entidad (típicamente un Player)
-    void processAttack(const Monster& attacker, Attackable& target);
+    CombatResult processAttack(const Monster& attacker, Attackable& target);
 };
 
 #endif

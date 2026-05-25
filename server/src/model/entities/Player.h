@@ -18,7 +18,8 @@
 
 class Player: public Attackable {
 private:
-    uint32_t id;
+    uint32_t id;       // Entity ID de runtime
+    uint32_t dbId;     // Database ID persistente de AuthManager
     std::string name;
     Position pos;
     StatsComponent stats;
@@ -29,12 +30,12 @@ private:
     RegenerationComponent regeneration;
 
 public:
-    Player(uint32_t id, const std::string& name, const RaceConfig& race,
+    Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
            const CharacterClassConfig& characterClass, const PlayerConfig& playerBase);
 
     // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
     // de valores random
-    Player(uint32_t id, const std::string& name, const RaceConfig& race,
+    Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
            const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
            const FormulaEngine& testEngine);
 
@@ -43,7 +44,8 @@ public:
 
     /* GETTERS/SETTERS de atributos que expone */
     uint32_t getId() const { return this->id; }
-    std::string getName() const { return this->name; }
+    uint32_t getDbId() const { return this->dbId; }
+    std::string getName() const override { return this->name; }
     void setPosition(const Position& newPos) { this->pos = newPos; }
 
     /* IMPLEMENTACIÓN DE LA INTERFAZ ATTACKABLE */

@@ -40,6 +40,7 @@ public:
     const std::string& get_zone() const;
 
     /* IMPLEMENTACION DE ATTACKABLE */
+    std::string getName() const override;
     void receiveDamage(int amount) override;
     bool isDead() const override;
     Position getPosition() const override;

@@ -2,6 +2,7 @@
 #define COMBATANT_H
 
 #include <cstdint>
+#include <string>
 
 #include "position.h"
 
@@ -10,6 +11,7 @@ public:
     virtual ~Attackable() = default;
 
     // Consultas de estado
+    virtual std::string getName() const = 0;
     virtual bool isDead() const = 0;
     virtual bool canBeAttacked() const = 0;
     virtual Position getPosition() const = 0;

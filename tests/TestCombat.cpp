@@ -10,6 +10,7 @@
 // MockAttackable se usa como TARGET (no como attacker)
 class MockAttackable: public Attackable {
 public:
+    MOCK_METHOD(std::string, getName, (), (const, override));
     MOCK_METHOD(bool, isDead, (), (const, override));
     MOCK_METHOD(bool, canBeAttacked, (), (const, override));
     MOCK_METHOD(Position, getPosition, (), (const, override));
@@ -32,7 +33,7 @@ static Player makeTestPlayer(uint32_t id = 1) {
     RaceConfig race = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig cls = {1.0f, 1.0f, 1.0f, false};
     PlayerConfig cfg = {15, 15, 15, 15, 1, 0, 0};
-    return Player(id, name, race, cls, cfg);
+    return Player(id, id, name, race, cls, cfg);
 }
 
 // Helper: crea un Monster base para tests
@@ -82,6 +83,7 @@ TEST(CombatManagerTest, PlayerPhysicalAttackSuccessful) {
     EXPECT_CALL(target, getAgility()).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(target, getDefense()).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(target, getLevel()).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(target, getName()).WillRepeatedly(testing::Return("Target"));
 
     EXPECT_CALL(target, receiveDamage(testing::_)).Times(1);
 
@@ -116,6 +118,7 @@ TEST(CombatManagerTest, PlayerMagicAttackSuccessful) {
     EXPECT_CALL(target, getAgility()).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(target, getDefense()).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(target, getLevel()).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(target, getName()).WillRepeatedly(testing::Return("Target"));
 
     EXPECT_CALL(target, receiveDamage(testing::_)).Times(1);
 
@@ -146,6 +149,7 @@ TEST(CombatManagerTest, MonsterAttackSuccessful) {
     EXPECT_CALL(target, canBeAttacked()).WillRepeatedly(testing::Return(true));
     EXPECT_CALL(target, getAgility()).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(target, getDefense()).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(target, getName()).WillRepeatedly(testing::Return("Target"));
 
     EXPECT_CALL(target, receiveDamage(testing::_)).Times(1);
 

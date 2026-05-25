@@ -46,6 +46,18 @@ int Monster::get_attack_range() const { return this->attack_range; }
 
 const std::string& Monster::get_zone() const { return this->zone; }
 
+std::string Monster::getName() const {
+    switch (this->type) {
+        case NPCType::GOBLIN: return "Goblin";
+        case NPCType::SKELETON: return "Skeleton";
+        case NPCType::ZOMBIE: return "Zombie";
+        case NPCType::SPIDER: return "Spider";
+        case NPCType::ORC: return "Orc";
+        case NPCType::GOLEM: return "Golem";
+        default: return "Monster";
+    }
+}
+
 int Monster::getAttackMin() const { return this->attack_min; }
 int Monster::getAttackMax() const { return this->attack_max; }
 
