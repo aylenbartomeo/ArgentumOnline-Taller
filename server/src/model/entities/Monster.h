@@ -50,10 +50,8 @@ public:
     uint16_t getAgility() const override;
     uint16_t getLevel() const override;
     uint16_t getMaxHp() const override;
-    uint16_t getMana() const override;
     int getDefense() const override;
 
-    bool consumeMana(int amount) override;
     void handleDeath() override;
     bool canEngageInCombatWith(const Attackable& other) const override;
 };
