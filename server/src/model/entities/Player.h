@@ -16,6 +16,8 @@
 
 #include "position.h"
 
+class ItemRegistry;
+
 class Player: public Attackable {
 private:
     uint32_t id;       // Entity ID de runtime
@@ -28,19 +30,24 @@ private:
     BankComponent bank;
     StateComponent state;
     RegenerationComponent regeneration;
+    const ItemRegistry* itemRegistry; // Puntero para permitir nullptr en tests
 
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
-           const CharacterClassConfig& characterClass, const PlayerConfig& playerBase);
+           const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
+           const ItemRegistry& itemRegistry);
 
     // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
-    // de valores random
+    // de valores random (no requiere ItemRegistry)
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
            const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
            const FormulaEngine& testEngine);
 
     // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
     void update(float deltaSeconds);
+
+    // Equipa un ítem resolviendo su ID contra el registry
+    uint32_t equipItemById(uint32_t itemId);
 
     /* GETTERS/SETTERS de atributos que expone */
     uint32_t getId() const { return this->id; }
@@ -66,8 +73,8 @@ public:
     void addExperience(uint32_t amount) { stats.addExperience(amount); }
     uint16_t getHp() const { return stats.getHp(); }
     uint16_t getMaxHp() const override { return stats.getMaxHp(); }
-    uint16_t getMana() const override { return stats.getMana(); }
-    bool consumeMana(int amount) override {
+    uint16_t getMana() const { return stats.getMana(); }
+    bool consumeMana(int amount) {
         return stats.consumeMana(static_cast<uint16_t>(amount));
     }
 
