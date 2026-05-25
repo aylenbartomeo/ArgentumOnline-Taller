@@ -205,13 +205,12 @@ SnapshotDTO World::generateSnapshot() const {
     SnapshotDTO snapshot;
     uint16_t spriteId = 1;
     for (const auto& pair: this->players) {
-        uint32_t id = pair.first;
         const Player& player = *(pair.second);
         Position pos = player.getPosition();
 
         // Creamos el DTO de la entidad con datos mockeados/reales para el MVP
         EntityDTO entityData;
-        entityData.id = id;
+        entityData.id = player.getDbId();
         entityData.type = EntityType::PLAYER;
         entityData.x = pos.x;
         entityData.y = pos.y;

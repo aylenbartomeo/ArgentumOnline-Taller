@@ -107,7 +107,7 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
         spritesEvaluados++;  // El primero que salga se lleva el 1, el segundo el 2
         std::cout << "Entity ID in snapshot: " << entity.id << std::endl;
 
-        if (entity.id == 1) {
+        if (entity.id == 100) {
             encontroPlayer1 = true;
             EXPECT_EQ(entity.type, EntityType::PLAYER);
             EXPECT_EQ(entity.x, 1);
@@ -117,7 +117,7 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
 
             // Validamos que su sprite coincida con el orden de salida real en el loop
             EXPECT_EQ(entity.sprite_id, spritesEvaluados);
-        } else if (entity.id == 2) {
+        } else if (entity.id == 200) {
             encontroPlayer2 = true;
             EXPECT_EQ(entity.type, EntityType::PLAYER);
             EXPECT_EQ(entity.x, 0);
