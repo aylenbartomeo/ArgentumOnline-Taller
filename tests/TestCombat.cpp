@@ -19,10 +19,8 @@ public:
     MOCK_METHOD(uint16_t, getAgility, (), (const, override));
     MOCK_METHOD(uint16_t, getLevel, (), (const, override));
     MOCK_METHOD(uint16_t, getMaxHp, (), (const, override));
-    MOCK_METHOD(uint16_t, getMana, (), (const, override));
     MOCK_METHOD(int, getDefense, (), (const, override));
     MOCK_METHOD(void, receiveDamage, (int), (override));
-    MOCK_METHOD(bool, consumeMana, (int), (override));
     MOCK_METHOD(void, handleDeath, (), (override));
     MOCK_METHOD(bool, canEngageInCombatWith, (const Attackable&), (const, override));
 };

@@ -66,8 +66,8 @@ public:
     void addExperience(uint32_t amount) { stats.addExperience(amount); }
     uint16_t getHp() const { return stats.getHp(); }
     uint16_t getMaxHp() const override { return stats.getMaxHp(); }
-    uint16_t getMana() const override { return stats.getMana(); }
-    bool consumeMana(int amount) override {
+    uint16_t getMana() const { return stats.getMana(); }
+    bool consumeMana(int amount) {
         return stats.consumeMana(static_cast<uint16_t>(amount));
     }
 
