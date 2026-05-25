@@ -25,12 +25,10 @@ public:
     virtual uint16_t getAgility() const = 0;
     virtual uint16_t getLevel() const = 0;
     virtual uint16_t getMaxHp() const = 0;
-    virtual uint16_t getMana() const = 0;
     virtual int getDefense() const = 0;
 
     // Acciones que recibe
     virtual void receiveDamage(int amount) = 0;
-    virtual bool consumeMana(int amount) = 0;
     virtual void handleDeath() = 0;
 
     // Fair play (Player lo restringe, Monster retorna true siempre)

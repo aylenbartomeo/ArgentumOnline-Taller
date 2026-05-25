@@ -58,7 +58,6 @@ uint16_t Monster::getLevel() const { return level; }
 uint16_t Monster::getMaxHp() const { return max_health; }
 int Monster::getDefense() const { return 0; }    // Monsters could have base defense, but for now 0
 
-bool Monster::consumeMana(int /*amount*/) { return true; }  // Monsters don't use mana
 bool Monster::canBeAttacked() const { return !isDead(); }
 void Monster::handleDeath() {
     this->health = 0;  // State handled implicitly by isDead()
