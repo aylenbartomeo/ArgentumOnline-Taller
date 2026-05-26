@@ -46,6 +46,7 @@ target_sources(argentum_online_server
     src/ConnectionMonitor.cpp
     src/GameLoop.cpp
     src/auth/AuthManager.cpp
+    src/persistence/PlayerDataStore.cpp
 
     # Game
     src/Map.cpp
@@ -100,6 +101,7 @@ target_sources(argentum_online_server
     src/Map.h
     src/World.h
     src/auth/AuthManager.h
+    src/persistence/PlayerDataStore.h
 )
 
 # Include directories
