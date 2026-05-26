@@ -38,6 +38,8 @@ target_sources(argentum_online_tests
     ../server/src/model/items/WeaponFactory.cpp
     ../server/src/config/ItemConfigLoader.cpp
     ../server/src/auth/AuthManager.cpp
+    ../server/src/persistence/PlayerDataStore.cpp
+    TestPlayerDataStore.cpp
     ../client/src/TileMap.cpp
     TestEditorMap.cpp
     ../editor/EditorMap.cpp

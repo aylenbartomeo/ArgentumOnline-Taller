@@ -3,7 +3,7 @@
 Server::Server(const char* port):
         gameQueue(),
         monitor(),
-        gameLoop(gameQueue, monitor, "config/items.toml"),
+        gameLoop(gameQueue, monitor, "config/items.toml", "game_data/"),
         acceptor(port, gameQueue, monitor, auth) {}
 
 void Server::run() {

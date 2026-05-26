@@ -15,7 +15,8 @@ std::string World::getCreatorPlayerName() const { return this->creatorPlayerName
 
 int World::getWorldId() const { return this->worldId; }
 
-bool World::addPlayer(uint32_t dbId, std::string& username) {
+bool World::addPlayer(uint32_t dbId, std::string& username,
+                      const std::optional<Position>& savedPosition) {
     if (this->dbIdToEntityId.find(dbId) != this->dbIdToEntityId.end()) {
         return false;
     }
@@ -27,10 +28,15 @@ bool World::addPlayer(uint32_t dbId, std::string& username) {
     RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig classConfig = {1.0f, 1.0f, 1.0f, false};
 
-    std::pair<float, float> spawn = map.getInitialPosition();
+    Position spawnPos;
+    if (savedPosition.has_value() && map.canMoveTo(savedPosition.value())) {
+        spawnPos = savedPosition.value();
+    } else {
+        std::pair<float, float> spawn = map.getInitialPosition();
+        spawnPos = Position{static_cast<int>(spawn.first), static_cast<int>(spawn.second)};
+    }
     this->players[entityId] = std::make_unique<Player>(
-            entityId, dbId, username, raceConfig, classConfig, baseConfig, itemRegistry,
-            Position{static_cast<int>(spawn.first), static_cast<int>(spawn.second)});
+            entityId, dbId, username, raceConfig, classConfig, baseConfig, itemRegistry, spawnPos);
 
     return true;
 }
@@ -228,6 +234,33 @@ SnapshotDTO World::generateSnapshot() const {
 int World::getPlayerCount() const { return static_cast<int>(this->players.size()); }
 
 bool World::isEmpty() const { return this->players.empty(); }
+
+std::optional<Position> World::getPlayerPosition(uint32_t dbId) const {
+    auto itMap = dbIdToEntityId.find(dbId);
+    if (itMap == dbIdToEntityId.end()) return std::nullopt;
+    auto it = players.find(itMap->second);
+    if (it == players.end()) return std::nullopt;
+    return it->second->getPosition();
+}
+
+std::optional<std::string> World::getPlayerUsername(uint32_t dbId) const {
+    auto itMap = dbIdToEntityId.find(dbId);
+    if (itMap == dbIdToEntityId.end()) return std::nullopt;
+    auto it = players.find(itMap->second);
+    if (it == players.end()) return std::nullopt;
+    return it->second->getName();
+}
+
+std::vector<uint32_t> World::getOnlinePlayerDbIds() const {
+    std::vector<uint32_t> ids;
+    ids.reserve(dbIdToEntityId.size());
+    for (const auto& [dbId, entityId] : dbIdToEntityId) {
+        ids.push_back(dbId);
+    }
+    return ids;
+}
+
+std::pair<float, float> World::getInitialPosition() { return map.getInitialPosition(); }
 
 void World::setObstacleAt(int x, int y) { map.setObstacleInGrid(x, y, true); }
 
