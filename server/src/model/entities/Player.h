@@ -20,8 +20,8 @@ class ItemRegistry;
 
 class Player: public Attackable {
 private:
-    uint32_t id;       // Entity ID de runtime
-    uint32_t dbId;     // Database ID persistente de AuthManager
+    uint32_t id;    // Entity ID de runtime
+    uint32_t dbId;  // Database ID persistente de AuthManager
     std::string name;
     Position pos;
     StatsComponent stats;
@@ -30,7 +30,7 @@ private:
     BankComponent bank;
     StateComponent state;
     RegenerationComponent regeneration;
-    const ItemRegistry* itemRegistry; // Puntero para permitir nullptr en tests
+    const ItemRegistry* itemRegistry;  // Puntero para permitir nullptr en tests
 
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
@@ -78,9 +78,7 @@ public:
     uint16_t getHp() const { return stats.getHp(); }
     uint16_t getMaxHp() const override { return stats.getMaxHp(); }
     uint16_t getMana() const { return stats.getMana(); }
-    bool consumeMana(int amount) {
-        return stats.consumeMana(static_cast<uint16_t>(amount));
-    }
+    bool consumeMana(int amount) { return stats.consumeMana(static_cast<uint16_t>(amount)); }
 
     // Inventory
     InventoryComponent& getInventory() { return this->inventory; }

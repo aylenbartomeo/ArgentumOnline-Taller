@@ -13,8 +13,8 @@ PlayerDataStore::PlayerDataStore(const std::string& persistenceDir) {
     }
     this->dataFilePath = persistenceDir + "players.bin";
     this->indexFilePath = persistenceDir + "players.idx";
-    
-    // Ensure the data file exists if we are going to read from/write to it without truncating
+
+    // Asegura que el archivo de datos exista si vamos a leer/escribir sin truncarlo
     if (!fs::exists(this->dataFilePath)) {
         std::ofstream ofs(this->dataFilePath, std::ios::binary | std::ios::out);
     }
@@ -31,13 +31,14 @@ void PlayerDataStore::loadIndex() {
 
     std::ifstream ifs(this->indexFilePath, std::ios::binary);
     if (!ifs.is_open()) {
-        std::cerr << "[PlayerDataStore] Warning: Could not open index file for reading." << std::endl;
+        std::cerr << "[PlayerDataStore] Warning: Could not open index file for reading."
+                  << std::endl;
         return;
     }
 
     PlayerIndexEntry entry;
     while (ifs.read(reinterpret_cast<char*>(&entry), sizeof(PlayerIndexEntry))) {
-        // Ensure null termination just in case
+        // Asegura la terminación nula por si acaso
         entry.username[MAX_USERNAME_LENGTH - 1] = '\0';
         std::string uname(entry.username);
         this->index[uname] = entry.offset;
@@ -51,7 +52,7 @@ void PlayerDataStore::flushIndex() {
         return;
     }
 
-    for (const auto& [username, offset] : this->index) {
+    for (const auto& [username, offset]: this->index) {
         PlayerIndexEntry entry{};
         std::strncpy(entry.username, username.c_str(), MAX_USERNAME_LENGTH - 1);
         entry.offset = offset;
@@ -59,7 +60,8 @@ void PlayerDataStore::flushIndex() {
     }
 }
 
-std::optional<PlayerPersistData> PlayerDataStore::loadPlayerData(const std::string& username) const {
+std::optional<PlayerPersistData> PlayerDataStore::loadPlayerData(
+        const std::string& username) const {
     auto it = this->index.find(username);
     if (it == this->index.end()) {
         return std::nullopt;
@@ -72,7 +74,7 @@ std::optional<PlayerPersistData> PlayerDataStore::loadPlayerData(const std::stri
     }
 
     ifs.seekg(it->second, std::ios::beg);
-    
+
     PlayerPersistData data;
     if (ifs.read(reinterpret_cast<char*>(&data), sizeof(PlayerPersistData))) {
         return data;
@@ -83,30 +85,32 @@ std::optional<PlayerPersistData> PlayerDataStore::loadPlayerData(const std::stri
 
 void PlayerDataStore::savePlayerData(const std::string& username, const PlayerPersistData& data) {
     auto it = this->index.find(username);
-    
+
     if (it != this->index.end()) {
-        // User exists, update at offset
+        // El usuario existe, actualiza en el offset
         std::fstream fs(this->dataFilePath, std::ios::binary | std::ios::in | std::ios::out);
         if (!fs.is_open()) {
-            std::cerr << "[PlayerDataStore] Error: Could not open data file for updating." << std::endl;
+            std::cerr << "[PlayerDataStore] Error: Could not open data file for updating."
+                      << std::endl;
             return;
         }
-        
+
         fs.seekp(it->second, std::ios::beg);
         fs.write(reinterpret_cast<const char*>(&data), sizeof(PlayerPersistData));
     } else {
-        // New user, append at the end
+        // Nuevo usuario, añadir al final
         std::ofstream ofs(this->dataFilePath, std::ios::binary | std::ios::app);
         if (!ofs.is_open()) {
-            std::cerr << "[PlayerDataStore] Error: Could not open data file for appending." << std::endl;
+            std::cerr << "[PlayerDataStore] Error: Could not open data file for appending."
+                      << std::endl;
             return;
         }
-        
-        // Get the current offset (which is the end of the file)
+
+        // Obtiene el offset actual (que es el final del archivo)
         uint64_t currentOffset = ofs.tellp();
         ofs.write(reinterpret_cast<const char*>(&data), sizeof(PlayerPersistData));
-        
-        // Update index and flush
+
+        // Actualiza el índice y guarda
         this->index[username] = currentOffset;
         flushIndex();
     }

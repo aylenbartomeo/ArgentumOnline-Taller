@@ -5,9 +5,9 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "../../common/include/dto/ServerMessage.h"
 #include "../../common/include/queue.h"
 #include "dto/Snapshot.h"
-#include "../../common/include/dto/ServerMessage.h"
 
 /**
  * @class ConnectionMonitor

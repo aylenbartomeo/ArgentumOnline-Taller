@@ -57,8 +57,8 @@ int Editor::tileCountFromTexture() {
 
 Editor::Editor(EditorMap initialMap, const std::string& mapPath):
         sdl(SDL_INIT_VIDEO),
-        window("Editor de mapas - Argentum Online", SDL_WINDOWPOS_CENTERED,
-               SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN),
+        window("Editor de mapas - Argentum Online", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+               WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN),
         renderer(window, -1, SDL_RENDERER_ACCELERATED),
         textures(renderer),
         map(std::move(initialMap)),
@@ -237,7 +237,8 @@ void Editor::drawTile(int tileId, int dstX, int dstY, int dstSize) {
 
 void Editor::drawCharacter(int dstX, int dstY, int dstW, int dstH) {
     SDL2pp::Texture& tex = textures.get(CHARACTER_SHEET_PATH);
-    SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W, CHARACTER_FRAME_H);
+    SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
+                         CHARACTER_FRAME_H);
     SDL2pp::Rect dstRect(dstX, dstY, dstW, dstH);
     renderer.Copy(tex, srcRect, dstRect);
 }

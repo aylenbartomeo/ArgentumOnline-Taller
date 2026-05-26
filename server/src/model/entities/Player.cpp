@@ -1,7 +1,7 @@
 #include "Player.h"
 
-#include "server/src/model/items/ItemRegistry.h"
 #include "server/src/model/items/Item.h"
+#include "server/src/model/items/ItemRegistry.h"
 
 Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
                const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
@@ -38,21 +38,26 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const 
         itemRegistry(nullptr) {}
 
 uint32_t Player::equipItemById(uint32_t itemId) {
-    if (!itemRegistry) return 0;
+    if (!itemRegistry)
+        return 0;
     const Item* item = itemRegistry->get_item(static_cast<int>(itemId));
-    if (!item || !item->is_wearable()) return 0;
+    if (!item || !item->is_wearable())
+        return 0;
     return equipment.equipItem(item);
 }
 
 bool Player::equipFromSlot(uint8_t slotIndex) {
     auto slotOpt = inventory.inspectSlot(slotIndex);
-    if (!slotOpt) return false;
+    if (!slotOpt)
+        return false;
 
     uint32_t itemId = slotOpt->item_id;
-    if (!itemRegistry) return false;
+    if (!itemRegistry)
+        return false;
 
     const Item* item = itemRegistry->get_item(static_cast<int>(itemId));
-    if (!item || !item->is_wearable()) return false;
+    if (!item || !item->is_wearable())
+        return false;
 
     // Equipar y recibir el ID del ítem que fue reemplazado
     uint32_t replacedId = equipment.equipItem(item);

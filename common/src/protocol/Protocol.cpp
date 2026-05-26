@@ -64,9 +64,7 @@ std::string Protocol::recv_string() {
     return std::string(buffer.begin(), buffer.end());
 }
 
-uint8_t Protocol::recv_opcode() {
-    return recv_uint8();
-}
+uint8_t Protocol::recv_opcode() { return recv_uint8(); }
 
 // =======================================================
 // ACTUALIZACIONES DE ESTADO (SERVIDOR -> CLIENTE)

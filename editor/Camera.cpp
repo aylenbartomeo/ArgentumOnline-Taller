@@ -1,9 +1,9 @@
 #include "Camera.h"
 
 #include <algorithm>
+#include <utility>
 
-Camera::Camera(int viewportWidth, int viewportHeight, int tileScreenSize, int mapCols,
-               int mapRows):
+Camera::Camera(int viewportWidth, int viewportHeight, int tileScreenSize, int mapCols, int mapRows):
         viewportWidth(viewportWidth),
         viewportHeight(viewportHeight),
         tileScreenSize(tileScreenSize),

@@ -1,6 +1,7 @@
 #include "World.h"
 
 #include <iostream>
+#include <utility>
 
 #include "model/combat/CombatManager.h"
 #include "model/entities/Player.h"
@@ -81,7 +82,8 @@ Attackable* World::findAttackable(uint32_t id) {
 
 void World::moveEntity(uint32_t dbId, Movement direction) {
     auto itMap = this->dbIdToEntityId.find(dbId);
-    if (itMap == this->dbIdToEntityId.end()) return;
+    if (itMap == this->dbIdToEntityId.end())
+        return;
 
     auto it = this->players.find(itMap->second);
     if (it == this->players.end())
@@ -99,7 +101,8 @@ void World::moveEntity(uint32_t dbId, Movement direction) {
 
 void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
     auto mapIt = this->dbIdToEntityId.find(attackerDbId);
-    if (mapIt == this->dbIdToEntityId.end()) return;
+    if (mapIt == this->dbIdToEntityId.end())
+        return;
 
     // El atacante siempre es un Player (viene de un comando del cliente)
     auto itAttacker = this->players.find(mapIt->second);
@@ -126,21 +129,28 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
     attacker.onActionStarted();
 
     CombatResult res = CombatManager::getInstance().processAttack(attacker, *target);
-    
-    if (!res.attackHappened) return;
+
+    if (!res.attackHappened)
+        return;
 
     if (res.evaded) {
-        outgoingEvents.push_back({attackerDbId, "The target (" + target->getName() + ") evaded your attack."});
-        Player* pTarget = dynamic_cast<Player*>(target);
+        outgoingEvents.push_back(
+                {attackerDbId, "The target (" + target->getName() + ") evaded your attack."});
+        const Player* pTarget = dynamic_cast<const Player*>(target);
         if (pTarget) {
-            outgoingEvents.push_back({pTarget->getDbId(), "You evaded the attack from " + attacker.getName() + "!"});
+            outgoingEvents.push_back(
+                    {pTarget->getDbId(), "You evaded the attack from " + attacker.getName() + "!"});
         }
     } else {
         std::string critMsg = res.critical ? " CRITICAL HIT!" : "";
-        outgoingEvents.push_back({attackerDbId, "You dealt " + std::to_string(res.damage) + " damage to " + target->getName() + "!" + critMsg});
-        Player* pTarget = dynamic_cast<Player*>(target);
+        outgoingEvents.push_back({attackerDbId, "You dealt " + std::to_string(res.damage) +
+                                                        " damage to " + target->getName() + "!" +
+                                                        critMsg});
+        const Player* pTarget = dynamic_cast<const Player*>(target);
         if (pTarget) {
-            outgoingEvents.push_back({pTarget->getDbId(), "You received " + std::to_string(res.damage) + " damage from " + attacker.getName() + "!"});
+            outgoingEvents.push_back(
+                    {pTarget->getDbId(), "You received " + std::to_string(res.damage) +
+                                                 " damage from " + attacker.getName() + "!"});
         }
     }
 }
@@ -149,13 +159,17 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
 
 void World::monsterAttack(const Monster& monster, Player& target) {
     CombatResult res = CombatManager::getInstance().processAttack(monster, target);
-    
-    if (!res.attackHappened) return;
+
+    if (!res.attackHappened)
+        return;
 
     if (res.evaded) {
-        outgoingEvents.push_back({target.getDbId(), "You evaded the attack from " + monster.getName() + "!"});
+        outgoingEvents.push_back(
+                {target.getDbId(), "You evaded the attack from " + monster.getName() + "!"});
     } else {
-        outgoingEvents.push_back({target.getDbId(), "You received " + std::to_string(res.damage) + " damage from " + monster.getName() + "!"});
+        outgoingEvents.push_back({target.getDbId(), "You received " + std::to_string(res.damage) +
+                                                            " damage from " + monster.getName() +
+                                                            "!"});
     }
 }
 
@@ -237,24 +251,28 @@ bool World::isEmpty() const { return this->players.empty(); }
 
 std::optional<Position> World::getPlayerPosition(uint32_t dbId) const {
     auto itMap = dbIdToEntityId.find(dbId);
-    if (itMap == dbIdToEntityId.end()) return std::nullopt;
+    if (itMap == dbIdToEntityId.end())
+        return std::nullopt;
     auto it = players.find(itMap->second);
-    if (it == players.end()) return std::nullopt;
+    if (it == players.end())
+        return std::nullopt;
     return it->second->getPosition();
 }
 
 std::optional<std::string> World::getPlayerUsername(uint32_t dbId) const {
     auto itMap = dbIdToEntityId.find(dbId);
-    if (itMap == dbIdToEntityId.end()) return std::nullopt;
+    if (itMap == dbIdToEntityId.end())
+        return std::nullopt;
     auto it = players.find(itMap->second);
-    if (it == players.end()) return std::nullopt;
+    if (it == players.end())
+        return std::nullopt;
     return it->second->getName();
 }
 
 std::vector<uint32_t> World::getOnlinePlayerDbIds() const {
     std::vector<uint32_t> ids;
     ids.reserve(dbIdToEntityId.size());
-    for (const auto& [dbId, entityId] : dbIdToEntityId) {
+    for (const auto& [dbId, entityId]: dbIdToEntityId) {
         ids.push_back(dbId);
     }
     return ids;

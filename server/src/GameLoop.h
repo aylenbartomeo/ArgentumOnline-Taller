@@ -11,11 +11,11 @@
 #include "../../common/include/thread.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
+#include "model/items/ItemRegistry.h"
+#include "persistence/PlayerDataStore.h"
 
 #include "ConnectionMonitor.h"
 #include "World.h"
-#include "model/items/ItemRegistry.h"
-#include "persistence/PlayerDataStore.h"
 
 class GameLoop: public Thread {
 private:
@@ -37,7 +37,7 @@ private:
     void persistOnlinePlayers();
 
 public:
-    GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor, 
+    GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
              const std::filesystem::path& configPath,
              const std::string& persistenceDir = "game_data/");
 

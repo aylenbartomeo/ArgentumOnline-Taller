@@ -18,7 +18,7 @@ ItemRegistry::ItemRegistry(const std::filesystem::path& configPath) {
     for (const auto& [name, config]: armorConfigs) {
         if (config.slot == ArmorSlot::Body) {
             armors[config.id] = std::make_unique<BodyArmor>(config.id, name, config.minDefense,
-                                                             config.maxDefense);
+                                                            config.maxDefense);
         } else if (config.slot == ArmorSlot::Head) {
             armors[config.id] =
                     std::make_unique<Helmet>(config.id, name, config.minDefense, config.maxDefense);
@@ -30,8 +30,10 @@ ItemRegistry::ItemRegistry(const std::filesystem::path& configPath) {
 }
 
 const Item* ItemRegistry::get_item(int item_id) const {
-    if (const Weapon* w = get_weapon(item_id)) return w;
-    if (const Armor* a = get_armor(item_id)) return a;
+    if (const Weapon* w = get_weapon(item_id))
+        return w;
+    if (const Armor* a = get_armor(item_id))
+        return a;
     auto it = items.find(item_id);
     if (it != items.end()) {
         return it->second.get();

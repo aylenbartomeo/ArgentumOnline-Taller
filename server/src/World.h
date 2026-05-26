@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "../include/model/ServerEvents.h"
@@ -48,7 +49,8 @@ private:
     void monsterAttack(const Monster& monster, Player& target);
 
 public:
-    explicit World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry);
+    explicit World(int worldId, const std::string& creatorPlayerName,
+                   const ItemRegistry& itemRegistry);
 
     // Métodos lógicos: Entrar y salir del mundo virtual
     bool addPlayer(uint32_t playerId, std::string& username,

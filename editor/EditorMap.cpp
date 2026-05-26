@@ -1,5 +1,6 @@
 #include "EditorMap.h"
 
+#include <algorithm>
 #include <stdexcept>
 
 #include <nlohmann/json.hpp>
@@ -27,10 +28,9 @@ EditorMap::EditorMap(const std::string& jsonText) {
     if (static_cast<int>(tiles.size()) != height) {
         throw std::runtime_error("EditorMap: la cantidad de filas no coincide con height");
     }
-    for (const auto& row: tiles) {
-        if (static_cast<int>(row.size()) != width) {
-            throw std::runtime_error("EditorMap: una fila no coincide con width");
-        }
+    if (std::any_of(tiles.begin(), tiles.end(),
+                    [this](const auto& row) { return static_cast<int>(row.size()) != width; })) {
+        throw std::runtime_error("EditorMap: una fila no coincide con width");
     }
 
     if (data.contains("spawn")) {

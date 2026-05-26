@@ -3,13 +3,13 @@
 
 #include <atomic>
 
+#include "../../common/include/dto/ServerMessage.h"
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
 #include "../../common/src/socket/socket.h"
 #include "auth/AuthManager.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
-#include "../../common/include/dto/ServerMessage.h"
 
 #include "ConnectionMonitor.h"
 #include "Receiver.h"

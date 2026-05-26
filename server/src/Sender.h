@@ -1,12 +1,12 @@
 #ifndef SENDER_H
 #define SENDER_H
 
+#include "../../common/include/dto/ServerMessage.h"
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
 #include "../../common/src/protocol/Protocol.h"
 #include "../../common/src/socket/socket.h"
 #include "dto/Snapshot.h"
-#include "../../common/include/dto/ServerMessage.h"
 
 class Sender: public Thread {
 private:
