@@ -17,7 +17,12 @@ constexpr int WINDOW_HEIGHT = 480;
 constexpr Uint32 MOVE_INTERVAL_MS = 200;
 
 constexpr const char* RESOURCES_DIR = "resources/";
-constexpr int PLAYER_SPRITE = 104;
+constexpr const char* CHARACTER_SHEET = "1500.png";
+constexpr int CHARACTER_FRAME_X = 2;
+constexpr int CHARACTER_FRAME_Y = 4;
+constexpr int CHARACTER_FRAME_W = 24;
+constexpr int CHARACTER_FRAME_H = 44;
+constexpr int CHARACTER_DRAW_H = TILE_SIZE * 3 / 2;
 
 std::string readWholeFile(const std::string& path) {
     std::ifstream file(path);
@@ -111,21 +116,22 @@ void Game::renderTerrain() {
 
 void Game::renderEntities() {
     SDL2pp::Renderer& renderer = window.getRenderer();
-    SDL2pp::Texture& tileset = textures.get(std::string(RESOURCES_DIR) + map.getTileset());
-    const int src = map.getTileSize();
-    const int cols = map.getTilesetCols();
+    SDL2pp::Texture& sheet = textures.get(std::string(RESOURCES_DIR) + CHARACTER_SHEET);
     const uint32_t myId = client.getClientId();
 
+    const SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
+                               CHARACTER_FRAME_H);
+
     for (const EntityDTO& entity: lastSnapshot.entities) {
-        const SDL2pp::Rect srcRect((PLAYER_SPRITE % cols) * src, (PLAYER_SPRITE / cols) * src, src,
-                                   src);
-        const SDL2pp::Rect dstRect(entity.x * TILE_SIZE, entity.y * TILE_SIZE, TILE_SIZE,
-                                   TILE_SIZE);
-        renderer.Copy(tileset, srcRect, dstRect);
+        const SDL2pp::Rect cell(entity.x * TILE_SIZE, entity.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        const SDL2pp::Rect dstRect(entity.x * TILE_SIZE,
+                                   entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H, TILE_SIZE,
+                                   CHARACTER_DRAW_H);
+        renderer.Copy(sheet, srcRect, dstRect);
 
         if (entity.id == myId) {
             renderer.SetDrawColor(255, 235, 0, 255);
-            renderer.DrawRect(dstRect);
+            renderer.DrawRect(cell);
         }
     }
 }
