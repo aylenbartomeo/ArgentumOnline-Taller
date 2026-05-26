@@ -1,5 +1,6 @@
 #include "Game.h"
 
+#include <cmath>
 #include <fstream>
 #include <optional>
 #include <sstream>
@@ -23,6 +24,8 @@ constexpr int CHARACTER_FRAME_Y = 4;
 constexpr int CHARACTER_FRAME_W = 24;
 constexpr int CHARACTER_FRAME_H = 44;
 constexpr int CHARACTER_DRAW_H = TILE_SIZE * 3 / 2;
+constexpr double TAU = 6.283185307179586;
+constexpr int MARKER_SEGMENTS = 24;
 
 std::string readWholeFile(const std::string& path) {
     std::ifstream file(path);
@@ -123,7 +126,6 @@ void Game::renderEntities() {
                                CHARACTER_FRAME_H);
 
     for (const EntityDTO& entity: lastSnapshot.entities) {
-        const SDL2pp::Rect cell(entity.x * TILE_SIZE, entity.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         const SDL2pp::Rect dstRect(entity.x * TILE_SIZE,
                                    entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H, TILE_SIZE,
                                    CHARACTER_DRAW_H);
@@ -131,7 +133,18 @@ void Game::renderEntities() {
 
         if (entity.id == myId) {
             renderer.SetDrawColor(255, 235, 0, 255);
-            renderer.DrawRect(cell);
+            const int cx = entity.x * TILE_SIZE + TILE_SIZE / 2;
+            const int cy = entity.y * TILE_SIZE + TILE_SIZE - 4;
+            const int rx = TILE_SIZE / 2 - 3;
+            const int ry = TILE_SIZE / 5;
+            for (int i = 0; i < MARKER_SEGMENTS; ++i) {
+                const double a0 = TAU * i / MARKER_SEGMENTS;
+                const double a1 = TAU * (i + 1) / MARKER_SEGMENTS;
+                renderer.DrawLine(cx + static_cast<int>(rx * std::cos(a0)),
+                                  cy + static_cast<int>(ry * std::sin(a0)),
+                                  cx + static_cast<int>(rx * std::cos(a1)),
+                                  cy + static_cast<int>(ry * std::sin(a1)));
+            }
         }
     }
 }
