@@ -14,7 +14,7 @@ private:
     void initializeNextId();
 
 public:
-    explicit AuthManager(const std::string& usersDir = "users_data/");
+    explicit AuthManager(const std::string& usersDir = "auth_data/");
 
     bool userExists(const std::string& username) const;
     std::optional<uint32_t> registerUser(const std::string& username, const std::string& password);

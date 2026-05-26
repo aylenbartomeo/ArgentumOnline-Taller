@@ -15,6 +15,7 @@
 #include "ConnectionMonitor.h"
 #include "World.h"
 #include "model/items/ItemRegistry.h"
+#include "persistence/PlayerDataStore.h"
 
 class GameLoop: public Thread {
 private:
@@ -22,15 +23,23 @@ private:
     Queue<GameEvent>& gameQueue;
     ConnectionMonitor& monitor;
     ItemRegistry itemRegistry;
+    PlayerDataStore playerDataStore;
     World world;
+
+    // Timer para guardado periódico
+    static constexpr float SAVE_INTERVAL_SECONDS = 30.0f;
+    float timeSinceLastSave = 0.0f;
 
     void processInputs();
     void dispatchWorldEvents();
     void updateWorld(float delta_time);
     void broadcastState();
+    void persistOnlinePlayers();
 
 public:
-    GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor, const std::filesystem::path& configPath);
+    GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor, 
+             const std::filesystem::path& configPath,
+             const std::string& persistenceDir = "game_data/");
 
     void run() override;
     void stop() override;

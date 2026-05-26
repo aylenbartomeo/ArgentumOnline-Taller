@@ -9,7 +9,7 @@ namespace fs = std::filesystem;
 class AuthManagerTest: public ::testing::Test {
 protected:
     // Usamos una carpeta distinta para no borrar tus usuarios de verdad
-    std::string testDir = "test_users_data/";
+    std::string testDir = "test_auth_data/";
 
     void SetUp() override {
         // Antes de cada test, nos aseguramos de que la carpeta esté limpia

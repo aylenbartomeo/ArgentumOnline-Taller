@@ -2,6 +2,7 @@
 #define WORLD_H
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -51,8 +52,11 @@ public:
     explicit World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry);
 
     // Métodos lógicos: Entrar y salir del mundo virtual
-    bool addPlayer(uint32_t playerId, std::string& username);
+    bool addPlayer(uint32_t playerId, std::string& username,
+                   const std::optional<Position>& savedPosition = std::nullopt);
     bool removePlayer(uint32_t playerId);
+
+    bool loadMap(const std::string& path);
 
     // Gestión de monstruos
     uint32_t addMonster(NPCType type, Position pos, const MonsterConfig& config);
@@ -74,11 +78,19 @@ public:
     // Generación del estado actual para ser enviado por red
     SnapshotDTO generateSnapshot() const;
 
+    // Getters para persistencia
+    std::optional<Position> getPlayerPosition(uint32_t dbId) const;
+    std::optional<std::string> getPlayerUsername(uint32_t dbId) const;
+    std::vector<uint32_t> getOnlinePlayerDbIds() const;
+
     /* Getters y setters */
     std::string getCreatorPlayerName() const;
     int getWorldId() const;
     int getPlayerCount() const;
     bool isEmpty() const;  // Para que el servidor sepa cuándo destruir la partida
+
+    // Retorna la posición de spawn inicial del mapa
+    std::pair<float, float> getInitialPosition();
 
     // Para testing: permite colocar obstáculos en el mapa
     void setObstacleAt(int x, int y);

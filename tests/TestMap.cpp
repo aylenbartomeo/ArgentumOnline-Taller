@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include <gtest/gtest.h>
 
 #include "../server/src/Map.h"
@@ -98,4 +100,34 @@ TEST(MapTest, Map_CorrectlyIdentifiesCitizenArea) {
     // (15, 15) está dentro del rango x[10, 30] e y[10, 30]
     EXPECT_TRUE(mapa.isCitizenArea(15.0f, 15.0f));
     EXPECT_FALSE(mapa.isCitizenArea(5.0f, 15.0f));
+}
+
+TEST(MapTest, Map_LoadsSpawnAndDimensionsFromJson) {
+    const std::string path = "/tmp/test_map_loadspawn.json";
+    std::ofstream out(path);
+    out << R"({"tileSize":16,"tileset":"x.png","tilesetCols":12,"width":25,"height":18,)"
+        << R"("spawn":{"x":7,"y":9},"tiles":[]})";
+    out.close();
+
+    Map mapa;
+    ASSERT_TRUE(mapa.loadSpawnFromJson(path));
+
+    EXPECT_EQ(mapa.widthLimit(), 25);
+    EXPECT_EQ(mapa.heightLimit(), 18);
+
+    std::pair<float, float> spawn = mapa.getInitialPosition();
+    EXPECT_FLOAT_EQ(spawn.first, 7.0f);
+    EXPECT_FLOAT_EQ(spawn.second, 9.0f);
+}
+
+TEST(MapTest, Map_LoadSpawnFromJsonFailsOnMissingFile) {
+    Map mapa;
+    EXPECT_FALSE(mapa.loadSpawnFromJson("/tmp/no_existe_este_mapa_12345.json"));
+}
+
+TEST(MapTest, Map_CanMoveToFarColumnInWideMap) {
+    Map mapa;
+    mapa.setDimensions(20, 15);
+
+    EXPECT_TRUE(mapa.canMoveTo(Position{18, 3}));
 }

@@ -53,6 +53,8 @@ public:
     /* Retorna la posición inicial segura para un jugador */
     std::pair<float, float> getInitialPosition();
 
+    bool loadSpawnFromJson(const std::string& path);
+
     /* Retorna true si la posicion es de alguno de los ciudadanos, false en caso contrario */
     bool isCitizenArea(float pos_x, float pos_y) const;
 

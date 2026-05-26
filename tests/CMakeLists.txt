@@ -38,7 +38,17 @@ target_sources(argentum_online_tests
     ../server/src/model/items/WeaponFactory.cpp
     ../server/src/config/ItemConfigLoader.cpp
     ../server/src/auth/AuthManager.cpp
+    ../server/src/persistence/PlayerDataStore.cpp
+    TestPlayerDataStore.cpp
     ../client/src/TileMap.cpp
+    TestEditorMap.cpp
+    ../editor/EditorMap.cpp
+    TestCamera.cpp
+    ../editor/Camera.cpp
+    TestPalette.cpp
+    ../editor/Palette.cpp
+    TestToolbar.cpp
+    ../editor/Toolbar.cpp
 )
 
 target_include_directories(argentum_online_tests PRIVATE
@@ -50,6 +60,7 @@ target_include_directories(argentum_online_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/server/src/model/components
     ${CMAKE_SOURCE_DIR}/common/utils
     ${CMAKE_SOURCE_DIR}/client/src
+    ${CMAKE_SOURCE_DIR}/editor
     ${CMAKE_BINARY_DIR}/_deps/libbcrypt-src/include
     .
 )

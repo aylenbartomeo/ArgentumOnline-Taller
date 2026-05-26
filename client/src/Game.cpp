@@ -1,5 +1,6 @@
 #include "Game.h"
 
+#include <cmath>
 #include <fstream>
 #include <optional>
 #include <sstream>
@@ -16,8 +17,16 @@ constexpr int WINDOW_WIDTH = 640;
 constexpr int WINDOW_HEIGHT = 480;
 constexpr Uint32 MOVE_INTERVAL_MS = 200;
 
-constexpr const char* RESOURCES_DIR = "client/resources/";
-constexpr int PLAYER_SPRITE = 104;
+constexpr const char* RESOURCES_DIR = "resources/";
+constexpr const char* CHARACTER_SHEET = "1500.png";
+constexpr int CHARACTER_FRAME_X = 2;
+constexpr int CHARACTER_FRAME_Y = 4;
+constexpr int CHARACTER_FRAME_W = 24;
+constexpr int CHARACTER_FRAME_H = 44;
+constexpr int CHARACTER_DRAW_H = TILE_SIZE * 3 / 2;
+constexpr double TAU = 6.283185307179586;
+constexpr int MARKER_SEGMENTS = 24;
+constexpr int MARKER_SHIFT_X = 3;
 
 std::string readWholeFile(const std::string& path) {
     std::ifstream file(path);
@@ -36,7 +45,7 @@ Game::Game(Client& client):
         events(),
         client(client),
         textures(window.getRenderer()),
-        map(readWholeFile(std::string(RESOURCES_DIR) + "default.json")),
+        map(readWholeFile("maps/defaultMap.json")),
         lastSnapshot(),
         lastMoveSentMs(0) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
@@ -111,21 +120,34 @@ void Game::renderTerrain() {
 
 void Game::renderEntities() {
     SDL2pp::Renderer& renderer = window.getRenderer();
-    SDL2pp::Texture& tileset = textures.get(std::string(RESOURCES_DIR) + map.getTileset());
-    const int src = map.getTileSize();
-    const int cols = map.getTilesetCols();
+    SDL2pp::Texture& sheet = textures.get(std::string(RESOURCES_DIR) + CHARACTER_SHEET);
     const uint32_t myId = client.getClientId();
 
+    const SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
+                               CHARACTER_FRAME_H);
+
     for (const EntityDTO& entity: lastSnapshot.entities) {
-        const SDL2pp::Rect srcRect((PLAYER_SPRITE % cols) * src, (PLAYER_SPRITE / cols) * src, src,
-                                   src);
-        const SDL2pp::Rect dstRect(entity.x * TILE_SIZE, entity.y * TILE_SIZE, TILE_SIZE,
-                                   TILE_SIZE);
-        renderer.Copy(tileset, srcRect, dstRect);
+        const SDL2pp::Rect dstRect(entity.x * TILE_SIZE,
+                                   entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H, TILE_SIZE,
+                                   CHARACTER_DRAW_H);
+        renderer.Copy(sheet, srcRect, dstRect);
 
         if (entity.id == myId) {
             renderer.SetDrawColor(255, 235, 0, 255);
-            renderer.DrawRect(dstRect);
+            const int cx = entity.x * TILE_SIZE + TILE_SIZE / 2 - MARKER_SHIFT_X;
+            const int cy = entity.y * TILE_SIZE + TILE_SIZE - 4;
+            for (int t = -1; t <= 1; ++t) {
+                const int rx = TILE_SIZE / 2 - 2 + t;
+                const int ry = TILE_SIZE / 5 + t;
+                for (int i = 0; i < MARKER_SEGMENTS; ++i) {
+                    const double a0 = TAU * i / MARKER_SEGMENTS;
+                    const double a1 = TAU * (i + 1) / MARKER_SEGMENTS;
+                    renderer.DrawLine(cx + static_cast<int>(rx * std::cos(a0)),
+                                      cy + static_cast<int>(ry * std::sin(a0)),
+                                      cx + static_cast<int>(rx * std::cos(a1)),
+                                      cy + static_cast<int>(ry * std::sin(a1)));
+                }
+            }
         }
     }
 }

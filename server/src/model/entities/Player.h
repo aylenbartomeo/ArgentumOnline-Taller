@@ -38,7 +38,7 @@ private:
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
            const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
-           const ItemRegistry& itemRegistry);
+           const ItemRegistry& itemRegistry, const Position& spawn);
 
     // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
     // de valores random (no requiere ItemRegistry)

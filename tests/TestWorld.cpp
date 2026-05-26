@@ -1,3 +1,4 @@
+#include <fstream>
 #include <memory>
 
 #include <gtest/gtest.h>
@@ -106,7 +107,7 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
         spritesEvaluados++;  // El primero que salga se lleva el 1, el segundo el 2
         std::cout << "Entity ID in snapshot: " << entity.id << std::endl;
 
-        if (entity.id == 1) {
+        if (entity.id == 100) {
             encontroPlayer1 = true;
             EXPECT_EQ(entity.type, EntityType::PLAYER);
             EXPECT_EQ(entity.x, 1);
@@ -116,7 +117,7 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
 
             // Validamos que su sprite coincida con el orden de salida real en el loop
             EXPECT_EQ(entity.sprite_id, spritesEvaluados);
-        } else if (entity.id == 2) {
+        } else if (entity.id == 200) {
             encontroPlayer2 = true;
             EXPECT_EQ(entity.type, EntityType::PLAYER);
             EXPECT_EQ(entity.x, 0);
@@ -194,4 +195,102 @@ TEST(WorldTest, World_UpdateDoesNotTriggerMonsterAttackIfOutOfRange) {
     SnapshotDTO snap = mundo.generateSnapshot();
     ASSERT_EQ(snap.entities.size(), 1u);
     EXPECT_EQ(snap.entities[0].current_hp, 15);  // NO recibió daño
+}
+
+TEST(WorldTest, World_AddPlayerSpawnsAtMapSpawn) {
+    const std::string path = "/tmp/test_world_spawn.json";
+    std::ofstream out(path);
+    out << R"({"tileSize":16,"tileset":"x.png","tilesetCols":12,"width":20,"height":15,)"
+        << R"("spawn":{"x":3,"y":4},"tiles":[]})";
+    out.close();
+
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+    ASSERT_TRUE(mundo.loadMap(path));
+
+    std::string user = "Spawner";
+    ASSERT_TRUE(mundo.addPlayer(1, user));
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    ASSERT_EQ(snap.entities.size(), 1u);
+    EXPECT_EQ(snap.entities[0].x, 3);
+    EXPECT_EQ(snap.entities[0].y, 4);
+}
+
+TEST(WorldTest, World_AddPlayerWithSavedPositionSpawnsThere) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+    
+    std::string user = "SavedPlayer";
+    Position savedPos{5, 5};
+    ASSERT_TRUE(mundo.addPlayer(1, user, savedPos));
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    ASSERT_EQ(snap.entities.size(), 1u);
+    EXPECT_EQ(snap.entities[0].x, 5);
+    EXPECT_EQ(snap.entities[0].y, 5);
+}
+
+TEST(WorldTest, World_AddPlayerWithInvalidPositionUsesDefault) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+    
+    std::string user = "InvalidPosPlayer";
+    Position invalidPos{-1, -1}; // assuming this is out of bounds
+    ASSERT_TRUE(mundo.addPlayer(1, user, invalidPos));
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    ASSERT_EQ(snap.entities.size(), 1u);
+    auto defaultPos = mundo.getInitialPosition();
+    EXPECT_EQ(snap.entities[0].x, defaultPos.first);
+    EXPECT_EQ(snap.entities[0].y, defaultPos.second);
+}
+
+TEST(WorldTest, World_GetPlayerPositionReturnsCurrentPos) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+    
+    std::string user = "MovingPlayer";
+    ASSERT_TRUE(mundo.addPlayer(1, user));
+    
+    mundo.moveEntity(1, Movement::DOWN);
+    mundo.moveEntity(1, Movement::RIGHT);
+    
+    auto pos = mundo.getPlayerPosition(1);
+    ASSERT_TRUE(pos.has_value());
+    EXPECT_EQ(pos->x, 1);
+    EXPECT_EQ(pos->y, 1);
+}
+
+TEST(WorldTest, World_GetPlayerUsernameReturnsCorrectName) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+    
+    std::string user = "TestUser";
+    ASSERT_TRUE(mundo.addPlayer(42, user));
+    
+    auto name = mundo.getPlayerUsername(42);
+    ASSERT_TRUE(name.has_value());
+    EXPECT_EQ(name.value(), "TestUser");
+}
+
+TEST(WorldTest, World_GetOnlinePlayerDbIdsReturnsAllActive) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+    
+    std::string u1 = "u1";
+    std::string u2 = "u2";
+    std::string u3 = "u3";
+    mundo.addPlayer(10, u1);
+    mundo.addPlayer(20, u2);
+    mundo.addPlayer(30, u3);
+    
+    auto ids = mundo.getOnlinePlayerDbIds();
+    EXPECT_EQ(ids.size(), 3u);
+    
+    // Convert to vector and check if they exist
+    std::vector<uint32_t> expected = {10, 20, 30};
+    for (auto id : expected) {
+        EXPECT_NE(std::find(ids.begin(), ids.end(), id), ids.end());
+    }
 }

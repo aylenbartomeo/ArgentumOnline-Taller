@@ -1,7 +1,10 @@
 #include "Map.h"
 
 #include <cmath>
+#include <fstream>
 #include <utility>
+
+#include <nlohmann/json.hpp>
 
 // Map::Map(const std::string& toml_filepath) { (void)toml_filepath; }
 Map::Map(const std::string& toml_filepath): width(100), height(100), citizenArea({45, 45, 10, 10}) {
@@ -12,14 +15,14 @@ void Map::loadFromToml(const std::string& filepath) { (void)filepath; }
 
 Map::Map(): width(100), height(100), citizenArea({45, 45, 10, 10}), spawn_point({50.0f, 50.0f}) {
     // Inicializa la grilla por defecto limpia
-    collision_grid.assign(height, std::vector<bool>(width, false));
+    collision_grid.assign(width, std::vector<bool>(height, false));
 }
 
 void Map::setDimensions(int w, int h) {
     this->width = w;
     this->height = h;
     // Redimensionamos la matriz de colisiones para que coincida con el nuevo tamaño
-    collision_grid.assign(h, std::vector<bool>(w, false));
+    collision_grid.assign(w, std::vector<bool>(h, false));
 }
 
 void Map::setCitizenArea(int x, int y, int w, int h) { this->citizenArea = {x, y, w, h}; }
@@ -43,6 +46,26 @@ void Map::setObstacleInGrid(int cell_x, int cell_y, bool is_solid) {
 std::pair<float, float> Map::getInitialPosition() { return this->spawn_point; }
 
 void Map::setSpawnPoint(float x, float y) { this->spawn_point = {x, y}; }
+
+bool Map::loadSpawnFromJson(const std::string& path) {
+    std::ifstream file(path);
+    if (!file) {
+        return false;
+    }
+    nlohmann::json data;
+    try {
+        file >> data;
+    } catch (const nlohmann::json::exception&) {
+        return false;
+    }
+    if (!data.contains("spawn") || !data.contains("width") || !data.contains("height")) {
+        return false;
+    }
+    setDimensions(data["width"].get<int>(), data["height"].get<int>());
+    setSpawnPoint(static_cast<float>(data["spawn"]["x"].get<int>()),
+                  static_cast<float>(data["spawn"]["y"].get<int>()));
+    return true;
+}
 
 int Map::heightLimit() const { return this->height; }
 
