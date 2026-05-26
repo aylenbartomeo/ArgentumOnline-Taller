@@ -26,6 +26,7 @@ constexpr int CHARACTER_FRAME_H = 44;
 constexpr int CHARACTER_DRAW_H = TILE_SIZE * 3 / 2;
 constexpr double TAU = 6.283185307179586;
 constexpr int MARKER_SEGMENTS = 24;
+constexpr int MARKER_SHIFT_X = 3;
 
 std::string readWholeFile(const std::string& path) {
     std::ifstream file(path);
@@ -133,17 +134,19 @@ void Game::renderEntities() {
 
         if (entity.id == myId) {
             renderer.SetDrawColor(255, 235, 0, 255);
-            const int cx = entity.x * TILE_SIZE + TILE_SIZE / 2;
+            const int cx = entity.x * TILE_SIZE + TILE_SIZE / 2 - MARKER_SHIFT_X;
             const int cy = entity.y * TILE_SIZE + TILE_SIZE - 4;
-            const int rx = TILE_SIZE / 2 - 3;
-            const int ry = TILE_SIZE / 5;
-            for (int i = 0; i < MARKER_SEGMENTS; ++i) {
-                const double a0 = TAU * i / MARKER_SEGMENTS;
-                const double a1 = TAU * (i + 1) / MARKER_SEGMENTS;
-                renderer.DrawLine(cx + static_cast<int>(rx * std::cos(a0)),
-                                  cy + static_cast<int>(ry * std::sin(a0)),
-                                  cx + static_cast<int>(rx * std::cos(a1)),
-                                  cy + static_cast<int>(ry * std::sin(a1)));
+            for (int t = -1; t <= 1; ++t) {
+                const int rx = TILE_SIZE / 2 - 2 + t;
+                const int ry = TILE_SIZE / 5 + t;
+                for (int i = 0; i < MARKER_SEGMENTS; ++i) {
+                    const double a0 = TAU * i / MARKER_SEGMENTS;
+                    const double a1 = TAU * (i + 1) / MARKER_SEGMENTS;
+                    renderer.DrawLine(cx + static_cast<int>(rx * std::cos(a0)),
+                                      cy + static_cast<int>(ry * std::sin(a0)),
+                                      cx + static_cast<int>(rx * std::cos(a1)),
+                                      cy + static_cast<int>(ry * std::sin(a1)));
+                }
             }
         }
     }

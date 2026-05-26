@@ -1,5 +1,6 @@
 #include "Editor.h"
 
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -14,7 +15,6 @@ constexpr int CANVAS_WIDTH = WINDOW_WIDTH - PANEL_WIDTH;
 constexpr int CANVAS_HEIGHT = WINDOW_HEIGHT - STATUS_HEIGHT;
 constexpr int TILE_SCREEN = 32;
 constexpr int PANEL_X = CANVAS_WIDTH;
-constexpr int PLAYER_SPRITE = 104;
 constexpr int CAMERA_STEP = 32;
 
 constexpr int BTN_W = PANEL_WIDTH - 20;
@@ -39,6 +39,14 @@ constexpr int PALETTE_TILE = 20;
 constexpr int PALETTE_COLS = 9;
 
 constexpr const char* TILESET_PATH = "resources/tilemap_packed.png";
+constexpr const char* CHARACTER_SHEET_PATH = "resources/1500.png";
+constexpr int CHARACTER_FRAME_X = 2;
+constexpr int CHARACTER_FRAME_Y = 4;
+constexpr int CHARACTER_FRAME_W = 24;
+constexpr int CHARACTER_FRAME_H = 44;
+constexpr double TAU = 6.283185307179586;
+constexpr int MARKER_SEGMENTS = 24;
+constexpr int MARKER_SHIFT_X = 3;
 }  // namespace
 
 int Editor::tileCountFromTexture() {
@@ -227,6 +235,13 @@ void Editor::drawTile(int tileId, int dstX, int dstY, int dstSize) {
     renderer.Copy(tex, srcRect, dstRect);
 }
 
+void Editor::drawCharacter(int dstX, int dstY, int dstW, int dstH) {
+    SDL2pp::Texture& tex = textures.get(CHARACTER_SHEET_PATH);
+    SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W, CHARACTER_FRAME_H);
+    SDL2pp::Rect dstRect(dstX, dstY, dstW, dstH);
+    renderer.Copy(tex, srcRect, dstRect);
+}
+
 void Editor::render() {
     renderer.SetDrawColor(30, 30, 30, 255);
     renderer.Clear();
@@ -256,9 +271,24 @@ void Editor::renderSpawn() {
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
     Position spawn = map.getSpawn();
     Position screen = camera.cellToScreen(spawn.x, spawn.y);
-    drawTile(PLAYER_SPRITE, screen.x, screen.y, TILE_SCREEN);
+    const int charH = TILE_SCREEN * 3 / 2;
+    drawCharacter(screen.x, screen.y + TILE_SCREEN - charH, TILE_SCREEN, charH);
+
     renderer.SetDrawColor(255, 235, 0, 255);
-    renderer.DrawRect(SDL2pp::Rect(screen.x, screen.y, TILE_SCREEN, TILE_SCREEN));
+    const int cx = screen.x + TILE_SCREEN / 2 - MARKER_SHIFT_X;
+    const int cy = screen.y + TILE_SCREEN - 4;
+    for (int t = -1; t <= 1; ++t) {
+        const int rx = TILE_SCREEN / 2 - 2 + t;
+        const int ry = TILE_SCREEN / 5 + t;
+        for (int i = 0; i < MARKER_SEGMENTS; ++i) {
+            const double a0 = TAU * i / MARKER_SEGMENTS;
+            const double a1 = TAU * (i + 1) / MARKER_SEGMENTS;
+            renderer.DrawLine(cx + static_cast<int>(rx * std::cos(a0)),
+                              cy + static_cast<int>(ry * std::sin(a0)),
+                              cx + static_cast<int>(rx * std::cos(a1)),
+                              cy + static_cast<int>(ry * std::sin(a1)));
+        }
+    }
     renderer.SetClipRect();
 }
 
@@ -324,7 +354,7 @@ void Editor::renderPanel() {
                 break;
             case ToolbarAction::TOOL_CHANGED:
                 if (b.tool == Tool::SPAWN) {
-                    drawTile(PLAYER_SPRITE, b.x + 4, b.y + 2, b.h - 4);
+                    drawCharacter(b.x + 4, b.y + 2, b.h - 4, b.h - 4);
                 } else {
                     drawTile(palette.getSelectedTile(), b.x + 4, b.y + 2, b.h - 4);
                 }
@@ -362,8 +392,10 @@ void Editor::renderStatusBar() {
     renderer.FillRect(SDL2pp::Rect(0, CANVAS_HEIGHT, WINDOW_WIDTH, STATUS_HEIGHT));
 
     int iconSize = STATUS_HEIGHT - 8;
-    int toolIcon =
-            (toolbar.getActiveTool() == Tool::SPAWN) ? PLAYER_SPRITE : palette.getSelectedTile();
-    drawTile(toolIcon, 6, CANVAS_HEIGHT + 4, iconSize);
+    if (toolbar.getActiveTool() == Tool::SPAWN) {
+        drawCharacter(6, CANVAS_HEIGHT + 4, iconSize, iconSize);
+    } else {
+        drawTile(palette.getSelectedTile(), 6, CANVAS_HEIGHT + 4, iconSize);
+    }
     drawTile(palette.getSelectedTile(), 6 + iconSize + 8, CANVAS_HEIGHT + 4, iconSize);
 }

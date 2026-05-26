@@ -44,6 +44,7 @@ private:
     void renderPanel();
     void renderStatusBar();
     void drawTile(int tileId, int dstX, int dstY, int dstSize);
+    void drawCharacter(int dstX, int dstY, int dstW, int dstH);
     void drawMinus(const Toolbar::Button& b);
     void drawPlus(const Toolbar::Button& b);
     void drawSaveIcon(const Toolbar::Button& b);
