@@ -3,12 +3,12 @@
 #include <gtest/gtest.h>
 
 #include "../common/include/dto/ClientCommands.h"
+#include "../common/include/dto/ServerMessage.h"
 #include "../common/include/queue.h"
 #include "../server/include/model/ServerEvents.h"
 #include "../server/src/ConnectionMonitor.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
-#include "../common/include/dto/ServerMessage.h"
 
 // =======================================================================
 // TESTS DE LA COLA CENTRAL (GameEvent y std::variant)

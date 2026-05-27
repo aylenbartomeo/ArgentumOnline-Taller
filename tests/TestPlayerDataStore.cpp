@@ -6,7 +6,7 @@
 
 namespace fs = std::filesystem;
 
-class PlayerDataStoreTest : public ::testing::Test {
+class PlayerDataStoreTest: public ::testing::Test {
 protected:
     std::string testDir = "test_game_data/";
 
@@ -32,14 +32,14 @@ TEST_F(PlayerDataStoreTest, LoadReturnsNulloptForUnknownPlayer) {
 
 TEST_F(PlayerDataStoreTest, SaveAndLoadRoundTrip) {
     PlayerDataStore store(testDir);
-    
+
     PlayerPersistData dataToSave{};
     dataToSave.dbId = 123;
     dataToSave.posX = 5;
     dataToSave.posY = 3;
-    
+
     store.savePlayerData("Franco", dataToSave);
-    
+
     auto loadedData = store.loadPlayerData("Franco");
     ASSERT_TRUE(loadedData.has_value());
     EXPECT_EQ(loadedData->dbId, 123);
@@ -49,19 +49,19 @@ TEST_F(PlayerDataStoreTest, SaveAndLoadRoundTrip) {
 
 TEST_F(PlayerDataStoreTest, SaveOverwritesExistingData) {
     PlayerDataStore store(testDir);
-    
+
     PlayerPersistData initialData{};
     initialData.dbId = 42;
     initialData.posX = 10;
     initialData.posY = 10;
     store.savePlayerData("Cami", initialData);
-    
+
     PlayerPersistData updatedData{};
     updatedData.dbId = 42;
     updatedData.posX = 20;
     updatedData.posY = 20;
     store.savePlayerData("Cami", updatedData);
-    
+
     auto loadedData = store.loadPlayerData("Cami");
     ASSERT_TRUE(loadedData.has_value());
     EXPECT_EQ(loadedData->dbId, 42);
@@ -71,26 +71,26 @@ TEST_F(PlayerDataStoreTest, SaveOverwritesExistingData) {
 
 TEST_F(PlayerDataStoreTest, MultiplePlayersPersistIndependently) {
     PlayerDataStore store(testDir);
-    
+
     PlayerPersistData p1{};
     p1.dbId = 1;
     p1.posX = 1;
     p1.posY = 1;
-    
+
     PlayerPersistData p2{};
     p2.dbId = 2;
     p2.posX = 2;
     p2.posY = 2;
-    
+
     store.savePlayerData("Player1", p1);
     store.savePlayerData("Player2", p2);
-    
+
     auto load1 = store.loadPlayerData("Player1");
     auto load2 = store.loadPlayerData("Player2");
-    
+
     ASSERT_TRUE(load1.has_value());
     EXPECT_EQ(load1->dbId, 1);
-    
+
     ASSERT_TRUE(load2.has_value());
     EXPECT_EQ(load2->dbId, 2);
 }
@@ -104,7 +104,7 @@ TEST_F(PlayerDataStoreTest, IndexSurvivesRestart) {
         data.posY = 7;
         store.savePlayerData("PersistentPlayer", data);
     }
-    
+
     // Simulate restart by creating a new store instance pointing to the same directory
     {
         PlayerDataStore newStore(testDir);

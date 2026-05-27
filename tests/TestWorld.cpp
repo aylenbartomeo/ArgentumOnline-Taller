@@ -4,9 +4,9 @@
 #include <gtest/gtest.h>
 
 #include "model/entities/Player.h"
+#include "model/items/ItemRegistry.h"
 
 #include "World.h"
-#include "model/items/ItemRegistry.h"
 
 TEST(WorldTest, World_InitializesCorrectly) {
     ItemRegistry registry("../config/items.toml");
@@ -220,7 +220,7 @@ TEST(WorldTest, World_AddPlayerSpawnsAtMapSpawn) {
 TEST(WorldTest, World_AddPlayerWithSavedPositionSpawnsThere) {
     ItemRegistry registry("../config/items.toml");
     World mundo(1, "Tester", registry);
-    
+
     std::string user = "SavedPlayer";
     Position savedPos{5, 5};
     ASSERT_TRUE(mundo.addPlayer(1, user, savedPos));
@@ -234,9 +234,9 @@ TEST(WorldTest, World_AddPlayerWithSavedPositionSpawnsThere) {
 TEST(WorldTest, World_AddPlayerWithInvalidPositionUsesDefault) {
     ItemRegistry registry("../config/items.toml");
     World mundo(1, "Tester", registry);
-    
+
     std::string user = "InvalidPosPlayer";
-    Position invalidPos{-1, -1}; // assuming this is out of bounds
+    Position invalidPos{-1, -1};  // assuming this is out of bounds
     ASSERT_TRUE(mundo.addPlayer(1, user, invalidPos));
 
     SnapshotDTO snap = mundo.generateSnapshot();
@@ -249,13 +249,13 @@ TEST(WorldTest, World_AddPlayerWithInvalidPositionUsesDefault) {
 TEST(WorldTest, World_GetPlayerPositionReturnsCurrentPos) {
     ItemRegistry registry("../config/items.toml");
     World mundo(1, "Tester", registry);
-    
+
     std::string user = "MovingPlayer";
     ASSERT_TRUE(mundo.addPlayer(1, user));
-    
+
     mundo.moveEntity(1, Movement::DOWN);
     mundo.moveEntity(1, Movement::RIGHT);
-    
+
     auto pos = mundo.getPlayerPosition(1);
     ASSERT_TRUE(pos.has_value());
     EXPECT_EQ(pos->x, 1);
@@ -265,10 +265,10 @@ TEST(WorldTest, World_GetPlayerPositionReturnsCurrentPos) {
 TEST(WorldTest, World_GetPlayerUsernameReturnsCorrectName) {
     ItemRegistry registry("../config/items.toml");
     World mundo(1, "Tester", registry);
-    
+
     std::string user = "TestUser";
     ASSERT_TRUE(mundo.addPlayer(42, user));
-    
+
     auto name = mundo.getPlayerUsername(42);
     ASSERT_TRUE(name.has_value());
     EXPECT_EQ(name.value(), "TestUser");
@@ -277,20 +277,20 @@ TEST(WorldTest, World_GetPlayerUsernameReturnsCorrectName) {
 TEST(WorldTest, World_GetOnlinePlayerDbIdsReturnsAllActive) {
     ItemRegistry registry("../config/items.toml");
     World mundo(1, "Tester", registry);
-    
+
     std::string u1 = "u1";
     std::string u2 = "u2";
     std::string u3 = "u3";
     mundo.addPlayer(10, u1);
     mundo.addPlayer(20, u2);
     mundo.addPlayer(30, u3);
-    
+
     auto ids = mundo.getOnlinePlayerDbIds();
     EXPECT_EQ(ids.size(), 3u);
-    
+
     // Convert to vector and check if they exist
     std::vector<uint32_t> expected = {10, 20, 30};
-    for (auto id : expected) {
+    for (auto id: expected) {
         EXPECT_NE(std::find(ids.begin(), ids.end(), id), ids.end());
     }
 }

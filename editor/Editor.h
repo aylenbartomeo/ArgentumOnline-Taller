@@ -6,11 +6,10 @@
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
-#include "TextureManager.h"
-
 #include "Camera.h"
 #include "EditorMap.h"
 #include "Palette.h"
+#include "TextureManager.h"
 #include "Toolbar.h"
 
 class Editor {

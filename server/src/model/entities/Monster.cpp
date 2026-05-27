@@ -48,13 +48,20 @@ const std::string& Monster::get_zone() const { return this->zone; }
 
 std::string Monster::getName() const {
     switch (this->type) {
-        case NPCType::GOBLIN: return "Goblin";
-        case NPCType::SKELETON: return "Skeleton";
-        case NPCType::ZOMBIE: return "Zombie";
-        case NPCType::SPIDER: return "Spider";
-        case NPCType::ORC: return "Orc";
-        case NPCType::GOLEM: return "Golem";
-        default: return "Monster";
+        case NPCType::GOBLIN:
+            return "Goblin";
+        case NPCType::SKELETON:
+            return "Skeleton";
+        case NPCType::ZOMBIE:
+            return "Zombie";
+        case NPCType::SPIDER:
+            return "Spider";
+        case NPCType::ORC:
+            return "Orc";
+        case NPCType::GOLEM:
+            return "Golem";
+        default:
+            return "Monster";
     }
 }
 
@@ -68,7 +75,7 @@ uint16_t Monster::getAgility() const {
 
 uint16_t Monster::getLevel() const { return level; }
 uint16_t Monster::getMaxHp() const { return max_health; }
-int Monster::getDefense() const { return 0; }    // Monsters could have base defense, but for now 0
+int Monster::getDefense() const { return 0; }  // Monsters could have base defense, but for now 0
 
 bool Monster::canBeAttacked() const { return !isDead(); }
 void Monster::handleDeath() {

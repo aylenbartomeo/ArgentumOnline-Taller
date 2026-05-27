@@ -27,9 +27,9 @@ std::string readWholeFile(const std::string& path) {
 int main() {
     try {
         EditorMap map = std::filesystem::exists(MAP_PATH) ?
-                EditorMap(readWholeFile(MAP_PATH)) :
-                EditorMap(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_TILE_SIZE, TILESET_NAME,
-                          DEFAULT_TILESET_COLS);
+                                EditorMap(readWholeFile(MAP_PATH)) :
+                                EditorMap(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_TILE_SIZE,
+                                          TILESET_NAME, DEFAULT_TILESET_COLS);
         Editor editor(std::move(map), MAP_PATH);
         editor.run();
     } catch (const std::exception& e) {

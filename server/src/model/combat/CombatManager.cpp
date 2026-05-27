@@ -11,11 +11,11 @@
 // --- Lógica compartida de combate ---
 
 CombatResult CombatManager::resolveCombat(const Attackable& attacker, Attackable& target,
-                                 const AttackParams& params) {
+                                          const AttackParams& params) {
     CombatResult res;
     // 1. Validar distancia
     if (attacker.distance_to(target) > params.attackRange) {
-        return res; // attackHappened = false
+        return res;  // attackHappened = false
     }
 
     // 2. Validar que el target pueda ser atacado
@@ -91,7 +91,7 @@ CombatResult CombatManager::processAttack(Player& attacker, Attackable& target) 
                 target.getMaxHp(), attacker.getLevel(), target.getLevel());
         attacker.addExperience(killXp);
     }
-    
+
     return res;
 }
 
@@ -113,6 +113,6 @@ CombatResult CombatManager::processAttack(const Monster& attacker, Attackable& t
     if (target.isDead()) {
         target.handleDeath();
     }
-    
+
     return res;
 }

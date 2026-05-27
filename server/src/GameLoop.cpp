@@ -5,11 +5,13 @@
 
 #include "../include/model/ServerEvents.h"
 
-GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor, 
-                   const std::filesystem::path& configPath,
-                   const std::string& persistenceDir):
-        isRunning(true), gameQueue(gameQueue), monitor(monitor), 
-        itemRegistry(configPath), playerDataStore(persistenceDir), 
+GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
+                   const std::filesystem::path& configPath, const std::string& persistenceDir):
+        isRunning(true),
+        gameQueue(gameQueue),
+        monitor(monitor),
+        itemRegistry(configPath),
+        playerDataStore(persistenceDir),
         world(1, "Server", itemRegistry) {
     world.loadMap("maps/defaultMap.json");
 }
@@ -59,13 +61,13 @@ void GameLoop::processInputs() {
         if (std::holds_alternative<JoinEvent>(event)) {
             JoinEvent joinData = std::get<JoinEvent>(event);
             std::cout << "[GAMELOOP] Player joined: " << joinData.username << std::endl;
-            
+
             auto savedData = playerDataStore.loadPlayerData(joinData.username);
             std::optional<Position> savedPos = std::nullopt;
             if (savedData.has_value()) {
                 savedPos = Position{savedData->posX, savedData->posY};
             }
-            
+
             world.addPlayer(joinData.clientId, joinData.username, savedPos);
 
             // 2. Un jugador se desconecta
@@ -73,7 +75,7 @@ void GameLoop::processInputs() {
             DisconnectEvent discData = std::get<DisconnectEvent>(event);
             std::cout << "[GAMELOOP] Player " << discData.clientId << " requested disconnect."
                       << std::endl;
-            
+
             // Persistir posición antes de eliminar al jugador del mundo
             auto username = world.getPlayerUsername(discData.clientId);
             auto position = world.getPlayerPosition(discData.clientId);
@@ -84,7 +86,7 @@ void GameLoop::processInputs() {
                 data.posY = position->y;
                 playerDataStore.savePlayerData(username.value(), data);
             }
-                      
+
             world.removePlayer(discData.clientId);
 
             // 3. Checkeo de comandos in-game
@@ -136,7 +138,7 @@ void GameLoop::broadcastState() {
 
 void GameLoop::persistOnlinePlayers() {
     auto dbIds = world.getOnlinePlayerDbIds();
-    for (uint32_t dbId : dbIds) {
+    for (uint32_t dbId: dbIds) {
         auto username = world.getPlayerUsername(dbId);
         auto position = world.getPlayerPosition(dbId);
         if (username.has_value() && position.has_value()) {

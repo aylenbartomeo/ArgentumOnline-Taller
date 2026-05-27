@@ -51,7 +51,7 @@ public:
     // --- MÉTODOS DE ENVÍO (Servidor -> Cliente) ---
     void send_snapshot(const SnapshotDTO& snap);
     SnapshotDTO receive_snapshot_body();
-    
+
     ChatDTO receive_chat_body();
 
     void send_register_success(uint32_t clientId);
