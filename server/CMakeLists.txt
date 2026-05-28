@@ -49,6 +49,9 @@ target_sources(argentum_online_server
     src/persistence/PlayerDataStore.cpp
 
     # Game
+    src/model/map/GroundItemLayer.cpp
+    src/model/map/SafeZoneLayer.cpp
+    src/model/map/NPCLayer.cpp
     src/Map.cpp
     src/World.cpp
 
@@ -99,6 +102,9 @@ target_sources(argentum_online_server
     include/model/FormulaEngine.h
 
     src/Map.h
+    src/model/map/GroundItemLayer.h
+    src/model/map/SafeZoneLayer.h
+    src/model/map/NPCLayer.h
     src/World.h
     src/auth/AuthManager.h
     src/persistence/PlayerDataStore.h
@@ -111,6 +117,7 @@ target_include_directories(argentum_online_server
     src
     src/model
     src/model/entities
+    src/model/map
     src/model/items
     src/model/components
     ${CMAKE_SOURCE_DIR}/common/utils

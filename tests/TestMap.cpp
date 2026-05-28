@@ -131,3 +131,41 @@ TEST(MapTest, Map_CanMoveToFarColumnInWideMap) {
 
     EXPECT_TRUE(mapa.canMoveTo(Position{18, 3}));
 }
+
+// =======================================================================
+// TESTS DE ITEMS EN EL SUELO (FACHADA)
+// =======================================================================
+
+TEST(MapTest, Map_PlaceItem_and_PickUp) {
+    Map mapa;
+    mapa.setDimensions(20, 20);
+    Position pos{5, 5};
+
+    EXPECT_TRUE(mapa.placeItem(pos, 1, 10));
+    EXPECT_TRUE(mapa.hasItemAt(pos));
+
+    auto picked = mapa.pickUpItem(pos);
+    ASSERT_TRUE(picked.has_value());
+    EXPECT_EQ(picked->itemId, 1);
+    EXPECT_EQ(picked->amount, 10);
+    EXPECT_FALSE(mapa.hasItemAt(pos));
+}
+
+TEST(MapTest, Map_PlaceItemNearby_overflows_to_adjacent) {
+    Map mapa;
+    mapa.setDimensions(20, 20);
+    Position pos{10, 10};
+
+    // El primero va a la posición exacta
+    auto pos1 = mapa.placeItemNearby(pos, 1, 1);
+    ASSERT_TRUE(pos1.has_value());
+    EXPECT_EQ(pos1->x, 10);
+    EXPECT_EQ(pos1->y, 10);
+
+    // El segundo va a una adyacente porque (10, 10) está ocupado
+    auto pos2 = mapa.placeItemNearby(pos, 2, 1);
+    ASSERT_TRUE(pos2.has_value());
+    EXPECT_NE(pos2.value(), pos);  // No es la original
+    EXPECT_LE(pos2->distance_to(pos),
+              2);  // Distancia Manhattan de adyacente diagonal es 2, recta es 1
+}
