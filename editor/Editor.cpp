@@ -47,6 +47,15 @@ constexpr int CHARACTER_FRAME_H = 44;
 constexpr double TAU = 6.283185307179586;
 constexpr int MARKER_SEGMENTS = 24;
 constexpr int MARKER_SHIFT_X = 3;
+
+constexpr const char* HEAD_SHEET_PATH = "resources/420.png";
+constexpr int HEAD_FRAME_X = 6;
+constexpr int HEAD_FRAME_Y = 13;
+constexpr int HEAD_FRAME_W = 13;
+constexpr int HEAD_FRAME_H = 15;
+constexpr int HEAD_DRAW_W = 18;
+constexpr int HEAD_DRAW_H = 20;
+constexpr int HEAD_OVERLAP = 6;
 }  // namespace
 
 int Editor::tileCountFromTexture() {
@@ -274,6 +283,12 @@ void Editor::renderSpawn() {
     Position screen = camera.cellToScreen(spawn.x, spawn.y);
     const int charH = TILE_SCREEN * 3 / 2;
     drawCharacter(screen.x, screen.y + TILE_SCREEN - charH, TILE_SCREEN, charH);
+
+    SDL2pp::Texture& headTex = textures.get(HEAD_SHEET_PATH);
+    SDL2pp::Rect headSrc(HEAD_FRAME_X, HEAD_FRAME_Y, HEAD_FRAME_W, HEAD_FRAME_H);
+    const int headX = screen.x + TILE_SCREEN / 2 - HEAD_DRAW_W / 2;
+    const int headY = screen.y + TILE_SCREEN - charH + HEAD_OVERLAP - HEAD_DRAW_H;
+    renderer.Copy(headTex, headSrc, SDL2pp::Rect(headX, headY, HEAD_DRAW_W, HEAD_DRAW_H));
 
     renderer.SetDrawColor(255, 235, 0, 255);
     const int cx = screen.x + TILE_SCREEN / 2 - MARKER_SHIFT_X;

@@ -28,6 +28,15 @@ constexpr double TAU = 6.283185307179586;
 constexpr int MARKER_SEGMENTS = 24;
 constexpr int MARKER_SHIFT_X = 3;
 
+constexpr const char* HEAD_SHEET = "420.png";
+constexpr int HEAD_FRAME_X = 6;
+constexpr int HEAD_FRAME_Y = 13;
+constexpr int HEAD_FRAME_W = 13;
+constexpr int HEAD_FRAME_H = 15;
+constexpr int HEAD_DRAW_W = 18;
+constexpr int HEAD_DRAW_H = 20;
+constexpr int HEAD_OVERLAP = 6;
+
 std::string readWholeFile(const std::string& path) {
     std::ifstream file(path);
     if (!file) {
@@ -121,16 +130,23 @@ void Game::renderTerrain() {
 void Game::renderEntities() {
     SDL2pp::Renderer& renderer = window.getRenderer();
     SDL2pp::Texture& sheet = textures.get(std::string(RESOURCES_DIR) + CHARACTER_SHEET);
+    SDL2pp::Texture& headSheet = textures.get(std::string(RESOURCES_DIR) + HEAD_SHEET);
     const uint32_t myId = client.getClientId();
 
     const SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
                                CHARACTER_FRAME_H);
+    const SDL2pp::Rect headSrc(HEAD_FRAME_X, HEAD_FRAME_Y, HEAD_FRAME_W, HEAD_FRAME_H);
 
     for (const EntityDTO& entity: lastSnapshot.entities) {
         const SDL2pp::Rect dstRect(entity.x * TILE_SIZE,
                                    entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H, TILE_SIZE,
                                    CHARACTER_DRAW_H);
         renderer.Copy(sheet, srcRect, dstRect);
+
+        const int headX = entity.x * TILE_SIZE + TILE_SIZE / 2 - HEAD_DRAW_W / 2;
+        const int headY = entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H + HEAD_OVERLAP -
+                          HEAD_DRAW_H;
+        renderer.Copy(headSheet, headSrc, SDL2pp::Rect(headX, headY, HEAD_DRAW_W, HEAD_DRAW_H));
 
         if (entity.id == myId) {
             renderer.SetDrawColor(255, 235, 0, 255);
