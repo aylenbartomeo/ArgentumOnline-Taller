@@ -51,6 +51,7 @@ target_sources(argentum_online_server
     # Game
     src/Map.cpp
     src/World.cpp
+    src/model/clan/ClanManager.cpp
 
     # Components
     src/model/components/InventoryComponent.cpp
@@ -113,6 +114,7 @@ target_include_directories(argentum_online_server
     src/model/entities
     src/model/items
     src/model/components
+    src/model/clan
     ${CMAKE_SOURCE_DIR}/common/utils
 )
 

@@ -16,6 +16,7 @@
 
 #include "Map.h"
 #include "queue.h"
+#include "model/clan/ClanManager.h"
 
 class ItemRegistry;
 
@@ -38,6 +39,7 @@ private:
     std::unordered_map<uint32_t, uint32_t> dbIdToEntityId;
 
     std::vector<WorldEvent> outgoingEvents;
+    ClanManager clanManager;
 
     // Busca un Attackable por ID (busca en players y luego en monsters)
     Attackable* findAttackable(uint32_t id);
@@ -47,6 +49,10 @@ private:
 
     // Procesa el ataque de un Monster a un Player
     void monsterAttack(const Monster& monster, Player& target);
+
+    // dado un nombre de jugador (nick), devuelve su dbId si está online
+    static std::optional<uint32_t> resolveNickToDbId(const std::unordered_map<uint32_t, uint32_t>& dbIdToEntityId,
+        const std::unordered_map<uint32_t, std::unique_ptr<Player>>& players, const std::string& nick);
 
 public:
     explicit World(int worldId, const std::string& creatorPlayerName,
@@ -92,6 +98,15 @@ public:
 
     // Para testing: permite colocar obstáculos en el mapa
     void setObstacleAt(int x, int y);
+
+    // Procesa cualquier comando de clan enviado por un jugador.
+    void processClanCommand(uint32_t senderDbId, const ClanCommandDTO& cmd);
+ 
+    // Devuelve cuántos clanmates del atacante están cerca de su posición
+    int countNearbyClanmates(uint32_t playerDbId, int range) const;
+ 
+    // Verdadero si ambos jugadores pertenecen al mismo clan
+    bool areClanmates(uint32_t playerADbId, uint32_t playerBDbId) const;
 
     ~World() = default;
 };

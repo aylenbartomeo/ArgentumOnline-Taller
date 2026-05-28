@@ -4,6 +4,7 @@
 #include <variant>
 
 #include "../include/model/ServerEvents.h"
+#include "dto/ClanCommandDTO.h"
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
                    const std::filesystem::path& configPath, const std::string& persistenceDir):
@@ -107,6 +108,10 @@ void GameLoop::processInputs() {
             } else if (std::holds_alternative<DropItemDTO>(pCmd.command)) {
                 // DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
                 // world.drop_item(pCmd.clientId, drop_dto.slot, drop_dto.amount);
+
+            } else if (std::holds_alternative<ClanCommandDTO>(pCmd.command)) {
+                ClanCommandDTO clanCmd = std::get<ClanCommandDTO>(pCmd.command);
+                world.processClanCommand(pCmd.clientId, clanCmd);
             }
         }
     }

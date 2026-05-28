@@ -287,3 +287,135 @@ std::vector<WorldEvent> World::pollEvents() {
     outgoingEvents.clear();
     return events;
 }
+
+// =============================================================================
+// Sistema de clanes
+// =============================================================================
+ 
+std::optional<uint32_t> World::resolveNickToDbId(const std::unordered_map<uint32_t, uint32_t>& dbIdToEntityId,
+        const std::unordered_map<uint32_t, std::unique_ptr<Player>>& players, const std::string& nick) {
+    for (const auto& [dbId, entityId] : dbIdToEntityId) {
+        auto it = players.find(entityId);
+        if (it != players.end() && it->second->getName() == nick) {
+            return dbId;
+        }
+    }
+    return std::nullopt;
+}
+
+void World::processClanCommand(uint32_t senderDbId, const ClanCommandDTO& cmd) {
+    std::vector<ClanNotification> notifs;
+ 
+    // Para comandos que requieren nivel, lo obtenemos del Player
+    auto getLevel = [&]() -> uint16_t {
+        auto it = dbIdToEntityId.find(senderDbId);
+        if (it == dbIdToEntityId.end()) return 0;
+        auto pit = players.find(it->second);
+        if (pit == players.end()) return 0;
+        return pit->second->getLevel();
+    };
+ 
+    // Resolver nick a dbId (para comandos que apuntan a otro jugador)
+    auto resolveTarget = [&]() -> uint32_t {
+        if (cmd.targetDbId != 0) return cmd.targetDbId;  // ya resuelto
+        auto resolved = resolveNickToDbId(dbIdToEntityId, players, cmd.arg1);
+        return resolved.value_or(0);
+    };
+ 
+    ClanOpResult result = ClanOpResult::OK;
+ 
+    switch (cmd.type) {
+        case ClanCommandType::FOUND:
+            result = clanManager.foundClan(senderDbId, getLevel(), cmd.arg1, notifs);
+            break;
+ 
+        case ClanCommandType::JOIN:
+            result = clanManager.joinRequest(senderDbId, cmd.arg1, notifs);
+            break;
+ 
+        case ClanCommandType::LEAVE:
+            result = clanManager.leaveClan(senderDbId, notifs);
+            break;
+ 
+        case ClanCommandType::REVIEW: {
+            std::string report;
+            result = clanManager.reviewClan(senderDbId, report);
+            if (result == ClanOpResult::OK) {
+                notifs.push_back({senderDbId, report});
+            } else {
+                notifs.push_back({senderDbId, "No eres fundador de ningún clan."});
+            }
+            break;
+        }
+ 
+        case ClanCommandType::ACCEPT: {
+            uint32_t targetId = resolveTarget();
+            if (targetId == 0) {
+                notifs.push_back({senderDbId, "Jugador '" + cmd.arg1 + "' no encontrado online."});
+            } else {
+                result = clanManager.acceptMember(senderDbId, cmd.arg1, targetId, notifs);
+            }
+            break;
+        }
+ 
+        case ClanCommandType::REJECT: {
+            uint32_t targetId = resolveTarget();
+            if (targetId == 0) {
+                notifs.push_back({senderDbId, "Jugador '" + cmd.arg1 + "' no encontrado online."});
+            } else {
+                result = clanManager.rejectMember(senderDbId, cmd.arg1, targetId, notifs);
+            }
+            break;
+        }
+ 
+        case ClanCommandType::BAN: {
+            uint32_t targetId = resolveTarget();
+            if (targetId == 0) {
+                notifs.push_back({senderDbId, "Jugador '" + cmd.arg1 + "' no encontrado online."});
+            } else {
+                result = clanManager.banMember(senderDbId, cmd.arg1, targetId, notifs);
+            }
+            break;
+        }
+ 
+        case ClanCommandType::KICK: {
+            uint32_t targetId = resolveTarget();
+            if (targetId == 0) {
+                notifs.push_back({senderDbId, "Jugador '" + cmd.arg1 + "' no encontrado online."});
+            } else {
+                result = clanManager.kickMember(senderDbId, cmd.arg1, targetId, notifs);
+            }
+            break;
+        }
+    }
+ 
+    // Volcar las notificaciones a los outgoingEvents del mundo
+    for (const auto& n : notifs) {
+        outgoingEvents.push_back({n.targetDbId, n.message});
+    }
+}
+  
+int World::countNearbyClanmates(uint32_t playerDbId, int range) const {
+    // Construir mapa de posiciones de los miembros online
+    std::unordered_map<uint32_t, std::pair<int,int>> memberPositions;
+    for (const auto& [dbId, entityId] : dbIdToEntityId) {
+        auto it = players.find(entityId);
+        if (it != players.end()) {
+            Position p = it->second->getPosition();
+            memberPositions[dbId] = {p.x, p.y};
+        }
+    }
+ 
+    // Posición de referencia: el propio jugador
+    auto selfIt = dbIdToEntityId.find(playerDbId);
+    if (selfIt == dbIdToEntityId.end()) return 0;
+    auto playerIt = players.find(selfIt->second);
+    if (playerIt == players.end()) return 0;
+    Position selfPos = playerIt->second->getPosition();
+ 
+    return clanManager.countNearbyClanmates(playerDbId, memberPositions, selfPos.x, selfPos.y, range);
+}
+ 
+bool World::areClanmates(uint32_t playerADbId, uint32_t playerBDbId) const {
+    return clanManager.areClanmates(playerADbId, playerBDbId);
+}
