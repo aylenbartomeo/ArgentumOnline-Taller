@@ -38,6 +38,9 @@ public:
 
     // Monster ataca a cualquier entidad (típicamente un Player)
     CombatResult processAttack(const Monster& attacker, Attackable& target);
+
+    // Variante con bonuses de clan pre-calculados por World
+    CombatResult processAttack(Player& attacker, Attackable& target, float attackBonus, float defenseBonus);
 };
 
 #endif
