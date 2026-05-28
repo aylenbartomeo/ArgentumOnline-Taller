@@ -26,6 +26,7 @@ target_sources(argentum_online_server
     src/model/entities/Monster.cpp
     src/model/entities/MonsterFactory.cpp
     src/model/entities/Merchant.cpp
+    src/model/entities/Priest.cpp
 
     # Items
     src/model/items/Armor.cpp

@@ -18,12 +18,12 @@
 #include "Map.h"
 #include "queue.h"
 
-class ItemRegistry;
-
+// Eventos de mundo (mensajes destinados al cliente); definidos aquí para evitar múltiples definiciones
 struct WorldEvent {
     uint32_t targetDbId;
     std::string message;
 };
+class ItemRegistry;
 
 class World {
 private:

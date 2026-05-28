@@ -17,6 +17,6 @@ private:
 public:
     Merchant(Position pos, const ItemRegistry& registry);
     Position getPosition() const override { return position; }
-    void beInteractedBy(Player& player, std::vector<WorldEvent>& outgoingEvents) override;
-    void handleCommand(Player& player, const NpcCommandDTO& dto, std::vector<WorldEvent>& outgoingEvents) override;
+    void beInteractedBy(Player& player) override;
+    void handleCommand(Player& player, const NpcCommandDTO& dto) override;
 };

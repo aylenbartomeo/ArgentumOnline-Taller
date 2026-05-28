@@ -1,21 +1,38 @@
 #pragma once
-#include <unordered_map>
-#include <vector>
-#include <memory>
-#include <string>
-#include "items/Item.h"
 
-// El banco es global: todos los Bankers del mundo comparten esta instancia
+#include <cstdint>
+#include <vector>
+#include <unordered_map>
+#include <optional>
+
+struct BankSlot {
+    uint32_t item_id{0};
+    uint16_t amount{0};
+
+    bool is_empty() const { return item_id == 0 || amount == 0; }
+    void clear() {
+        item_id = 0;
+        amount = 0;
+    }
+};
+
 class GlobalBank {
 private:
-    // Por jugador: su oro y sus ítems depositados
+    static const size_t BANK_SIZE = 40; // Capacidad fija de la bóveda bancaria
+
     struct BankAccount {
         uint32_t gold = 0;
-        std::vector<std::unique_ptr<Item>> items;
+        std::vector<BankSlot> slots;
+
+        BankAccount() : gold(0), slots(BANK_SIZE) {} // Inicializa los 40 slots vacíos
     };
-    std::unordered_map<uint32_t, BankAccount> accounts;  // playerId → cuenta
+
+    std::unordered_map<uint32_t, BankAccount> accounts;
 
 public:
+    GlobalBank() = default;
+
+    // --- GESTIÓN DE ORO ---
     void depositGold(uint32_t playerId, uint32_t amount) {
         accounts[playerId].gold += amount;
     }
@@ -27,34 +44,54 @@ public:
         return true;
     }
 
-    void depositItem(uint32_t playerId, std::unique_ptr<Item> item) {
-        accounts[playerId].items.push_back(std::move(item));
+    uint32_t getBankGold(uint32_t playerId) {
+        return accounts[playerId].gold;
     }
 
-    std::unique_ptr<Item> withdrawItem(uint32_t playerId, const std::string& name) {
-        auto it = accounts.find(playerId);
-        if (it == accounts.end()) return nullptr;
+    // --- GESTIÓN DE ÍTEMS CON APILAMIENTO ---
+    // Retorna true si pudo depositar, false si el banco está lleno
+    bool depositItem(uint32_t playerId, uint32_t itemId, uint16_t amount) {
+        auto& account = accounts[playerId];
 
-        auto& items = it->second.items;
-        for (auto itemIt = items.begin(); itemIt != items.end(); ++itemIt) {
-            if ((*itemIt)->getName() == name) {
-                auto item = std::move(*itemIt);
-                items.erase(itemIt);
-                return item;
+        // 1. Intentar apilar en un slot existente del mismo ítem
+        for (auto& slot : account.slots) {
+            if (!slot.is_empty() && slot.item_id == itemId) {
+                slot.amount += amount;
+                return true;
             }
         }
-        return nullptr;
+
+        // 2. Si no existe, buscar el primer slot libre
+        for (auto& slot : account.slots) {
+            if (slot.is_empty()) {
+                slot.item_id = itemId;
+                slot.amount = amount;
+                return true;
+            }
+        }
+
+        return false; // Bóveda totalmente llena
     }
 
-    std::string listContents(uint32_t playerId) const {
+    // Retorna la cantidad realmente retirada (o 0 si no había)
+    uint16_t withdrawItemById(uint32_t playerId, uint32_t itemId, uint16_t amountToWithdraw) {
         auto it = accounts.find(playerId);
-        if (it == accounts.end()) return "Tu cuenta está vacía.";
+        if (it == accounts.end()) return 0;
 
-        std::string result = "=== Tu banco ===\n";
-        result += "Oro: " + std::to_string(it->second.gold) + "\n";
-        for (const auto& item : it->second.items) {
-            result += "- " + item->getName() + "\n";
+        auto& account = it->second;
+
+        // Buscamos el slot que contiene ese ID
+        for (auto& slot : account.slots) {
+            if (!slot.is_empty() && slot.item_id == itemId) {
+                uint16_t actualWithdrawn = std::min(slot.amount, amountToWithdraw);
+                
+                slot.amount -= actualWithdrawn;
+                if (slot.amount == 0) {
+                    slot.clear(); // Si se quedó sin nada, liberamos el slot del banco
+                }
+                return actualWithdrawn;
+            }
         }
-        return result;
+        return 0; 
     }
 };

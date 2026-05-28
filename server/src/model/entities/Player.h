@@ -43,11 +43,20 @@ public:
 
     // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
     void update(float deltaSeconds);
+    
     // Equipa un ítem resolviendo su ID contra el registry
     uint32_t equipItemById(uint32_t itemId);
+    
     // Equipa un ítem directamente desde un slot del inventario.
     // Retorna true si pudo equiparlo, false en caso contrario.
     bool equipFromSlot(uint8_t slotIndex);
+    
+    // Se llama cada vez que el jugador inicia una accion activa en el mundo
+    void onActionStarted();
+
+    // Calcula la posición resultante de moverse en una dirección,
+    // sin modificar la posición actual del jugador.
+    Position tryMove(Movement direction) const;
 
     /* GETTERS/SETTERS de atributos que expone */
     uint32_t getId() const { return this->id; }
@@ -65,7 +74,7 @@ public:
     bool canEngageInCombatWith(const Attackable& other) const override;
     uint16_t getLevel() const override { return stats.getLevel(); }
 
-    // Acceso a los componentes
+    /* Acceso a los componentes */
     // Stats
     StatsComponent& getStats() { return this->stats; }
     const StatsComponent& getStats() const { return this->stats; }
@@ -73,7 +82,10 @@ public:
     uint16_t getHp() const { return stats.getHp(); }
     uint16_t getMaxHp() const override { return stats.getMaxHp(); }
     uint16_t getMana() const { return stats.getMana(); }
+    uint16_t getMaxMana() const { return stats.getMaxMana();}
     bool consumeMana(int amount) { return stats.consumeMana(static_cast<uint16_t>(amount)); }
+    void restoreHp() { stats.restoreHp(); }
+    void restoreMana() { stats.restoreMana(); }
 
     // Inventory
     InventoryComponent& getInventory() { return this->inventory; }
@@ -98,13 +110,7 @@ public:
     bool canAttack() const { return this->state.canAttack(); }
     bool canBeAttacked() const override { return this->state.canBeAttacked(); }
     void handleDeath() override;
-
-    // Se llama cada vez que el jugador inicia una accion activa en el mundo
-    void onActionStarted();
-
-    // Calcula la posición resultante de moverse en una dirección,
-    // sin modificar la posición actual del jugador.
-    Position tryMove(Movement direction) const;
+    void resurrect();
 };
 
 #endif

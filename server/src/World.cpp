@@ -210,8 +210,8 @@ void World::playerInteract(uint32_t dbId, uint32_t targetNpcId) {
     // 4. REGISTRO DE SESIÓN: El mundo toma nota de la interacción
     activeInteractions[playerEntityId] = npc;
 
-    // 5. Polimorfismo: El NPC reacciona (puede enviar un evento para abrir la GUI en el cliente)
-    npc->beInteractedBy(player, outgoingEvents);
+    // 5. Polimorfismo: El NPC reacciona (pendiente acople con cliente/UI)
+    npc->beInteractedBy(player);
 }
 
 void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
@@ -240,7 +240,8 @@ void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
     }
 
     // El NPC ejecuta el comando de negocio (compra, venta, etc.)
-    npc->handleCommand(player, dto, outgoingEvents);
+    // Nota: el envío de WorldEvent hacia la UI está pendiente de acople
+    npc->handleCommand(player, dto);
 }
 
 Player* World::findNearestPlayer(const Monster& monster, int range) {

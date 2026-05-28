@@ -90,7 +90,14 @@ bool Player::canEngageInCombatWith(const Attackable& other) const {
 
 void Player::handleDeath() {
     state.die();
+    // A death should also zero the HP so isDead() becomes true
+    stats.takeDamage(stats.getHp());
     // TODO: inventory->dropItems();
+}
+
+void Player::resurrect() {
+    stats.restoreHp();    
+    state.resurrect(); 
 }
 
 void Player::onActionStarted() { state.stopMeditating(); }

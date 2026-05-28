@@ -36,11 +36,9 @@ TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
     // Configuramos precondiciones usando la API real de tu InventoryComponent
     player.addGold(500); 
 
-    std::vector<WorldEvent> events;
     // Intentamos comprar la "Espada" (ID: 4001 de tu TOML)
     NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "4001");
-    
-    comerciante.handleCommand(player, cmd, events);
+    comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES:
     // 1. Se debitó el oro del inventario (500 - 100 de unitPrice base = 400)
@@ -52,9 +50,6 @@ TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
     EXPECT_EQ(slotOpt->item_id, 4001u);
     EXPECT_EQ(slotOpt->amount, 1);
 
-    // 3. El evento de salida notifica el éxito del comando al cliente
-    ASSERT_EQ(events.size(), 1u);
-    EXPECT_NE(events[0].message.find("Compraste"), std::string::npos);
 }
 
 // =========================================================================
@@ -75,18 +70,12 @@ TEST(MerchantTest, Merchant_BuyWithFullInventoryDoesNotStealGold) {
     }
 
     // Intentamos comprar la Espada (4001)
-    std::vector<WorldEvent> events;
     NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "4001");
-    
-    comerciante.handleCommand(player, cmd, events);
+    comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES CRÍTICAS:
     // 1. ¡Rollback exitoso! El oro debe permanecer en 200 de forma segura
     EXPECT_EQ(player.getGold(), 200u);
-
-    // 2. Se reporta un evento con mensaje de error por falta de espacio
-    ASSERT_EQ(events.size(), 1u);
-    EXPECT_NE(events[0].message.find("No tienes espacio suficiente"), std::string::npos);
 }
 
 // =========================================================================
@@ -99,11 +88,9 @@ TEST(MerchantTest, Merchant_RejectsMagicItemsBasedOnName) {
 
     player.addGold(300);
 
-    std::vector<WorldEvent> events;
     NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "6003"); // Baculo nudoso
-    
-    comerciante.handleCommand(player, cmd, events);
-    
+    comerciante.handleCommand(player, cmd);
+
     // 1. Verificamos que no se le haya descontado un solo centavo de oro
     EXPECT_EQ(player.getGold(), 300u);
 
@@ -113,11 +100,6 @@ TEST(MerchantTest, Merchant_RejectsMagicItemsBasedOnName) {
         auto slotOpt = player.inspectSlot(0);
         EXPECT_FALSE(slotOpt.has_value());
     }
-
-    // 3. Verificamos que se haya emitido el evento de rechazo místico
-    ASSERT_EQ(events.size(), 1u);
-    EXPECT_EQ(events[0].targetDbId, player.getDbId());
-    EXPECT_NE(events[0].message.find("Yo no comercio con magia"), std::string::npos);
 }
 
 // =========================================================================
@@ -133,10 +115,8 @@ TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
     EXPECT_EQ(player.getGold(), 0u); // Arranca seco
 
     // Ejecutamos el comando de venta de la armadura
-    std::vector<WorldEvent> events;
     NpcCommandDTO cmd = createTestCommand(NpcCommandType::SELL, "1001");
-    
-    comerciante.handleCommand(player, cmd, events);
+    comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES:
     // 1. El slot de la mochila quedó limpio (devuelve nullopt)

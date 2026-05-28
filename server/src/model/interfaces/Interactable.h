@@ -6,7 +6,6 @@
 #include "dto/ClientCommands.h"
 
 class Player;
-struct WorldEvent; // Forward declaration de tus eventos salientes
 
 class Interactable {
 public:
@@ -17,10 +16,12 @@ public:
 
     // El NPC recibe el click inicial del jugador y genera los eventos de red necesarios
     // (Por ejemplo: indicarle al cliente que abra la interfaz de comercio o banco)
-    virtual void beInteractedBy(Player& player, std::vector<WorldEvent>& outgoingEvents) = 0;
+    // Nota: el envío de `WorldEvent` hacia la UI cliente está pendiente de acople.
+    virtual void beInteractedBy(Player& player) = 0;
 
     // El NPC procesa el comando específico (BUY, SELL, DEPOSIT, etc.) enviado por el jugador
-    virtual void handleCommand(Player& player, const NpcCommandDTO& dto, std::vector<WorldEvent>& outgoingEvents) = 0;
+    // Nota: el envío de `WorldEvent` hacia la UI cliente está pendiente de acople.
+    virtual void handleCommand(Player& player, const NpcCommandDTO& dto) = 0;
 };
 
 #endif

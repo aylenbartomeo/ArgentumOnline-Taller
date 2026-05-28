@@ -7,12 +7,18 @@
 #include "../interfaces/Interactable.h"
 #include "GlobalBank.h"
 
+class ItemRegistry;
+
 class Banker : public Interactable {
 private:
+    Position pos;
     GlobalBank& bank;
+    const ItemRegistry& registry;
 public:
-    void beInteractedBy(Player& player, std::vector<WorldEvent>& outgoingEvents) override {}
-    void handleCommand(Player& player, const NpcCommandDTO& dto, std::vector<WorldEvent>& outgoingEvents) override {}
+    Banker(Position pos, GlobalBank& bankInstance, const ItemRegistry& registry);
+    Position getPosition() const override { return pos; }
+    void beInteractedBy(Player& player) override;
+    void handleCommand(Player& player, const NpcCommandDTO& dto) override;
 };
 
 #endif  // BANKER_H_

@@ -13,6 +13,9 @@ target_sources(argentum_online_tests
     TestRegenerationComponent.cpp
     TestTileMap.cpp
     TestMerchant.cpp
+    TestPriest.cpp
+    TestGlobalBank.cpp
+    TestBanker.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
     ../server/src/Map.cpp
@@ -20,6 +23,8 @@ target_sources(argentum_online_tests
     ../server/src/model/entities/Player.cpp
     ../server/src/model/entities/Monster.cpp
     ../server/src/model/entities/Merchant.cpp
+    ../server/src/model/entities/Priest.cpp
+    ../server/src/model/entities/Banker.cpp
     ../server/src/model/entities/MonsterFactory.cpp
     ../server/src/model/components/StatsComponent.cpp
     ../server/src/model/components/InventoryComponent.cpp

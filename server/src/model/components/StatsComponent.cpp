@@ -34,7 +34,7 @@ void StatsComponent::addExperience(uint32_t amount) {
     while (exp >= formulaEngine.calculate_level_up_limit(level)) {
         level++;
         recalculateMaxStats();
-        health = max_health;  // Full restore al subir de nivel
+        health = max_health;
         mana = max_mana;
     }
 }
@@ -44,9 +44,11 @@ void StatsComponent::takeDamage(uint16_t amount) {
 }
 
 void StatsComponent::heal(uint16_t amount) {
-    if (health == 0)
-        return;
+    if (health == 0) return;
     health = std::min(static_cast<uint16_t>(health + amount), max_health);
+}
+void StatsComponent::restoreHp() {
+    health = max_health;
 }
 
 bool StatsComponent::consumeMana(uint16_t amount) {
@@ -57,7 +59,10 @@ bool StatsComponent::consumeMana(uint16_t amount) {
 }
 
 void StatsComponent::recoverMana(uint16_t amount) {
-    if (health == 0)
-        return;
+    if (health == 0) return;
     mana = std::min(static_cast<uint16_t>(mana + amount), max_mana);
+}
+
+void StatsComponent::restoreMana() {
+    mana = max_mana;
 }
