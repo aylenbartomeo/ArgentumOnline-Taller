@@ -4,27 +4,28 @@
 
 #include <gtest/gtest.h>
 
+#include "../common/include/queue.h"
+#include "dto/ClanCommandDTO.h"
+#include "model/clan/ClanController.h"
 #include "model/clan/ClanRepository.h"
 #include "model/clan/ClanService.h"
-#include "model/clan/ClanController.h"
-#include "dto/ClanCommandDTO.h"
-
 #include "model/items/ItemRegistry.h"
-#include "World.h"
-#include "../common/include/queue.h"
-#include "GameLoop.h"
 
-class ClanSystemTest : public ::testing::Test {
+#include "GameLoop.h"
+#include "World.h"
+
+class ClanSystemTest: public ::testing::Test {
 protected:
     ClanRepository repo;
     ClanService service;
     ClanController controller;
     std::vector<ClanNotification> notifs;
 
-    ClanSystemTest() : service(repo), controller(service) {}
+    ClanSystemTest(): service(repo, 1), controller(service) {}
 
     void SetUp() override {
         notifs.clear();
+        service.setMinLevelToFound(1);  // Doble seguridad
     }
 
     // --- Helpers de Lógica (Evalúan reglas de negocio) ---
@@ -46,9 +47,7 @@ protected:
     ClanOpResult kick(uint32_t founder, uint32_t target) {
         return service.kickMember(founder, target);
     }
-    ClanOpResult leave(uint32_t player) {
-        return service.leaveClan(player);
-    }
+    ClanOpResult leave(uint32_t player) { return service.leaveClan(player); }
 
     // --- Helpers de Presentación (Simulan la generación de notificaciones) ---
     void notifyFoundClan(uint32_t founder, const std::string& name, uint16_t level = 10) {
@@ -81,11 +80,9 @@ protected:
     }
 
     bool hasNotifFor(uint32_t targetId, const std::string& substr) {
-        return std::any_of(notifs.begin(), notifs.end(),
-            [&](const ClanNotification& n) {
-                return n.targetDbId == targetId &&
-                       n.message.find(substr) != std::string::npos;
-            });
+        return std::any_of(notifs.begin(), notifs.end(), [&](const ClanNotification& n) {
+            return n.targetDbId == targetId && n.message.find(substr) != std::string::npos;
+        });
     }
 };
 // =============================================================================
@@ -98,9 +95,12 @@ TEST_F(ClanSystemTest, FoundClan_OK) {
 }
 
 TEST_F(ClanSystemTest, FoundClan_LevelTooLow) {
+    // Restauramos temporalmente la restricción de nivel a 6 solo para este test
+    service.setMinLevelToFound(6);
+
     EXPECT_EQ(foundClan(1, "MiClan", 3), ClanOpResult::LEVEL_TOO_LOW);
     EXPECT_FALSE(repo.getClanIdOfPlayer(1).has_value());
-    
+
     notifyFoundClan(1, "MiClan", 3);
     EXPECT_TRUE(hasNotifFor(1, "Necesitas más nivel"));
 }
@@ -134,7 +134,7 @@ TEST_F(ClanSystemTest, FoundClan_NotificationSentToFounder) {
 TEST_F(ClanSystemTest, JoinRequest_OK) {
     foundClan(1, "Alpha");
     EXPECT_EQ(joinRequest(2, "Alpha"), ClanOpResult::OK);
-    
+
     notifyJoinRequest(2, "Alpha");
     EXPECT_TRUE(hasNotifFor(2, "Solicitud enviada"));
     EXPECT_TRUE(hasNotifFor(1, "pedido de ingreso"));
@@ -142,26 +142,31 @@ TEST_F(ClanSystemTest, JoinRequest_OK) {
 
 TEST_F(ClanSystemTest, JoinRequest_ClanNotFound) {
     EXPECT_EQ(joinRequest(2, "Inexistente"), ClanOpResult::CLAN_NOT_FOUND);
-    
+
     notifyJoinRequest(2, "Inexistente");
     EXPECT_TRUE(hasNotifFor(2, "No existe"));
 }
 
 TEST_F(ClanSystemTest, JoinRequest_AlreadyInClan) {
-    foundClan(1, "Alpha"); joinRequest(2, "Alpha"); accept(1, 2);
+    foundClan(1, "Alpha");
+    joinRequest(2, "Alpha");
+    accept(1, 2);
     foundClan(3, "Beta");
     EXPECT_EQ(joinRequest(2, "Beta"), ClanOpResult::ALREADY_IN_CLAN);
 }
 
 TEST_F(ClanSystemTest, JoinRequest_Banned) {
-    foundClan(1, "Alpha"); joinRequest(2, "Alpha"); ban(1, 2);
+    foundClan(1, "Alpha");
+    joinRequest(2, "Alpha");
+    ban(1, 2);
     EXPECT_EQ(joinRequest(2, "Alpha"), ClanOpResult::PLAYER_BANNED);
 }
 
 TEST_F(ClanSystemTest, JoinRequest_ClanFull) {
     foundClan(1, "FullClan");
     for (uint32_t id = 2; id <= CLAN_MAX_MEMBERS; ++id) {
-        joinRequest(id, "FullClan"); accept(1, id);
+        joinRequest(id, "FullClan");
+        accept(1, id);
     }
     EXPECT_EQ(joinRequest(100, "FullClan"), ClanOpResult::CLAN_FULL);
 }
@@ -171,14 +176,17 @@ TEST_F(ClanSystemTest, JoinRequest_ClanFull) {
 // =============================================================================
 
 TEST_F(ClanSystemTest, AcceptMember_OK) {
-    foundClan(1, "Alpha"); joinRequest(2, "Alpha");
+    foundClan(1, "Alpha");
+    joinRequest(2, "Alpha");
     EXPECT_EQ(accept(1, 2), ClanOpResult::OK);
     EXPECT_TRUE(repo.getClanIdOfPlayer(2).has_value());
     EXPECT_EQ(repo.getClanIdOfPlayer(2), repo.getClanIdOfPlayer(1));
 }
 
 TEST_F(ClanSystemTest, AcceptMember_NotFounder) {
-    foundClan(1, "Alpha"); joinRequest(3, "Alpha"); accept(1, 3);
+    foundClan(1, "Alpha");
+    joinRequest(3, "Alpha");
+    accept(1, 3);
     joinRequest(4, "Alpha");
     EXPECT_EQ(accept(3, 4), ClanOpResult::NOT_FOUNDER);
 }
@@ -189,13 +197,14 @@ TEST_F(ClanSystemTest, AcceptMember_NoPendingRequest) {
 }
 
 TEST_F(ClanSystemTest, AcceptMember_NotificationsAreSent) {
-    foundClan(1, "Alpha"); joinRequest(2, "Alpha");
+    foundClan(1, "Alpha");
+    joinRequest(2, "Alpha");
     notifyAccept(1, 2);
     EXPECT_TRUE(hasNotifFor(2, "aceptado en el clan"));
 }
 
 TEST_F(ClanSystemTest, RejectMember_OK) {
-    notifyFoundClan(1, "Alpha"); 
+    notifyFoundClan(1, "Alpha");
     notifyJoinRequest(2, "Alpha");
     notifyReject(1, 2);
     EXPECT_FALSE(repo.getClanIdOfPlayer(2).has_value());
@@ -203,22 +212,26 @@ TEST_F(ClanSystemTest, RejectMember_OK) {
 }
 
 TEST_F(ClanSystemTest, BanMember_PreventsFutureRequests) {
-    foundClan(1, "Alpha"); joinRequest(2, "Alpha"); ban(1, 2);
+    foundClan(1, "Alpha");
+    joinRequest(2, "Alpha");
+    ban(1, 2);
     EXPECT_EQ(joinRequest(2, "Alpha"), ClanOpResult::PLAYER_BANNED);
-    
+
     notifyBan(1, 2);
     EXPECT_TRUE(hasNotifFor(2, "baneado"));
 }
 
 TEST_F(ClanSystemTest, BanMember_AlsoRemovesActiveMember) {
-    foundClan(1, "Alpha"); joinRequest(2, "Alpha"); accept(1, 2);
+    foundClan(1, "Alpha");
+    joinRequest(2, "Alpha");
+    accept(1, 2);
     ban(1, 2);
     EXPECT_FALSE(repo.getClanIdOfPlayer(2).has_value());
 }
 
 TEST_F(ClanSystemTest, KickMember_OK) {
-    notifyFoundClan(1, "Alpha"); 
-    notifyJoinRequest(2, "Alpha"); 
+    notifyFoundClan(1, "Alpha");
+    notifyJoinRequest(2, "Alpha");
     notifyAccept(1, 2);
     notifyKick(1, 2);
     EXPECT_FALSE(repo.getClanIdOfPlayer(2).has_value());
@@ -231,7 +244,10 @@ TEST_F(ClanSystemTest, KickMember_CannotKickSelf) {
 }
 
 TEST_F(ClanSystemTest, KickMember_UnlikeKick_DoesNotBan) {
-    foundClan(1, "Alpha"); joinRequest(2, "Alpha"); accept(1, 2); kick(1, 2);
+    foundClan(1, "Alpha");
+    joinRequest(2, "Alpha");
+    accept(1, 2);
+    kick(1, 2);
     EXPECT_EQ(joinRequest(2, "Alpha"), ClanOpResult::OK);
 }
 
@@ -240,8 +256,8 @@ TEST_F(ClanSystemTest, KickMember_UnlikeKick_DoesNotBan) {
 // =============================================================================
 
 TEST_F(ClanSystemTest, LeaveClan_MemberOK) {
-    notifyFoundClan(1, "Alpha"); 
-    notifyJoinRequest(2, "Alpha"); 
+    notifyFoundClan(1, "Alpha");
+    notifyJoinRequest(2, "Alpha");
     notifyAccept(1, 2);
     notifyLeave(2);
     EXPECT_FALSE(repo.getClanIdOfPlayer(2).has_value());
@@ -254,17 +270,17 @@ TEST_F(ClanSystemTest, LeaveClan_FounderCannot) {
     EXPECT_TRUE(repo.getClanIdOfPlayer(1).has_value());
 }
 
-TEST_F(ClanSystemTest, LeaveClan_NotInClan) {
-    EXPECT_EQ(leave(99), ClanOpResult::NOT_IN_CLAN);
-}
+TEST_F(ClanSystemTest, LeaveClan_NotInClan) { EXPECT_EQ(leave(99), ClanOpResult::NOT_IN_CLAN); }
 
 // =============================================================================
 // BLOQUE 5 — Revisar clan
 // =============================================================================
 
 TEST_F(ClanSystemTest, ReviewClan_ContainsMemberList) {
-    foundClan(1, "Alpha"); joinRequest(2, "Alpha"); accept(1, 2);
-    
+    foundClan(1, "Alpha");
+    joinRequest(2, "Alpha");
+    accept(1, 2);
+
     notifs.clear();
     controller.handleReviewClan(1, notifs);
     EXPECT_TRUE(hasNotifFor(1, "Alpha"));
@@ -272,16 +288,19 @@ TEST_F(ClanSystemTest, ReviewClan_ContainsMemberList) {
 }
 
 TEST_F(ClanSystemTest, ReviewClan_ShowsPendingRequests) {
-    foundClan(1, "Alpha"); joinRequest(2, "Alpha");
-    
+    foundClan(1, "Alpha");
+    joinRequest(2, "Alpha");
+
     notifs.clear();
     controller.handleReviewClan(1, notifs);
-    EXPECT_TRUE(hasNotifFor(1, std::to_string(2))); // ID de la solicitud pendiente
+    EXPECT_TRUE(hasNotifFor(1, std::to_string(2)));  // ID de la solicitud pendiente
 }
 
 TEST_F(ClanSystemTest, ReviewClan_OnlyFounderCanReview) {
-    foundClan(1, "Alpha"); joinRequest(2, "Alpha"); accept(1, 2);
-    
+    foundClan(1, "Alpha");
+    joinRequest(2, "Alpha");
+    accept(1, 2);
+
     notifs.clear();
     controller.handleReviewClan(2, notifs);
     EXPECT_TRUE(hasNotifFor(2, "Solo el fundador"));
@@ -291,14 +310,19 @@ TEST_F(ClanSystemTest, ReviewClan_OnlyFounderCanReview) {
 // BLOQUE 6 — Integración con World
 // =============================================================================
 
-class WorldClanTest : public ::testing::Test {
+class WorldClanTest: public ::testing::Test {
 protected:
     ItemRegistry* registry = nullptr;
     World* world = nullptr;
 
     void SetUp() override {
         registry = new ItemRegistry("../config/items.toml");
-        world    = new World(1, "Tester", *registry);
+        world = new World(1, "Tester", *registry);
+
+        // Desactivamos el Fair Play (Modo Arena) y bajamos el nivel de clan a 1 para los tests
+        world->setFairPlayRules(false);
+        world->setClanMinLevel(1);
+
         // Agregar tres jugadores de prueba
         std::string u1 = "Founder", u2 = "Member1", u3 = "Member2";
         world->addPlayer(1, u1);
@@ -312,12 +336,12 @@ protected:
     }
 
     // Envía un ClanCommandDTO al World y descarta notificaciones intermedias
-    void sendCmd(uint32_t sender, ClanCommandType type,
-                 const std::string& arg = "", uint32_t targetDbId = 0) {
+    void sendCmd(uint32_t sender, ClanCommandType type, const std::string& arg = "",
+                 uint32_t targetDbId = 0) {
         ClanCommandDTO cmd;
-        cmd.type        = type;
-        cmd.arg1        = arg;
-        cmd.targetDbId  = targetDbId;
+        cmd.type = type;
+        cmd.arg1 = arg;
+        cmd.targetDbId = targetDbId;
         world->processClanCommand(sender, cmd);
         world->pollEvents();  // limpiar cola de eventos
     }
@@ -325,9 +349,9 @@ protected:
     // Funda un clan con el jugador 1 y hace que 2 y 3 sean miembros
     void setupClanWithMembers() {
         sendCmd(1, ClanCommandType::FOUND, "Alpha");
-        sendCmd(2, ClanCommandType::JOIN,  "Alpha");
+        sendCmd(2, ClanCommandType::JOIN, "Alpha");
         sendCmd(1, ClanCommandType::ACCEPT, "Member1", 2);
-        sendCmd(3, ClanCommandType::JOIN,  "Alpha");
+        sendCmd(3, ClanCommandType::JOIN, "Alpha");
         sendCmd(1, ClanCommandType::ACCEPT, "Member2", 3);
     }
 };
@@ -345,10 +369,9 @@ TEST_F(WorldClanTest, World_ClanmatesCannotAttackEachOther) {
     world->playerAttack(1, 2);
     auto events = world->pollEvents();
 
-    bool rejectedFound = std::any_of(events.begin(), events.end(),
-        [](const WorldEvent& e) {
-            return e.message.find("No puedes atacar") != std::string::npos;
-        });
+    bool rejectedFound = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
+        return e.message.find("No puedes atacar") != std::string::npos;
+    });
     EXPECT_TRUE(rejectedFound);
 }
 
@@ -367,10 +390,9 @@ TEST_F(WorldClanTest, World_PlayersInDifferentClans_CanAttackEachOther) {
     world->playerAttack(1, 4);
     auto events = world->pollEvents();
 
-    bool rejectedFound = std::any_of(events.begin(), events.end(),
-        [](const WorldEvent& e) {
-            return e.message.find("No puedes atacar") != std::string::npos;
-        });
+    bool rejectedFound = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
+        return e.message.find("No puedes atacar") != std::string::npos;
+    });
     EXPECT_FALSE(rejectedFound);
 }
 
@@ -387,14 +409,12 @@ TEST_F(WorldClanTest, World_UnderAttack_NotifiesClanmates) {
     auto events = world->pollEvents();
 
     // Los clanmates (1 y 3) deben recibir la alerta
-    bool notif1 = std::any_of(events.begin(), events.end(),
-        [](const WorldEvent& e) {
-            return e.targetDbId == 1 && e.message.find("atacado") != std::string::npos;
-        });
-    bool notif3 = std::any_of(events.begin(), events.end(),
-        [](const WorldEvent& e) {
-            return e.targetDbId == 3 && e.message.find("atacado") != std::string::npos;
-        });
+    bool notif1 = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
+        return e.targetDbId == 1 && e.message.find("atacado") != std::string::npos;
+    });
+    bool notif3 = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
+        return e.targetDbId == 3 && e.message.find("atacado") != std::string::npos;
+    });
 
     EXPECT_TRUE(notif1);
     EXPECT_TRUE(notif3);
@@ -409,11 +429,10 @@ TEST_F(WorldClanTest, World_LoginNotifiesClanmates) {
     // En este caso 5 no está en un clan aún, así que no hay notificación de clan en login
     auto events = world->pollEvents();
 
-    bool unexpectedClanNotif = std::any_of(events.begin(), events.end(),
-        [](const WorldEvent& e) {
-            return e.message.find("[Clan]") != std::string::npos &&
-                   e.message.find("Newbie") != std::string::npos;
-        });
+    bool unexpectedClanNotif = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
+        return e.message.find("[Clan]") != std::string::npos &&
+               e.message.find("Newbie") != std::string::npos;
+    });
     EXPECT_FALSE(unexpectedClanNotif);
 }
 
@@ -425,12 +444,10 @@ TEST_F(WorldClanTest, World_LogoffNotifiesClanmates) {
     auto events = world->pollEvents();
 
     // Jugador 1 debe recibir notificación de logoff de Member1
-    bool foundLogoff = std::any_of(events.begin(), events.end(),
-        [](const WorldEvent& e) {
-            return e.targetDbId == 1 &&
-                   e.message.find("[Clan]") != std::string::npos &&
-                   e.message.find("salió") != std::string::npos;
-        });
+    bool foundLogoff = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
+        return e.targetDbId == 1 && e.message.find("[Clan]") != std::string::npos &&
+               e.message.find("salió") != std::string::npos;
+    });
     EXPECT_TRUE(foundLogoff);
 }
 
@@ -463,11 +480,9 @@ TEST_F(WorldClanTest, World_ProcessClanCommand_FounderCannotLeave) {
     world->processClanCommand(1, cmd);
     auto events = world->pollEvents();
 
-    bool foundError = std::any_of(events.begin(), events.end(),
-        [](const WorldEvent& e) {
-            return e.targetDbId == 1 &&
-                   e.message.find("fundador") != std::string::npos;
-        });
+    bool foundError = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
+        return e.targetDbId == 1 && e.message.find("fundador") != std::string::npos;
+    });
     EXPECT_TRUE(foundError);
     // Sigue siendo clanmate con 2
     EXPECT_TRUE(world->areClanmates(1, 2));
@@ -495,13 +510,14 @@ TEST(ClanGameLoopTest, GameLoop_ProcessesClanFoundCommand) {
 
     PlayerCommand pCmd;
     pCmd.clientId = 1;
-    pCmd.command  = clanCmd;
+    pCmd.command = clanCmd;
     gameQueue.push(pCmd);
 
     std::thread hiloGL(&GameLoop::run, &loop);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     loop.stop();
-    if (hiloGL.joinable()) hiloGL.join();
+    if (hiloGL.joinable())
+        hiloGL.join();
 
     // Si no lanzó excepción, el comando fue despachado correctamente
     SUCCEED();
@@ -514,26 +530,34 @@ TEST(ClanGameLoopTest, GameLoop_ProcessesClanJoinAndAccept) {
 
     // Dos jugadores ingresan
     auto pushJoin = [&](uint32_t id, const std::string& name) {
-        JoinEvent j; j.clientId = id; j.username = name;
+        JoinEvent j;
+        j.clientId = id;
+        j.username = name;
         gameQueue.push(j);
     };
-    auto pushClan = [&](uint32_t id, ClanCommandType type,
-                        const std::string& arg = "", uint32_t target = 0) {
-        ClanCommandDTO c; c.type = type; c.arg1 = arg; c.targetDbId = target;
-        PlayerCommand p; p.clientId = id; p.command = c;
+    auto pushClan = [&](uint32_t id, ClanCommandType type, const std::string& arg = "",
+                        uint32_t target = 0) {
+        ClanCommandDTO c;
+        c.type = type;
+        c.arg1 = arg;
+        c.targetDbId = target;
+        PlayerCommand p;
+        p.clientId = id;
+        p.command = c;
         gameQueue.push(p);
     };
 
     pushJoin(1, "Lider");
     pushJoin(2, "Soldado");
     pushClan(1, ClanCommandType::FOUND, "GuardiaReal");
-    pushClan(2, ClanCommandType::JOIN,  "GuardiaReal");
+    pushClan(2, ClanCommandType::JOIN, "GuardiaReal");
     pushClan(1, ClanCommandType::ACCEPT, "Soldado", 2);
 
     std::thread hiloGL(&GameLoop::run, &loop);
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
     loop.stop();
-    if (hiloGL.joinable()) hiloGL.join();
+    if (hiloGL.joinable())
+        hiloGL.join();
 
     SUCCEED();
 }

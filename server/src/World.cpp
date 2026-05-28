@@ -1,14 +1,20 @@
 #include "World.h"
 
+#include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <utility>
 
 #include "model/combat/CombatManager.h"
 #include "model/entities/Player.h"
 
-World::World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry)
-    : worldId(worldId), creatorPlayerName(creatorPlayerName), itemRegistry(itemRegistry), 
-      map(), clanService(clanRepo), clanController(clanService) {
+World::World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry):
+        worldId(worldId),
+        creatorPlayerName(creatorPlayerName),
+        itemRegistry(itemRegistry),
+        map(),
+        clanService(clanRepo),
+        clanController(clanService) {
     map.setDimensions(20, 15);
     map.setSpawnPoint(0, 0);
 }
@@ -50,6 +56,23 @@ bool World::removePlayer(uint32_t dbId) {
     }
 
     uint32_t entityId = itMap->second;
+
+    // Notificar a clanmates antes de remover
+    auto clanIdOpt = clanRepo.getClanIdOfPlayer(dbId);
+    if (clanIdOpt) {
+        const Clan* clan = clanRepo.getClanById(*clanIdOpt);
+        auto pit = players.find(entityId);
+        if (clan && pit != players.end()) {
+            std::string playerName = pit->second->getName();
+            for (uint32_t memberId: clan->getMembers()) {
+                if (memberId != dbId) {
+                    outgoingEvents.push_back(
+                            {memberId, "[Clan] " + playerName + " salió del juego."});
+                }
+            }
+        }
+    }
+
     this->players.erase(entityId);
     this->dbIdToEntityId.erase(itMap);
     return true;
@@ -100,7 +123,7 @@ void World::moveEntity(uint32_t dbId, Movement direction) {
     player.setPosition(candidate);
 }
 
-void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
+void World::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     auto mapIt = this->dbIdToEntityId.find(attackerDbId);
     if (mapIt == this->dbIdToEntityId.end())
         return;
@@ -112,12 +135,18 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
 
     Player& attacker = *(itAttacker->second);
 
+    uint32_t targetEntityId = targetDbId;
+    auto targetMapIt = this->dbIdToEntityId.find(targetDbId);
+    if (targetMapIt != this->dbIdToEntityId.end()) {
+        targetEntityId = targetMapIt->second;
+    }
+
     // El target puede ser Player o Monster (IDs globalmente únicos)
-    Attackable* target = findAttackable(targetId);
+    Attackable* target = findAttackable(targetEntityId);
     if (!target)
         return;
 
-    if (areClanmates(attackerDbId, targetId)) {
+    if (areClanmates(attackerDbId, targetDbId)) {
         outgoingEvents.push_back({attackerDbId, "No puedes atacar a un miembro de tu clan."});
         return;
     }
@@ -127,12 +156,32 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
         return;
     }
 
-    if (!attacker.canEngageInCombatWith(*target) || !target->canEngageInCombatWith(attacker)) {
+    if (enforceFairPlay &&
+        (!attacker.canEngageInCombatWith(*target) || !target->canEngageInCombatWith(attacker))) {
         std::cout << "[WORLD] Fair play rules prevent this combat." << std::endl;
         return;
     }
 
     attacker.onActionStarted();
+
+    // Notificar a los clanmates del target que está siendo atacado
+    auto targetPlayerIt = dynamic_cast<Player*>(target);
+    if (targetPlayerIt) {
+        uint32_t targetDb = targetPlayerIt->getDbId();
+        auto clanIdOpt = clanRepo.getClanIdOfPlayer(targetDb);
+        if (clanIdOpt) {
+            const Clan* clan = clanRepo.getClanById(*clanIdOpt);
+            if (clan) {
+                std::string alertMsg = "[Clan] " + targetPlayerIt->getName() +
+                                       " está siendo atacado por " + attacker.getName() + "!";
+                for (uint32_t memberId: clan->getMembers()) {
+                    if (memberId != targetDb && memberId != attackerDbId) {
+                        outgoingEvents.push_back({memberId, alertMsg});
+                    }
+                }
+            }
+        }
+    }
 
     CombatResult res = CombatManager::getInstance().processAttack(attacker, *target);
 
@@ -300,15 +349,17 @@ std::vector<WorldEvent> World::pollEvents() {
 
 uint16_t World::getPlayerLevel(uint32_t dbId) const {
     auto itMap = dbIdToEntityId.find(dbId);
-    if (itMap == dbIdToEntityId.end()) return 0;
+    if (itMap == dbIdToEntityId.end())
+        return 0;
     auto pit = players.find(itMap->second);
-    if (pit == players.end()) return 0;
-    
+    if (pit == players.end())
+        return 0;
+
     return pit->second->getLevel();
 }
 
 uint32_t World::resolveNickToDbId(const std::string& nick) const {
-    for (const auto& [dbId, entityId] : dbIdToEntityId) {
+    for (const auto& [dbId, entityId]: dbIdToEntityId) {
         auto it = players.find(entityId);
         if (it != players.end() && it->second->getName() == nick) {
             return dbId;
@@ -323,48 +374,56 @@ uint32_t World::resolveNickToDbId(const std::string& nick) const {
 
 void World::processClanCommand(uint32_t senderDbId, const ClanCommandDTO& cmd) {
     std::vector<ClanNotification> notifs;
-    
+
     // Delega TODA la lógica de ruteo y ensamblado de strings al Controlador.
     clanController.dispatch(senderDbId, cmd, *this, notifs);
-    
+
     // Volcar las notificaciones resultantes a los eventos de salida
-    for (const auto& n : notifs) {
-        outgoingEvents.push_back({n.targetDbId, n.message});
-    }
+    std::transform(notifs.begin(), notifs.end(), std::back_inserter(outgoingEvents),
+                   [](const ClanNotification& n) {
+                       return WorldEvent{n.targetDbId, n.message};
+                   });
 }
 
 int World::countNearbyClanmates(uint32_t playerDbId, int range) const {
     auto clanIdOpt = clanRepo.getClanIdOfPlayer(playerDbId);
-    if (!clanIdOpt) return 0;
-    
-    Clan* clan = const_cast<ClanRepository&>(clanRepo).getClanById(*clanIdOpt);
-    if (!clan) return 0;
+    if (!clanIdOpt)
+        return 0;
+
+    const Clan* clan = const_cast<ClanRepository&>(clanRepo).getClanById(*clanIdOpt);
+    if (!clan)
+        return 0;
 
     auto selfIt = dbIdToEntityId.find(playerDbId);
-    if (selfIt == dbIdToEntityId.end()) return 0;
+    if (selfIt == dbIdToEntityId.end())
+        return 0;
     auto playerIt = players.find(selfIt->second);
-    if (playerIt == players.end()) return 0;
+    if (playerIt == players.end())
+        return 0;
     Position selfPos = playerIt->second->getPosition();
 
     int count = 0;
-    for (uint32_t memberId : clan->getMembers()) {
-        if (memberId == playerDbId) continue;
+    for (uint32_t memberId: clan->getMembers()) {
+        if (memberId == playerDbId)
+            continue;
         auto mapIt = dbIdToEntityId.find(memberId);
-        if (mapIt == dbIdToEntityId.end()) continue;
+        if (mapIt == dbIdToEntityId.end())
+            continue;
         auto pIt = players.find(mapIt->second);
-        if (pIt == players.end()) continue;
+        if (pIt == players.end())
+            continue;
 
         Position p = pIt->second->getPosition();
         int dx = std::abs(p.x - selfPos.x);
         int dy = std::abs(p.y - selfPos.y);
-        if (dx + dy <= range) count++;
+        if (dx + dy <= range)
+            count++;
     }
     return count;
 }
- 
+
 bool World::areClanmates(uint32_t playerADbId, uint32_t playerBDbId) const {
     auto clanA = clanRepo.getClanIdOfPlayer(playerADbId);
     auto clanB = clanRepo.getClanIdOfPlayer(playerBDbId);
     return (clanA && clanB && *clanA == *clanB);
 }
-  
