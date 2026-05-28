@@ -39,6 +39,18 @@ EditorMap::EditorMap(const std::string& jsonText) {
     } else {
         spawnPos = {0, 0};
     }
+
+    if (data.contains("safeZones")) {
+        safeZonesData = data.at("safeZones");
+    } else {
+        safeZonesData = nlohmann::json::array();
+    }
+
+    if (data.contains("npcs")) {
+        npcsData = data.at("npcs");
+    } else {
+        npcsData = nlohmann::json::array();
+    }
 }
 
 std::string EditorMap::toJson() const {
@@ -49,6 +61,14 @@ std::string EditorMap::toJson() const {
     data["width"] = width;
     data["height"] = height;
     data["spawn"] = {{"x", spawnPos.x}, {"y", spawnPos.y}};
+
+    if (!safeZonesData.empty() && !safeZonesData.is_null()) {
+        data["safeZones"] = safeZonesData;
+    }
+    if (!npcsData.empty() && !npcsData.is_null()) {
+        data["npcs"] = npcsData;
+    }
+
     data["tiles"] = tiles;
     return data.dump(4);
 }
