@@ -40,7 +40,8 @@ public:
     CombatResult processAttack(const Monster& attacker, Attackable& target);
 
     // Variante con bonuses de clan pre-calculados por World
-    CombatResult processAttack(Player& attacker, Attackable& target, float attackBonus, float defenseBonus);
+    CombatResult processAttack(Player& attacker, Attackable& target, float attackBonus,
+                               float defenseBonus);
 };
 
 #endif

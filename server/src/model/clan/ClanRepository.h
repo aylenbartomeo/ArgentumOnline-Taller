@@ -1,9 +1,11 @@
 #ifndef CLAN_REPOSITORY_H
 #define CLAN_REPOSITORY_H
 
-#include "Clan.h"
-#include <unordered_map>
 #include <optional>
+#include <string>
+#include <unordered_map>
+
+#include "Clan.h"
 
 class ClanRepository {
 private:
@@ -16,16 +18,16 @@ private:
 
 public:
     Clan* createClan(const std::string& name, uint32_t founderDbId);
-    
+
     Clan* getClanById(uint32_t clanId);
     Clan* getClanByName(const std::string& name);
     Clan* getClanOfPlayer(uint32_t playerDbId);
-    
+
     std::optional<uint32_t> getClanIdOfPlayer(uint32_t playerDbId) const;
-    
+
     void addPlayerToClan(uint32_t playerDbId, uint32_t clanId);
     void removePlayerFromClan(uint32_t playerDbId);
-    
+
     bool isNameTaken(const std::string& name) const;
 };
 

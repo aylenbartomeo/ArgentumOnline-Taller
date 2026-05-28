@@ -9,9 +9,9 @@ struct AttackParams {
     uint16_t minDamage;
     uint16_t maxDamage;
     int attackRange;
-    int manaCost;  // 0 para ataques físicos y monstruos
-    bool isMagic;  // true para ataques mágicos (determina la estrategia)
-    float attackBonus  = 1.0f;  // multiplicador de ataque por bonus grupal de clan
+    int manaCost;               // 0 para ataques físicos y monstruos
+    bool isMagic;               // true para ataques mágicos (determina la estrategia)
+    float attackBonus = 1.0f;   // multiplicador de ataque por bonus grupal de clan
     float defenseBonus = 1.0f;  // multiplicador de defensa por bonus grupal de clan
 };
 

@@ -1,4 +1,5 @@
 #include "ClanRepository.h"
+
 #include <algorithm>
 #include <cctype>
 
@@ -12,10 +13,10 @@ std::string ClanRepository::toLower(const std::string& s) {
 Clan* ClanRepository::createClan(const std::string& name, uint32_t founderDbId) {
     uint32_t clanId = nextClanId++;
     clans.emplace(clanId, Clan(clanId, name, founderDbId));
-    
+
     nameIndex[toLower(name)] = clanId;
     playerClanIndex[founderDbId] = clanId;
-    
+
     return &clans.at(clanId);
 }
 

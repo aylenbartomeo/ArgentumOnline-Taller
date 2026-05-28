@@ -22,8 +22,8 @@ private:
     std::unordered_set<uint32_t> banned;
 
 public:
-    Clan(uint32_t id, const std::string& name, uint32_t founderDbId) 
-        : id(id), name(name), founderDbId(founderDbId) {
+    Clan(uint32_t id, const std::string& name, uint32_t founderDbId):
+            id(id), name(name), founderDbId(founderDbId) {
         members.insert(founderDbId);
     }
 
@@ -45,8 +45,8 @@ public:
     void addPendingRequest(uint32_t dbId) { pendingRequests.insert(dbId); }
     void removePendingRequest(uint32_t dbId) { pendingRequests.erase(dbId); }
 
-    void banPlayer(uint32_t dbId) { 
-        banned.insert(dbId); 
+    void banPlayer(uint32_t dbId) {
+        banned.insert(dbId);
         removePendingRequest(dbId);
     }
 };
