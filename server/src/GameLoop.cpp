@@ -107,11 +107,16 @@ void GameLoop::processInputs() {
             } else if (std::holds_alternative<DropItemDTO>(pCmd.command)) {
                 // DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
                 // world.drop_item(pCmd.clientId, drop_dto.slot, drop_dto.amount);
-            } else if (std::holds_alternative<InteractDTO>(pCmd.command)) {
-                InteractDTO interact_dto = std::get<InteractDTO>(pCmd.command);
-                
-                // Le delegamos al mundo la resolución de la interacción
-                world.playerInteract(pCmd.clientId, interact_dto.targetId);
+            } else if (std::holds_alternative<SelectNpcDTO>(pCmd.command)) {
+                SelectNpcDTO selectDto = std::get<SelectNpcDTO>(pCmd.command);  
+                std::cout << "[GAMELOOP] Player " << pCmd.clientId 
+                          << " clicked NPC: " << selectDto.npcId << std::endl;              
+                world.playerInteract(pCmd.clientId, selectDto.npcId);
+            } else if (std::holds_alternative<NpcCommandDTO>(pCmd.command)) {
+                NpcCommandDTO cmdDto = std::get<NpcCommandDTO>(pCmd.command);
+                std::cout << "[GAMELOOP] Player " << pCmd.clientId 
+                          << " executed NPC command type: " << static_cast<int>(cmdDto.type) << std::endl;                
+                world.playerExecuteNpcCommand(pCmd.clientId, cmdDto);
             } 
         }
     }

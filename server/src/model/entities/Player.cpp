@@ -15,7 +15,6 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const 
         // Inventario ahora absorbe la economía: 20 slots, 5000 seguro, 100000 tope máximo
         inventory(InventoryConfig{20, 100000}, 5000),
         equipment(),
-        bank(50, 999999),
         state(),
         regeneration(stats, state, race, characterClass),
         itemRegistry(&itemRegistry) {}
@@ -32,7 +31,6 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const 
         stats(race, characterClass, playerBase, testEngine),
         inventory(InventoryConfig{20, 100000}, 5000),
         equipment(),
-        bank(50, 999999),
         state(),
         regeneration(stats, state, race, characterClass, testEngine),
         itemRegistry(nullptr) {}

@@ -6,7 +6,6 @@
 
 #include "../../../../common/include/dto/CommandDTO.h"
 #include "../combat/CombatManager.h"
-#include "../components/BankComponent.h"
 #include "../components/EquipmentComponent.h"
 #include "../components/InventoryComponent.h"
 #include "../components/RegenerationComponent.h"
@@ -28,12 +27,9 @@ private:
     StatsComponent stats;
     InventoryComponent inventory;
     EquipmentComponent equipment;
-    BankComponent bank;
     StateComponent state;
     RegenerationComponent regeneration;
     const ItemRegistry* itemRegistry; // Puntero para permitir nullptr en tests
-    // Un único puntero para manejar cualquier interacción activa
-    const Interactable* currentInteractable = nullptr;
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
            const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
@@ -47,10 +43,8 @@ public:
 
     // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
     void update(float deltaSeconds);
-
     // Equipa un ítem resolviendo su ID contra el registry
     uint32_t equipItemById(uint32_t itemId);
-
     // Equipa un ítem directamente desde un slot del inventario.
     // Retorna true si pudo equiparlo, false en caso contrario.
     bool equipFromSlot(uint8_t slotIndex);
@@ -68,7 +62,6 @@ public:
     uint16_t getIntelligence() const override { return stats.getIntelligence(); }
     uint16_t getAgility() const override { return this->stats.getAgility(); }
     Position getPosition() const override { return this->pos; }
-
     bool canEngageInCombatWith(const Attackable& other) const override;
     uint16_t getLevel() const override { return stats.getLevel(); }
 
@@ -85,15 +78,19 @@ public:
     // Inventory
     InventoryComponent& getInventory() { return this->inventory; }
     const InventoryComponent& getInventory() const { return this->inventory; }
-
+    bool addGold(uint32_t amount) {return inventory.addGold(amount);}
+    bool removeGold(uint32_t amount) { return inventory.removeGold(amount);}
+    uint32_t getGold() const { return inventory.getGold(); }
+    bool addItem(uint32_t item_id, uint16_t amount) { return inventory.addItem(item_id, amount);}
+    uint16_t removeItem(uint8_t slot_index, uint16_t amount) { return inventory.removeItem(slot_index, amount);}
+    uint8_t getSize() const { return inventory.getSize(); }
+    std::optional<Slot> inspectSlot(uint8_t slot_index) const { return inventory.inspectSlot(slot_index);}
+    
     // Equipment
     EquipmentComponent& getEquipment() { return this->equipment; }
     const EquipmentComponent& getEquipment() const { return this->equipment; }
     Weapon* getEquippedWeapon() { return this->equipment.getEquippedWeapon(); }
     int getDefense() const override { return this->equipment.calculateCurrentDefense(); }
-
-    // Bank
-    BankComponent& getBank() { return this->bank; }
 
     // State
     StateComponent& getState() { return this->state; }
@@ -108,11 +105,6 @@ public:
     // Calcula la posición resultante de moverse en una dirección,
     // sin modificar la posición actual del jugador.
     Position tryMove(Movement direction) const;
-
-    // Interactuar con ciudadanos
-    void setCurrentInteractable(const Interactable* npc) { currentInteractable = npc; }
-    const Interactable* getCurrentInteractable() const { return currentInteractable; }
-    void clearInteractions() { currentInteractable = nullptr; }
 };
 
 #endif

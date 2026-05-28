@@ -49,6 +49,8 @@ bool World::removePlayer(uint32_t dbId) {
     }
 
     uint32_t entityId = itMap->second;
+    // Si mientras interactua se va de la partida, se corta la interaccion con NPC
+    activeInteractions.erase(entityId);
     this->players.erase(entityId);
     this->dbIdToEntityId.erase(itMap);
     return true;
@@ -78,6 +80,15 @@ Attackable* World::findAttackable(uint32_t id) {
     return nullptr;
 }
 
+Interactable* World::findInteractable(uint32_t id) {
+    auto itNpc = cityNPCs.find(id);
+    if (itNpc != cityNPCs.end()) {
+        return itNpc->second.get();
+    }
+
+    return nullptr;
+}
+
 // --- Acciones del jugador ---
 
 void World::moveEntity(uint32_t dbId, Movement direction) {
@@ -97,6 +108,9 @@ void World::moveEntity(uint32_t dbId, Movement direction) {
         return;
 
     player.setPosition(candidate);
+
+    // SI SE MOVIÓ, ya no esta interactuando
+    activeInteractions.erase(itMap->second);
 }
 
 void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
@@ -173,33 +187,60 @@ void World::monsterAttack(const Monster& monster, Player& target) {
     }
 }
 
-void World::playerInteract(uint32_t clientId, uint32_t targetId) {
-    auto mapIt = this->dbIdToEntityId.find(attackerDbId);
-    if (mapIt == this->dbIdToEntityId.end()) return;
+void World::playerInteract(uint32_t dbId, uint32_t targetNpcId) {
+    // 1. Conseguir el ID interno de la entidad jugador
+    auto itMap = this->dbIdToEntityId.find(dbId);
+    if (itMap == this->dbIdToEntityId.end()) return;
+    uint32_t playerEntityId = itMap->second;
 
-    auto itPlayer = this->players.find(mapIt->second);
-    if (itPlayer == this->players.end())
-        return;
-
+    auto itPlayer = this->players.find(playerEntityId);
+    if (itPlayer == this->players.end()) return;
     Player& player = *(itPlayer->second);
 
-    // Las interacciones solo se buscan en el catálogo de NPCs de ciudad
-    auto itNpc = cityNPCs.find(targetId);
-    if (itNpc == cityNPCs.end()) {
-        std::cout << "[WORLD] No puedes interactuar con esa entidad." << std::endl;
+    // 2. Buscar al NPC
+    Interactable* npc = this->findInteractable(targetNpcId); 
+    if (!npc) return;
+
+    // 3. Validación de distancia Chebyshev (rango máximo 2 celdas)
+    if (player.getPosition().chebyshev_distance_to(npc->getPosition()) > 2) {
+        outgoingEvents.push_back({dbId, "El NPC está demasiado lejos."});
         return;
     }
 
-    Interactable* npc = itNpc->second.get();
+    // 4. REGISTRO DE SESIÓN: El mundo toma nota de la interacción
+    activeInteractions[playerEntityId] = npc;
 
-    // Validamos distancia Chebyshev antes de dejarlo hablar
-    if (player->getPosition().chebyshev_distance_to(npc->getPosition()) > 2) {
-        std::cout << "[WORLD] El NPC está demasiado lejos." << std::endl;
+    // 5. Polimorfismo: El NPC reacciona (puede enviar un evento para abrir la GUI en el cliente)
+    npc->beInteractedBy(player, outgoingEvents);
+}
+
+void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
+    auto itMap = this->dbIdToEntityId.find(dbId);
+    if (itMap == this->dbIdToEntityId.end()) return;
+    uint32_t playerEntityId = itMap->second;
+
+    auto itPlayer = this->players.find(playerEntityId);
+    if (itPlayer == this->players.end()) return;
+    Player& player = *(itPlayer->second);
+
+    // El mundo busca al NPC en su tabla de interacciones, no en el Player
+    auto itInteract = activeInteractions.find(playerEntityId);
+    if (itInteract == activeInteractions.end()) {
+        outgoingEvents.push_back({dbId, "Debes seleccionar un NPC primero."});
         return;
     }
 
-    // Polimorfismo puro: El NPC (Merchant/Banker/Priest) toma el control del jugador
-    npc->beInteractedBy(*player);
+    Interactable* npc = itInteract->second;
+
+    // Validación de seguridad por si se movió mediante cheats o desincro
+    if (player.getPosition().chebyshev_distance_to(npc->getPosition()) > 2) {
+        activeInteractions.erase(playerEntityId); // Rompemos la sesión
+        outgoingEvents.push_back({dbId, "Te has alejado demasiado del NPC."});
+        return;
+    }
+
+    // El NPC ejecuta el comando de negocio (compra, venta, etc.)
+    npc->handleCommand(player, dto, outgoingEvents);
 }
 
 Player* World::findNearestPlayer(const Monster& monster, int range) {

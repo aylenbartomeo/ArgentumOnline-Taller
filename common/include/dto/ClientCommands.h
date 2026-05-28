@@ -36,12 +36,20 @@ struct ChatDTO {
     std::string message;
 };
 
-struct InteractDTO {
-    uint32_t targetId;
+struct SelectNpcDTO {
+    uint32_t npcId;
+};
+
+enum NpcCommandType { RESPAWN, HEAL, BUY, SELL, DEPOSIT, WITHDRAW };
+
+struct NpcCommandDTO {
+    NpcCommandType type;
+    std::string arg;
 };
 
 // Esto es lo que la cola del Servidor va a recibir.
 using CommandVariant = std::variant<RegisterDTO, LoginDTO, StartMoveDTO, StopMoveDTO, AttackDTO,
-                                    UseItemDTO, EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO, InteractDTO>;
+                                    UseItemDTO, EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO, 
+                                    SelectNpcDTO, NpcCommandDTO>;
 
 #endif  // CLIENT_COMMANDS_H

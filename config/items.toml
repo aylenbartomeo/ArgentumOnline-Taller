@@ -142,3 +142,22 @@ max_damage = 20
 type = "magic"
 attack_range = 8
 mana_cost = 30
+
+# =========================
+# POTIONS
+# =========================
+
+[[potion]]
+id = 7001
+name = "pocima de Mana"
+value = 3000
+
+[[potion]]
+id = 7004
+name = "pocima de vida"
+value = 3000
+
+[[potion]]
+id = 7003
+name = "pocima de agilidad"
+value = 3000
