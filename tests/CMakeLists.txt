@@ -41,6 +41,8 @@ target_sources(argentum_online_tests
     ../server/src/persistence/PlayerDataStore.cpp
     TestPlayerDataStore.cpp
     ../client/src/TileMap.cpp
+    TestHealthBar.cpp
+    ../client/src/HealthBar.cpp
     TestEditorMap.cpp
     ../editor/EditorMap.cpp
     TestCamera.cpp

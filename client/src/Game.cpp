@@ -11,6 +11,8 @@
 
 #include "common/include/dto/StartMoveDTO.h"
 
+#include "HealthBar.h"
+
 namespace {
 constexpr int TILE_SIZE = 32;
 constexpr int WINDOW_WIDTH = 640;
@@ -36,6 +38,8 @@ constexpr int HEAD_FRAME_H = 15;
 constexpr int HEAD_DRAW_W = 18;
 constexpr int HEAD_DRAW_H = 20;
 constexpr int HEAD_OVERLAP = 6;
+
+constexpr const char* HEALTHBAR_SHEET = "en_barradevida.bmp";
 
 std::string readWholeFile(const std::string& path) {
     std::ifstream file(path);
@@ -131,6 +135,7 @@ void Game::renderEntities() {
     SDL2pp::Renderer& renderer = window.getRenderer();
     SDL2pp::Texture& sheet = textures.get(std::string(RESOURCES_DIR) + CHARACTER_SHEET);
     SDL2pp::Texture& headSheet = textures.get(std::string(RESOURCES_DIR) + HEAD_SHEET);
+    SDL2pp::Texture& barSheet = textures.get(std::string(RESOURCES_DIR) + HEALTHBAR_SHEET);
     const uint32_t myId = client.getClientId();
 
     const SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
@@ -164,6 +169,23 @@ void Game::renderEntities() {
                                       cy + static_cast<int>(ry * std::sin(a1)));
                 }
             }
+        }
+    }
+
+    const SDL2pp::Rect barSrc(0, 0, barSheet.GetWidth(), barSheet.GetHeight());
+    for (const EntityDTO& entity: lastSnapshot.entities) {
+        const HealthBarLayout bar = computeHealthBar(entity.current_hp, entity.max_hp,
+                                                     entity.x * TILE_SIZE, entity.y * TILE_SIZE,
+                                                     TILE_SIZE);
+        if (!bar.visible) {
+            continue;
+        }
+        renderer.SetDrawColor(20, 20, 20, 255);
+        renderer.FillRect(
+                SDL2pp::Rect(bar.background.x, bar.background.y, bar.background.w, bar.background.h));
+        if (bar.fill.w > 0) {
+            renderer.Copy(barSheet, barSrc,
+                          SDL2pp::Rect(bar.fill.x, bar.fill.y, bar.fill.w, bar.fill.h));
         }
     }
 }
