@@ -62,6 +62,5 @@ enum class Movement : uint8_t {
 
 enum interactCitizen { RESPAWN, HEAL, BUY, SELL, DEPOSIT, WITHDRAW };
 
-enum ClanCommandType { FOUND, JOIN, LEAVE, CHECK, ACCEPT, REJECT, KICK };
 
 #endif
