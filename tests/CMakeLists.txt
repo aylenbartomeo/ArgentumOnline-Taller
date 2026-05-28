@@ -41,7 +41,9 @@ target_sources(argentum_online_tests
     ../server/src/persistence/PlayerDataStore.cpp
     TestPlayerDataStore.cpp
     TestClan.cpp
-    ../server/src/model/clan/ClanManager.cpp
+    ../server/src/model/clan/ClanRepository.cpp
+    ../server/src/model/clan/ClanService.cpp
+    ../server/src/model/clan/ClanController.cpp
     ../client/src/TileMap.cpp
     TestEditorMap.cpp
     ../editor/EditorMap.cpp

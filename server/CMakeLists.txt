@@ -51,7 +51,11 @@ target_sources(argentum_online_server
     # Game
     src/Map.cpp
     src/World.cpp
-    src/model/clan/ClanManager.cpp
+
+    # Clan
+    src/model/clan/ClanRepository.cpp
+    src/model/clan/ClanService.cpp
+    src/model/clan/ClanController.cpp
 
     # Components
     src/model/components/InventoryComponent.cpp
