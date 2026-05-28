@@ -16,7 +16,9 @@
 
 #include "Map.h"
 #include "queue.h"
-#include "model/clan/ClanManager.h"
+#include "model/clan/ClanRepository.h"
+#include "model/clan/ClanService.h"
+#include "model/clan/ClanController.h"
 
 class ItemRegistry;
 
@@ -25,7 +27,7 @@ struct WorldEvent {
     std::string message;
 };
 
-class World {
+class World : public IWorldContext {
 private:
     int worldId;
     std::string creatorPlayerName;
@@ -39,7 +41,10 @@ private:
     std::unordered_map<uint32_t, uint32_t> dbIdToEntityId;
 
     std::vector<WorldEvent> outgoingEvents;
-    ClanManager clanManager;
+    
+    ClanRepository clanRepo;
+    ClanService clanService;
+    ClanController clanController;
 
     // Busca un Attackable por ID (busca en players y luego en monsters)
     Attackable* findAttackable(uint32_t id);
@@ -49,10 +54,6 @@ private:
 
     // Procesa el ataque de un Monster a un Player
     void monsterAttack(const Monster& monster, Player& target);
-
-    // dado un nombre de jugador (nick), devuelve su dbId si está online
-    static std::optional<uint32_t> resolveNickToDbId(const std::unordered_map<uint32_t, uint32_t>& dbIdToEntityId,
-        const std::unordered_map<uint32_t, std::unique_ptr<Player>>& players, const std::string& nick);
 
 public:
     explicit World(int worldId, const std::string& creatorPlayerName,
@@ -98,6 +99,9 @@ public:
 
     // Para testing: permite colocar obstáculos en el mapa
     void setObstacleAt(int x, int y);
+
+    uint16_t getPlayerLevel(uint32_t dbId) const override;
+    uint32_t resolveNickToDbId(const std::string& nick) const override;
 
     // Procesa cualquier comando de clan enviado por un jugador.
     void processClanCommand(uint32_t senderDbId, const ClanCommandDTO& cmd);
