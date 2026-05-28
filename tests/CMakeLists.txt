@@ -40,6 +40,8 @@ target_sources(argentum_online_tests
     ../server/src/auth/AuthManager.cpp
     ../server/src/persistence/PlayerDataStore.cpp
     TestPlayerDataStore.cpp
+    TestClan.cpp
+    ../server/src/model/clan/ClanManager.cpp
     ../client/src/TileMap.cpp
     TestEditorMap.cpp
     ../editor/EditorMap.cpp
@@ -58,6 +60,7 @@ target_include_directories(argentum_online_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/server/src/model/entities
     ${CMAKE_SOURCE_DIR}/server/src/model/items
     ${CMAKE_SOURCE_DIR}/server/src/model/components
+    ${CMAKE_SOURCE_DIR}/server/src/model/clan
     ${CMAKE_SOURCE_DIR}/common/utils
     ${CMAKE_SOURCE_DIR}/client/src
     ${CMAKE_SOURCE_DIR}/editor
