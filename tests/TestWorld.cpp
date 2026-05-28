@@ -193,8 +193,13 @@ TEST(WorldTest, World_UpdateDoesNotTriggerMonsterAttackIfOutOfRange) {
     mundo.update(1.0f);
 
     SnapshotDTO snap = mundo.generateSnapshot();
-    ASSERT_EQ(snap.entities.size(), 1u);
-    EXPECT_EQ(snap.entities[0].current_hp, 15);  // NO recibió daño
+    ASSERT_EQ(snap.entities.size(), 2u);  // 1 Monster + 1 Player
+
+    // Find player in snapshot
+    auto it = std::find_if(snap.entities.begin(), snap.entities.end(),
+                           [](const EntityDTO& e) { return e.type == EntityType::PLAYER; });
+    ASSERT_NE(it, snap.entities.end());
+    EXPECT_EQ(it->current_hp, 15);  // NO recibió daño
 }
 
 TEST(WorldTest, World_AddPlayerSpawnsAtMapSpawn) {
@@ -293,4 +298,118 @@ TEST(WorldTest, World_GetOnlinePlayerDbIdsReturnsAllActive) {
     for (auto id: expected) {
         EXPECT_NE(std::find(ids.begin(), ids.end(), id), ids.end());
     }
+}
+
+TEST(WorldTest, World_PlaceAndPickUpItemOnGround) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    Position pos{5, 5};
+    EXPECT_TRUE(mundo.placeItemOnGround(pos, 1, 10));
+
+    auto picked = mundo.pickUpItemFromGround(pos);
+    ASSERT_TRUE(picked.has_value());
+    EXPECT_EQ(picked->itemId, 1);
+    EXPECT_EQ(picked->amount, 10);
+}
+
+TEST(WorldTest, World_SnapshotIncludesGroundItems) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    mundo.placeItemOnGround(Position{2, 2}, 1, 5);
+    mundo.placeItemOnGround(Position{3, 3}, 2, 1);
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    EXPECT_EQ(snap.groundItems.size(), 2u);
+
+    bool foundItem1 = false;
+    for (const auto& gi: snap.groundItems) {
+        if (gi.itemId == 1) {
+            EXPECT_EQ(gi.x, 2);
+            EXPECT_EQ(gi.y, 2);
+            EXPECT_EQ(gi.amount, 5);
+            foundItem1 = true;
+        }
+    }
+    EXPECT_TRUE(foundItem1);
+}
+
+TEST(WorldTest, World_IsSafeZone_delegates_to_map) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    // Por defecto Map tiene una safe zone en 45, 45, 10x10
+    EXPECT_TRUE(mundo.isSafeZone(50, 50));
+    EXPECT_FALSE(mundo.isSafeZone(0, 0));
+}
+
+TEST(WorldTest, World_PlayerCannotAttackInSafeZone) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    // Player 1 in safe zone (50, 50)
+    std::string p1 = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, p1, Position{50, 50}));
+
+    // Player 2 in safe zone (51, 50)
+    std::string p2 = "Player2";
+    ASSERT_TRUE(mundo.addPlayer(2, p2, Position{51, 50}));
+
+    // Attack should fail
+    mundo.playerAttack(1, 2);
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    auto it = std::find_if(snap.entities.begin(), snap.entities.end(),
+                           [](const EntityDTO& e) { return e.id == 2; });
+    ASSERT_NE(it, snap.entities.end());
+    EXPECT_EQ(it->current_hp, 15);  // HP should be intact
+}
+
+TEST(WorldTest, World_MonsterCannotAttackInSafeZone) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    // Player 1 in safe zone (50, 50)
+    std::string p1 = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, p1, Position{50, 50}));
+
+    // Monster in safe zone (51, 50)
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone"};
+    mundo.addMonster(NPCType::GOBLIN, Position{51, 50}, mConfig);
+
+    // Update should not trigger attack
+    mundo.update(1.0f);
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    auto it = std::find_if(snap.entities.begin(), snap.entities.end(),
+                           [](const EntityDTO& e) { return e.id == 1; });
+    ASSERT_NE(it, snap.entities.end());
+    EXPECT_EQ(it->current_hp, 15);  // HP should be intact
+}
+
+TEST(WorldTest, World_MonsterLosesAggroInSafeZone) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    // Player 1 in safe zone (50, 50)
+    std::string p1 = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, p1, Position{50, 50}));
+
+    // Monster OUTSIDE safe zone but in detection range (44, 50) -> dist = 6 (range 10)
+    // Safe zone is 45 to 54. So 44 is outside.
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone"};
+    mundo.addMonster(NPCType::GOBLIN, Position{44, 50}, mConfig);
+
+    mundo.update(1.0f);
+
+    // Monster should not have moved towards the player because it loses aggro
+    SnapshotDTO snap = mundo.generateSnapshot();
+    auto itM = std::find_if(snap.entities.begin(), snap.entities.end(),
+                            [](const EntityDTO& e) { return e.type == EntityType::MONSTER; });
+    ASSERT_NE(itM, snap.entities.end());
+
+    // It should still be at 44, 50
+    EXPECT_EQ(itM->x, 44);
+    EXPECT_EQ(itM->y, 50);
 }

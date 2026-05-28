@@ -11,6 +11,7 @@
 #include "../include/model/ServerEvents.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
+#include "model/entities/Citizen.h"
 #include "model/entities/Monster.h"
 #include "model/entities/Player.h"
 
@@ -33,6 +34,7 @@ private:
     Map map;
     std::unordered_map<uint32_t, std::unique_ptr<Player>> players;
     std::unordered_map<uint32_t, std::unique_ptr<Monster>> monsters;
+    std::unordered_map<uint32_t, std::unique_ptr<Citizen>> npcs;
 
     uint32_t nextEntityId = 1;
     std::unordered_map<uint32_t, uint32_t> dbIdToEntityId;
@@ -59,8 +61,9 @@ public:
 
     bool loadMap(const std::string& path);
 
-    // Gestión de monstruos
+    // Gestión de monstruos y NPCs
     uint32_t addMonster(NPCType type, Position pos, const MonsterConfig& config);
+    void spawnNPCs();
 
     /* Metodos de acciones de los personajes en el mundo */
     void moveEntity(uint32_t playerId, Movement movement);
@@ -92,6 +95,14 @@ public:
 
     // Para testing: permite colocar obstáculos en el mapa
     void setObstacleAt(int x, int y);
+
+    // Items en el suelo (delega al map)
+    bool placeItemOnGround(const Position& pos, uint32_t itemId, uint16_t amount);
+    std::optional<Position> placeItemNearby(const Position& pos, uint32_t itemId, uint16_t amount);
+    std::optional<GroundItem> pickUpItemFromGround(const Position& pos);
+
+    // Zonas seguras (delega al map)
+    bool isSafeZone(float x, float y) const;
 
     ~World() = default;
 };

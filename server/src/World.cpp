@@ -1,9 +1,11 @@
 #include "World.h"
 
 #include <iostream>
+#include <memory>
 #include <utility>
 
 #include "model/combat/CombatManager.h"
+#include "model/entities/NPCFactory.h"
 #include "model/entities/Player.h"
 
 World::World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry):
@@ -54,7 +56,23 @@ bool World::removePlayer(uint32_t dbId) {
     return true;
 }
 
-bool World::loadMap(const std::string& path) { return map.loadSpawnFromJson(path); }
+bool World::loadMap(const std::string& path) {
+    if (map.loadSpawnFromJson(path)) {
+        spawnNPCs();
+        return true;
+    }
+    return false;
+}
+
+void World::spawnNPCs() {
+    NPCFactory factory;
+    for (const auto& spawn: map.getAllNPCs()) {
+        uint32_t entityId = nextEntityId++;
+        if (auto npc = factory.create(entityId, spawn.type, spawn.position)) {
+            npcs[entityId] = std::move(npc);
+        }
+    }
+}
 
 uint32_t World::addMonster(NPCType type, Position pos, const MonsterConfig& config) {
     uint32_t entityId = nextEntityId++;
@@ -116,6 +134,14 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
     if (!target)
         return;
 
+    // --- NUEVO: Validar zona segura ---
+    if (map.isSafeZone(attacker.getPosition().x, attacker.getPosition().y) ||
+        map.isSafeZone(target->getPosition().x, target->getPosition().y)) {
+        outgoingEvents.push_back({attackerDbId, "No puedes combatir en una zona segura."});
+        return;
+    }
+    // ----------------------------------
+
     if (!attacker.canAttack()) {
         std::cout << "[WORLD] Attacker state prevents attacking." << std::endl;
         return;
@@ -158,6 +184,12 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
 // --- IA de Monstruos ---
 
 void World::monsterAttack(const Monster& monster, Player& target) {
+
+    if (map.isSafeZone(monster.getPosition().x, monster.getPosition().y) ||
+        map.isSafeZone(target.getPosition().x, target.getPosition().y)) {
+        return;
+    }
+
     CombatResult res = CombatManager::getInstance().processAttack(monster, target);
 
     if (!res.attackHappened)
@@ -181,6 +213,10 @@ Player* World::findNearestPlayer(const Monster& monster, int range) {
     for (auto& [id, player]: players) {
         if (player->isDead())
             continue;
+
+        if (map.isSafeZone(player->getPosition().x, player->getPosition().y))
+            continue;
+
         int dist = monster.distance_to(*player);
         if (dist <= range && dist < minDist) {
             minDist = dist;
@@ -223,6 +259,25 @@ void World::update(float delta_time) {
 
 SnapshotDTO World::generateSnapshot() const {
     SnapshotDTO snapshot;
+    // Agregamos monstruos
+    for (const auto& pair: monsters) {
+        uint32_t id = pair.first;
+        const Monster* monster = pair.second.get();
+        snapshot.entities.emplace_back(id, EntityType::MONSTER, monster->getPosition().x,
+                                       monster->getPosition().y, monster->getHp(),
+                                       monster->getMaxHp(), monster->getSpriteId());
+    }
+
+    // Agregamos NPCs
+    for (const auto& pair: npcs) {
+        uint32_t id = pair.first;
+        const Citizen* npc = pair.second.get();
+        // Sprite temporal (25 = Orco o similar)
+        uint16_t sprite_id = 25;
+        snapshot.entities.emplace_back(id, EntityType::NPC, npc->getPosition().x,
+                                       npc->getPosition().y, 0, 0, sprite_id);
+    }
+
     uint16_t spriteId = 1;
     for (const auto& pair: this->players) {
         const Player& player = *(pair.second);
@@ -240,6 +295,13 @@ SnapshotDTO World::generateSnapshot() const {
         spriteId++;  // Incrementamos el spriteId para que cada jugador tenga un sprite diferente
                      // (solo para demo)
         snapshot.entities.push_back(entityData);
+    }
+
+    // Items del suelo
+    for (const auto& pair: map.getGroundItemsSnapshot()) {
+        const Position& pos = pair.first;
+        const GroundItem& item = pair.second;
+        snapshot.groundItems.push_back(GroundItemDTO(item.itemId, item.amount, pos.x, pos.y));
     }
 
     return snapshot;
@@ -281,6 +343,21 @@ std::vector<uint32_t> World::getOnlinePlayerDbIds() const {
 std::pair<float, float> World::getInitialPosition() { return map.getInitialPosition(); }
 
 void World::setObstacleAt(int x, int y) { map.setObstacleInGrid(x, y, true); }
+
+bool World::placeItemOnGround(const Position& pos, uint32_t itemId, uint16_t amount) {
+    return map.placeItem(pos, itemId, amount);
+}
+
+std::optional<Position> World::placeItemNearby(const Position& pos, uint32_t itemId,
+                                               uint16_t amount) {
+    return map.placeItemNearby(pos, itemId, amount);
+}
+
+std::optional<GroundItem> World::pickUpItemFromGround(const Position& pos) {
+    return map.pickUpItem(pos);
+}
+
+bool World::isSafeZone(float x, float y) const { return map.isSafeZone(x, y); }
 
 std::vector<WorldEvent> World::pollEvents() {
     std::vector<WorldEvent> events = std::move(outgoingEvents);

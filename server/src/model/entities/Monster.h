@@ -50,7 +50,9 @@ public:
     uint16_t getIntelligence() const override;
     uint16_t getAgility() const override;
     uint16_t getLevel() const override;
+    uint16_t getHp() const { return health; }
     uint16_t getMaxHp() const override;
+    uint16_t getSpriteId() const { return 25; }  // TODO: read from config
     int getDefense() const override;
 
     void handleDeath() override;

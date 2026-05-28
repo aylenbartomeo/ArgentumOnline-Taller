@@ -7,8 +7,7 @@
 #include <vector>
 
 #include "../commands/BankerCommands.h"
-
-#include "Citizen.h"
+#include "server/src/model/entities/Citizen.h"
 
 class Banker: public Citizen {
 private:
@@ -29,8 +28,8 @@ public:
         if (!player)
             return;
 
-        // 2. Validar que la distancia entre el jugador y el cajero sea <= 2 baldosas
-        if (get_distance_to(player) > 2)
+        // 2. Validar distancia
+        if (getPosition().chebyshev_distance_to(player->getPosition()) > 2)
             return;
 
         // 3. Enrutamiento dinámico

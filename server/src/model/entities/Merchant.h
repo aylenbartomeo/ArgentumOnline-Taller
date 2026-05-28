@@ -6,9 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "server/src/model/entities/citizen.h"
-
-#include "MerchantCommands.h"
+#include "../commands/MerchantCommands.h"
+#include "server/src/model/entities/Citizen.h"
 
 class Merchant: public Citizen {
 private:
@@ -30,7 +29,7 @@ public:
             return;
 
         // 2. Validar que la distancia entre el jugador y el merchant sea <= 2 baldosas
-        if (get_distance_to(player) > 2)
+        if (getPosition().chebyshev_distance_to(player->getPosition()) > 2)
             return;
 
         // 3. Enrutamiento dinámico
