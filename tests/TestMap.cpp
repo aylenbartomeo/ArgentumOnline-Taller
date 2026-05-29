@@ -77,17 +77,24 @@ TEST(MapTest, Map_RegenerateCollisionGridFromElements) {
 // TESTS DE HITBOX DE ATAQUE Y ZONAS
 // =======================================================================
 
-TEST(MapTest, Map_AttackCollisionDetectsNearbyObstacles) {
+TEST(MapTest, Map_HasLineOfSight_Bresenham) {
     Map mapa;
-    mapa.setDimensions(100, 100);
-    mapa.setObstacleInGrid(50, 50, true);  // Guarda el elemento en el vector
+    mapa.setDimensions(20, 20);
 
-    // Tu lógica de ataque usa un rango amplio de ±20 unidades.
-    // Atacar desde (40, 40) debería colisionar con el obstáculo en (50, 50)
-    EXPECT_TRUE(mapa.attackColision(40.0f, 40.0f));
+    // Sin obstáculos, la visión debe ser clara
+    EXPECT_TRUE(mapa.hasLineOfSight(Position{0, 0}, Position{10, 10}));
+    EXPECT_TRUE(mapa.hasLineOfSight(Position{5, 5}, Position{15, 5}));
 
-    // Atacar desde (10, 10) está demasiado lejos (distancia > 20)
-    EXPECT_FALSE(mapa.attackColision(10.0f, 10.0f));
+    // Agregamos un obstáculo en (5, 5)
+    mapa.setObstacleInGrid(5, 5, true);
+
+    // Visión bloqueada si la línea pasa por (5, 5)
+    EXPECT_FALSE(mapa.hasLineOfSight(Position{0, 0}, Position{10, 10}));  // Diagonal pasa por 5,5
+    EXPECT_FALSE(mapa.hasLineOfSight(Position{2, 5}, Position{8, 5}));    // Recta pasa por 5,5
+
+    // Visión libre si la línea NO pasa por el obstáculo
+    EXPECT_TRUE(mapa.hasLineOfSight(Position{0, 0}, Position{0, 10}));
+    EXPECT_TRUE(mapa.hasLineOfSight(Position{2, 4}, Position{8, 4}));
 }
 
 TEST(MapTest, Map_CorrectlyIdentifiesCitizenArea) {

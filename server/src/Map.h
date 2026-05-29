@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 
+#include "model/map/CollisionLayer.h"
 #include "model/map/GroundItemLayer.h"
 #include "model/map/NPCLayer.h"
 #include "model/map/SafeZoneLayer.h"
@@ -35,8 +36,7 @@ private:
     SafeZoneLayer safeZones;
     NPCLayer npcs;
     std::pair<float, float> spawn_point;
-    // Una matriz de booleanos (o de una estructura Tile) donde true = bloqueado
-    std::vector<std::vector<bool>> collision_grid;
+    CollisionLayer collisionLayer;
     // Area initArea(const int x, const int y, const int weight, const int height);
     // void load_from_toml(const std::string& filepath);
     //  Inicializa la matriz de colisiones en base a los mapElements cargados
@@ -82,8 +82,8 @@ public:
     /* Expone los elementos para que el GameLoop arme los snapshots compartidos */
     const std::vector<MapElement>& getElements() const;
 
-    /* Retorna true si hay colisión con un ataque, false en caso contrario */
-    bool attackColision(float pos_x, float pos_y) const;
+    /* Retorna true si hay línea de visión sin obstáculos */
+    bool hasLineOfSight(const Position& from, const Position& to) const;
     bool playerColision(float pos_x, float pos_y) const;
 
     /* Metodos para setear los atributos del mapa en testing */

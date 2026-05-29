@@ -21,6 +21,7 @@ target_sources(argentum_online_tests
     ../server/src/model/map/GroundItemLayer.cpp
     ../server/src/model/map/SafeZoneLayer.cpp
     ../server/src/model/map/NPCLayer.cpp
+    ../server/src/model/map/CollisionLayer.cpp
     ../server/src/Map.cpp
     ../server/src/World.cpp
     ../server/src/model/entities/Player.cpp

@@ -52,6 +52,7 @@ target_sources(argentum_online_server
     src/model/map/GroundItemLayer.cpp
     src/model/map/SafeZoneLayer.cpp
     src/model/map/NPCLayer.cpp
+    src/model/map/CollisionLayer.cpp
     src/Map.cpp
     src/World.cpp
 
@@ -105,6 +106,7 @@ target_sources(argentum_online_server
     src/model/map/GroundItemLayer.h
     src/model/map/SafeZoneLayer.h
     src/model/map/NPCLayer.h
+    src/model/map/CollisionLayer.h
     src/World.h
     src/auth/AuthManager.h
     src/persistence/PlayerDataStore.h
