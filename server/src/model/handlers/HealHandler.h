@@ -4,7 +4,7 @@
 
 #include "NpcCommandHandler.h"
 
-class HealHandler : public NpcCommandHandler {
+class HealHandler: public NpcCommandHandler {
 public:
     InteractionResult execute(Player& player, const NpcCommandDTO& dto) override {
         InteractionResult result;
@@ -12,7 +12,7 @@ public:
         // 1. Si no es mi comando, aviso explícitamente al World que no lo manejé
         if (dto.type != NpcCommandType::HEAL) {
             result.status = InteractionStatus::UNHANDLED;
-            return result; 
+            return result;
         }
 
         // A partir de acá, el comando SÍ es mío. El estatus base pasa a ser de error

@@ -60,13 +60,10 @@ enum class Movement : uint8_t {
     STOP
 };
 
-<<<<<<< HEAD
-enum ClanCommandType { FOUND, JOIN, LEAVE, CHECK, ACCEPT, REJECT, KICK };
-
 enum class InteractionStatus {
-    UNHANDLED, // El handler no reconoció el comando (No era para él)
-    SUCCESS,   // Se ejecutó con éxito
-    FAILURE    // El comando era para él, pero falló una regla de negocio (ej: sin oro)
+    UNHANDLED,  // El handler no reconoció el comando (No era para él)
+    SUCCESS,    // Se ejecutó con éxito
+    FAILURE     // El comando era para él, pero falló una regla de negocio (ej: sin oro)
 };
 
 struct InteractionResult {
@@ -74,6 +71,4 @@ struct InteractionResult {
     std::string msg;
 };
 
-=======
->>>>>>> develop
 #endif

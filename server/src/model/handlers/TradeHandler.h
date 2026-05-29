@@ -1,12 +1,14 @@
 #pragma once
 
-#include "NpcCommandHandler.h"
+#include <string>
+#include <unordered_map>
+
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
-#include <unordered_map>
-#include <string>
 
-class TradeHandler : public NpcCommandHandler {
+#include "NpcCommandHandler.h"
+
+class TradeHandler: public NpcCommandHandler {
 private:
     const ItemRegistry& registry;
     // Mapa de stock real del NPC: itemId -> cantidad disponible
@@ -15,7 +17,7 @@ private:
 
 public:
     TradeHandler(const ItemRegistry& registry, std::unordered_map<uint32_t, int>& stock,
-                 bool allowsSell) :
+                 bool allowsSell):
             registry(registry), npcStock(stock), allowsSell(allowsSell) {}
 
     InteractionResult execute(Player& player, const NpcCommandDTO& dto) override {
@@ -28,16 +30,17 @@ public:
         }
 
         uint32_t itemId = 0;
-        try { 
-            itemId = std::stoul(dto.arg); 
-        } catch (...) { 
-            return result; 
+        try {
+            itemId = std::stoul(dto.arg);
+        } catch (...) {
+            return result;
         }
 
         const Item* itemDef = registry.get_item(itemId);
-        if (!itemDef) return result;
+        if (!itemDef)
+            return result;
 
-        uint32_t unitPrice = itemDef->getPrice(); 
+        uint32_t unitPrice = itemDef->getPrice();
         if (dto.type == NpcCommandType::BUY) {
             auto it = npcStock.find(itemId);
             if (it == npcStock.end() || it->second <= 0) {
@@ -53,7 +56,7 @@ public:
             }
 
             if (!player.addItem(itemId, 1)) {
-                player.addGold(unitPrice); // Rollback
+                player.addGold(unitPrice);  // Rollback
                 result.status = InteractionStatus::FAILURE;
                 result.msg = "Tu inventario está lleno.";
                 return result;
@@ -92,11 +95,11 @@ public:
 
             // El comerciante absorbe el ítem incrementando su stock
             npcStock[itemId]++;
-            
+
             // Corregido: Cargamos el mensaje de éxito y devolvemos el result
             result.status = InteractionStatus::SUCCESS;
-            result.msg = "Venta exitosa: compraste 1 " + itemDef->getName() + 
-                                      " por " + std::to_string(unitPrice / 2) + " monedas de oro.";
+            result.msg = "Venta exitosa: compraste 1 " + itemDef->getName() + " por " +
+                         std::to_string(unitPrice / 2) + " monedas de oro.";
             return result;
         }
 

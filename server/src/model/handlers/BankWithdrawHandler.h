@@ -9,12 +9,12 @@
 
 #include "NpcCommandHandler.h"
 
-class BankWithdrawHandler : public NpcCommandHandler {
+class BankWithdrawHandler: public NpcCommandHandler {
 private:
     GlobalBank& bankInstance;
 
 public:
-    explicit BankWithdrawHandler(GlobalBank& bankInstance) : bankInstance(bankInstance) {}
+    explicit BankWithdrawHandler(GlobalBank& bankInstance): bankInstance(bankInstance) {}
 
     InteractionResult execute(Player& player, const NpcCommandDTO& dto) override {
         InteractionResult result;
@@ -53,11 +53,13 @@ public:
 
             player.addGold(amount);
             result.status = InteractionStatus::SUCCESS;
-            result.msg = "Retiro exitoso: Ha retirado " + std::to_string(amount) + " monedas de oro.";
+            result.msg =
+                    "Retiro exitoso: Ha retirado " + std::to_string(amount) + " monedas de oro.";
             return result;
         }
 
-        // En lugar de usar dto.arg completo, usamos 'subComando' que ya tiene la primera palabra aislada
+        // En lugar de usar dto.arg completo, usamos 'subComando' que ya tiene la primera palabra
+        // aislada
         uint32_t itemId = 0;
         try {
             itemId = std::stoul(subComando);
@@ -78,7 +80,7 @@ public:
         // Intentamos meterlo en el inventario del jugador
         if (!player.addItem(itemId, 1)) {
             // Rollback atómico si la mochila está colmada
-            bankInstance.depositItem(playerId, itemId, 1);  
+            bankInstance.depositItem(playerId, itemId, 1);
             result.status = InteractionStatus::FAILURE;
             result.msg = "Tu inventario está lleno. El artículo permanece seguro en el banco.";
             return result;

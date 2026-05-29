@@ -319,7 +319,7 @@ void World::playerInteract(uint32_t dbId, uint32_t targetNpcId) {
     // 4. REGISTRO DE SESIÓN: El mundo toma nota de la interacción
     activeInteractions[playerEntityId] = npc;
 
-   // Capturamos el resultado puro de la interacción
+    // Capturamos el resultado puro de la interacción
     InteractionResult res = npc->beInteractedBy(player);
 
     // Traducimos los mensajes del NPC en WorldEvents salientes para ese jugador
@@ -368,7 +368,7 @@ void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
             break;
 
         case InteractionStatus::UNHANDLED:
-            // El NPC no sabe qué hacer con este comando. 
+            // El NPC no sabe qué hacer con este comando.
             // Le mandamos un contra-mensaje útil al jugador.
             std::string npcError = "El NPC no comprende ese comando.";
             outgoingEvents.push_back({dbId, npcError});

@@ -3,12 +3,12 @@
 
 #include <gtest/gtest.h>
 
+#include "../common/include/dto/CommandDTO.h"
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
 
 #include "Priest.h"
 #include "World.h"
-#include "../common/include/dto/CommandDTO.h"
 
 static NpcCommandDTO createPriestTestCommand(NpcCommandType type,
                                              const std::string& itemIdStr = "") {
@@ -88,9 +88,9 @@ TEST(PriestTest, Priest_AllowsBuyingItemsInStock) {
     Priest sacerdote(1, {0, 0}, registry);
     Player player = makePriestTestPlayer();
 
-    // Nota: Asegurate de que en el constructor de Priest se añada el ítem 1001 al mapa stock, 
+    // Nota: Asegurate de que en el constructor de Priest se añada el ítem 1001 al mapa stock,
     // por ejemplo: stock[1001u] = 5; para que este test pase con stock limitado.
-    
+
     player.addGold(500);
 
     // Compra directa de la Armadura 1001 usando la firma 'dto.arg'
@@ -140,5 +140,5 @@ TEST(PriestTest, Priest_DeadPlayerCannotTrade) {
 
     // VALIDACIONES DEL NUEVO CONTRATO:
     // pero falló la regla de negocio por estar muerto.
-    EXPECT_EQ(res.status, InteractionStatus::FAILURE); 
+    EXPECT_EQ(res.status, InteractionStatus::FAILURE);
 }

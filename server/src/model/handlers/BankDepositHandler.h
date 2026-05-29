@@ -9,13 +9,13 @@
 
 #include "NpcCommandHandler.h"
 
-class BankDepositHandler : public NpcCommandHandler {
+class BankDepositHandler: public NpcCommandHandler {
 private:
     GlobalBank& bankInstance;
     const ItemRegistry& registry;
 
 public:
-    BankDepositHandler(GlobalBank& bankInstance, const ItemRegistry& registry) :
+    BankDepositHandler(GlobalBank& bankInstance, const ItemRegistry& registry):
             bankInstance(bankInstance), registry(registry) {}
 
     InteractionResult execute(Player& player, const NpcCommandDTO& dto) override {
@@ -49,16 +49,18 @@ public:
 
             if (player.getGold() < amount) {
                 result.status = InteractionStatus::FAILURE;
-                result.msg = "No tienes suficiente oro en tu inventario para depositar esa cantidad.";
+                result.msg =
+                        "No tienes suficiente oro en tu inventario para depositar esa cantidad.";
                 return result;
             }
 
             // Procesamos la transacción de forma segura
             player.removeGold(amount);
             bankInstance.depositGold(playerId, amount);
-            
+
             result.status = InteractionStatus::SUCCESS;
-            result.msg = "Depósito exitoso: Guardaste " + std::to_string(amount) + " monedas de oro en tu cuenta.";
+            result.msg = "Depósito exitoso: Guardaste " + std::to_string(amount) +
+                         " monedas de oro en tu cuenta.";
             return result;
         }
 
@@ -96,7 +98,8 @@ public:
             return result;
         }
 
-        // Intentamos depositarlo en la bóveda del banco (aquí se usa el find_if que refactorizamos antes)
+        // Intentamos depositarlo en la bóveda del banco (aquí se usa el find_if que refactorizamos
+        // antes)
         if (!bankInstance.depositItem(playerId, itemId, 1)) {
             result.status = InteractionStatus::FAILURE;
             result.msg = "Tu bovéda bancaria está llena. No hay espacio para más artículos.";

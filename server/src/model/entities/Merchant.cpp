@@ -17,7 +17,8 @@ Merchant::Merchant(uint32_t id, Position pos, const ItemRegistry& registry):
 InteractionResult Merchant::beInteractedBy(Player& player) {
     InteractionResult result;
     if (player.isDead()) {
-        result.msg = "[MERCHANT] Si estas muerto, no me podes comprar nada joven viajero. Pedile ayuda al sacerdote";
+        result.msg = "[MERCHANT] Si estas muerto, no me podes comprar nada joven viajero. Pedile "
+                     "ayuda al sacerdote";
     } else {
         result.msg = "[MERCHANT] Saludos, viajero. ¿Lo puedo ayudar con algo?";
     }

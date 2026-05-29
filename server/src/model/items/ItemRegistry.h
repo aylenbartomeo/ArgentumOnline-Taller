@@ -42,10 +42,10 @@ public:
     const Armor* get_armor(int item_id) const;
 
     // Retorna el catalogo de items
-    const std::unordered_map<int, std::unique_ptr<Item>> getItemCatalog() const; 
+    const std::unordered_map<int, std::unique_ptr<Item>> getItemCatalog() const;
 
     // Retorna el catalogo de armas
-    const std::unordered_map<int, std::unique_ptr<Weapon>> getWeaponCatalog() const; 
+    const std::unordered_map<int, std::unique_ptr<Weapon>> getWeaponCatalog() const;
 
     // Determina si un ítem es apilable. Las armas y armaduras no lo son.
     bool isStackable(int item_id) const;

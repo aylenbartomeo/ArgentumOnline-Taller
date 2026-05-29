@@ -4,7 +4,7 @@
 
 #include "NpcCommandHandler.h"
 
-class ResurrectHandler : public NpcCommandHandler {
+class ResurrectHandler: public NpcCommandHandler {
 public:
     InteractionResult execute(Player& player, const NpcCommandDTO& dto) override {
         InteractionResult result;
@@ -18,7 +18,8 @@ public:
         // 2. Validar el estado del jugador (Regla de negocio: no podés revivir si ya estás vivo)
         if (!player.isDead()) {
             result.status = InteractionStatus::FAILURE;
-            result.msg = "¡Ya te encuentras con vida! No necesitas la bendición de la resurrección.";
+            result.msg =
+                    "¡Ya te encuentras con vida! No necesitas la bendición de la resurrección.";
             return result;
         }
 

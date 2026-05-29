@@ -13,7 +13,8 @@ Banker::Banker(uint32_t id, Position pos, GlobalBank& bankInstance, const ItemRe
 InteractionResult Banker::beInteractedBy(Player& player) {
     InteractionResult result;
     if (player.isDead()) {
-        result.msg = "[BANKER] PELIGRO ESTAMOS EN EL CORRALITO. Mentira buen hombre, solo se encuentra muerto. Hable con San Pedro";
+        result.msg = "[BANKER] PELIGRO ESTAMOS EN EL CORRALITO. Mentira buen hombre, solo se "
+                     "encuentra muerto. Hable con San Pedro";
     } else {
         result.msg = "[BANKER] Saludos, viajero. ¿Lo puedo ayudar con algo?";
     }
