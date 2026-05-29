@@ -3,38 +3,40 @@
 #include "server/src/model/items/Item.h"
 #include "server/src/model/items/ItemRegistry.h"
 
-Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
-               const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
+Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
+               CharacterClass charClass, const RaceConfig& raceConf,
+               const CharacterClassConfig& classConf, const PlayerConfig& playerBase,
                const ItemRegistry& itemRegistry, const Position& spawn):
         id(entityId),
         dbId(dbId),
         name(name),
         pos(spawn),
-        // Stats ahora solo maneja combate (sin max_gold)
-        stats(race, characterClass, playerBase),
-        // Inventario ahora absorbe la economía: 20 slots, 5000 seguro, 100000 tope máximo
+        // Pasar race y charClass al constructor de StatsComponent
+        stats(raceConf, classConf, playerBase, race, charClass),
         inventory(InventoryConfig{20, 100000}, 5000),
         equipment(),
         bank(50, 999999),
         state(),
-        regeneration(stats, state, race, characterClass),
+        regeneration(stats, state, raceConf, classConf),
         itemRegistry(&itemRegistry) {}
 
 // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
 // de valores random
-Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
-               const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
+Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
+               CharacterClass charClass, const RaceConfig& raceConf,
+               const CharacterClassConfig& classConf, const PlayerConfig& playerBase,
                const FormulaEngine& testEngine):
         id(entityId),
         dbId(dbId),
         name(name),
         pos({0, 0}),
-        stats(race, characterClass, playerBase, testEngine),
+        // Pasar race y charClass junto con el testEngine
+        stats(raceConf, classConf, playerBase, race, charClass, testEngine),
         inventory(InventoryConfig{20, 100000}, 5000),
         equipment(),
         bank(50, 999999),
         state(),
-        regeneration(stats, state, race, characterClass, testEngine),
+        regeneration(stats, state, raceConf, classConf, testEngine),
         itemRegistry(nullptr) {}
 
 uint32_t Player::equipItemById(uint32_t itemId) {
@@ -102,6 +104,74 @@ void Player::receiveDamage(int amount) {
     if (amount < 0)
         return;
     stats.takeDamage(static_cast<uint16_t>(amount));
+}
+
+PlayerPersistData Player::toPersistData() const {
+    PlayerPersistData data{};
+    data.dbId = this->dbId;
+    data.posX = this->pos.x;
+    data.posY = this->pos.y;
+
+    // Estadísticas
+    data.level = this->stats.getLevel();
+    data.exp = this->stats.getExp();
+    data.hp = this->stats.getHp();
+    data.maxHp = this->stats.getMaxHp();
+    data.mana = this->stats.getMana();
+    data.maxMana = this->stats.getMaxMana();
+
+    // Economía
+    data.gold = this->inventory.getGold();
+
+    // Identidad y Estado
+    data.race = static_cast<uint32_t>(this->stats.getRace());
+    data.charClass = static_cast<uint32_t>(this->stats.getCharClass());
+    data.isGhost = this->state.isGhost();
+
+    // Inventario
+    const auto& slots = this->inventory.getSlots();
+    for (size_t i = 0; i < slots.size() && i < MAX_INVENTORY_SLOTS; ++i) {
+        data.inventory[i].itemId = slots[i].item_id;
+        data.inventory[i].amount = slots[i].amount;
+    }
+
+    // Equipamiento
+    data.equippedWeapon = equipment.getWeapon() ? equipment.getWeapon()->getId() : 0;
+    data.equippedArmor = equipment.getBodyArmor() ? equipment.getBodyArmor()->getId() : 0;
+    data.equippedShield = equipment.getShield() ? equipment.getShield()->getId() : 0;
+    data.equippedHelmet = equipment.getHelmet() ? equipment.getHelmet()->getId() : 0;
+
+    return data;
+}
+
+void Player::restoreFromPersistData(const PlayerPersistData& data) {
+    // 1. Stats
+    this->stats.restoreFromPersist(data.hp, data.mana, data.exp, data.level);
+
+    // 2. Economía
+    this->inventory.setGold(data.gold);
+
+    // 3. Estado (Si estaba muerto al desconectarse, lo matamos)
+    if (data.isGhost) {
+        this->state.die();
+    }
+
+    // 4. Inventario
+    for (size_t i = 0; i < MAX_INVENTORY_SLOTS; ++i) {
+        if (data.inventory[i].itemId != 0 && data.inventory[i].amount > 0) {
+            this->inventory.restoreSlot(i, data.inventory[i].itemId, data.inventory[i].amount);
+        }
+    }
+
+    // 5. Equipamiento (Pasamos los IDs directamente al registry)
+    if (data.equippedWeapon != 0)
+        this->equipItemById(data.equippedWeapon);
+    if (data.equippedArmor != 0)
+        this->equipItemById(data.equippedArmor);
+    if (data.equippedShield != 0)
+        this->equipItemById(data.equippedShield);
+    if (data.equippedHelmet != 0)
+        this->equipItemById(data.equippedHelmet);
 }
 
 Position Player::tryMove(Movement direction) const {

@@ -63,12 +63,7 @@ void GameLoop::processInputs() {
             std::cout << "[GAMELOOP] Player joined: " << joinData.username << std::endl;
 
             auto savedData = playerDataStore.loadPlayerData(joinData.username);
-            std::optional<Position> savedPos = std::nullopt;
-            if (savedData.has_value()) {
-                savedPos = Position{savedData->posX, savedData->posY};
-            }
-
-            world.addPlayer(joinData.clientId, joinData.username, savedPos);
+            world.addPlayer(joinData.clientId, joinData.username, savedData);
 
             // 2. Un jugador se desconecta
         } else if (std::holds_alternative<DisconnectEvent>(event)) {
@@ -76,15 +71,12 @@ void GameLoop::processInputs() {
             std::cout << "[GAMELOOP] Player " << discData.clientId << " requested disconnect."
                       << std::endl;
 
-            // Persistir posición antes de eliminar al jugador del mundo
+            // Extraer y persistir TODA la data antes de borrar al jugador
             auto username = world.getPlayerUsername(discData.clientId);
-            auto position = world.getPlayerPosition(discData.clientId);
-            if (username.has_value() && position.has_value()) {
-                PlayerPersistData data{};
-                data.dbId = discData.clientId;
-                data.posX = position->x;
-                data.posY = position->y;
-                playerDataStore.savePlayerData(username.value(), data);
+            auto persistData = world.getPlayerPersistData(discData.clientId);
+
+            if (username.has_value() && persistData.has_value()) {
+                playerDataStore.savePlayerData(username.value(), persistData.value());
             }
 
             world.removePlayer(discData.clientId);
@@ -135,13 +127,10 @@ void GameLoop::persistOnlinePlayers() {
     auto dbIds = world.getOnlinePlayerDbIds();
     for (uint32_t dbId: dbIds) {
         auto username = world.getPlayerUsername(dbId);
-        auto position = world.getPlayerPosition(dbId);
-        if (username.has_value() && position.has_value()) {
-            PlayerPersistData data{};
-            data.dbId = dbId;
-            data.posX = position->x;
-            data.posY = position->y;
-            playerDataStore.savePlayerData(username.value(), data);
+        auto persistData = world.getPlayerPersistData(dbId);
+
+        if (username.has_value() && persistData.has_value()) {
+            playerDataStore.savePlayerData(username.value(), persistData.value());
         }
     }
 }

@@ -13,6 +13,7 @@
 #include "../components/StateComponent.h"
 #include "../components/StatsComponent.h"
 #include "../interfaces/Attackable.h"
+#include "../persistence/PlayerDataStore.h"
 
 #include "position.h"
 
@@ -33,14 +34,16 @@ private:
     const ItemRegistry* itemRegistry;  // Puntero para permitir nullptr en tests
 
 public:
-    Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
-           const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
+    Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
+           CharacterClass charClass, const RaceConfig& raceConf,
+           const CharacterClassConfig& classConf, const PlayerConfig& playerBase,
            const ItemRegistry& itemRegistry, const Position& spawn);
 
     // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
     // de valores random (no requiere ItemRegistry)
-    Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
-           const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
+    Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
+           CharacterClass charClass, const RaceConfig& raceConf,
+           const CharacterClassConfig& classConf, const PlayerConfig& playerBase,
            const FormulaEngine& testEngine);
 
     // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
@@ -106,6 +109,10 @@ public:
     // Calcula la posición resultante de moverse en una dirección,
     // sin modificar la posición actual del jugador.
     Position tryMove(Movement direction) const;
+
+    // capacidad de volcar su estado actual hacia el DTO de persistencia, y viceversa.
+    PlayerPersistData toPersistData() const;
+    void restoreFromPersistData(const PlayerPersistData& data);
 };
 
 #endif

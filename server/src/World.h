@@ -54,7 +54,11 @@ public:
 
     // Métodos lógicos: Entrar y salir del mundo virtual
     bool addPlayer(uint32_t playerId, std::string& username,
-                   const std::optional<Position>& savedPosition = std::nullopt);
+                   const std::optional<PlayerPersistData>& savedData = std::nullopt);
+
+    // Extrae la data completa de un jugador para persistencia
+    std::optional<PlayerPersistData> getPlayerPersistData(uint32_t dbId) const;
+
     bool removePlayer(uint32_t playerId);
 
     bool loadMap(const std::string& path);

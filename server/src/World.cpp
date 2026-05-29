@@ -17,7 +17,7 @@ std::string World::getCreatorPlayerName() const { return this->creatorPlayerName
 int World::getWorldId() const { return this->worldId; }
 
 bool World::addPlayer(uint32_t dbId, std::string& username,
-                      const std::optional<Position>& savedPosition) {
+                      const std::optional<PlayerPersistData>& savedData) {
     if (this->dbIdToEntityId.find(dbId) != this->dbIdToEntityId.end()) {
         return false;
     }
@@ -25,21 +25,51 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
     uint32_t entityId = nextEntityId++;
     this->dbIdToEntityId[dbId] = entityId;
 
+    // [!] Nota de Arquitectura: debemos extraer Race y Class de savedData
+    // y usar PlayerFactory.
     PlayerConfig baseConfig = {15, 15, 15, 15, 1, 0, 0};
     RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig classConfig = {1.0f, 1.0f, 1.0f, false};
 
+    Race playerRace = Race::HUMAN;
+    CharacterClass playerClass = CharacterClass::WARRIOR;
+
+    if (savedData.has_value()) {
+        playerRace = static_cast<Race>(savedData->race);
+        playerClass = static_cast<CharacterClass>(savedData->charClass);
+    }
+
     Position spawnPos;
-    if (savedPosition.has_value() && map.canMoveTo(savedPosition.value())) {
-        spawnPos = savedPosition.value();
+    if (savedData.has_value() && map.canMoveTo(Position{savedData->posX, savedData->posY})) {
+        spawnPos = Position{savedData->posX, savedData->posY};
     } else {
         std::pair<float, float> spawn = map.getInitialPosition();
         spawnPos = Position{static_cast<int>(spawn.first), static_cast<int>(spawn.second)};
     }
-    this->players[entityId] = std::make_unique<Player>(
-            entityId, dbId, username, raceConfig, classConfig, baseConfig, itemRegistry, spawnPos);
+
+    this->players[entityId] =
+            std::make_unique<Player>(entityId, dbId, username, playerRace, playerClass, raceConfig,
+                                     classConfig, baseConfig, itemRegistry, spawnPos);
+
+    // APLICAR RESTAURACIÓN COMPLETA
+    if (savedData.has_value()) {
+        this->players[entityId]->restoreFromPersistData(savedData.value());
+    }
 
     return true;
+}
+
+// Implementación de la extracción del snapshot persistente
+std::optional<PlayerPersistData> World::getPlayerPersistData(uint32_t dbId) const {
+    auto itMap = dbIdToEntityId.find(dbId);
+    if (itMap == dbIdToEntityId.end())
+        return std::nullopt;
+
+    auto it = players.find(itMap->second);
+    if (it == players.end())
+        return std::nullopt;
+
+    return it->second->toPersistData();
 }
 
 bool World::removePlayer(uint32_t dbId) {
