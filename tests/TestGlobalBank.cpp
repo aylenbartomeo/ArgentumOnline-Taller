@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include "GlobalBank.h"
 
 // =========================================================================
@@ -10,7 +11,7 @@ TEST(GlobalBankTest, Bank_HandlesGoldLifecycleCorrectly) {
 
     // 1. Depositamos en una cuenta inexistente (se debe crear automáticamente con 0)
     banco.depositGold(playerId, 1000u);
-    banco.depositGold(playerId, 500u); // Sumamos más oro a la misma cuenta
+    banco.depositGold(playerId, 500u);  // Sumamos más oro a la misma cuenta
 
     // Verificamos el saldo total depositado
     EXPECT_EQ(banco.getBankGold(playerId), 1500u);
@@ -57,7 +58,7 @@ TEST(GlobalBankTest, Bank_HandlesItemApilationCorrectly) {
 
     // 4. Retiramos en exceso (quedan 15 - 3 = 12 pociones)
     uint16_t ret2 = banco.withdrawItemById(playerId, 7004u, 50);
-    EXPECT_EQ(ret2, 12); // Solo nos debe entregar las 12 restantes
+    EXPECT_EQ(ret2, 12);  // Solo nos debe entregar las 12 restantes
 
     // 5. Una nueva extracción debe dar 0 porque el slot se limpió/vació
     EXPECT_EQ(banco.withdrawItemById(playerId, 7004u, 1), 0);

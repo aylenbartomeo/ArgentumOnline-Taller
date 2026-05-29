@@ -48,8 +48,8 @@ struct NpcCommandDTO {
 };
 
 // Esto es lo que la cola del Servidor va a recibir.
-using CommandVariant = std::variant<RegisterDTO, LoginDTO, StartMoveDTO, StopMoveDTO, AttackDTO,
-                                    UseItemDTO, EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO, 
-                                    SelectNpcDTO, NpcCommandDTO>;
+using CommandVariant =
+        std::variant<RegisterDTO, LoginDTO, StartMoveDTO, StopMoveDTO, AttackDTO, UseItemDTO,
+                     EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO, SelectNpcDTO, NpcCommandDTO>;
 
 #endif  // CLIENT_COMMANDS_H

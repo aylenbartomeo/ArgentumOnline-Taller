@@ -1,15 +1,20 @@
 #ifndef PRIEST_H
 #define PRIEST_H
 
-#include "Player.h"
+#include <memory>
+#include <unordered_map>
+
+#include "../handlers/NpcCommandHandler.h"
 #include "../interfaces/Interactable.h"
 
-class ItemRegistry;
+#include "Player.h"
 
-class Priest : public Interactable {
+class Priest: public Interactable {
 private:
     Position pos;
-    const ItemRegistry& registry; // Solo vende hechizos
+    std::unordered_map<uint32_t, int> stock;
+    std::unordered_map<NpcCommandType, std::unique_ptr<NpcCommandHandler>> commandHandlers;
+
 public:
     Priest(Position pos, const ItemRegistry& registry);
     Position getPosition() const override { return pos; }

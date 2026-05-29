@@ -2,15 +2,17 @@
 #define INTERACTABLE_H
 
 #include <vector>
-#include "position.h"
+
 #include "dto/ClientCommands.h"
+
+#include "position.h"
 
 class Player;
 
 class Interactable {
 public:
     virtual ~Interactable() = default;
-    
+
     // Retorna la posición física del NPC para que el World valide la distancia
     virtual Position getPosition() const = 0;
 

@@ -96,8 +96,8 @@ void Player::handleDeath() {
 }
 
 void Player::resurrect() {
-    stats.restoreHp();    
-    state.resurrect(); 
+    stats.restoreHp();
+    state.resurrect();
 }
 
 void Player::onActionStarted() { state.stopMeditating(); }

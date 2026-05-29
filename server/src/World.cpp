@@ -190,16 +190,19 @@ void World::monsterAttack(const Monster& monster, Player& target) {
 void World::playerInteract(uint32_t dbId, uint32_t targetNpcId) {
     // 1. Conseguir el ID interno de la entidad jugador
     auto itMap = this->dbIdToEntityId.find(dbId);
-    if (itMap == this->dbIdToEntityId.end()) return;
+    if (itMap == this->dbIdToEntityId.end())
+        return;
     uint32_t playerEntityId = itMap->second;
 
     auto itPlayer = this->players.find(playerEntityId);
-    if (itPlayer == this->players.end()) return;
+    if (itPlayer == this->players.end())
+        return;
     Player& player = *(itPlayer->second);
 
     // 2. Buscar al NPC
-    Interactable* npc = this->findInteractable(targetNpcId); 
-    if (!npc) return;
+    Interactable* npc = this->findInteractable(targetNpcId);
+    if (!npc)
+        return;
 
     // 3. Validación de distancia Chebyshev (rango máximo 2 celdas)
     if (player.getPosition().chebyshev_distance_to(npc->getPosition()) > 2) {
@@ -216,11 +219,13 @@ void World::playerInteract(uint32_t dbId, uint32_t targetNpcId) {
 
 void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
     auto itMap = this->dbIdToEntityId.find(dbId);
-    if (itMap == this->dbIdToEntityId.end()) return;
+    if (itMap == this->dbIdToEntityId.end())
+        return;
     uint32_t playerEntityId = itMap->second;
 
     auto itPlayer = this->players.find(playerEntityId);
-    if (itPlayer == this->players.end()) return;
+    if (itPlayer == this->players.end())
+        return;
     Player& player = *(itPlayer->second);
 
     // El mundo busca al NPC en su tabla de interacciones, no en el Player
@@ -234,7 +239,7 @@ void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
 
     // Validación de seguridad por si se movió mediante cheats o desincro
     if (player.getPosition().chebyshev_distance_to(npc->getPosition()) > 2) {
-        activeInteractions.erase(playerEntityId); // Rompemos la sesión
+        activeInteractions.erase(playerEntityId);  // Rompemos la sesión
         outgoingEvents.push_back({dbId, "Te has alejado demasiado del NPC."});
         return;
     }

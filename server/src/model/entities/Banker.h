@@ -1,24 +1,26 @@
-#ifndef BANKER_H
-#define BANKER_H
+#pragma once
 
-#include <utility>
 #include <functional>
-#include "Player.h"
-#include "../interfaces/Interactable.h"
-#include "GlobalBank.h"
+#include <memory>
+#include <unordered_map>
+#include <utility>
 
+#include "../handlers/NpcCommandHandler.h"
+#include "../interfaces/Interactable.h"
+
+#include "Player.h"
+
+class GlobalBank;
 class ItemRegistry;
 
-class Banker : public Interactable {
+class Banker: public Interactable {
 private:
     Position pos;
-    GlobalBank& bank;
-    const ItemRegistry& registry;
+    std::unordered_map<NpcCommandType, std::unique_ptr<NpcCommandHandler>> commandHandlers;
+
 public:
     Banker(Position pos, GlobalBank& bankInstance, const ItemRegistry& registry);
     Position getPosition() const override { return pos; }
     void beInteractedBy(Player& player) override;
     void handleCommand(Player& player, const NpcCommandDTO& dto) override;
 };
-
-#endif  // BANKER_H_

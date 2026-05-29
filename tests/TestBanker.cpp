@@ -1,18 +1,20 @@
-#include <gtest/gtest.h>
-#include <vector>
 #include <string>
+#include <vector>
+
+#include <gtest/gtest.h>
 
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
-#include "GlobalBank.h"
+
 #include "Banker.h"
+#include "GlobalBank.h"
 
 // Usamos el constructor de TEST de tu clase Player (recibe FormulaEngine)
 static Player makeBankerTestPlayer(uint32_t id = 1) {
     std::string name = "TestPlayer";
     RaceConfig race = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig cls = {1.0f, 1.0f, 1.0f, false};
-    PlayerConfig cfg = {15, 15, 15, 15, 1, 0, 0}; 
+    PlayerConfig cfg = {15, 15, 15, 15, 1, 0, 0};
     return Player(id, id, name, race, cls, cfg, FormulaEngine::getInstance());
 }
 
@@ -22,13 +24,13 @@ static Player makeBankerTestPlayer(uint32_t id = 1) {
 TEST(BankerTest, Banker_HandlesGoldDepositAndWithdrawCommands) {
     ItemRegistry registry("../config/items.toml");
     GlobalBank bancoInstance;
-    Banker banquero({0,0}, bancoInstance, registry);
+    Banker banquero({0, 0}, bancoInstance, registry);
     Player player = makeBankerTestPlayer();
 
     player.addGold(1000u);
 
     // 1. Ejecutamos el comando unificado: /depositar oro 400
-    NpcCommandDTO depCmd = { NpcCommandType::DEPOSIT, "oro 400" };
+    NpcCommandDTO depCmd = {NpcCommandType::DEPOSIT, "oro 400"};
     banquero.handleCommand(player, depCmd);
 
     // Validaciones del depósito
@@ -36,7 +38,7 @@ TEST(BankerTest, Banker_HandlesGoldDepositAndWithdrawCommands) {
     EXPECT_EQ(bancoInstance.getBankGold(player.getDbId()), 400u);
 
     // 2. Ejecutamos el comando unificado: /retirar oro 200
-    NpcCommandDTO withCmd = { NpcCommandType::WITHDRAW, "oro 200" };
+    NpcCommandDTO withCmd = {NpcCommandType::WITHDRAW, "oro 200"};
     banquero.handleCommand(player, withCmd);
 
     // El jugador debería recuperar sus 200 monedas (600 + 200 = 800)
@@ -50,7 +52,7 @@ TEST(BankerTest, Banker_HandlesGoldDepositAndWithdrawCommands) {
 TEST(BankerTest, Banker_DepositsItemFromInventorySuccessfully) {
     ItemRegistry registry("../config/items.toml");
     GlobalBank bancoInstance;
-    Banker banquero({0,0}, bancoInstance, registry);
+    Banker banquero({0, 0}, bancoInstance, registry);
     Player player = makeBankerTestPlayer();
 
     // Seteamos la precondición: le damos la Espada (ID: 4001) al jugador
@@ -58,7 +60,7 @@ TEST(BankerTest, Banker_DepositsItemFromInventorySuccessfully) {
     ASSERT_TRUE(player.inspectSlot(0).has_value());
 
     // Mandamos el comando unificado enviando el ID del ítem como argumento string
-    NpcCommandDTO cmd = { NpcCommandType::DEPOSIT, "4001" };
+    NpcCommandDTO cmd = {NpcCommandType::DEPOSIT, "4001"};
     banquero.handleCommand(player, cmd);
 
     // VALIDACIONES:
@@ -78,14 +80,14 @@ TEST(BankerTest, Banker_DepositsItemFromInventorySuccessfully) {
 TEST(BankerTest, Banker_WithdrawsItemByIdSuccessfully) {
     ItemRegistry registry("../config/items.toml");
     GlobalBank bancoInstance;
-    Banker banquero({0,0}, bancoInstance, registry);
+    Banker banquero({0, 0}, bancoInstance, registry);
     Player player = makeBankerTestPlayer();
 
     // Forzamos la precondición directamente en la bóveda del banco usando la API limpia
     bancoInstance.depositItem(player.getDbId(), 4001u, 1);
 
     // El jugador intenta retirar el ítem ejecutando el comando con el ID
-    NpcCommandDTO cmd = { NpcCommandType::WITHDRAW, "4001" };
+    NpcCommandDTO cmd = {NpcCommandType::WITHDRAW, "4001"};
     banquero.handleCommand(player, cmd);
 
     // VALIDACIONES:
@@ -102,7 +104,7 @@ TEST(BankerTest, Banker_WithdrawsItemByIdSuccessfully) {
 TEST(BankerTest, Banker_WithdrawWithFullInventoryDoesNotLoseItem) {
     ItemRegistry registry("../config/items.toml");
     GlobalBank bancoInstance;
-    Banker banquero({0,0}, bancoInstance, registry);
+    Banker banquero({0, 0}, bancoInstance, registry);
     Player player = makeBankerTestPlayer();
 
     // Precondición 1: Guardamos una Espada (4001) en el banco
@@ -111,15 +113,16 @@ TEST(BankerTest, Banker_WithdrawWithFullInventoryDoesNotLoseItem) {
     // Precondición 2: Llenamos por completo la mochila del jugador con IDs únicos
     uint8_t sizeMochila = player.getSize();
     for (uint8_t i = 0; i < sizeMochila; ++i) {
-        player.addItem(1001u + i, 1); 
+        player.addItem(1001u + i, 1);
     }
 
     // Intentamos retirar la espada del banco
-    NpcCommandDTO cmd = { NpcCommandType::WITHDRAW, "4001" };
+    NpcCommandDTO cmd = {NpcCommandType::WITHDRAW, "4001"};
     banquero.handleCommand(player, cmd);
 
     // VALIDACIONES CRÍTICAS:
-    // 1. ¡Rollback exitoso! El ítem NO se destruyó ni se perdió; se mantuvo a salvo dentro del banco
+    // 1. ¡Rollback exitoso! El ítem NO se destruyó ni se perdió; se mantuvo a salvo dentro del
+    // banco
     uint16_t cantidadEnBanco = bancoInstance.withdrawItemById(player.getDbId(), 4001u, 1);
     EXPECT_EQ(cantidadEnBanco, 1);
 }

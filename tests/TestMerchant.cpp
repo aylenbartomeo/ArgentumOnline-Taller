@@ -1,9 +1,11 @@
-#include <gtest/gtest.h>
-#include <vector>
 #include <string>
+#include <vector>
+
+#include <gtest/gtest.h>
 
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
+
 #include "Merchant.h"
 #include "World.h"
 
@@ -32,9 +34,9 @@ TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
     Position merchantPos{5, 5};
     Merchant comerciante(merchantPos, registry);
     Player player = makeTestPlayer();
-    
+
     // Configuramos precondiciones usando la API real de tu InventoryComponent
-    player.addGold(500); 
+    player.addGold(500);
 
     // Intentamos comprar la "Espada" (ID: 4001 de tu TOML)
     NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "4001");
@@ -49,7 +51,6 @@ TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
     ASSERT_TRUE(slotOpt.has_value());
     EXPECT_EQ(slotOpt->item_id, 4001u);
     EXPECT_EQ(slotOpt->amount, 1);
-
 }
 
 // =========================================================================
@@ -57,16 +58,16 @@ TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
 // =========================================================================
 TEST(MerchantTest, Merchant_BuyWithFullInventoryDoesNotStealGold) {
     ItemRegistry registry("../config/items.toml");
-    Merchant comerciante({0,0}, registry);
+    Merchant comerciante({0, 0}, registry);
     Player player = makeTestPlayer();
 
-    player.addGold(200); 
+    player.addGold(200);
 
     // Llenamos por completo la mochila del jugador usando IDs únicos
     // para evitar apilamiento automático del mismo ítem.
     uint8_t sizeMochila = player.getSize();
     for (uint8_t i = 0; i < sizeMochila; ++i) {
-        player.addItem(1001u + i, 1); // IDs distintos para ocupar cada slot
+        player.addItem(1001u + i, 1);  // IDs distintos para ocupar cada slot
     }
 
     // Intentamos comprar la Espada (4001)
@@ -83,12 +84,12 @@ TEST(MerchantTest, Merchant_BuyWithFullInventoryDoesNotStealGold) {
 // =========================================================================
 TEST(MerchantTest, Merchant_RejectsMagicItemsBasedOnName) {
     ItemRegistry registry("../config/items.toml");
-    Merchant comerciante({0,0}, registry);
+    Merchant comerciante({0, 0}, registry);
     Player player = makeTestPlayer();
 
     player.addGold(300);
 
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "6003"); // Baculo nudoso
+    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "6003");  // Baculo nudoso
     comerciante.handleCommand(player, cmd);
 
     // 1. Verificamos que no se le haya descontado un solo centavo de oro
@@ -107,12 +108,12 @@ TEST(MerchantTest, Merchant_RejectsMagicItemsBasedOnName) {
 // =========================================================================
 TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
     ItemRegistry registry("../config/items.toml");
-    Merchant comerciante({0,0}, registry);
+    Merchant comerciante({0, 0}, registry);
     Player player = makeTestPlayer();
 
     // Le damos una "Armadura de cuero" (ID: 1001) directo en la mochila
     player.addItem(1001, 1);
-    EXPECT_EQ(player.getGold(), 0u); // Arranca seco
+    EXPECT_EQ(player.getGold(), 0u);  // Arranca seco
 
     // Ejecutamos el comando de venta de la armadura
     NpcCommandDTO cmd = createTestCommand(NpcCommandType::SELL, "1001");

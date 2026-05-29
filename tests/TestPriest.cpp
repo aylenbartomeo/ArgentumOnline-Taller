@@ -1,13 +1,16 @@
-#include <gtest/gtest.h>
-#include <vector>
 #include <string>
+#include <vector>
+
+#include <gtest/gtest.h>
 
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
+
 #include "Priest.h"
 #include "World.h"
 
-static NpcCommandDTO createPriestTestCommand(NpcCommandType type, const std::string& itemIdStr = "") {
+static NpcCommandDTO createPriestTestCommand(NpcCommandType type,
+                                             const std::string& itemIdStr = "") {
     NpcCommandDTO dto;
     dto.type = type;
     dto.arg = itemIdStr;
@@ -18,8 +21,8 @@ static Player makePriestTestPlayer(uint32_t id = 1) {
     std::string name = "TestPlayer";
     RaceConfig race = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig cls = {1.0f, 1.0f, 1.0f, false};
-    PlayerConfig cfg = {15, 15, 15, 15, 1, 0, 0}; 
-    
+    PlayerConfig cfg = {15, 15, 15, 15, 1, 0, 0};
+
     // Invoca al constructor de test proveído en tu firma
     return Player(id, id, name, race, cls, cfg, FormulaEngine::getInstance());
 }
@@ -29,11 +32,11 @@ static Player makePriestTestPlayer(uint32_t id = 1) {
 // =========================================================================
 TEST(PriestTest, Priest_ResurrectsDeadPlayerSuccessfully) {
     ItemRegistry registry("../config/items.toml");
-    Priest sacerdote({0,0}, registry);
+    Priest sacerdote({0, 0}, registry);
     Player player = makePriestTestPlayer();
 
     // Gatillamos la muerte usando tu método sobreescrito de la interfaz
-    player.handleDeath(); 
+    player.handleDeath();
     ASSERT_TRUE(player.isDead());
 
     NpcCommandDTO cmd = createPriestTestCommand(NpcCommandType::RESPAWN);
@@ -50,13 +53,13 @@ TEST(PriestTest, Priest_ResurrectsDeadPlayerSuccessfully) {
 // =========================================================================
 TEST(PriestTest, Priest_HealsHpAndManaToMaximum) {
     ItemRegistry registry("../config/items.toml");
-    Priest sacerdote({0,0}, registry);
+    Priest sacerdote({0, 0}, registry);
     Player player = makePriestTestPlayer();
 
     // Le hacemos daño para drenar estadísticas
     player.receiveDamage(5);
     player.consumeMana(10);
-    
+
     ASSERT_LT(player.getHp(), player.getMaxHp());
 
     NpcCommandDTO cmd = createPriestTestCommand(NpcCommandType::HEAL);
@@ -73,7 +76,7 @@ TEST(PriestTest, Priest_HealsHpAndManaToMaximum) {
 // =========================================================================
 TEST(PriestTest, Priest_AllowsFreeTradeBuyingAnyItem) {
     ItemRegistry registry("../config/items.toml");
-    Priest sacerdote({0,0}, registry);
+    Priest sacerdote({0, 0}, registry);
     Player player = makePriestTestPlayer();
 
     player.addGold(500);
@@ -96,12 +99,12 @@ TEST(PriestTest, Priest_AllowsFreeTradeBuyingAnyItem) {
 // =========================================================================
 TEST(PriestTest, Priest_DeadPlayerCannotTrade) {
     ItemRegistry registry("../config/items.toml");
-    Priest sacerdote({0,0}, registry);
+    Priest sacerdote({0, 0}, registry);
     Player player = makePriestTestPlayer();
 
     player.addGold(500);
-    player.handleDeath(); // Lo convertimos en fantasma
-    
+    player.handleDeath();  // Lo convertimos en fantasma
+
     ASSERT_TRUE(player.isDead());
 
     NpcCommandDTO cmd = createPriestTestCommand(NpcCommandType::BUY, "4001");
@@ -109,10 +112,10 @@ TEST(PriestTest, Priest_DeadPlayerCannotTrade) {
     sacerdote.handleCommand(player, cmd);
 
     // VALIDACIONES:
-    EXPECT_EQ(player.getGold(), 500u); // No gasta
+    EXPECT_EQ(player.getGold(), 500u);  // No gasta
 
     if (player.getSize() > 0) {
         auto slotOpt = player.inspectSlot(0);
-        EXPECT_FALSE(slotOpt.has_value()); // No recibe ítems
+        EXPECT_FALSE(slotOpt.has_value());  // No recibe ítems
     }
 }

@@ -9,8 +9,8 @@
 #include <vector>
 
 #include "../include/model/ServerEvents.h"
-#include "dto/CommandDTO.h"
 #include "dto/ClientCommands.h"
+#include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
 #include "model/entities/Monster.h"
 #include "model/entities/Player.h"
@@ -18,7 +18,8 @@
 #include "Map.h"
 #include "queue.h"
 
-// Eventos de mundo (mensajes destinados al cliente); definidos aquí para evitar múltiples definiciones
+// Eventos de mundo (mensajes destinados al cliente); definidos aquí para evitar múltiples
+// definiciones
 struct WorldEvent {
     uint32_t targetDbId;
     std::string message;

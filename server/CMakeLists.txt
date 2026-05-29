@@ -27,6 +27,7 @@ target_sources(argentum_online_server
     src/model/entities/MonsterFactory.cpp
     src/model/entities/Merchant.cpp
     src/model/entities/Priest.cpp
+    src/model/entities/Banker.cpp
 
     # Items
     src/model/items/Armor.cpp
@@ -82,6 +83,13 @@ target_sources(argentum_online_server
     src/model/components/EquipmentComponent.h
     src/model/combat/CombatManager.h
 
+    src/model/handlers/NpcCommandHandler.h
+    src/model/handlers/BankDepositHandler.h
+    src/model/handlers/BankWithdrawHandler.h
+    src/model/handlers/HealHandler.h
+    src/model/handlers/TradeHandler.h
+    src/model/handlers/ResurrectHandler.h
+
     src/model/items/Armor.h
     src/model/items/ArmorFactory.h
     src/model/items/BodyArmor.h
@@ -116,6 +124,7 @@ target_include_directories(argentum_online_server
     src/model/entities
     src/model/items
     src/model/components
+    src/model/handlers
     ${CMAKE_SOURCE_DIR}/common/utils
 )
 

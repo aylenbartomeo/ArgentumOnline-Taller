@@ -29,7 +29,7 @@ private:
     EquipmentComponent equipment;
     StateComponent state;
     RegenerationComponent regeneration;
-    const ItemRegistry* itemRegistry; // Puntero para permitir nullptr en tests
+    const ItemRegistry* itemRegistry;  // Puntero para permitir nullptr en tests
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
            const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
@@ -43,14 +43,14 @@ public:
 
     // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
     void update(float deltaSeconds);
-    
+
     // Equipa un ítem resolviendo su ID contra el registry
     uint32_t equipItemById(uint32_t itemId);
-    
+
     // Equipa un ítem directamente desde un slot del inventario.
     // Retorna true si pudo equiparlo, false en caso contrario.
     bool equipFromSlot(uint8_t slotIndex);
-    
+
     // Se llama cada vez que el jugador inicia una accion activa en el mundo
     void onActionStarted();
 
@@ -82,7 +82,7 @@ public:
     uint16_t getHp() const { return stats.getHp(); }
     uint16_t getMaxHp() const override { return stats.getMaxHp(); }
     uint16_t getMana() const { return stats.getMana(); }
-    uint16_t getMaxMana() const { return stats.getMaxMana();}
+    uint16_t getMaxMana() const { return stats.getMaxMana(); }
     bool consumeMana(int amount) { return stats.consumeMana(static_cast<uint16_t>(amount)); }
     void restoreHp() { stats.restoreHp(); }
     void restoreMana() { stats.restoreMana(); }
@@ -90,14 +90,18 @@ public:
     // Inventory
     InventoryComponent& getInventory() { return this->inventory; }
     const InventoryComponent& getInventory() const { return this->inventory; }
-    bool addGold(uint32_t amount) {return inventory.addGold(amount);}
-    bool removeGold(uint32_t amount) { return inventory.removeGold(amount);}
+    bool addGold(uint32_t amount) { return inventory.addGold(amount); }
+    bool removeGold(uint32_t amount) { return inventory.removeGold(amount); }
     uint32_t getGold() const { return inventory.getGold(); }
-    bool addItem(uint32_t item_id, uint16_t amount) { return inventory.addItem(item_id, amount);}
-    uint16_t removeItem(uint8_t slot_index, uint16_t amount) { return inventory.removeItem(slot_index, amount);}
+    bool addItem(uint32_t item_id, uint16_t amount) { return inventory.addItem(item_id, amount); }
+    uint16_t removeItem(uint8_t slot_index, uint16_t amount) {
+        return inventory.removeItem(slot_index, amount);
+    }
     uint8_t getSize() const { return inventory.getSize(); }
-    std::optional<Slot> inspectSlot(uint8_t slot_index) const { return inventory.inspectSlot(slot_index);}
-    
+    std::optional<Slot> inspectSlot(uint8_t slot_index) const {
+        return inventory.inspectSlot(slot_index);
+    }
+
     // Equipment
     EquipmentComponent& getEquipment() { return this->equipment; }
     const EquipmentComponent& getEquipment() const { return this->equipment; }
