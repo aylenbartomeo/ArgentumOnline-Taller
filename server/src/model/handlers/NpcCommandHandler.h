@@ -9,6 +9,5 @@ class NpcCommandHandler {
 public:
     virtual ~NpcCommandHandler() = default;
 
-    // Ejecuta la lógica específica. Retorna true si procesó el comando con éxito.
-    virtual bool execute(Player& player, const NpcCommandDTO& dto) = 0;
+    virtual InteractionResult execute(Player& player, const NpcCommandDTO& dto) = 0;
 };

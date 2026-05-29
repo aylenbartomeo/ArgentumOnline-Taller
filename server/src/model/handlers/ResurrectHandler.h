@@ -4,16 +4,30 @@
 
 #include "NpcCommandHandler.h"
 
-class ResurrectHandler: public NpcCommandHandler {
+class ResurrectHandler : public NpcCommandHandler {
 public:
-    bool execute(Player& player, const NpcCommandDTO& dto) override {
-        if (dto.type != NpcCommandType::RESPAWN)
-            return false;
+    InteractionResult execute(Player& player, const NpcCommandDTO& dto) override {
+        InteractionResult result;
 
-        if (!player.isDead())
-            return true;
+        // 1. Validar que el comando sea el correcto para este handler
+        if (dto.type != NpcCommandType::RESPAWN) {
+            result.status = InteractionStatus::UNHANDLED;
+            return result;
+        }
 
+        // 2. Validar el estado del jugador (Regla de negocio: no podés revivir si ya estás vivo)
+        if (!player.isDead()) {
+            result.status = InteractionStatus::FAILURE;
+            result.msg = "¡Ya te encuentras con vida! No necesitas la bendición de la resurrección.";
+            return result;
+        }
+
+        // 3. Ejecutar la acción en el modelo
         player.resurrect();
-        return true;
+
+        // 4. Cargar el feedback para el World y el cliente
+        result.status = InteractionStatus::SUCCESS;
+        result.msg = "El Sacerdote posa sus manos sobre ti... ¡Has recuperado tu cuerpo físico!";
+        return result;
     }
 };
