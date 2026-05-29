@@ -4,6 +4,7 @@
 #include <variant>
 
 #include "../include/model/ServerEvents.h"
+#include "dto/ClanCommandDTO.h"
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
                    const std::filesystem::path& configPath, const std::string& persistenceDir):
@@ -105,8 +106,24 @@ void GameLoop::processInputs() {
                 world.playerAttack(pCmd.clientId, attack_dto.targetId);
 
             } else if (std::holds_alternative<DropItemDTO>(pCmd.command)) {
-                // DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
-                // world.drop_item(pCmd.clientId, drop_dto.slot, drop_dto.amount);
+                DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
+                world.dropItem(pCmd.clientId, drop_dto.slot, drop_dto.amount);
+            } else if (std::holds_alternative<GrabItemDTO>(pCmd.command)) {
+                world.pickUpItem(pCmd.clientId);
+            } else if (std::holds_alternative<SelectNpcDTO>(pCmd.command)) {
+                SelectNpcDTO selectDto = std::get<SelectNpcDTO>(pCmd.command);
+                std::cout << "[GAMELOOP] Player " << pCmd.clientId
+                          << " clicked NPC: " << selectDto.npcId << std::endl;
+                world.playerInteract(pCmd.clientId, selectDto.npcId);
+            } else if (std::holds_alternative<NpcCommandDTO>(pCmd.command)) {
+                NpcCommandDTO cmdDto = std::get<NpcCommandDTO>(pCmd.command);
+                std::cout << "[GAMELOOP] Player " << pCmd.clientId
+                          << " executed NPC command type: " << static_cast<int>(cmdDto.type)
+                          << std::endl;
+                world.playerExecuteNpcCommand(pCmd.clientId, cmdDto);
+            } else if (std::holds_alternative<ClanCommandDTO>(pCmd.command)) {
+                ClanCommandDTO clanCmd = std::get<ClanCommandDTO>(pCmd.command);
+                world.processClanCommand(pCmd.clientId, clanCmd);
             }
         }
     }

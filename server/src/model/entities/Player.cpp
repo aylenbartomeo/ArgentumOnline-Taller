@@ -15,7 +15,6 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const 
         // Inventario ahora absorbe la economía: 20 slots, 5000 seguro, 100000 tope máximo
         inventory(InventoryConfig{20, 100000}, 5000),
         equipment(),
-        bank(50, 999999),
         state(),
         regeneration(stats, state, race, characterClass),
         itemRegistry(&itemRegistry) {}
@@ -32,7 +31,6 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const 
         stats(race, characterClass, playerBase, testEngine),
         inventory(InventoryConfig{20, 100000}, 5000),
         equipment(),
-        bank(50, 999999),
         state(),
         regeneration(stats, state, race, characterClass, testEngine),
         itemRegistry(nullptr) {}
@@ -92,9 +90,35 @@ bool Player::canEngageInCombatWith(const Attackable& other) const {
 
 void Player::handleDeath() {
     state.die();
+    // A death should also zero the HP so isDead() becomes true
+    stats.takeDamage(stats.getHp());
     // TODO: inventory->dropItems();
 }
 
+void Player::resurrect() {
+    stats.restoreHp();
+    state.resurrect();
+}
+
+uint16_t Player::addInventoryItem(uint32_t item_id, uint16_t amount) {
+    bool stackable = true;
+    if (this->itemRegistry != nullptr) {
+        stackable = this->itemRegistry->isStackable(item_id);
+    }
+    return this->inventory.addItem(item_id, amount, stackable);
+}
+
+uint16_t Player::removeInventoryItem(uint8_t slot_index, uint16_t amount) {
+    return this->inventory.removeItem(slot_index, amount);
+}
+
+std::optional<Slot> Player::inspectInventorySlot(uint8_t slot_index) const {
+    return this->inventory.inspectSlot(slot_index);
+}
+
+std::vector<Slot> Player::dropAllItems() { return this->inventory.dropAllItems(); }
+
+uint32_t Player::dropExcessGold() { return this->inventory.dropExcessGold(); }
 void Player::onActionStarted() { state.stopMeditating(); }
 
 void Player::receiveDamage(int amount) {

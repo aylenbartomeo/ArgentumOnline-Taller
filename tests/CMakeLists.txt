@@ -6,25 +6,36 @@ target_sources(argentum_online_tests
     TestWorld.cpp
     TestGameLoop.cpp
     TestCombat.cpp
-    TestBank.cpp
     TestAuthManager.cpp
     TestEquipmentComponent.cpp
     TestInventoryComponent.cpp
     TestStatsComponent.cpp
     TestRegenerationComponent.cpp
     TestTileMap.cpp
+    TestMerchant.cpp
+    TestPriest.cpp
+    TestGlobalBank.cpp
+    TestBanker.cpp
+    TestGroundItemLayer.cpp
+    TestSafeZoneLayer.cpp
+    TestNPCLayer.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
+    ../server/src/model/map/GroundItemLayer.cpp
+    ../server/src/model/map/SafeZoneLayer.cpp
+    ../server/src/model/map/NPCLayer.cpp
+    ../server/src/model/map/CollisionLayer.cpp
     ../server/src/Map.cpp
     ../server/src/World.cpp
     ../server/src/model/entities/Player.cpp
     ../server/src/model/entities/Monster.cpp
+    ../server/src/model/entities/Merchant.cpp
+    ../server/src/model/entities/Priest.cpp
+    ../server/src/model/entities/Banker.cpp
     ../server/src/model/entities/MonsterFactory.cpp
-    ../server/src/model/entities/Citizen.cpp
     ../server/src/model/components/StatsComponent.cpp
     ../server/src/model/components/InventoryComponent.cpp
     ../server/src/model/components/EquipmentComponent.cpp
-    ../server/src/model/components/BankComponent.cpp
     ../server/src/model/components/RegenerationComponent.cpp
     ../server/src/model/combat/CombatManager.cpp
     ../server/src/model/FormulaEngine.cpp
@@ -40,6 +51,10 @@ target_sources(argentum_online_tests
     ../server/src/auth/AuthManager.cpp
     ../server/src/persistence/PlayerDataStore.cpp
     TestPlayerDataStore.cpp
+    TestClan.cpp
+    ../server/src/model/clan/ClanRepository.cpp
+    ../server/src/model/clan/ClanService.cpp
+    ../server/src/model/clan/ClanController.cpp
     ../client/src/TileMap.cpp
     TestEditorMap.cpp
     ../editor/EditorMap.cpp
@@ -56,8 +71,10 @@ target_include_directories(argentum_online_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/server/src
     ${CMAKE_SOURCE_DIR}/server/src/model
     ${CMAKE_SOURCE_DIR}/server/src/model/entities
+    ${CMAKE_SOURCE_DIR}/server/src/model/map
     ${CMAKE_SOURCE_DIR}/server/src/model/items
     ${CMAKE_SOURCE_DIR}/server/src/model/components
+    ${CMAKE_SOURCE_DIR}/server/src/model/clan
     ${CMAKE_SOURCE_DIR}/common/utils
     ${CMAKE_SOURCE_DIR}/client/src
     ${CMAKE_SOURCE_DIR}/editor

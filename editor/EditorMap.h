@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
 #include "common/utils/position.h"
 
 class EditorMap {
@@ -15,6 +17,10 @@ private:
     std::string tileset;
     std::vector<std::vector<int>> tiles;
     Position spawnPos;
+
+    // Metadata retention
+    nlohmann::json safeZonesData;
+    nlohmann::json npcsData;
 
 public:
     EditorMap(int width, int height, int tileSize, const std::string& tileset, int tilesetCols);

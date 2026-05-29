@@ -126,13 +126,13 @@ void Game::renderEntities() {
     const SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
                                CHARACTER_FRAME_H);
 
-    for (const EntityDTO& entity: lastSnapshot.entities) {
+    auto drawEntity = [&](const EntityDTO& entity, bool isPlayer) {
         const SDL2pp::Rect dstRect(entity.x * TILE_SIZE,
                                    entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H, TILE_SIZE,
                                    CHARACTER_DRAW_H);
         renderer.Copy(sheet, srcRect, dstRect);
 
-        if (entity.id == myId) {
+        if (isPlayer && entity.id == myId) {
             renderer.SetDrawColor(255, 235, 0, 255);
             const int cx = entity.x * TILE_SIZE + TILE_SIZE / 2 - MARKER_SHIFT_X;
             const int cy = entity.y * TILE_SIZE + TILE_SIZE - 4;
@@ -149,5 +149,13 @@ void Game::renderEntities() {
                 }
             }
         }
+    };
+
+    for (const EntityDTO& player: lastSnapshot.players) {
+        drawEntity(player, true);
+    }
+
+    for (const EntityDTO& monster: lastSnapshot.monsters) {
+        drawEntity(monster, false);
     }
 }

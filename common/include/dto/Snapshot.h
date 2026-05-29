@@ -16,7 +16,7 @@
  * - Estado del jugador (vivo, muerto, meditando)
  */
 
-enum class EntityType : uint8_t { PLAYER, MONSTER, ITEM };
+enum class EntityType : uint8_t { PLAYER, MONSTER, NPC };
 
 // Lo mínimo y necesario para dibujar algo en el mapa
 struct EntityDTO {
@@ -35,8 +35,21 @@ struct EntityDTO {
 };
 
 
+struct GroundItemDTO {
+    uint32_t itemId = 0;
+    uint16_t amount = 0;
+    uint16_t x = 0;
+    uint16_t y = 0;
+
+    GroundItemDTO() = default;
+    GroundItemDTO(uint32_t itemId, uint16_t amount, uint16_t x, uint16_t y):
+            itemId(itemId), amount(amount), x(x), y(y) {}
+};
+
 struct SnapshotDTO {
-    std::vector<EntityDTO> entities;
+    std::vector<EntityDTO> players;
+    std::vector<EntityDTO> monsters;
+    std::vector<GroundItemDTO> groundItems;
 
     SnapshotDTO() = default;
 };
