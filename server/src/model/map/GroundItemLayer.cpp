@@ -31,6 +31,4 @@ const std::unordered_map<Position, GroundItem, PositionHash>& GroundItemLayer::g
     return groundItems;
 }
 
-void GroundItemLayer::clear() {
-    groundItems.clear();
-}
+void GroundItemLayer::clear() { groundItems.clear(); }

@@ -101,6 +101,11 @@ public:
     std::optional<Position> placeItemNearby(const Position& pos, uint32_t itemId, uint16_t amount);
     std::optional<GroundItem> pickUpItemFromGround(const Position& pos);
 
+    // Acciones de comandos del jugador
+    void pickUpItem(uint32_t dbId);
+    void dropItem(uint32_t dbId, uint8_t slot, uint16_t amount);
+    void handlePlayerDeath(uint32_t dbId);
+
     // Zonas seguras (delega al map)
     bool isSafeZone(float x, float y) const;
 

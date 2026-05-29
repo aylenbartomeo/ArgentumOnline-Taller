@@ -36,25 +36,27 @@ TEST(PlayerBankIntegrationTest, DepositItemSuccessfullyAndCheckStacking) {
     InventoryComponent inventory(InventoryConfig{20, 100000}, 5000);
     BankComponent bank(50, 1000000);
 
-    // Metemos 100 Espadas de Plata (ID: 501) en el slot 0 del inventario
-    inventory.addItem(501, 100);
+    // Metemos 90 Espadas de Plata (ID: 501) en el slot 0 del inventario (no 100 para no rebasar los
+    // 99 de max)
+    inventory.addItem(501, 90);
 
     // Depositamos 40 del slot 0 al banco
     bool dep_ok = bank.depositItem(0, 40, inventory);
     EXPECT_TRUE(dep_ok);
 
-    // En el inventario tienen que quedar 60
+
+    // En el inventario tienen que quedar 50
     auto inv_slot = inventory.inspectSlot(0);
     ASSERT_TRUE(inv_slot.has_value());
-    EXPECT_EQ(inv_slot->amount, 60);
+    EXPECT_EQ(inv_slot->amount, 50);
 
     // Si retiramos 20 de ese item_id, deberían volver al inventario
     bool wit_ok = bank.withdrawItem(501, 20, inventory);
     EXPECT_TRUE(wit_ok);
 
-    // Volvemos a tener 80 en la mochila
+    // Volvemos a tener 70 en la mochila (50 + 20)
     inv_slot = inventory.inspectSlot(0);
-    EXPECT_EQ(inv_slot->amount, 80);
+    EXPECT_EQ(inv_slot->amount, 70);
 }
 
 // ========================================================================

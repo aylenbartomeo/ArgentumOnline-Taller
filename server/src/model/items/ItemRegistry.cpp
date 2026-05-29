@@ -56,3 +56,10 @@ const Armor* ItemRegistry::get_armor(int item_id) const {
     }
     return nullptr;
 }
+
+bool ItemRegistry::isStackable(int item_id) const {
+    if (get_weapon(item_id) != nullptr || get_armor(item_id) != nullptr) {
+        return false;
+    }
+    return true;
+}

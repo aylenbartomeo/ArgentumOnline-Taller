@@ -142,6 +142,12 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
     }
     // ----------------------------------
 
+    // --- Validar linea de vision ---
+    if (!map.hasLineOfSight(attacker.getPosition(), target->getPosition())) {
+        outgoingEvents.push_back({attackerDbId, "Hay un obstáculo bloqueando tu visión."});
+        return;
+    }
+
     if (!attacker.canAttack()) {
         std::cout << "[WORLD] Attacker state prevents attacking." << std::endl;
         return;
@@ -177,6 +183,10 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
             outgoingEvents.push_back(
                     {pTarget->getDbId(), "You received " + std::to_string(res.damage) +
                                                  " damage from " + attacker.getName() + "!"});
+
+            if (pTarget->isDead()) {
+                handlePlayerDeath(pTarget->getDbId());
+            }
         }
     }
 }
@@ -187,6 +197,10 @@ void World::monsterAttack(const Monster& monster, Player& target) {
 
     if (map.isSafeZone(monster.getPosition().x, monster.getPosition().y) ||
         map.isSafeZone(target.getPosition().x, target.getPosition().y)) {
+        return;
+    }
+
+    if (!map.hasLineOfSight(monster.getPosition(), target.getPosition())) {
         return;
     }
 
@@ -202,6 +216,9 @@ void World::monsterAttack(const Monster& monster, Player& target) {
         outgoingEvents.push_back({target.getDbId(), "You received " + std::to_string(res.damage) +
                                                             " damage from " + monster.getName() +
                                                             "!"});
+        if (target.isDead()) {
+            handlePlayerDeath(target.getDbId());
+        }
     }
 }
 
@@ -363,4 +380,69 @@ std::vector<WorldEvent> World::pollEvents() {
     std::vector<WorldEvent> events = std::move(outgoingEvents);
     outgoingEvents.clear();
     return events;
+}
+
+void World::pickUpItem(uint32_t dbId) {
+    auto posOpt = getPlayerPosition(dbId);
+    if (!posOpt)
+        return;
+
+    auto itemOpt = map.pickUpItem(posOpt.value());
+    if (!itemOpt) {
+        outgoingEvents.push_back({dbId, "There are no items here to pick up."});
+        return;
+    }
+
+    auto itPlayer = players.find(dbIdToEntityId[dbId]);
+    Player& player = *(itPlayer->second);
+
+    uint16_t leftover = player.addInventoryItem(itemOpt->itemId, itemOpt->amount);
+
+    if (leftover > 0) {
+        outgoingEvents.push_back({dbId, "Inventory full. You couldn't pick up everything."});
+        map.placeItem(posOpt.value(), itemOpt->itemId, leftover);
+    } else {
+        outgoingEvents.push_back({dbId, "Item picked up."});
+    }
+}
+
+void World::dropItem(uint32_t dbId, uint8_t slot, uint16_t amount) {
+    auto posOpt = getPlayerPosition(dbId);
+    if (!posOpt)
+        return;
+
+    auto itPlayer = players.find(dbIdToEntityId[dbId]);
+    Player& player = *(itPlayer->second);
+
+    auto slotOpt = player.inspectInventorySlot(slot);
+    if (!slotOpt || slotOpt->amount < amount)
+        return;
+
+    auto placedPos = map.placeItemNearby(posOpt.value(), slotOpt->item_id, amount);
+    if (!placedPos) {
+        outgoingEvents.push_back({dbId, "Not enough space on the ground to drop the item."});
+        return;
+    }
+
+    player.removeInventoryItem(slot, amount);
+}
+
+void World::handlePlayerDeath(uint32_t dbId) {
+    auto itMap = dbIdToEntityId.find(dbId);
+    if (itMap == dbIdToEntityId.end())
+        return;
+
+    auto itPlayer = players.find(itMap->second);
+    Player& player = *(itPlayer->second);
+    Position pos = player.getPosition();
+
+    uint32_t dropped_gold = player.dropExcessGold();
+    if (dropped_gold > 0) {
+        // TODO: map.placeItemNearby(pos, GOLD_ITEM_ID, dropped_gold);
+    }
+
+    std::vector<Slot> dropped_items = player.dropAllItems();
+    for (const auto& slot: dropped_items) {
+        map.placeItemNearby(pos, slot.item_id, slot.amount);
+    }
 }

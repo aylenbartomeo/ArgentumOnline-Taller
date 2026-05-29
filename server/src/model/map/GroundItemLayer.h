@@ -11,8 +11,8 @@
 // Representa un stack de items en una posición del suelo.
 // Referencia al ItemRegistry por itemId (no posee el Item).
 struct GroundItem {
-    uint32_t itemId;   // Referencia al catálogo (ItemRegistry)
-    uint16_t amount;   // Cantidad apilada
+    uint32_t itemId;  // Referencia al catálogo (ItemRegistry)
+    uint16_t amount;  // Cantidad apilada
 };
 
 // Hash para usar Position como key en unordered_map
@@ -38,8 +38,8 @@ public:
 
     // Para generar snapshots — Map lo usa internamente
     const std::unordered_map<Position, GroundItem, PositionHash>& getAllItems() const;
-    
+
     void clear();
 };
 
-#endif // GROUND_ITEM_LAYER_H
+#endif  // GROUND_ITEM_LAYER_H
