@@ -13,6 +13,9 @@ private:
     RaceConfig raceConfig;
     CharacterClassConfig classConfig;
 
+    Race race;
+    CharacterClass charClass;
+
     // Atributos principales
     uint8_t strength;      // Fuerza
     uint8_t intelligence;  // Inteligencia
@@ -34,8 +37,8 @@ private:
 
 public:
     // Constructor completo basado en tu nueva lista de atributos
-    StatsComponent(const RaceConfig& race, const CharacterClassConfig& characterClass,
-                   const PlayerConfig& playerBase,
+    StatsComponent(const RaceConfig& raceConf, const CharacterClassConfig& classConfig,
+                   const PlayerConfig& playerBase, Race race, CharacterClass charClass,
                    const FormulaEngine& engine = FormulaEngine::getInstance());
 
     // --- GETTERS ---
@@ -57,6 +60,19 @@ public:
     void heal(uint16_t amount);
     bool consumeMana(uint16_t amount);
     void recoverMana(uint16_t amount);
+
+    Race getRace() const { return this->race; }
+    CharacterClass getCharClass() const { return this->charClass; }
+
+    // --- Restauracion desde persistencia ---
+    void restoreFromPersist(uint16_t savedHp, uint16_t savedMana, uint32_t savedExp,
+                            uint16_t savedLevel) {
+        level = savedLevel;
+        exp = savedExp;
+        recalculateMaxStats();  // Recalcula max_health y max_mana según el nivel restaurado
+        health = std::min(savedHp, max_health);
+        mana = std::min(savedMana, max_mana);
+    }
 };
 
 #endif

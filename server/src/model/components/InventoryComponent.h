@@ -1,6 +1,7 @@
 #ifndef INVENTORY_COMPONENT_H
 #define INVENTORY_COMPONENT_H
 
+#include <algorithm>
 #include <cstdint>
 #include <optional>
 #include <vector>
@@ -67,6 +68,17 @@ public:
     // Aplica la penalidad por muerte: retiene el límite seguro y suelta el resto.
     // return Cantidad de oro en exceso que debe caer al suelo.
     uint32_t dropExcessGold();
+
+    // -- Restauracion desde persistencia --
+    void setGold(uint32_t amount) { gold = std::min(amount, max_gold); }
+
+    // Carga un slot directamente por índice (usado solo al restaurar desde disco)
+    void restoreSlot(uint8_t index, uint32_t item_id, uint16_t amount) {
+        if (index >= slots.size() || item_id == 0 || amount == 0)
+            return;
+        slots[index].item_id = item_id;
+        slots[index].amount = amount;
+    }
 
     // ========================================================================
     // SERIALIZACIÓN / INSPECCIÓN EXTERNA

@@ -1,10 +1,13 @@
 #include "StatsComponent.h"
 
-StatsComponent::StatsComponent(const RaceConfig& race, const CharacterClassConfig& characterClass,
-                               const PlayerConfig& playerBase, const FormulaEngine& engine):
+StatsComponent::StatsComponent(const RaceConfig& raceConf, const CharacterClassConfig& classConfig,
+                               const PlayerConfig& playerBase, Race race, CharacterClass charClass,
+                               const FormulaEngine& engine):
         formulaEngine(engine),
-        raceConfig(race),
-        classConfig(characterClass),
+        raceConfig(raceConf),
+        classConfig(classConfig),
+        race(race),
+        charClass(charClass),
         strength(static_cast<uint8_t>(playerBase.baseStrength)),
         intelligence(static_cast<uint8_t>(playerBase.baseIntelligence)),
         agility(static_cast<uint8_t>(playerBase.baseAgility)),
