@@ -20,7 +20,7 @@ public:
         return 0;
     }
     // Para cuando queramos comprar y vender un item
-    // virtual int getGoldValue() const = 0;
+    virtual int getPrice() const { return 100; }
 };
 
 #endif

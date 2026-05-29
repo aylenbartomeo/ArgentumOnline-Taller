@@ -31,16 +31,19 @@ TEST(BankerTest, Banker_HandlesGoldDepositAndWithdrawCommands) {
 
     // 1. Ejecutamos el comando unificado: /depositar oro 400
     NpcCommandDTO depCmd = {NpcCommandType::DEPOSIT, "oro 400"};
-    banquero.handleCommand(player, depCmd);
+    InteractionResult depRes = banquero.handleCommand(player, depCmd);
 
     // Validaciones del depósito
+    EXPECT_EQ(depRes.status, InteractionStatus::SUCCESS);
     EXPECT_EQ(player.getGold(), 600u);
     EXPECT_EQ(bancoInstance.getBankGold(player.getDbId()), 400u);
 
     // 2. Ejecutamos el comando unificado: /retirar oro 200
     NpcCommandDTO withCmd = {NpcCommandType::WITHDRAW, "oro 200"};
-    banquero.handleCommand(player, withCmd);
+    InteractionResult withRes = banquero.handleCommand(player, withCmd);
 
+    // Validaciones de retiro
+    EXPECT_EQ(withRes.status, InteractionStatus::SUCCESS);
     // El jugador debería recuperar sus 200 monedas (600 + 200 = 800)
     EXPECT_EQ(player.getGold(), 800u);
     EXPECT_EQ(bancoInstance.getBankGold(player.getDbId()), 200u);
@@ -61,9 +64,11 @@ TEST(BankerTest, Banker_DepositsItemFromInventorySuccessfully) {
 
     // Mandamos el comando unificado enviando el ID del ítem como argumento string
     NpcCommandDTO cmd = {NpcCommandType::DEPOSIT, "4001"};
-    banquero.handleCommand(player, cmd);
+    InteractionResult res = banquero.handleCommand(player, cmd);
 
     // VALIDACIONES:
+    // 0. Verificamos que el depósito fue exitoso
+    EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
     // 1. El ítem ya no está en la mochila del jugador (slot liberado)
     auto slotOpt = player.inspectSlot(0);
     EXPECT_FALSE(slotOpt.has_value());
@@ -88,9 +93,11 @@ TEST(BankerTest, Banker_WithdrawsItemByIdSuccessfully) {
 
     // El jugador intenta retirar el ítem ejecutando el comando con el ID
     NpcCommandDTO cmd = {NpcCommandType::WITHDRAW, "4001"};
-    banquero.handleCommand(player, cmd);
+    InteractionResult res = banquero.handleCommand(player, cmd);
 
     // VALIDACIONES:
+    // 0. Verificamos que el retiro fue exitoso
+    EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
     // 1. El ítem ingresó de forma segura al inventario del player en el slot 0
     auto slotOpt = player.inspectSlot(0);
     ASSERT_TRUE(slotOpt.has_value());
@@ -118,9 +125,11 @@ TEST(BankerTest, Banker_WithdrawWithFullInventoryDoesNotLoseItem) {
 
     // Intentamos retirar la espada del banco
     NpcCommandDTO cmd = {NpcCommandType::WITHDRAW, "4001"};
-    banquero.handleCommand(player, cmd);
+    InteractionResult res = banquero.handleCommand(player, cmd);
 
     // VALIDACIONES CRÍTICAS:
+    // 0. Verificamos que el retiro fue rechazado (mochila llena)
+    EXPECT_EQ(res.status, InteractionStatus::FAILURE);
     // 1. ¡Rollback exitoso! El ítem NO se destruyó ni se perdió; se mantuvo a salvo dentro del
     // banco
     uint16_t cantidadEnBanco = bancoInstance.withdrawItemById(player.getDbId(), 4001u, 1);

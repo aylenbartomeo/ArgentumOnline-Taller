@@ -13,21 +13,30 @@ Priest::Priest(uint32_t id, Position pos, const ItemRegistry& registry): id(id),
     commandHandlers[NpcCommandType::RESPAWN] = std::make_unique<ResurrectHandler>();
     commandHandlers[NpcCommandType::HEAL] = std::make_unique<HealHandler>();
 
-    // El Sacerdote abre su tienda con stock inicial limitado
-    stock[1001u] = 10;  // 10 Armaduras de cuero disponibles
-    stock[1002u] = 5;   // 5 Armaduras de placas disponibles
+    // HARCODE ZONE: El Sacerdote abre su tienda con stock inicial limitado
+    stock[1001u] = 10;
+    stock[1002u] = 5;
 
     // Inyección: Pasa su stock, pero NO permite que le vendan nada (allowsSell = false)
     commandHandlers[NpcCommandType::BUY] = std::make_unique<TradeHandler>(registry, stock, false);
 }
 
-void Priest::beInteractedBy(Player& player) {
-    std::cout << "[PRIEST] Interacción mística con: " << player.getName() << std::endl;
+InteractionResult Priest::beInteractedBy(Player& player) {
+    InteractionResult result;
+    if (player.isDead()) {
+        result.msg = "[PRIEST] Tu alma vaga en el limbo. Usa /resucitar para volver a la vida.";
+    } else {
+        result.msg = " [PRIEST] Saludos, viajero. ¿En qué puedo ayudarte hoy?";
+    }
+    return result;
 }
 
-void Priest::handleCommand(Player& player, const NpcCommandDTO& dto) {
+InteractionResult Priest::handleCommand(Player& player, const NpcCommandDTO& dto) {
     auto it = commandHandlers.find(dto.type);
     if (it != commandHandlers.end()) {
-        it->second->execute(player, dto);
+        return it->second->execute(player, dto);
     }
+    InteractionResult fallbackResult;
+    fallbackResult.status = InteractionStatus::UNHANDLED;
+    return fallbackResult;
 }

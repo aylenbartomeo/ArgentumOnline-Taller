@@ -60,4 +60,15 @@ enum class Movement : uint8_t {
     STOP
 };
 
+enum class InteractionStatus {
+    UNHANDLED,  // El handler no reconoció el comando (No era para él)
+    SUCCESS,    // Se ejecutó con éxito
+    FAILURE     // El comando era para él, pero falló una regla de negocio (ej: sin oro)
+};
+
+struct InteractionResult {
+    InteractionStatus status{InteractionStatus::UNHANDLED};
+    std::string msg;
+};
+
 #endif

@@ -1,6 +1,4 @@
-#ifndef PRIEST_H
-#define PRIEST_H
-
+#pragma once
 #include <memory>
 #include <unordered_map>
 
@@ -20,8 +18,6 @@ public:
     Priest(uint32_t id, Position pos, const ItemRegistry& registry);
     Position getPosition() const override { return pos; }
     uint32_t getId() const override { return id; }
-    void beInteractedBy(Player& player) override;
-    void handleCommand(Player& player, const NpcCommandDTO& dto) override;
+    InteractionResult beInteractedBy(Player& player) override;
+    InteractionResult handleCommand(Player& player, const NpcCommandDTO& dto) override;
 };
-
-#endif  // PRIEST_H_
