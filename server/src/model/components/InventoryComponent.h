@@ -10,6 +10,8 @@
 
 // Representa un casillero individual dentro de la grilla del inventario.
 struct Slot {
+    static constexpr uint16_t MAX_STACK_SIZE = 99;
+
     uint32_t item_id{0};
     uint16_t amount{0};
 
@@ -43,8 +45,11 @@ public:
     // ========================================================================
 
     // Intenta añadir ítems aplicando apilamiento automático (Stacking).
-    // return true si se pudo almacenar todo, false si no hay espacio disponible.
-    bool addItem(uint32_t item_id, uint16_t amount);
+    // return cantidad de items sobrantes que no se pudieron guardar (0 si entró todo).
+    uint16_t addItem(uint32_t item_id, uint16_t amount, bool stackable = true);
+
+    // Vacía todos los slots del inventario y retorna los ítems que había.
+    std::vector<Slot> dropAllItems();
 
     // Remueve una cantidad específica de ítems de un casillero.
     // return Cantidad real que se logró remover.

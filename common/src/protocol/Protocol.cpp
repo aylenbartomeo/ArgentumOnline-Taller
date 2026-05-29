@@ -73,9 +73,19 @@ uint8_t Protocol::recv_opcode() { return recv_uint8(); }
 void Protocol::send_snapshot(const SnapshotDTO& snap) {
     send_uint8(static_cast<uint8_t>(OPCODE::SNAPSHOT));
 
-    send_uint16(static_cast<uint16_t>(snap.entities.size()));
+    send_uint16(static_cast<uint16_t>(snap.players.size()));
+    for (const auto& entity: snap.players) {
+        send_uint32(entity.id);
+        send_uint8(static_cast<uint8_t>(entity.type));
+        send_uint16(entity.x);
+        send_uint16(entity.y);
+        send_uint16(entity.current_hp);
+        send_uint16(entity.max_hp);
+        send_uint16(entity.sprite_id);
+    }
 
-    for (const auto& entity: snap.entities) {
+    send_uint16(static_cast<uint16_t>(snap.monsters.size()));
+    for (const auto& entity: snap.monsters) {
         send_uint32(entity.id);
         send_uint8(static_cast<uint8_t>(entity.type));
         send_uint16(entity.x);
@@ -144,10 +154,10 @@ LoginResponseDTO Protocol::recv_register_response() {
 
 SnapshotDTO Protocol::receive_snapshot_body() {
     SnapshotDTO snap;
-    uint16_t count = recv_uint16();
-    for (uint16_t i = 0; i < count; ++i) {
-        EntityDTO entity;
 
+    uint16_t players_count = recv_uint16();
+    for (uint16_t i = 0; i < players_count; ++i) {
+        EntityDTO entity;
         entity.id = recv_uint32();
         entity.type = static_cast<EntityType>(recv_uint8());
         entity.x = recv_uint16();
@@ -155,8 +165,20 @@ SnapshotDTO Protocol::receive_snapshot_body() {
         entity.current_hp = recv_uint16();
         entity.max_hp = recv_uint16();
         entity.sprite_id = recv_uint16();
+        snap.players.push_back(entity);
+    }
 
-        snap.entities.push_back(entity);
+    uint16_t monsters_count = recv_uint16();
+    for (uint16_t i = 0; i < monsters_count; ++i) {
+        EntityDTO entity;
+        entity.id = recv_uint32();
+        entity.type = static_cast<EntityType>(recv_uint8());
+        entity.x = recv_uint16();
+        entity.y = recv_uint16();
+        entity.current_hp = recv_uint16();
+        entity.max_hp = recv_uint16();
+        entity.sprite_id = recv_uint16();
+        snap.monsters.push_back(entity);
     }
 
     return snap;

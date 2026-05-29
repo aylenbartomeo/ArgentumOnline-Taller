@@ -114,16 +114,16 @@ TEST_F(InventoryComponentTest, SafeLimitUpdateAffectsDropExcess) {
 // 5. ÍTEMS — AGREGAR
 // ============================================================================
 TEST_F(InventoryComponentTest, AddItemFillsSlot) {
-    EXPECT_TRUE(inv.addItem(101, 5));
+    EXPECT_EQ(inv.addItem(101, 5), 0);
     auto slot = inv.inspectSlot(0);
     ASSERT_TRUE(slot.has_value());
     EXPECT_EQ(slot->item_id, 101u);
     EXPECT_EQ(slot->amount, 5);
 }
 
-TEST_F(InventoryComponentTest, AddZeroAmountReturnsFalse) { EXPECT_FALSE(inv.addItem(101, 0)); }
+TEST_F(InventoryComponentTest, AddZeroAmountReturnsFalse) { EXPECT_EQ(inv.addItem(101, 0), 0); }
 
-TEST_F(InventoryComponentTest, AddItemIdZeroReturnsFalse) { EXPECT_FALSE(inv.addItem(0, 5)); }
+TEST_F(InventoryComponentTest, AddItemIdZeroReturnsFalse) { EXPECT_EQ(inv.addItem(0, 5), 5); }
 
 TEST_F(InventoryComponentTest, StackingSameItemInSameSlot) {
     inv.addItem(101, 10);
@@ -150,7 +150,7 @@ TEST_F(InventoryComponentTest, AddItemFailsWhenAllSlotsFull) {
         inv.addItem(i * 100, 1);
     }
     // El sexto ítem no debería entrar
-    EXPECT_FALSE(inv.addItem(999, 1));
+    EXPECT_GT(inv.addItem(999, 1), 0);
 }
 
 // ============================================================================
@@ -219,7 +219,7 @@ TEST_F(InventoryComponentTest, SlotIsReusableAfterBeingCleared) {
     inv.removeItem(0, 5);  // vaciamos el slot 0
 
     // Ahora debería poder usarse para otro ítem
-    EXPECT_TRUE(inv.addItem(202, 3));
+    EXPECT_EQ(inv.addItem(202, 3), 0);
     auto slot = inv.inspectSlot(0);
     ASSERT_TRUE(slot.has_value());
     EXPECT_EQ(slot->item_id, 202u);

@@ -19,6 +19,8 @@ public:
         (void)equipment;
         return 0;
     }
+    // Para cuando queramos comprar y vender un item
+    // virtual int getGoldValue() const = 0;
 };
 
 #endif

@@ -84,7 +84,7 @@ TEST(ServerArchitectureTest, ConnectionMonitor_BroadcastsToMultipleClients) {
     SnapshotDTO snap;
     EntityDTO dummyEntity;
     dummyEntity.id = 999;
-    snap.entities.push_back(dummyEntity);
+    snap.players.push_back(dummyEntity);
 
     monitor.broadcast(snap);
 
@@ -92,10 +92,10 @@ TEST(ServerArchitectureTest, ConnectionMonitor_BroadcastsToMultipleClients) {
     SnapshotDTO received2 = std::get<SnapshotDTO>(queuePlayer2.pop());
     SnapshotDTO received3 = std::get<SnapshotDTO>(queuePlayer3.pop());
 
-    EXPECT_EQ(received1.entities.size(), (size_t)1);
-    EXPECT_EQ(received1.entities[0].id, (uint32_t)999);
-    EXPECT_EQ(received2.entities.size(), (size_t)1);
-    EXPECT_EQ(received3.entities.size(), (size_t)1);
+    EXPECT_EQ(received1.players.size(), (size_t)1);
+    EXPECT_EQ(received1.players[0].id, (uint32_t)999);
+    EXPECT_EQ(received2.players.size(), (size_t)1);
+    EXPECT_EQ(received3.players.size(), (size_t)1);
 }
 
 TEST(ServerArchitectureTest, ConnectionMonitor_IgnoresRemovedClients) {
