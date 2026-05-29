@@ -6,25 +6,29 @@ target_sources(argentum_online_tests
     TestWorld.cpp
     TestGameLoop.cpp
     TestCombat.cpp
-    TestBank.cpp
     TestAuthManager.cpp
     TestEquipmentComponent.cpp
     TestInventoryComponent.cpp
     TestStatsComponent.cpp
     TestRegenerationComponent.cpp
     TestTileMap.cpp
+    TestMerchant.cpp
+    TestPriest.cpp
+    TestGlobalBank.cpp
+    TestBanker.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
     ../server/src/Map.cpp
     ../server/src/World.cpp
     ../server/src/model/entities/Player.cpp
     ../server/src/model/entities/Monster.cpp
+    ../server/src/model/entities/Merchant.cpp
+    ../server/src/model/entities/Priest.cpp
+    ../server/src/model/entities/Banker.cpp
     ../server/src/model/entities/MonsterFactory.cpp
-    ../server/src/model/entities/Citizen.cpp
     ../server/src/model/components/StatsComponent.cpp
     ../server/src/model/components/InventoryComponent.cpp
     ../server/src/model/components/EquipmentComponent.cpp
-    ../server/src/model/components/BankComponent.cpp
     ../server/src/model/components/RegenerationComponent.cpp
     ../server/src/model/combat/CombatManager.cpp
     ../server/src/model/FormulaEngine.cpp

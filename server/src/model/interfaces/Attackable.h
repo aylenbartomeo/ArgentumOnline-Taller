@@ -1,5 +1,5 @@
-#ifndef COMBATANT_H
-#define COMBATANT_H
+#ifndef ATTACKABLE_H
+#define ATTACKABLE_H
 
 #include <cstdint>
 #include <string>

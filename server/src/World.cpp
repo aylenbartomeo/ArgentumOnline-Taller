@@ -49,6 +49,8 @@ bool World::removePlayer(uint32_t dbId) {
     }
 
     uint32_t entityId = itMap->second;
+    // Si mientras interactua se va de la partida, se corta la interaccion con NPC
+    activeInteractions.erase(entityId);
     this->players.erase(entityId);
     this->dbIdToEntityId.erase(itMap);
     return true;
@@ -78,6 +80,15 @@ Attackable* World::findAttackable(uint32_t id) {
     return nullptr;
 }
 
+Interactable* World::findInteractable(uint32_t id) {
+    auto itNpc = cityNPCs.find(id);
+    if (itNpc != cityNPCs.end()) {
+        return itNpc->second.get();
+    }
+
+    return nullptr;
+}
+
 // --- Acciones del jugador ---
 
 void World::moveEntity(uint32_t dbId, Movement direction) {
@@ -97,6 +108,9 @@ void World::moveEntity(uint32_t dbId, Movement direction) {
         return;
 
     player.setPosition(candidate);
+
+    // SI SE MOVIÓ, ya no esta interactuando
+    activeInteractions.erase(itMap->second);
 }
 
 void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
@@ -173,6 +187,67 @@ void World::monsterAttack(const Monster& monster, Player& target) {
     }
 }
 
+void World::playerInteract(uint32_t dbId, uint32_t targetNpcId) {
+    // 1. Conseguir el ID interno de la entidad jugador
+    auto itMap = this->dbIdToEntityId.find(dbId);
+    if (itMap == this->dbIdToEntityId.end())
+        return;
+    uint32_t playerEntityId = itMap->second;
+
+    auto itPlayer = this->players.find(playerEntityId);
+    if (itPlayer == this->players.end())
+        return;
+    Player& player = *(itPlayer->second);
+
+    // 2. Buscar al NPC
+    Interactable* npc = this->findInteractable(targetNpcId);
+    if (!npc)
+        return;
+
+    // 3. Validación de distancia Chebyshev (rango máximo 2 celdas)
+    if (player.getPosition().chebyshev_distance_to(npc->getPosition()) > 2) {
+        outgoingEvents.push_back({dbId, "El NPC está demasiado lejos."});
+        return;
+    }
+
+    // 4. REGISTRO DE SESIÓN: El mundo toma nota de la interacción
+    activeInteractions[playerEntityId] = npc;
+
+    // 5. Polimorfismo: El NPC reacciona (pendiente acople con cliente/UI)
+    npc->beInteractedBy(player);
+}
+
+void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
+    auto itMap = this->dbIdToEntityId.find(dbId);
+    if (itMap == this->dbIdToEntityId.end())
+        return;
+    uint32_t playerEntityId = itMap->second;
+
+    auto itPlayer = this->players.find(playerEntityId);
+    if (itPlayer == this->players.end())
+        return;
+    Player& player = *(itPlayer->second);
+
+    // El mundo busca al NPC en su tabla de interacciones, no en el Player
+    auto itInteract = activeInteractions.find(playerEntityId);
+    if (itInteract == activeInteractions.end()) {
+        outgoingEvents.push_back({dbId, "Debes seleccionar un NPC primero."});
+        return;
+    }
+
+    Interactable* npc = itInteract->second;
+
+    // Validación de seguridad por si se movió mediante cheats o desincro
+    if (player.getPosition().chebyshev_distance_to(npc->getPosition()) > 2) {
+        activeInteractions.erase(playerEntityId);  // Rompemos la sesión
+        outgoingEvents.push_back({dbId, "Te has alejado demasiado del NPC."});
+        return;
+    }
+
+    // El NPC ejecuta el comando de negocio (compra, venta, etc.)
+    // Nota: el envío de WorldEvent hacia la UI está pendiente de acople
+    npc->handleCommand(player, dto);
+}
 
 Player* World::findNearestPlayer(const Monster& monster, int range) {
     Player* nearest = nullptr;

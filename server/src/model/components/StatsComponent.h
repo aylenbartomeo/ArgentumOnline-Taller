@@ -55,8 +55,10 @@ public:
     void addExperience(uint32_t amount);
     void takeDamage(uint16_t amount);
     void heal(uint16_t amount);
+    void restoreHp();
     bool consumeMana(uint16_t amount);
     void recoverMana(uint16_t amount);
+    void restoreMana();
 };
 
 #endif

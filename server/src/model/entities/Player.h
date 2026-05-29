@@ -1,18 +1,18 @@
-#ifndef PLAYER_MOCK_H
-#define PLAYER_MOCK_H
+#ifndef PLAYER_H
+#define PLAYER_H
 
 #include <cstdint>
 #include <string>
 
 #include "../../../../common/include/dto/CommandDTO.h"
 #include "../combat/CombatManager.h"
-#include "../components/BankComponent.h"
 #include "../components/EquipmentComponent.h"
 #include "../components/InventoryComponent.h"
 #include "../components/RegenerationComponent.h"
 #include "../components/StateComponent.h"
 #include "../components/StatsComponent.h"
 #include "../interfaces/Attackable.h"
+#include "../interfaces/Interactable.h"
 
 #include "position.h"
 
@@ -27,11 +27,9 @@ private:
     StatsComponent stats;
     InventoryComponent inventory;
     EquipmentComponent equipment;
-    BankComponent bank;
     StateComponent state;
     RegenerationComponent regeneration;
     const ItemRegistry* itemRegistry;  // Puntero para permitir nullptr en tests
-
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
            const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
@@ -53,6 +51,13 @@ public:
     // Retorna true si pudo equiparlo, false en caso contrario.
     bool equipFromSlot(uint8_t slotIndex);
 
+    // Se llama cada vez que el jugador inicia una accion activa en el mundo
+    void onActionStarted();
+
+    // Calcula la posición resultante de moverse en una dirección,
+    // sin modificar la posición actual del jugador.
+    Position tryMove(Movement direction) const;
+
     /* GETTERS/SETTERS de atributos que expone */
     uint32_t getId() const { return this->id; }
     uint32_t getDbId() const { return this->dbId; }
@@ -66,11 +71,10 @@ public:
     uint16_t getIntelligence() const override { return stats.getIntelligence(); }
     uint16_t getAgility() const override { return this->stats.getAgility(); }
     Position getPosition() const override { return this->pos; }
-
     bool canEngageInCombatWith(const Attackable& other) const override;
     uint16_t getLevel() const override { return stats.getLevel(); }
 
-    // Acceso a los componentes
+    /* Acceso a los componentes */
     // Stats
     StatsComponent& getStats() { return this->stats; }
     const StatsComponent& getStats() const { return this->stats; }
@@ -78,11 +82,25 @@ public:
     uint16_t getHp() const { return stats.getHp(); }
     uint16_t getMaxHp() const override { return stats.getMaxHp(); }
     uint16_t getMana() const { return stats.getMana(); }
+    uint16_t getMaxMana() const { return stats.getMaxMana(); }
     bool consumeMana(int amount) { return stats.consumeMana(static_cast<uint16_t>(amount)); }
+    void restoreHp() { stats.restoreHp(); }
+    void restoreMana() { stats.restoreMana(); }
 
     // Inventory
     InventoryComponent& getInventory() { return this->inventory; }
     const InventoryComponent& getInventory() const { return this->inventory; }
+    bool addGold(uint32_t amount) { return inventory.addGold(amount); }
+    bool removeGold(uint32_t amount) { return inventory.removeGold(amount); }
+    uint32_t getGold() const { return inventory.getGold(); }
+    bool addItem(uint32_t item_id, uint16_t amount) { return inventory.addItem(item_id, amount); }
+    uint16_t removeItem(uint8_t slot_index, uint16_t amount) {
+        return inventory.removeItem(slot_index, amount);
+    }
+    uint8_t getSize() const { return inventory.getSize(); }
+    std::optional<Slot> inspectSlot(uint8_t slot_index) const {
+        return inventory.inspectSlot(slot_index);
+    }
 
     // Equipment
     EquipmentComponent& getEquipment() { return this->equipment; }
@@ -90,22 +108,13 @@ public:
     Weapon* getEquippedWeapon() { return this->equipment.getEquippedWeapon(); }
     int getDefense() const override { return this->equipment.calculateCurrentDefense(); }
 
-    // Bank
-    BankComponent& getBank() { return this->bank; }
-
     // State
     StateComponent& getState() { return this->state; }
     const StateComponent& getState() const { return this->state; }
     bool canAttack() const { return this->state.canAttack(); }
     bool canBeAttacked() const override { return this->state.canBeAttacked(); }
     void handleDeath() override;
-
-    // Se llama cada vez que el jugador inicia una accion activa en el mundo
-    void onActionStarted();
-
-    // Calcula la posición resultante de moverse en una dirección,
-    // sin modificar la posición actual del jugador.
-    Position tryMove(Movement direction) const;
+    void resurrect();
 };
 
 #endif
