@@ -222,8 +222,10 @@ TEST(WorldTest, World_AddPlayerWithSavedPositionSpawnsThere) {
     World mundo(1, "Tester", registry);
 
     std::string user = "SavedPlayer";
-    Position savedPos{5, 5};
-    ASSERT_TRUE(mundo.addPlayer(1, user, savedPos));
+    PlayerPersistData savedData{};
+    savedData.posX = 5;
+    savedData.posY = 5;
+    ASSERT_TRUE(mundo.addPlayer(1, user, savedData));
 
     SnapshotDTO snap = mundo.generateSnapshot();
     ASSERT_EQ(snap.entities.size(), 1u);
@@ -236,8 +238,10 @@ TEST(WorldTest, World_AddPlayerWithInvalidPositionUsesDefault) {
     World mundo(1, "Tester", registry);
 
     std::string user = "InvalidPosPlayer";
-    Position invalidPos{-1, -1};  // assuming this is out of bounds
-    ASSERT_TRUE(mundo.addPlayer(1, user, invalidPos));
+    PlayerPersistData invalidData{};
+    invalidData.posX = -1;  // Usa los valores que tenías en invalidPos original
+    invalidData.posY = -1;
+    ASSERT_TRUE(mundo.addPlayer(1, user, invalidData));
 
     SnapshotDTO snap = mundo.generateSnapshot();
     ASSERT_EQ(snap.entities.size(), 1u);

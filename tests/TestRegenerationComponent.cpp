@@ -26,7 +26,7 @@ protected:
 // 1. FANTASMA — no recupera nada
 // ============================================================================
 TEST_F(RegenerationComponentTest, GhostDoesNotRecoverHpNorMana) {
-    StatsComponent stats(humanRace, mageClass, base);
+    StatsComponent stats(humanRace, mageClass, base, Race::HUMAN, CharacterClass::MAGE);
     StateComponent state;
 
     stats.takeDamage(30);
@@ -47,7 +47,7 @@ TEST_F(RegenerationComponentTest, GhostDoesNotRecoverHpNorMana) {
 // 2. TICK CON TIEMPO <= 0 — no hace nada
 // ============================================================================
 TEST_F(RegenerationComponentTest, ZeroDeltaDoesNothing) {
-    StatsComponent stats(humanRace, mageClass, base);
+    StatsComponent stats(humanRace, mageClass, base, Race::HUMAN, CharacterClass::MAGE);
     StateComponent state;
     stats.takeDamage(10);
     stats.consumeMana(10);
@@ -63,7 +63,7 @@ TEST_F(RegenerationComponentTest, ZeroDeltaDoesNothing) {
 }
 
 TEST_F(RegenerationComponentTest, NegativeDeltaDoesNothing) {
-    StatsComponent stats(humanRace, mageClass, base);
+    StatsComponent stats(humanRace, mageClass, base, Race::HUMAN, CharacterClass::MAGE);
     StateComponent state;
     stats.takeDamage(10);
 
@@ -79,7 +79,7 @@ TEST_F(RegenerationComponentTest, NegativeDeltaDoesNothing) {
 // 3. RECUPERACIÓN PASIVA DE VIDA (estado normal)
 // ============================================================================
 TEST_F(RegenerationComponentTest, PassiveHpRecoveryInNormalState) {
-    StatsComponent stats(humanRace, mageClass, base);
+    StatsComponent stats(humanRace, mageClass, base, Race::HUMAN, CharacterClass::MAGE);
     StateComponent state;
     stats.takeDamage(20);
 
@@ -93,7 +93,7 @@ TEST_F(RegenerationComponentTest, PassiveHpRecoveryInNormalState) {
 }
 
 TEST_F(RegenerationComponentTest, PassiveHpRecoveryScalesWithTime) {
-    StatsComponent stats(humanRace, mageClass, base);
+    StatsComponent stats(humanRace, mageClass, base, Race::HUMAN, CharacterClass::MAGE);
     StateComponent state;
     stats.takeDamage(50);
 
@@ -107,7 +107,7 @@ TEST_F(RegenerationComponentTest, PassiveHpRecoveryScalesWithTime) {
 }
 
 TEST_F(RegenerationComponentTest, HpRecoveryDoesNotExceedMaxHp) {
-    StatsComponent stats(humanRace, mageClass, base);
+    StatsComponent stats(humanRace, mageClass, base, Race::HUMAN, CharacterClass::MAGE);
     StateComponent state;
     stats.takeDamage(1);  // solo 1 punto de daño
 
@@ -121,7 +121,7 @@ TEST_F(RegenerationComponentTest, HpRecoveryDoesNotExceedMaxHp) {
 // 4. RECUPERACIÓN PASIVA DE MANÁ (estado normal, no meditando)
 // ============================================================================
 TEST_F(RegenerationComponentTest, PassiveManaRecoveryInNormalState) {
-    StatsComponent stats(humanRace, mageClass, base);
+    StatsComponent stats(humanRace, mageClass, base, Race::HUMAN, CharacterClass::MAGE);
     StateComponent state;
     stats.consumeMana(20);
 
@@ -135,7 +135,7 @@ TEST_F(RegenerationComponentTest, PassiveManaRecoveryInNormalState) {
 }
 
 TEST_F(RegenerationComponentTest, ManaRecoveryDoesNotExceedMaxMana) {
-    StatsComponent stats(humanRace, mageClass, base);
+    StatsComponent stats(humanRace, mageClass, base, Race::HUMAN, CharacterClass::MAGE);
     StateComponent state;
     stats.consumeMana(1);
 
@@ -151,7 +151,7 @@ TEST_F(RegenerationComponentTest, ManaRecoveryDoesNotExceedMaxMana) {
 // Con meditationFactor=3.0, intelligence=15, 1s → recupera 45 mana
 // ============================================================================
 TEST_F(RegenerationComponentTest, MeditationRecoversManaFaster) {
-    StatsComponent stats(humanRace, mageClass, base);
+    StatsComponent stats(humanRace, mageClass, base, Race::HUMAN, CharacterClass::MAGE);
     StateComponent state;
     stats.consumeMana(50);
     state.startMeditating();
@@ -170,7 +170,7 @@ TEST_F(RegenerationComponentTest, MeditationRecoversManaFaster) {
 // 6. AUTO-SALIDA DE MEDITACIÓN al llenarse el maná
 // ============================================================================
 TEST_F(RegenerationComponentTest, MeditationStopsAutomaticallyWhenManaFull) {
-    StatsComponent stats(humanRace, mageClass, base);
+    StatsComponent stats(humanRace, mageClass, base, Race::HUMAN, CharacterClass::MAGE);
     StateComponent state;
     stats.consumeMana(2);
     state.startMeditating();
@@ -184,7 +184,7 @@ TEST_F(RegenerationComponentTest, MeditationStopsAutomaticallyWhenManaFull) {
 }
 
 TEST_F(RegenerationComponentTest, MeditationContinuesIfManaNotFull) {
-    StatsComponent stats(humanRace, mageClass, base);
+    StatsComponent stats(humanRace, mageClass, base, Race::HUMAN, CharacterClass::MAGE);
     StateComponent state;
     stats.consumeMana(stats.getMaxMana());  // maná en 0
     state.startMeditating();
@@ -201,7 +201,7 @@ TEST_F(RegenerationComponentTest, MeditationContinuesIfManaNotFull) {
 // 7. GUERRERO — nunca recupera maná
 // ============================================================================
 TEST_F(RegenerationComponentTest, WarriorDoesNotRecoverMana) {
-    StatsComponent stats(humanRace, warriorClass, base);
+    StatsComponent stats(humanRace, warriorClass, base, Race::HUMAN, CharacterClass::WARRIOR);
     StateComponent state;
 
     // El guerrero tiene maxMana=0, consumeMana no hace nada, pero verificamos
@@ -215,7 +215,7 @@ TEST_F(RegenerationComponentTest, WarriorDoesNotRecoverMana) {
 }
 
 TEST_F(RegenerationComponentTest, WarriorStillRecoversHp) {
-    StatsComponent stats(humanRace, warriorClass, base);
+    StatsComponent stats(humanRace, warriorClass, base, Race::HUMAN, CharacterClass::WARRIOR);
     StateComponent state;
     stats.takeDamage(20);
 
@@ -232,7 +232,7 @@ TEST_F(RegenerationComponentTest, WarriorStillRecoversHp) {
 // 8. VIDA TAMBIÉN SE RECUPERA DURANTE MEDITACIÓN
 // ============================================================================
 TEST_F(RegenerationComponentTest, HpAlsoRecoversDuringMeditation) {
-    StatsComponent stats(humanRace, mageClass, base);
+    StatsComponent stats(humanRace, mageClass, base, Race::HUMAN, CharacterClass::MAGE);
     StateComponent state;
     stats.takeDamage(10);
     stats.consumeMana(10);
