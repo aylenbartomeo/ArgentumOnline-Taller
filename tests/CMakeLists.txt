@@ -50,6 +50,10 @@ target_sources(argentum_online_tests
     ../client/src/TileMap.cpp
     TestHealthBar.cpp
     ../client/src/HealthBar.cpp
+    TestViewport.cpp
+    ../client/src/Viewport.cpp
+    TestCharacterSprites.cpp
+    ../client/src/CharacterSprites.cpp
     TestEditorMap.cpp
     ../editor/EditorMap.cpp
     TestCamera.cpp

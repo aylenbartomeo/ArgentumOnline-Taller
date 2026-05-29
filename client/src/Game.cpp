@@ -11,6 +11,7 @@
 
 #include "common/include/dto/StartMoveDTO.h"
 
+#include "CharacterSprites.h"
 #include "HealthBar.h"
 
 namespace {
@@ -20,7 +21,6 @@ constexpr int WINDOW_HEIGHT = 480;
 constexpr Uint32 MOVE_INTERVAL_MS = 200;
 
 constexpr const char* RESOURCES_DIR = "resources/";
-constexpr const char* CHARACTER_SHEET = "1500.png";
 constexpr int CHARACTER_FRAME_X = 2;
 constexpr int CHARACTER_FRAME_Y = 4;
 constexpr int CHARACTER_FRAME_W = 24;
@@ -37,9 +37,13 @@ constexpr int HEAD_FRAME_W = 13;
 constexpr int HEAD_FRAME_H = 15;
 constexpr int HEAD_DRAW_W = 18;
 constexpr int HEAD_DRAW_H = 20;
-constexpr int HEAD_OVERLAP = 6;
 
 constexpr const char* HEALTHBAR_SHEET = "en_barradevida.bmp";
+
+constexpr const char* GROUND_SHEET = "5108.png";
+constexpr int GROUND_SRC_X = 416;
+constexpr int GROUND_SRC_Y = 384;
+constexpr int GROUND_TILE = 32;
 
 std::string readWholeFile(const std::string& path) {
     std::ifstream file(path);
@@ -109,31 +113,44 @@ void Game::render() {
     renderer.SetDrawColor(0, 0, 0, 255);
     renderer.Clear();
 
-    renderTerrain();
-    renderEntities();
+    const CameraOffset camera = computeCamera();
+    renderTerrain(camera);
+    renderEntities(camera);
 
     renderer.Present();
 }
 
-void Game::renderTerrain() {
+CameraOffset Game::computeCamera() {
+    const uint32_t myId = client.getClientId();
+    int focusX = 0;
+    int focusY = 0;
+    for (const EntityDTO& entity: lastSnapshot.entities) {
+        if (entity.id == myId && entity.type == EntityType::PLAYER) {
+            focusX = entity.x * TILE_SIZE + TILE_SIZE / 2;
+            focusY = entity.y * TILE_SIZE + TILE_SIZE / 2;
+            break;
+        }
+    }
+    return computeCameraOffset(focusX, focusY, WINDOW_WIDTH, WINDOW_HEIGHT,
+                               map.getWidth() * TILE_SIZE, map.getHeight() * TILE_SIZE);
+}
+
+void Game::renderTerrain(const CameraOffset& camera) {
     SDL2pp::Renderer& renderer = window.getRenderer();
-    SDL2pp::Texture& tileset = textures.get(std::string(RESOURCES_DIR) + map.getTileset());
-    const int src = map.getTileSize();
-    const int cols = map.getTilesetCols();
+    SDL2pp::Texture& ground = textures.get(std::string(RESOURCES_DIR) + GROUND_SHEET);
+    const SDL2pp::Rect groundSrc(GROUND_SRC_X, GROUND_SRC_Y, GROUND_TILE, GROUND_TILE);
 
     for (int row = 0; row < map.getHeight(); ++row) {
         for (int col = 0; col < map.getWidth(); ++col) {
-            const int id = map.tileAt(col, row);
-            const SDL2pp::Rect srcRect((id % cols) * src, (id / cols) * src, src, src);
-            const SDL2pp::Rect dstRect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            renderer.Copy(tileset, srcRect, dstRect);
+            const SDL2pp::Rect dstRect(col * TILE_SIZE - camera.x, row * TILE_SIZE - camera.y,
+                                       TILE_SIZE, TILE_SIZE);
+            renderer.Copy(ground, groundSrc, dstRect);
         }
     }
 }
 
-void Game::renderEntities() {
+void Game::renderEntities(const CameraOffset& camera) {
     SDL2pp::Renderer& renderer = window.getRenderer();
-    SDL2pp::Texture& sheet = textures.get(std::string(RESOURCES_DIR) + CHARACTER_SHEET);
     SDL2pp::Texture& headSheet = textures.get(std::string(RESOURCES_DIR) + HEAD_SHEET);
     SDL2pp::Texture& barSheet = textures.get(std::string(RESOURCES_DIR) + HEALTHBAR_SHEET);
     const uint32_t myId = client.getClientId();
@@ -143,20 +160,24 @@ void Game::renderEntities() {
     const SDL2pp::Rect headSrc(HEAD_FRAME_X, HEAD_FRAME_Y, HEAD_FRAME_W, HEAD_FRAME_H);
 
     for (const EntityDTO& entity: lastSnapshot.entities) {
-        const SDL2pp::Rect dstRect(entity.x * TILE_SIZE,
-                                   entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H, TILE_SIZE,
-                                   CHARACTER_DRAW_H);
-        renderer.Copy(sheet, srcRect, dstRect);
+        const EntitySprite sprite = spriteForEntity(entity.type);
+        SDL2pp::Texture& body = textures.get(std::string(RESOURCES_DIR) + sprite.bodySheet);
+        const SDL2pp::Rect dstRect(entity.x * TILE_SIZE - camera.x,
+                                   entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H - camera.y,
+                                   TILE_SIZE, CHARACTER_DRAW_H);
+        renderer.Copy(body, srcRect, dstRect);
 
-        const int headX = entity.x * TILE_SIZE + TILE_SIZE / 2 - HEAD_DRAW_W / 2;
-        const int headY = entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H + HEAD_OVERLAP -
-                          HEAD_DRAW_H;
-        renderer.Copy(headSheet, headSrc, SDL2pp::Rect(headX, headY, HEAD_DRAW_W, HEAD_DRAW_H));
+        if (sprite.drawHead) {
+            const int headX = entity.x * TILE_SIZE + TILE_SIZE / 2 - HEAD_DRAW_W / 2 - camera.x;
+            const int headY = entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H +
+                              sprite.headOverlap - HEAD_DRAW_H - camera.y;
+            renderer.Copy(headSheet, headSrc, SDL2pp::Rect(headX, headY, HEAD_DRAW_W, HEAD_DRAW_H));
+        }
 
-        if (entity.id == myId) {
+        if (entity.id == myId && entity.type == EntityType::PLAYER) {
             renderer.SetDrawColor(255, 235, 0, 255);
-            const int cx = entity.x * TILE_SIZE + TILE_SIZE / 2 - MARKER_SHIFT_X;
-            const int cy = entity.y * TILE_SIZE + TILE_SIZE - 4;
+            const int cx = entity.x * TILE_SIZE + TILE_SIZE / 2 - MARKER_SHIFT_X - camera.x;
+            const int cy = entity.y * TILE_SIZE + TILE_SIZE - 4 - camera.y;
             for (int t = -1; t <= 1; ++t) {
                 const int rx = TILE_SIZE / 2 - 2 + t;
                 const int ry = TILE_SIZE / 5 + t;
@@ -175,8 +196,8 @@ void Game::renderEntities() {
     const SDL2pp::Rect barSrc(0, 0, barSheet.GetWidth(), barSheet.GetHeight());
     for (const EntityDTO& entity: lastSnapshot.entities) {
         const HealthBarLayout bar = computeHealthBar(entity.current_hp, entity.max_hp,
-                                                     entity.x * TILE_SIZE, entity.y * TILE_SIZE,
-                                                     TILE_SIZE);
+                                                     entity.x * TILE_SIZE - camera.x,
+                                                     entity.y * TILE_SIZE - camera.y, TILE_SIZE);
         if (!bar.visible) {
             continue;
         }
