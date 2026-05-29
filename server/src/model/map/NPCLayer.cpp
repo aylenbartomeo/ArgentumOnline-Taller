@@ -1,5 +1,7 @@
 #include "NPCLayer.h"
 
+#include <algorithm>
+
 uint32_t NPCLayer::addNPC(NPCType type, const Position& pos) {
     uint32_t id = nextNpcId++;
     npcSpawns.push_back(NPCSpawn{id, type, pos});
@@ -7,27 +9,24 @@ uint32_t NPCLayer::addNPC(NPCType type, const Position& pos) {
 }
 
 std::optional<NPCSpawn> NPCLayer::findNPCAt(const Position& pos) const {
-    for (const auto& npc : npcSpawns) {
-        if (npc.position == pos) {
-            return npc;
-        }
+    auto it = std::find_if(npcSpawns.begin(), npcSpawns.end(),
+                           [&pos](const NPCSpawn& npc) { return npc.position == pos; });
+    if (it != npcSpawns.end()) {
+        return *it;
     }
     return std::nullopt;
 }
 
 std::vector<NPCSpawn> NPCLayer::findNPCsInRange(const Position& center, int range) const {
     std::vector<NPCSpawn> inRange;
-    for (const auto& npc : npcSpawns) {
-        if (npc.position.chebyshev_distance_to(center) <= range) {
-            inRange.push_back(npc);
-        }
-    }
+    std::copy_if(npcSpawns.begin(), npcSpawns.end(), std::back_inserter(inRange),
+                 [&center, range](const NPCSpawn& npc) {
+                     return npc.position.chebyshev_distance_to(center) <= range;
+                 });
     return inRange;
 }
 
-const std::vector<NPCSpawn>& NPCLayer::getAllNPCs() const {
-    return npcSpawns;
-}
+const std::vector<NPCSpawn>& NPCLayer::getAllNPCs() const { return npcSpawns; }
 
 void NPCLayer::clear() {
     npcSpawns.clear();

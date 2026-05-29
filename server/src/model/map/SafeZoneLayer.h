@@ -10,8 +10,7 @@ struct SafeZone {
     int width, height;
 
     bool contains(float posX, float posY) const {
-        return posX >= x && posX <= x + width &&
-               posY >= y && posY <= y + height;
+        return posX >= x && posX <= x + width && posY >= y && posY <= y + height;
     }
 };
 
@@ -30,4 +29,4 @@ public:
     void clear();
 };
 
-#endif // SAFE_ZONE_LAYER_H
+#endif  // SAFE_ZONE_LAYER_H

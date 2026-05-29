@@ -5,13 +5,14 @@
 #include <optional>
 #include <vector>
 
-#include "position.h"
 #include "common/utils/types.h"
+
+#include "position.h"
 
 // Dato posicional de un NPC ciudadano en el mapa.
 struct NPCSpawn {
     uint32_t id;
-    NPCType type;       // MERCHANT, BANKER, PRIEST
+    NPCType type;  // MERCHANT, BANKER, PRIEST
     Position position;
 };
 
@@ -31,4 +32,4 @@ public:
     void clear();
 };
 
-#endif // NPC_LAYER_H
+#endif  // NPC_LAYER_H
