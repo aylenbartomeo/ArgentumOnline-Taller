@@ -7,17 +7,47 @@
 #include <unordered_map>
 
 #include "../../common/utils/position.h"
+#include "../../common/utils/types.h"
 
-// Struct de tamaño fijo para persistencia binaria.
-// El tamaño se fija a 128 bytes para permitir expansión futura.
+static constexpr size_t MAX_INVENTORY_SLOTS = 20;
+
+// Slot de inventario persistente (ID de item + cantidad)
+struct PersistedSlot {
+    uint32_t itemId{0};
+    uint32_t amount{0};
+};
+
+
+// Struct de tamaño fijo para persistencia binaria. (512 bytes)
 struct PlayerPersistData {
+    // Ubicacion e identidad
     uint32_t dbId;
     int32_t posX;
     int32_t posY;
-    // Espacio reservado para expansión futura (HP, mana, level, exp, gold, etc.)
-    char reserved[116];
+
+    // Estadisticas
+    uint32_t level{1};
+    uint32_t exp{0};
+    uint32_t hp{0};
+    uint32_t maxHp{0};
+    uint32_t mana{0};
+    uint32_t maxMana{0};
+    uint32_t gold{0};
+
+    // Identidad y Estado
+    uint32_t race{0};
+    uint32_t charClass{0};
+    bool isGhost{false};
+    char padding[3]{0, 0, 0};
+
+    // Inventario
+    PersistedSlot inventory[MAX_INVENTORY_SLOTS]{};
+
+    // Espacio reservado para expansión futura (Banco, stats de combate extra, clan Id, etc.)
+    char reserved[300]{0};
 };
-static_assert(sizeof(PlayerPersistData) == 128, "PlayerPersistData must be 128 bytes");
+
+static_assert(sizeof(PlayerPersistData) == 512, "PlayerPersistData must be exactly 512 bytes");
 
 class PlayerDataStore {
 private:
