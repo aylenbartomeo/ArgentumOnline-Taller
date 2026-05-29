@@ -60,6 +60,4 @@ enum class Movement : uint8_t {
     STOP
 };
 
-enum ClanCommandType { FOUND, JOIN, LEAVE, CHECK, ACCEPT, REJECT, KICK };
-
 #endif

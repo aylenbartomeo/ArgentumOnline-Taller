@@ -58,6 +58,11 @@ target_sources(argentum_online_server
     src/Map.cpp
     src/World.cpp
 
+    # Clan
+    src/model/clan/ClanRepository.cpp
+    src/model/clan/ClanService.cpp
+    src/model/clan/ClanController.cpp
+
     # Components
     src/model/components/InventoryComponent.cpp
     src/model/components/EquipmentComponent.cpp
@@ -134,6 +139,7 @@ target_include_directories(argentum_online_server
     src/model/items
     src/model/components
     src/model/handlers
+    src/model/clan
     ${CMAKE_SOURCE_DIR}/common/utils
 )
 

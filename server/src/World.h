@@ -12,6 +12,9 @@
 #include "dto/ClientCommands.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
+#include "model/clan/ClanController.h"
+#include "model/clan/ClanRepository.h"
+#include "model/clan/ClanService.h"
 #include "model/entities/GlobalBank.h"
 #include "model/entities/Monster.h"
 #include "model/entities/Player.h"
@@ -27,7 +30,7 @@ struct WorldEvent {
 };
 class ItemRegistry;
 
-class World {
+class World: public IWorldContext {
 private:
     int worldId;
     std::string creatorPlayerName;
@@ -44,6 +47,11 @@ private:
     std::unordered_map<uint32_t, uint32_t> dbIdToEntityId;
 
     std::vector<WorldEvent> outgoingEvents;
+
+    ClanRepository clanRepo;
+    ClanService clanService;
+    ClanController clanController;
+    bool enforceFairPlay = true;  // Regla de mundo: Modo arena
 
     // Busca un Attackable por ID (busca en players y luego en monsters)
     Attackable* findAttackable(uint32_t id);
@@ -75,7 +83,7 @@ public:
     void moveEntity(uint32_t playerId, Movement movement);
 
     // Ataque genérico: el atacante (Player) busca al target en players Y monsters
-    void playerAttack(uint32_t attackerId, uint32_t targetId);
+    void playerAttack(uint32_t attackerId, uint32_t targetDbId);
 
     // El método que busca en 'cityNpcs' cuando el cliente manda un click de interacción
     void playerInteract(uint32_t dbId, uint32_t targetId);
@@ -118,6 +126,22 @@ public:
 
     // Zonas seguras (delega al map)
     bool isSafeZone(float x, float y) const;
+
+    uint16_t getPlayerLevel(uint32_t dbId) const override;
+    uint32_t resolveNickToDbId(const std::string& nick) const override;
+
+    // Procesa cualquier comando de clan enviado por un jugador.
+    void processClanCommand(uint32_t senderDbId, const ClanCommandDTO& cmd);
+
+    // Devuelve cuántos clanmates del atacante están cerca de su posición
+    int countNearbyClanmates(uint32_t playerDbId, int range) const;
+
+    // Verdadero si ambos jugadores pertenecen al mismo clan
+    bool areClanmates(uint32_t playerADbId, uint32_t playerBDbId) const;
+
+    // Configuraciones de reglas de juego (para testing y ajustes de balance)
+    void setFairPlayRules(bool enforce) { enforceFairPlay = enforce; }
+    void setClanMinLevel(uint16_t level) { clanService.setMinLevelToFound(level); }
 
     ~World() = default;
 };

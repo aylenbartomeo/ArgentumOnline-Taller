@@ -4,6 +4,7 @@
 #include <variant>
 
 #include "../include/model/ServerEvents.h"
+#include "dto/ClanCommandDTO.h"
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
                    const std::filesystem::path& configPath, const std::string& persistenceDir):
@@ -120,6 +121,9 @@ void GameLoop::processInputs() {
                           << " executed NPC command type: " << static_cast<int>(cmdDto.type)
                           << std::endl;
                 world.playerExecuteNpcCommand(pCmd.clientId, cmdDto);
+            } else if (std::holds_alternative<ClanCommandDTO>(pCmd.command)) {
+                ClanCommandDTO clanCmd = std::get<ClanCommandDTO>(pCmd.command);
+                world.processClanCommand(pCmd.clientId, clanCmd);
             }
         }
     }

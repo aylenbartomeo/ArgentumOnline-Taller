@@ -47,7 +47,8 @@ struct GroundItemDTO {
 };
 
 struct SnapshotDTO {
-    std::vector<EntityDTO> entities;
+    std::vector<EntityDTO> players;
+    std::vector<EntityDTO> monsters;
     std::vector<GroundItemDTO> groundItems;
 
     SnapshotDTO() = default;

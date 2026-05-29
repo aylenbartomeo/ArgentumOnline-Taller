@@ -5,6 +5,7 @@
 #include <string>
 #include <variant>
 
+#include "ClanCommandDTO.h"
 #include "LoginDTO.h"
 #include "RegisterDTO.h"
 #include "StartMoveDTO.h"
@@ -48,8 +49,8 @@ struct NpcCommandDTO {
 };
 
 // Esto es lo que la cola del Servidor va a recibir.
-using CommandVariant =
-        std::variant<RegisterDTO, LoginDTO, StartMoveDTO, StopMoveDTO, AttackDTO, UseItemDTO,
-                     EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO, SelectNpcDTO, NpcCommandDTO>;
+using CommandVariant = std::variant<RegisterDTO, LoginDTO, StartMoveDTO, StopMoveDTO, AttackDTO,
+                                    UseItemDTO, EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO,
+                                    SelectNpcDTO, NpcCommandDTO, ClanCommandDTO>;
 
 #endif  // CLIENT_COMMANDS_H
