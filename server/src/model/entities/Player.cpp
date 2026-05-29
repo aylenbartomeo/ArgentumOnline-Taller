@@ -90,10 +90,27 @@ bool Player::canEngageInCombatWith(const Attackable& other) const {
     return true;
 }
 
-void Player::handleDeath() {
-    state.die();
-    // TODO: inventory->dropItems();
+void Player::handleDeath() { state.die(); }
+
+uint16_t Player::addInventoryItem(uint32_t item_id, uint16_t amount) {
+    bool stackable = true;
+    if (this->itemRegistry != nullptr) {
+        stackable = this->itemRegistry->isStackable(item_id);
+    }
+    return this->inventory.addItem(item_id, amount, stackable);
 }
+
+uint16_t Player::removeInventoryItem(uint8_t slot_index, uint16_t amount) {
+    return this->inventory.removeItem(slot_index, amount);
+}
+
+std::optional<Slot> Player::inspectInventorySlot(uint8_t slot_index) const {
+    return this->inventory.inspectSlot(slot_index);
+}
+
+std::vector<Slot> Player::dropAllItems() { return this->inventory.dropAllItems(); }
+
+uint32_t Player::dropExcessGold() { return this->inventory.dropExcessGold(); }
 
 void Player::onActionStarted() { state.stopMeditating(); }
 

@@ -4,27 +4,27 @@
 #include <string>
 #include <vector>
 
-#include "model/entities/Player.h"
+#include "../entities/Player.h"
 
 #include "NPCCommand.h"
 
 class HealCommand: public NPCCommand {
 public:
-    bool execute(Player& player, const std::vector<std::string>& params) override {
+    bool execute(Player& player, const std::vector<std::string>& /*params*/) override {
         if (player.isDead())
             return false;
-        player.heal();
-        return true;
+        // player.heal();
+        return true;  // TODO: Conectar con player.heal()
     }
 };
 
 class ResurrectCommand: public NPCCommand {
 public:
-    bool execute(Player& player, const std::vector<std::string>& params) override {
+    bool execute(Player& player, const std::vector<std::string>& /*params*/) override {
         if (!player.isDead())
             return false;
-        player.resurrect();
-        return true;
+        // player.resurrect();
+        return true;  // TODO: Conectar con player.resurrect()
     }
 };
 

@@ -6,8 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Citizen.h"
-#include "PriestCommands.h"
+#include "../commands/PriestCommands.h"
+#include "server/src/model/entities/Citizen.h"
 
 class Priest: public Citizen {
 private:

@@ -40,6 +40,9 @@ public:
 
     // Retorna el ítem casteado de forma segura a Armor.
     const Armor* get_armor(int item_id) const;
+
+    // Determina si un ítem es apilable. Las armas y armaduras no lo son.
+    bool isStackable(int item_id) const;
 };
 
 #endif  // ITEMREGISTRY_H

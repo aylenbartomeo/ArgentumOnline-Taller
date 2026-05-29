@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "../../../../common/include/dto/CommandDTO.h"
 #include "../combat/CombatManager.h"
@@ -83,6 +84,12 @@ public:
     // Inventory
     InventoryComponent& getInventory() { return this->inventory; }
     const InventoryComponent& getInventory() const { return this->inventory; }
+
+    uint16_t addInventoryItem(uint32_t item_id, uint16_t amount);
+    uint16_t removeInventoryItem(uint8_t slot_index, uint16_t amount);
+    std::optional<Slot> inspectInventorySlot(uint8_t slot_index) const;
+    std::vector<Slot> dropAllItems();
+    uint32_t dropExcessGold();
 
     // Equipment
     EquipmentComponent& getEquipment() { return this->equipment; }

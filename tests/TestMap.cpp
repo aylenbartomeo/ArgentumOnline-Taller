@@ -77,17 +77,24 @@ TEST(MapTest, Map_RegenerateCollisionGridFromElements) {
 // TESTS DE HITBOX DE ATAQUE Y ZONAS
 // =======================================================================
 
-TEST(MapTest, Map_AttackCollisionDetectsNearbyObstacles) {
+TEST(MapTest, Map_HasLineOfSight_Bresenham) {
     Map mapa;
-    mapa.setDimensions(100, 100);
-    mapa.setObstacleInGrid(50, 50, true);  // Guarda el elemento en el vector
+    mapa.setDimensions(20, 20);
 
-    // Tu lógica de ataque usa un rango amplio de ±20 unidades.
-    // Atacar desde (40, 40) debería colisionar con el obstáculo en (50, 50)
-    EXPECT_TRUE(mapa.attackColision(40.0f, 40.0f));
+    // Sin obstáculos, la visión debe ser clara
+    EXPECT_TRUE(mapa.hasLineOfSight(Position{0, 0}, Position{10, 10}));
+    EXPECT_TRUE(mapa.hasLineOfSight(Position{5, 5}, Position{15, 5}));
 
-    // Atacar desde (10, 10) está demasiado lejos (distancia > 20)
-    EXPECT_FALSE(mapa.attackColision(10.0f, 10.0f));
+    // Agregamos un obstáculo en (5, 5)
+    mapa.setObstacleInGrid(5, 5, true);
+
+    // Visión bloqueada si la línea pasa por (5, 5)
+    EXPECT_FALSE(mapa.hasLineOfSight(Position{0, 0}, Position{10, 10}));  // Diagonal pasa por 5,5
+    EXPECT_FALSE(mapa.hasLineOfSight(Position{2, 5}, Position{8, 5}));    // Recta pasa por 5,5
+
+    // Visión libre si la línea NO pasa por el obstáculo
+    EXPECT_TRUE(mapa.hasLineOfSight(Position{0, 0}, Position{0, 10}));
+    EXPECT_TRUE(mapa.hasLineOfSight(Position{2, 4}, Position{8, 4}));
 }
 
 TEST(MapTest, Map_CorrectlyIdentifiesCitizenArea) {
@@ -130,4 +137,42 @@ TEST(MapTest, Map_CanMoveToFarColumnInWideMap) {
     mapa.setDimensions(20, 15);
 
     EXPECT_TRUE(mapa.canMoveTo(Position{18, 3}));
+}
+
+// =======================================================================
+// TESTS DE ITEMS EN EL SUELO (FACHADA)
+// =======================================================================
+
+TEST(MapTest, Map_PlaceItem_and_PickUp) {
+    Map mapa;
+    mapa.setDimensions(20, 20);
+    Position pos{5, 5};
+
+    EXPECT_TRUE(mapa.placeItem(pos, 1, 10));
+    EXPECT_TRUE(mapa.hasItemAt(pos));
+
+    auto picked = mapa.pickUpItem(pos);
+    ASSERT_TRUE(picked.has_value());
+    EXPECT_EQ(picked->itemId, 1);
+    EXPECT_EQ(picked->amount, 10);
+    EXPECT_FALSE(mapa.hasItemAt(pos));
+}
+
+TEST(MapTest, Map_PlaceItemNearby_overflows_to_adjacent) {
+    Map mapa;
+    mapa.setDimensions(20, 20);
+    Position pos{10, 10};
+
+    // El primero va a la posición exacta
+    auto pos1 = mapa.placeItemNearby(pos, 1, 1);
+    ASSERT_TRUE(pos1.has_value());
+    EXPECT_EQ(pos1->x, 10);
+    EXPECT_EQ(pos1->y, 10);
+
+    // El segundo va a una adyacente porque (10, 10) está ocupado
+    auto pos2 = mapa.placeItemNearby(pos, 2, 1);
+    ASSERT_TRUE(pos2.has_value());
+    EXPECT_NE(pos2.value(), pos);  // No es la original
+    EXPECT_LE(pos2->distance_to(pos),
+              2);  // Distancia Manhattan de adyacente diagonal es 2, recta es 1
 }

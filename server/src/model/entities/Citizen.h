@@ -20,6 +20,10 @@ private:
 public:
     Citizen(uint32_t id, Position pos, NPCType type);
 
+    uint32_t getId() const { return id; }
+    Position getPosition() const { return pos; }
+    NPCType getType() const { return type; }
+
     void interact(Interactable& interactable, const std::string& action,
                   const std::vector<std::string>& params) override;
 

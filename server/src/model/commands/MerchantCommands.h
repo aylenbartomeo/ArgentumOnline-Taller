@@ -1,6 +1,7 @@
 #ifndef MERCHANT_COMMANDS_H_
 #define MERCHANT_COMMANDS_H_
 
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -10,7 +11,7 @@
 
 class BuyCommand: public NPCCommand {
 public:
-    bool execute(Player& player, const std::vector<std::string>& params) override {
+    bool execute(Player& /*player*/, const std::vector<std::string>& params) override {
         if (params.size() < 2)
             return false;
 
@@ -21,7 +22,11 @@ public:
             // CAMBIAR
             uint32_t total_price = 100 * amount;  // Precio simulado temporal
 
-            return player.buy_item(item_id, amount, total_price);
+            // return player.buy_item(item_id, amount, total_price);
+            (void)item_id;
+            (void)amount;
+            (void)total_price;
+            return false;  // TODO: Conectar con player.buy_item()
 
         } catch (const std::exception&) {
             return false;
@@ -31,7 +36,7 @@ public:
 
 class SellCommand: public NPCCommand {
 public:
-    bool execute(Player& player, const std::vector<std::string>& params) override {
+    bool execute(Player& /*player*/, const std::vector<std::string>& params) override {
         if (params.size() < 2)
             return false;
         try {
@@ -40,7 +45,11 @@ public:
 
             // CAMBIAR
             uint32_t unit_price = 50;  // Precio de reventa simulado
-            return player.sell_item(slot_index, amount, unit_price);
+            // return player.sell_item(slot_index, amount, unit_price);
+            (void)slot_index;
+            (void)amount;
+            (void)unit_price;
+            return false;  // TODO: Conectar con player.sell_item()
         } catch (const std::exception&) {
             return false;
         }
