@@ -25,7 +25,9 @@ target_sources(argentum_online_server
     src/model/entities/Player.cpp
     src/model/entities/Monster.cpp
     src/model/entities/MonsterFactory.cpp
-    src/model/entities/Citizen.cpp
+    src/model/entities/Merchant.cpp
+    src/model/entities/Priest.cpp
+    src/model/entities/Banker.cpp
 
     # Items
     src/model/items/Armor.cpp
@@ -56,10 +58,14 @@ target_sources(argentum_online_server
     src/Map.cpp
     src/World.cpp
 
+    # Clan
+    src/model/clan/ClanRepository.cpp
+    src/model/clan/ClanService.cpp
+    src/model/clan/ClanController.cpp
+
     # Components
     src/model/components/InventoryComponent.cpp
     src/model/components/EquipmentComponent.cpp
-    src/model/components/BankComponent.cpp
     src/model/components/StatsComponent.cpp
     src/model/combat/CombatManager.cpp
     src/model/components/RegenerationComponent.cpp
@@ -77,11 +83,21 @@ target_sources(argentum_online_server
     src/model/entities/MonsterFactory.h
     src/model/entities/Player.h
     src/model/entities/PlayerFactory.h
+    src/model/entities/Priest.h
+    src/model/entities/Merchant.h
+    src/model/entities/Banker.h
+    src/model/entities/GlobalBank.h
     src/model/components/StatsComponent.h
     src/model/components/InventoryComponent.h
     src/model/components/EquipmentComponent.h
-    src/model/components/BankComponent.h
     src/model/combat/CombatManager.h
+
+    src/model/handlers/NpcCommandHandler.h
+    src/model/handlers/BankDepositHandler.h
+    src/model/handlers/BankWithdrawHandler.h
+    src/model/handlers/HealHandler.h
+    src/model/handlers/TradeHandler.h
+    src/model/handlers/ResurrectHandler.h
 
     src/model/items/Armor.h
     src/model/items/ArmorFactory.h
@@ -122,6 +138,8 @@ target_include_directories(argentum_online_server
     src/model/map
     src/model/items
     src/model/components
+    src/model/handlers
+    src/model/clan
     ${CMAKE_SOURCE_DIR}/common/utils
 )
 

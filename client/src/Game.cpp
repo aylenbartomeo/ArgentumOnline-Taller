@@ -124,8 +124,8 @@ CameraOffset Game::computeCamera() {
     const uint32_t myId = client.getClientId();
     int focusX = 0;
     int focusY = 0;
-    for (const EntityDTO& entity: lastSnapshot.entities) {
-        if (entity.id == myId && entity.type == EntityType::PLAYER) {
+    for (const EntityDTO& entity: lastSnapshot.players) {
+        if (entity.id == myId) {
             focusX = entity.x * TILE_SIZE + TILE_SIZE / 2;
             focusY = entity.y * TILE_SIZE + TILE_SIZE / 2;
             break;
@@ -159,7 +159,7 @@ void Game::renderEntities(const CameraOffset& camera) {
                                CHARACTER_FRAME_H);
     const SDL2pp::Rect headSrc(HEAD_FRAME_X, HEAD_FRAME_Y, HEAD_FRAME_W, HEAD_FRAME_H);
 
-    for (const EntityDTO& entity: lastSnapshot.entities) {
+    auto drawEntity = [&](const EntityDTO& entity) {
         const EntitySprite sprite = spriteForEntity(entity.type);
         SDL2pp::Texture& body = textures.get(std::string(RESOURCES_DIR) + sprite.bodySheet);
         const SDL2pp::Rect dstRect(entity.x * TILE_SIZE - camera.x,
@@ -174,7 +174,7 @@ void Game::renderEntities(const CameraOffset& camera) {
             renderer.Copy(headSheet, headSrc, SDL2pp::Rect(headX, headY, HEAD_DRAW_W, HEAD_DRAW_H));
         }
 
-        if (entity.id == myId && entity.type == EntityType::PLAYER) {
+        if (entity.type == EntityType::PLAYER && entity.id == myId) {
             renderer.SetDrawColor(255, 235, 0, 255);
             const int cx = entity.x * TILE_SIZE + TILE_SIZE / 2 - MARKER_SHIFT_X - camera.x;
             const int cy = entity.y * TILE_SIZE + TILE_SIZE - 4 - camera.y;
@@ -191,15 +191,22 @@ void Game::renderEntities(const CameraOffset& camera) {
                 }
             }
         }
+    };
+
+    for (const EntityDTO& player: lastSnapshot.players) {
+        drawEntity(player);
+    }
+    for (const EntityDTO& monster: lastSnapshot.monsters) {
+        drawEntity(monster);
     }
 
     const SDL2pp::Rect barSrc(0, 0, barSheet.GetWidth(), barSheet.GetHeight());
-    for (const EntityDTO& entity: lastSnapshot.entities) {
+    auto drawHealthBar = [&](const EntityDTO& entity) {
         const HealthBarLayout bar = computeHealthBar(entity.current_hp, entity.max_hp,
                                                      entity.x * TILE_SIZE - camera.x,
                                                      entity.y * TILE_SIZE - camera.y, TILE_SIZE);
         if (!bar.visible) {
-            continue;
+            return;
         }
         renderer.SetDrawColor(20, 20, 20, 255);
         renderer.FillRect(
@@ -208,5 +215,11 @@ void Game::renderEntities(const CameraOffset& camera) {
             renderer.Copy(barSheet, barSrc,
                           SDL2pp::Rect(bar.fill.x, bar.fill.y, bar.fill.w, bar.fill.h));
         }
+    };
+    for (const EntityDTO& player: lastSnapshot.players) {
+        drawHealthBar(player);
+    }
+    for (const EntityDTO& monster: lastSnapshot.monsters) {
+        drawHealthBar(monster);
     }
 }

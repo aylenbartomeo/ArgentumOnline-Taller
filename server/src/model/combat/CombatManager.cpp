@@ -116,3 +116,42 @@ CombatResult CombatManager::processAttack(const Monster& attacker, Attackable& t
 
     return res;
 }
+
+// --- Player ataca con bonus de clan ---
+
+CombatResult CombatManager::processAttack(Player& attacker, Attackable& target, float attackBonus,
+                                          float defenseBonus) {
+    const Weapon* weapon = attacker.getEquippedWeapon();
+    if (!weapon)
+        return CombatResult{};
+
+    AttackParams params{static_cast<uint16_t>(weapon->getMinDamage()),
+                        static_cast<uint16_t>(weapon->getMaxDamage()),
+                        weapon->getAttackRange(),
+                        weapon->getManaCost(),
+                        weapon->getType() == WeaponType::MAGIC,
+                        attackBonus,
+                        defenseBonus};
+
+    if (params.isMagic) {
+        if (!attacker.consumeMana(params.manaCost))
+            return CombatResult{};
+    }
+
+    CombatResult res = resolveCombat(attacker, target, params);
+    if (!res.attackHappened || res.evaded)
+        return res;
+
+    uint32_t attackXp = FormulaEngine::getInstance().calculate_attack_xp_gain(
+            res.damage, attacker.getLevel(), target.getLevel());
+    attacker.addExperience(attackXp);
+
+    if (target.isDead()) {
+        target.handleDeath();
+        uint32_t killXp = FormulaEngine::getInstance().calculate_kill_xp_gain(
+                target.getMaxHp(), attacker.getLevel(), target.getLevel());
+        attacker.addExperience(killXp);
+    }
+
+    return res;
+}
