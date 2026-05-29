@@ -60,6 +60,7 @@ enum class Movement : uint8_t {
     STOP
 };
 
+<<<<<<< HEAD
 enum ClanCommandType { FOUND, JOIN, LEAVE, CHECK, ACCEPT, REJECT, KICK };
 
 enum class InteractionStatus {
@@ -73,4 +74,6 @@ struct InteractionResult {
     std::string msg;
 };
 
+=======
+>>>>>>> develop
 #endif

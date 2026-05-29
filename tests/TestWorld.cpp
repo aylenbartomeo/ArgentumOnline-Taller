@@ -59,9 +59,9 @@ TEST(WorldTest, World_PlayerCannotMoveOutsideMap) {
     mundo.moveEntity(1, Movement::LEFT);
 
     SnapshotDTO snap = mundo.generateSnapshot();
-    ASSERT_EQ(snap.entities.size(), 1u);
-    EXPECT_EQ(snap.entities[0].x, 0);
-    EXPECT_EQ(snap.entities[0].y, 0);
+    ASSERT_EQ(snap.players.size(), 1u);
+    EXPECT_EQ(snap.players[0].x, 0);
+    EXPECT_EQ(snap.players[0].y, 0);
 }
 
 TEST(WorldTest, World_RemoveNonExistentPlayerReturnsFalse) {
@@ -79,7 +79,8 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
 
     // Verificamos que el snapshot inicial esté vacío
     SnapshotDTO snapshotInicial = mundo.generateSnapshot();
-    EXPECT_TRUE(snapshotInicial.entities.empty());
+    EXPECT_TRUE(snapshotInicial.players.empty());
+    EXPECT_TRUE(snapshotInicial.monsters.empty());
 
     // 2. Simulamos el login de dos jugadores (gatilla la creación de Players)
     std::string user1 = "Aoki";
@@ -97,13 +98,13 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
     SnapshotDTO snapshotActual = mundo.generateSnapshot();
 
     // 5. Validaciones de la estructura del SnapshotDTO
-    ASSERT_EQ(snapshotActual.entities.size(), 2);
+    ASSERT_EQ(snapshotActual.players.size(), 2);
 
     bool encontroPlayer1 = false;
     bool encontroPlayer2 = false;
     int spritesEvaluados = 0;
 
-    for (const auto& entity: snapshotActual.entities) {
+    for (const auto& entity: snapshotActual.players) {
         spritesEvaluados++;  // El primero que salga se lleva el 1, el segundo el 2
         std::cout << "Entity ID in snapshot: " << entity.id << std::endl;
 
@@ -146,9 +147,9 @@ TEST(WorldTest, World_PlayerCannotMoveIntoObstacle) {
     mundo.moveEntity(1, Movement::RIGHT);  // Intentar ir a (1,0) - bloqueado
 
     SnapshotDTO snap = mundo.generateSnapshot();
-    ASSERT_EQ(snap.entities.size(), 1u);
-    EXPECT_EQ(snap.entities[0].x, 0);  // No se movió
-    EXPECT_EQ(snap.entities[0].y, 0);
+    ASSERT_EQ(snap.players.size(), 1u);
+    EXPECT_EQ(snap.players[0].x, 0);  // No se movió
+    EXPECT_EQ(snap.players[0].y, 0);
 }
 
 TEST(WorldTest, World_UpdateTriggersMonsterAttack) {
@@ -170,7 +171,7 @@ TEST(WorldTest, World_UpdateTriggersMonsterAttack) {
     for (int i = 0; i < 50; ++i) {
         mundo.update(0.1f);  // 0.1f para minimizar regeneración pasiva
         SnapshotDTO snap = mundo.generateSnapshot();
-        if (snap.entities[0].current_hp < 15) {
+        if (snap.players[0].current_hp < 15) {
             tookDamage = true;
             break;
         }
@@ -193,12 +194,13 @@ TEST(WorldTest, World_UpdateDoesNotTriggerMonsterAttackIfOutOfRange) {
     mundo.update(1.0f);
 
     SnapshotDTO snap = mundo.generateSnapshot();
-    ASSERT_EQ(snap.entities.size(), 2u);  // 1 Monster + 1 Player
+    ASSERT_EQ(snap.players.size(), 1u);
+    ASSERT_EQ(snap.monsters.size(), 1u);
 
     // Find player in snapshot
-    auto it = std::find_if(snap.entities.begin(), snap.entities.end(),
+    auto it = std::find_if(snap.players.begin(), snap.players.end(),
                            [](const EntityDTO& e) { return e.type == EntityType::PLAYER; });
-    ASSERT_NE(it, snap.entities.end());
+    ASSERT_NE(it, snap.players.end());
     EXPECT_EQ(it->current_hp, 15);  // NO recibió daño
 }
 
@@ -217,9 +219,9 @@ TEST(WorldTest, World_AddPlayerSpawnsAtMapSpawn) {
     ASSERT_TRUE(mundo.addPlayer(1, user));
 
     SnapshotDTO snap = mundo.generateSnapshot();
-    ASSERT_EQ(snap.entities.size(), 1u);
-    EXPECT_EQ(snap.entities[0].x, 3);
-    EXPECT_EQ(snap.entities[0].y, 4);
+    ASSERT_EQ(snap.players.size(), 1u);
+    EXPECT_EQ(snap.players[0].x, 3);
+    EXPECT_EQ(snap.players[0].y, 4);
 }
 
 TEST(WorldTest, World_AddPlayerWithSavedPositionSpawnsThere) {
@@ -231,9 +233,9 @@ TEST(WorldTest, World_AddPlayerWithSavedPositionSpawnsThere) {
     ASSERT_TRUE(mundo.addPlayer(1, user, savedPos));
 
     SnapshotDTO snap = mundo.generateSnapshot();
-    ASSERT_EQ(snap.entities.size(), 1u);
-    EXPECT_EQ(snap.entities[0].x, 5);
-    EXPECT_EQ(snap.entities[0].y, 5);
+    ASSERT_EQ(snap.players.size(), 1u);
+    EXPECT_EQ(snap.players[0].x, 5);
+    EXPECT_EQ(snap.players[0].y, 5);
 }
 
 TEST(WorldTest, World_AddPlayerWithInvalidPositionUsesDefault) {
@@ -245,10 +247,10 @@ TEST(WorldTest, World_AddPlayerWithInvalidPositionUsesDefault) {
     ASSERT_TRUE(mundo.addPlayer(1, user, invalidPos));
 
     SnapshotDTO snap = mundo.generateSnapshot();
-    ASSERT_EQ(snap.entities.size(), 1u);
+    ASSERT_EQ(snap.players.size(), 1u);
     auto defaultPos = mundo.getInitialPosition();
-    EXPECT_EQ(snap.entities[0].x, defaultPos.first);
-    EXPECT_EQ(snap.entities[0].y, defaultPos.second);
+    EXPECT_EQ(snap.players[0].x, defaultPos.first);
+    EXPECT_EQ(snap.players[0].y, defaultPos.second);
 }
 
 TEST(WorldTest, World_GetPlayerPositionReturnsCurrentPos) {
@@ -360,9 +362,9 @@ TEST(WorldTest, World_PlayerCannotAttackInSafeZone) {
     mundo.playerAttack(1, 2);
 
     SnapshotDTO snap = mundo.generateSnapshot();
-    auto it = std::find_if(snap.entities.begin(), snap.entities.end(),
+    auto it = std::find_if(snap.players.begin(), snap.players.end(),
                            [](const EntityDTO& e) { return e.id == 2; });
-    ASSERT_NE(it, snap.entities.end());
+    ASSERT_NE(it, snap.players.end());
     EXPECT_EQ(it->current_hp, 15);  // HP should be intact
 }
 
@@ -382,9 +384,9 @@ TEST(WorldTest, World_MonsterCannotAttackInSafeZone) {
     mundo.update(1.0f);
 
     SnapshotDTO snap = mundo.generateSnapshot();
-    auto it = std::find_if(snap.entities.begin(), snap.entities.end(),
+    auto it = std::find_if(snap.players.begin(), snap.players.end(),
                            [](const EntityDTO& e) { return e.id == 1; });
-    ASSERT_NE(it, snap.entities.end());
+    ASSERT_NE(it, snap.players.end());
     EXPECT_EQ(it->current_hp, 15);  // HP should be intact
 }
 
@@ -405,9 +407,9 @@ TEST(WorldTest, World_MonsterLosesAggroInSafeZone) {
 
     // Monster should not have moved towards the player because it loses aggro
     SnapshotDTO snap = mundo.generateSnapshot();
-    auto itM = std::find_if(snap.entities.begin(), snap.entities.end(),
+    auto itM = std::find_if(snap.monsters.begin(), snap.monsters.end(),
                             [](const EntityDTO& e) { return e.type == EntityType::MONSTER; });
-    ASSERT_NE(itM, snap.entities.end());
+    ASSERT_NE(itM, snap.monsters.end());
 
     // It should still be at 44, 50
     EXPECT_EQ(itM->x, 44);
