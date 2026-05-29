@@ -43,8 +43,14 @@ struct PlayerPersistData {
     // Inventario
     PersistedSlot inventory[MAX_INVENTORY_SLOTS]{};
 
+    //  Equipamiento
+    uint32_t equippedWeapon{0};
+    uint32_t equippedArmor{0};
+    uint32_t equippedShield{0};
+    uint32_t equippedHelmet{0};
+
     // Espacio reservado para expansión futura (Banco, stats de combate extra, clan Id, etc.)
-    char reserved[300]{0};
+    char reserved[284]{0};
 };
 
 static_assert(sizeof(PlayerPersistData) == 512, "PlayerPersistData must be exactly 512 bytes");
