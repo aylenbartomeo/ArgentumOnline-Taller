@@ -16,6 +16,9 @@ public:
     // Retorna la posición física del NPC para que el World valide la distancia
     virtual Position getPosition() const = 0;
 
+    // Retorna el ID asignado a la entidad
+    virtual uint32_t getId() const = 0;
+
     // El NPC recibe el click inicial del jugador y genera los eventos de red necesarios
     // (Por ejemplo: indicarle al cliente que abra la interfaz de comercio o banco)
     // Nota: el envío de `WorldEvent` hacia la UI cliente está pendiente de acople.

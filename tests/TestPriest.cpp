@@ -32,7 +32,7 @@ static Player makePriestTestPlayer(uint32_t id = 1) {
 // =========================================================================
 TEST(PriestTest, Priest_ResurrectsDeadPlayerSuccessfully) {
     ItemRegistry registry("../config/items.toml");
-    Priest sacerdote({0, 0}, registry);
+    Priest sacerdote(1, {0, 0}, registry);
     Player player = makePriestTestPlayer();
 
     // Gatillamos la muerte usando tu método sobreescrito de la interfaz
@@ -53,7 +53,7 @@ TEST(PriestTest, Priest_ResurrectsDeadPlayerSuccessfully) {
 // =========================================================================
 TEST(PriestTest, Priest_HealsHpAndManaToMaximum) {
     ItemRegistry registry("../config/items.toml");
-    Priest sacerdote({0, 0}, registry);
+    Priest sacerdote(1, {0, 0}, registry);
     Player player = makePriestTestPlayer();
 
     // Le hacemos daño para drenar estadísticas
@@ -76,7 +76,7 @@ TEST(PriestTest, Priest_HealsHpAndManaToMaximum) {
 // =========================================================================
 TEST(PriestTest, Priest_AllowsFreeTradeBuyingAnyItem) {
     ItemRegistry registry("../config/items.toml");
-    Priest sacerdote({0, 0}, registry);
+    Priest sacerdote(1, {0, 0}, registry);
     Player player = makePriestTestPlayer();
 
     player.addGold(500);
@@ -99,7 +99,7 @@ TEST(PriestTest, Priest_AllowsFreeTradeBuyingAnyItem) {
 // =========================================================================
 TEST(PriestTest, Priest_DeadPlayerCannotTrade) {
     ItemRegistry registry("../config/items.toml");
-    Priest sacerdote({0, 0}, registry);
+    Priest sacerdote(1, {0, 0}, registry);
     Player player = makePriestTestPlayer();
 
     player.addGold(500);

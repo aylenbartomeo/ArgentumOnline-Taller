@@ -3,7 +3,8 @@
 #include "../handlers/BankDepositHandler.h"
 #include "../handlers/BankWithdrawHandler.h"
 
-Banker::Banker(Position pos, GlobalBank& bankInstance, const ItemRegistry& registry): pos(pos) {
+Banker::Banker(uint32_t id, Position pos, GlobalBank& bankInstance, const ItemRegistry& registry):
+        id(id), pos(pos) {
     commandHandlers[NpcCommandType::DEPOSIT] =
             std::make_unique<BankDepositHandler>(bankInstance, registry);
     commandHandlers[NpcCommandType::WITHDRAW] = std::make_unique<BankWithdrawHandler>(bankInstance);

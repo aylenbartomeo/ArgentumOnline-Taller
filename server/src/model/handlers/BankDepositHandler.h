@@ -1,24 +1,28 @@
 #pragma once
 
-#include "NpcCommandHandler.h"
-#include "../entities/GlobalBank.h"
-#include "../entities/Player.h"
-#include "../items/ItemRegistry.h"
 #include <sstream>
 #include <string>
 
-class BankDepositHandler : public NpcCommandHandler {
+#include "../entities/GlobalBank.h"
+#include "../entities/Player.h"
+#include "../items/ItemRegistry.h"
+
+#include "NpcCommandHandler.h"
+
+class BankDepositHandler: public NpcCommandHandler {
 private:
     GlobalBank& bankInstance;
     const ItemRegistry& registry;
 
 public:
-    BankDepositHandler(GlobalBank& bankInstance, const ItemRegistry& registry)
-        : bankInstance(bankInstance), registry(registry) {}
+    BankDepositHandler(GlobalBank& bankInstance, const ItemRegistry& registry):
+            bankInstance(bankInstance), registry(registry) {}
 
     bool execute(Player& player, const NpcCommandDTO& dto) override {
-        if (dto.type != NpcCommandType::DEPOSIT) return false;
-        if (player.isDead()) return true;
+        if (dto.type != NpcCommandType::DEPOSIT)
+            return false;
+        if (player.isDead())
+            return true;
 
         uint32_t playerId = player.getDbId();
         std::stringstream ss(dto.arg);
@@ -28,7 +32,8 @@ public:
         // ---- Subcomando: Oro ----
         if (subComando == "oro") {
             uint32_t amount = 0;
-            if (!(ss >> amount) || amount == 0 || player.getGold() < amount) return true;
+            if (!(ss >> amount) || amount == 0 || player.getGold() < amount)
+                return true;
 
             player.removeGold(amount);
             bankInstance.depositGold(playerId, amount);
@@ -38,7 +43,11 @@ public:
 
         // ---- Subcomando: Ítem (dto.arg es el ID del ítem) ----
         uint32_t itemId = 0;
-        try { itemId = std::stoul(dto.arg); } catch (...) { return true; }
+        try {
+            itemId = std::stoul(dto.arg);
+        } catch (...) {
+            return true;
+        }
 
         int playerSlot = -1;
         for (uint8_t i = 0; i < player.getSize(); ++i) {
@@ -49,7 +58,8 @@ public:
             }
         }
 
-        if (playerSlot == -1) return true;
+        if (playerSlot == -1)
+            return true;
 
         if (!bankInstance.depositItem(playerId, itemId, 1)) {
             // TODO: Notificar banco lleno

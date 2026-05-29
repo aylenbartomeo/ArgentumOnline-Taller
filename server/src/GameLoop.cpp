@@ -105,8 +105,10 @@ void GameLoop::processInputs() {
                 world.playerAttack(pCmd.clientId, attack_dto.targetId);
 
             } else if (std::holds_alternative<DropItemDTO>(pCmd.command)) {
-                // DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
-                // world.drop_item(pCmd.clientId, drop_dto.slot, drop_dto.amount);
+                DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
+                world.dropItem(pCmd.clientId, drop_dto.slot, drop_dto.amount);
+            } else if (std::holds_alternative<GrabItemDTO>(pCmd.command)) {
+                world.pickUpItem(pCmd.clientId);
             } else if (std::holds_alternative<SelectNpcDTO>(pCmd.command)) {
                 SelectNpcDTO selectDto = std::get<SelectNpcDTO>(pCmd.command);
                 std::cout << "[GAMELOOP] Player " << pCmd.clientId

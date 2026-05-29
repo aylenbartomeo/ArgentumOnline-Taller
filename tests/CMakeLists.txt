@@ -16,8 +16,15 @@ target_sources(argentum_online_tests
     TestPriest.cpp
     TestGlobalBank.cpp
     TestBanker.cpp
+    TestGroundItemLayer.cpp
+    TestSafeZoneLayer.cpp
+    TestNPCLayer.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
+    ../server/src/model/map/GroundItemLayer.cpp
+    ../server/src/model/map/SafeZoneLayer.cpp
+    ../server/src/model/map/NPCLayer.cpp
+    ../server/src/model/map/CollisionLayer.cpp
     ../server/src/Map.cpp
     ../server/src/World.cpp
     ../server/src/model/entities/Player.cpp
@@ -60,6 +67,7 @@ target_include_directories(argentum_online_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/server/src
     ${CMAKE_SOURCE_DIR}/server/src/model
     ${CMAKE_SOURCE_DIR}/server/src/model/entities
+    ${CMAKE_SOURCE_DIR}/server/src/model/map
     ${CMAKE_SOURCE_DIR}/server/src/model/items
     ${CMAKE_SOURCE_DIR}/server/src/model/components
     ${CMAKE_SOURCE_DIR}/common/utils

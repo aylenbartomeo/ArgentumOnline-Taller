@@ -3,7 +3,8 @@
 #include "../handlers/TradeHandler.h"
 #include "model/entities/Player.h"
 
-Merchant::Merchant(Position pos, const ItemRegistry& registry): pos(pos), stock() {
+Merchant::Merchant(uint32_t id, Position pos, const ItemRegistry& registry):
+        id(id), pos(pos), stock() {
     // El comerciante abre con sus artículos locales
     stock[4001u] = 5;  // 5 Espadas
     stock[1001u] = 3;  // 3 Armaduras

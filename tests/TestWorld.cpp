@@ -193,8 +193,13 @@ TEST(WorldTest, World_UpdateDoesNotTriggerMonsterAttackIfOutOfRange) {
     mundo.update(1.0f);
 
     SnapshotDTO snap = mundo.generateSnapshot();
-    ASSERT_EQ(snap.entities.size(), 1u);
-    EXPECT_EQ(snap.entities[0].current_hp, 15);  // NO recibió daño
+    ASSERT_EQ(snap.entities.size(), 2u);  // 1 Monster + 1 Player
+
+    // Find player in snapshot
+    auto it = std::find_if(snap.entities.begin(), snap.entities.end(),
+                           [](const EntityDTO& e) { return e.type == EntityType::PLAYER; });
+    ASSERT_NE(it, snap.entities.end());
+    EXPECT_EQ(it->current_hp, 15);  // NO recibió daño
 }
 
 TEST(WorldTest, World_AddPlayerSpawnsAtMapSpawn) {
@@ -293,4 +298,350 @@ TEST(WorldTest, World_GetOnlinePlayerDbIdsReturnsAllActive) {
     for (auto id: expected) {
         EXPECT_NE(std::find(ids.begin(), ids.end(), id), ids.end());
     }
+}
+
+TEST(WorldTest, World_PlaceAndPickUpItemOnGround) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    Position pos{5, 5};
+    EXPECT_TRUE(mundo.placeItemOnGround(pos, 1, 10));
+
+    auto picked = mundo.pickUpItemFromGround(pos);
+    ASSERT_TRUE(picked.has_value());
+    EXPECT_EQ(picked->itemId, 1);
+    EXPECT_EQ(picked->amount, 10);
+}
+
+TEST(WorldTest, World_SnapshotIncludesGroundItems) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    mundo.placeItemOnGround(Position{2, 2}, 1, 5);
+    mundo.placeItemOnGround(Position{3, 3}, 2, 1);
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    EXPECT_EQ(snap.groundItems.size(), 2u);
+
+    bool foundItem1 = false;
+    for (const auto& gi: snap.groundItems) {
+        if (gi.itemId == 1) {
+            EXPECT_EQ(gi.x, 2);
+            EXPECT_EQ(gi.y, 2);
+            EXPECT_EQ(gi.amount, 5);
+            foundItem1 = true;
+        }
+    }
+    EXPECT_TRUE(foundItem1);
+}
+
+TEST(WorldTest, World_IsSafeZone_delegates_to_map) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    // Por defecto Map tiene una safe zone en 45, 45, 10x10
+    EXPECT_TRUE(mundo.isSafeZone(50, 50));
+    EXPECT_FALSE(mundo.isSafeZone(0, 0));
+}
+
+TEST(WorldTest, World_PlayerCannotAttackInSafeZone) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    // Player 1 in safe zone (50, 50)
+    std::string p1 = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, p1, Position{50, 50}));
+
+    // Player 2 in safe zone (51, 50)
+    std::string p2 = "Player2";
+    ASSERT_TRUE(mundo.addPlayer(2, p2, Position{51, 50}));
+
+    // Attack should fail
+    mundo.playerAttack(1, 2);
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    auto it = std::find_if(snap.entities.begin(), snap.entities.end(),
+                           [](const EntityDTO& e) { return e.id == 2; });
+    ASSERT_NE(it, snap.entities.end());
+    EXPECT_EQ(it->current_hp, 15);  // HP should be intact
+}
+
+TEST(WorldTest, World_MonsterCannotAttackInSafeZone) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    // Player 1 in safe zone (50, 50)
+    std::string p1 = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, p1, Position{50, 50}));
+
+    // Monster in safe zone (51, 50)
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone"};
+    mundo.addMonster(NPCType::GOBLIN, Position{51, 50}, mConfig);
+
+    // Update should not trigger attack
+    mundo.update(1.0f);
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    auto it = std::find_if(snap.entities.begin(), snap.entities.end(),
+                           [](const EntityDTO& e) { return e.id == 1; });
+    ASSERT_NE(it, snap.entities.end());
+    EXPECT_EQ(it->current_hp, 15);  // HP should be intact
+}
+
+TEST(WorldTest, World_MonsterLosesAggroInSafeZone) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    // Player 1 in safe zone (50, 50)
+    std::string p1 = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, p1, Position{50, 50}));
+
+    // Monster OUTSIDE safe zone but in detection range (44, 50) -> dist = 6 (range 10)
+    // Safe zone is 45 to 54. So 44 is outside.
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone"};
+    mundo.addMonster(NPCType::GOBLIN, Position{44, 50}, mConfig);
+
+    mundo.update(1.0f);
+
+    // Monster should not have moved towards the player because it loses aggro
+    SnapshotDTO snap = mundo.generateSnapshot();
+    auto itM = std::find_if(snap.entities.begin(), snap.entities.end(),
+                            [](const EntityDTO& e) { return e.type == EntityType::MONSTER; });
+    ASSERT_NE(itM, snap.entities.end());
+
+    // It should still be at 44, 50
+    EXPECT_EQ(itM->x, 44);
+    EXPECT_EQ(itM->y, 50);
+}
+
+// ========================================================================
+// 4. TESTS DE SISTEMA DE ÍTEMS (Pick Up & Drop)
+// ========================================================================
+
+TEST(WorldTest, World_PickUpItemIntoInventory) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    std::string user = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, user, Position{5, 5}));
+
+    // Ponemos ítem en el piso donde está el jugador
+    mundo.placeItemOnGround(Position{5, 5}, 202, 10);  // 202 es poción roja
+
+    mundo.pickUpItem(1);
+
+    // Verificamos que el mapa ya no tiene el ítem
+    auto snap = mundo.generateSnapshot();
+    EXPECT_TRUE(snap.groundItems.empty());
+
+    // Y que el jugador lo tiene en su inventario
+    // TestWorld no expone el Player interno, pero podemos ver los outgoing events
+    auto evs = mundo.pollEvents();
+    bool pickedUpEvent = false;
+    for (const auto& ev: evs) {
+        if (ev.targetDbId == 1 && ev.message == "Item picked up.") {
+            pickedUpEvent = true;
+        }
+    }
+    EXPECT_TRUE(pickedUpEvent);
+}
+
+TEST(WorldTest, World_PickUpItemNothingToPickUp) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    std::string user = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, user, Position{5, 5}));
+
+    // No ponemos nada en el piso
+    mundo.pickUpItem(1);
+
+    auto evs = mundo.pollEvents();
+    bool nothingHereEvent = false;
+    for (const auto& ev: evs) {
+        if (ev.targetDbId == 1 && ev.message == "There are no items here to pick up.") {
+            nothingHereEvent = true;
+        }
+    }
+    EXPECT_TRUE(nothingHereEvent);
+}
+
+TEST(WorldTest, World_PickUpItemNoSpaceInInventory) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    std::string user = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, user, Position{5, 5}));
+
+    // Llenamos el inventario del jugador forzadamente droppeándole ítems hasta que no pueda más?
+    // En TestWorld no podemos acceder al player directamente, pero podemos darle 20 items de
+    // distinto ID. Como son distinto ID, cada uno ocupará un slot diferente aunque sean
+    // stackeables.
+    for (int i = 0; i < 20; ++i) {
+        mundo.placeItemOnGround(Position{5, 5}, 100 + i, 1);
+        mundo.pickUpItem(1);
+    }
+
+    // Ahora el inventario debería estar lleno de espadas.
+    // Limpiamos los eventos salientes
+    mundo.pollEvents();
+
+    // Intentamos agarrar algo nuevo
+    mundo.placeItemOnGround(Position{5, 5}, 202, 10);  // pocion roja
+    mundo.pickUpItem(1);
+
+    // Verificamos que el item sigo en el piso!
+    auto snap = mundo.generateSnapshot();
+    ASSERT_EQ(snap.groundItems.size(), 1u);
+    EXPECT_EQ(snap.groundItems[0].itemId, 202u);
+    EXPECT_EQ(snap.groundItems[0].amount, 10);
+
+    auto evs = mundo.pollEvents();
+    bool fullEvent = false;
+    for (const auto& ev: evs) {
+        if (ev.targetDbId == 1 &&
+            ev.message == "Inventory full. You couldn't pick up everything.") {
+            fullEvent = true;
+        }
+    }
+    EXPECT_TRUE(fullEvent);
+}
+
+TEST(WorldTest, World_DropItemSuccess) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    std::string user = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, user, Position{5, 5}));
+
+    // Agarra un ítem
+    mundo.placeItemOnGround(Position{5, 5}, 202, 10);
+    mundo.pickUpItem(1);
+
+    // Ahora lo tira (slot 0, amount 5)
+    mundo.dropItem(1, 0, 5);
+
+    auto snap = mundo.generateSnapshot();
+    ASSERT_EQ(snap.groundItems.size(), 1u);
+    EXPECT_EQ(snap.groundItems[0].itemId, 202u);
+    EXPECT_EQ(snap.groundItems[0].amount, 5);
+}
+
+TEST(WorldTest, World_DropItemNoSpaceOnGround) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    std::string user = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, user, Position{5, 5}));
+
+    // El jugador agarra 1 item
+    mundo.placeItemOnGround(Position{5, 5}, 202, 10);
+    mundo.pickUpItem(1);
+
+    // Ahora llenamos el piso alrededor del jugador (pos 5,5 y los 8 alrededor)
+    mundo.placeItemOnGround(Position{5, 5}, 101, 1);
+    mundo.placeItemOnGround(Position{5, 4}, 101, 1);
+    mundo.placeItemOnGround(Position{5, 6}, 101, 1);
+    mundo.placeItemOnGround(Position{4, 5}, 101, 1);
+    mundo.placeItemOnGround(Position{6, 5}, 101, 1);
+    mundo.placeItemOnGround(Position{4, 4}, 101, 1);
+    mundo.placeItemOnGround(Position{6, 6}, 101, 1);
+    mundo.placeItemOnGround(Position{4, 6}, 101, 1);
+    mundo.placeItemOnGround(Position{6, 4}, 101, 1);
+
+    mundo.pollEvents();  // Limpiar eventos
+
+    // Intenta tirar
+    mundo.dropItem(1, 0, 5);
+
+    auto evs = mundo.pollEvents();
+    bool noSpaceEvent = false;
+    for (const auto& ev: evs) {
+        if (ev.targetDbId == 1 &&
+            ev.message == "Not enough space on the ground to drop the item.") {
+            noSpaceEvent = true;
+        }
+    }
+    EXPECT_TRUE(noSpaceEvent);
+}
+
+TEST(WorldTest, World_PlayerDeathDropsInventoryItems) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    std::string p1 = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, p1, Position{5, 5}));
+
+    // Le damos ítems a Player 1 (3 items distintos en slots diferentes)
+    mundo.placeItemOnGround(Position{5, 5}, 202, 10);  // pocion
+    mundo.pickUpItem(1);
+    mundo.placeItemOnGround(Position{5, 5}, 101, 1);  // espada
+    mundo.pickUpItem(1);
+    mundo.placeItemOnGround(Position{5, 5}, 102, 1);  // escudo
+    mundo.pickUpItem(1);
+
+    // Matamos al Player 1 usando el método directo de la lógica (simulando muerte in-game)
+    mundo.handlePlayerDeath(1);
+
+    // El jugador 1 debería estar muerto. Su inventario se tendría que haber caído al piso.
+    auto snap = mundo.generateSnapshot();
+
+    // Verificamos que hay por lo menos 3 items en el piso (los que agarró)
+    EXPECT_GE(snap.groundItems.size(), 3u);
+}
+
+// ========================================================================
+// 5. TESTS DE LINEA DE VISION EN COMBATE
+// ========================================================================
+
+TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Straight) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    std::string p1 = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, p1, Position{5, 5}));
+
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, "zone"};  // Rango suficiente
+    uint32_t monsterId = mundo.addMonster(NPCType::GOBLIN, Position{9, 5}, mConfig);
+
+    // Obstáculo en medio de la línea recta (7, 5)
+    mundo.setObstacleAt(7, 5);
+
+    // Player1 ataca al monster
+    mundo.playerAttack(1, monsterId);
+
+    auto evs = mundo.pollEvents();
+    bool blockedEvent = false;
+    for (const auto& ev: evs) {
+        if (ev.targetDbId == 1 && ev.message == "There is an obstacle blocking your vision.") {
+            blockedEvent = true;
+        }
+    }
+    EXPECT_TRUE(blockedEvent);
+}
+
+TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Diagonal) {
+    ItemRegistry registry("../config/items.toml");
+    World mundo(1, "Tester", registry);
+
+    std::string p1 = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, p1, Position{5, 5}));
+
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, "zone"};  // Rango suficiente
+    uint32_t monsterId = mundo.addMonster(NPCType::GOBLIN, Position{9, 9}, mConfig);
+
+    // Obstáculo en medio de la línea diagonal (7, 7)
+    mundo.setObstacleAt(7, 7);
+
+    // Player1 ataca al monster
+    mundo.playerAttack(1, monsterId);
+
+    auto evs = mundo.pollEvents();
+    bool blockedEvent = false;
+    for (const auto& ev: evs) {
+        if (ev.targetDbId == 1 && ev.message == "There is an obstacle blocking your vision.") {
+            blockedEvent = true;
+        }
+    }
+    EXPECT_TRUE(blockedEvent);
 }

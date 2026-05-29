@@ -24,7 +24,7 @@ static Player makeBankerTestPlayer(uint32_t id = 1) {
 TEST(BankerTest, Banker_HandlesGoldDepositAndWithdrawCommands) {
     ItemRegistry registry("../config/items.toml");
     GlobalBank bancoInstance;
-    Banker banquero({0, 0}, bancoInstance, registry);
+    Banker banquero(1, {0, 0}, bancoInstance, registry);
     Player player = makeBankerTestPlayer();
 
     player.addGold(1000u);
@@ -52,7 +52,7 @@ TEST(BankerTest, Banker_HandlesGoldDepositAndWithdrawCommands) {
 TEST(BankerTest, Banker_DepositsItemFromInventorySuccessfully) {
     ItemRegistry registry("../config/items.toml");
     GlobalBank bancoInstance;
-    Banker banquero({0, 0}, bancoInstance, registry);
+    Banker banquero(1, {0, 0}, bancoInstance, registry);
     Player player = makeBankerTestPlayer();
 
     // Seteamos la precondición: le damos la Espada (ID: 4001) al jugador
@@ -80,7 +80,7 @@ TEST(BankerTest, Banker_DepositsItemFromInventorySuccessfully) {
 TEST(BankerTest, Banker_WithdrawsItemByIdSuccessfully) {
     ItemRegistry registry("../config/items.toml");
     GlobalBank bancoInstance;
-    Banker banquero({0, 0}, bancoInstance, registry);
+    Banker banquero(1, {0, 0}, bancoInstance, registry);
     Player player = makeBankerTestPlayer();
 
     // Forzamos la precondición directamente en la bóveda del banco usando la API limpia
@@ -104,7 +104,7 @@ TEST(BankerTest, Banker_WithdrawsItemByIdSuccessfully) {
 TEST(BankerTest, Banker_WithdrawWithFullInventoryDoesNotLoseItem) {
     ItemRegistry registry("../config/items.toml");
     GlobalBank bancoInstance;
-    Banker banquero({0, 0}, bancoInstance, registry);
+    Banker banquero(1, {0, 0}, bancoInstance, registry);
     Player player = makeBankerTestPlayer();
 
     // Precondición 1: Guardamos una Espada (4001) en el banco

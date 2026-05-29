@@ -9,7 +9,7 @@
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
 
-Priest::Priest(Position pos, const ItemRegistry& registry): pos(pos), stock() {
+Priest::Priest(uint32_t id, Position pos, const ItemRegistry& registry): id(id), pos(pos), stock() {
     commandHandlers[NpcCommandType::RESPAWN] = std::make_unique<ResurrectHandler>();
     commandHandlers[NpcCommandType::HEAL] = std::make_unique<HealHandler>();
 

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "../../../../common/include/dto/CommandDTO.h"
 #include "../combat/CombatManager.h"
@@ -93,7 +94,9 @@ public:
     bool addGold(uint32_t amount) { return inventory.addGold(amount); }
     bool removeGold(uint32_t amount) { return inventory.removeGold(amount); }
     uint32_t getGold() const { return inventory.getGold(); }
-    bool addItem(uint32_t item_id, uint16_t amount) { return inventory.addItem(item_id, amount); }
+    bool addItem(uint32_t item_id, uint16_t amount) {
+        return inventory.addItem(item_id, amount) == 0;
+    }
     uint16_t removeItem(uint8_t slot_index, uint16_t amount) {
         return inventory.removeItem(slot_index, amount);
     }
@@ -101,6 +104,12 @@ public:
     std::optional<Slot> inspectSlot(uint8_t slot_index) const {
         return inventory.inspectSlot(slot_index);
     }
+
+    uint16_t addInventoryItem(uint32_t item_id, uint16_t amount);
+    uint16_t removeInventoryItem(uint8_t slot_index, uint16_t amount);
+    std::optional<Slot> inspectInventorySlot(uint8_t slot_index) const;
+    std::vector<Slot> dropAllItems();
+    uint32_t dropExcessGold();
 
     // Equipment
     EquipmentComponent& getEquipment() { return this->equipment; }

@@ -15,12 +15,14 @@ class ItemRegistry;
 
 class Banker: public Interactable {
 private:
+    uint32_t id;
     Position pos;
     std::unordered_map<NpcCommandType, std::unique_ptr<NpcCommandHandler>> commandHandlers;
 
 public:
-    Banker(Position pos, GlobalBank& bankInstance, const ItemRegistry& registry);
+    Banker(uint32_t id, Position pos, GlobalBank& bankInstance, const ItemRegistry& registry);
     Position getPosition() const override { return pos; }
+    uint32_t getId() const override { return id; }
     void beInteractedBy(Player& player) override;
     void handleCommand(Player& player, const NpcCommandDTO& dto) override;
 };
