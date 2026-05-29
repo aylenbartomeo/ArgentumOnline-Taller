@@ -29,4 +29,4 @@ public:
     bool hasLineOfSight(const Position& from, const Position& to) const;
 };
 
-#endif // COLLISION_LAYER_H
+#endif  // COLLISION_LAYER_H

@@ -2,9 +2,9 @@
 
 #include <cmath>
 
-CollisionLayer::CollisionLayer() : width(0), height(0) {}
+CollisionLayer::CollisionLayer(): width(0), height(0) {}
 
-CollisionLayer::CollisionLayer(int w, int h) : width(w), height(h) {
+CollisionLayer::CollisionLayer(int w, int h): width(w), height(h) {
     grid.assign(w, std::vector<bool>(h, false));
 }
 
@@ -32,7 +32,7 @@ bool CollisionLayer::isSolid(int x, int y) const {
     if (x >= 0 && x < width && y >= 0 && y < height) {
         return grid[x][y];
     }
-    return true; // Fuera del mapa es considerado sólido
+    return true;  // Fuera del mapa es considerado sólido
 }
 
 bool CollisionLayer::checkPlayerCollision(float pos_x, float pos_y) const {

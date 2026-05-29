@@ -613,7 +613,7 @@ TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Straight) {
     auto evs = mundo.pollEvents();
     bool blockedEvent = false;
     for (const auto& ev: evs) {
-        if (ev.targetDbId == 1 && ev.message == "Hay un obstáculo bloqueando tu visión.") {
+        if (ev.targetDbId == 1 && ev.message == "There is an obstacle blocking your vision.") {
             blockedEvent = true;
         }
     }
@@ -639,7 +639,7 @@ TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Diagonal) {
     auto evs = mundo.pollEvents();
     bool blockedEvent = false;
     for (const auto& ev: evs) {
-        if (ev.targetDbId == 1 && ev.message == "Hay un obstáculo bloqueando tu visión.") {
+        if (ev.targetDbId == 1 && ev.message == "There is an obstacle blocking your vision.") {
             blockedEvent = true;
         }
     }

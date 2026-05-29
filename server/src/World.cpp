@@ -134,27 +134,28 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
     if (!target)
         return;
 
-    // --- NUEVO: Validar zona segura ---
+    // --- Validar zona segura ---
     if (map.isSafeZone(attacker.getPosition().x, attacker.getPosition().y) ||
         map.isSafeZone(target->getPosition().x, target->getPosition().y)) {
-        outgoingEvents.push_back({attackerDbId, "No puedes combatir en una zona segura."});
+        outgoingEvents.push_back({attackerDbId, "You can't fight in a safe zone."});
         return;
     }
-    // ----------------------------------
+
+    // --- Validar que el atacante pueda atacar ---
+    if (!attacker.canAttack()) {
+        outgoingEvents.push_back({attackerDbId, "You can't attack right now."});
+        return;
+    }
 
     // --- Validar linea de vision ---
     if (!map.hasLineOfSight(attacker.getPosition(), target->getPosition())) {
-        outgoingEvents.push_back({attackerDbId, "Hay un obstáculo bloqueando tu visión."});
-        return;
-    }
-
-    if (!attacker.canAttack()) {
-        std::cout << "[WORLD] Attacker state prevents attacking." << std::endl;
+        outgoingEvents.push_back({attackerDbId, "There is an obstacle blocking your vision."});
         return;
     }
 
     if (!attacker.canEngageInCombatWith(*target) || !target->canEngageInCombatWith(attacker)) {
-        std::cout << "[WORLD] Fair play rules prevent this combat." << std::endl;
+        outgoingEvents.push_back(
+                {attackerDbId, "You can't fight this target (fair play violation)."});
         return;
     }
 
@@ -195,11 +196,13 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetId) {
 
 void World::monsterAttack(const Monster& monster, Player& target) {
 
+    // Validar zona segura
     if (map.isSafeZone(monster.getPosition().x, monster.getPosition().y) ||
         map.isSafeZone(target.getPosition().x, target.getPosition().y)) {
         return;
     }
 
+    // Validar linea de visión
     if (!map.hasLineOfSight(monster.getPosition(), target.getPosition())) {
         return;
     }
