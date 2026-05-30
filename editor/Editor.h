@@ -11,6 +11,7 @@
 #include "Camera.h"
 #include "EditorMap.h"
 #include "Palette.h"
+#include "SpawnCatalogs.h"
 #include "TextureManager.h"
 #include "Toolbar.h"
 
@@ -22,7 +23,10 @@ private:
     TextureManager textures;
     EditorMap map;
     Camera camera;
-    Palette palette;
+    Palette overlayPalette;
+    Palette monsterPalette;
+    Palette itemPalette;
+    Palette citizenPalette;
     Toolbar toolbar;
     std::string mapPath;
     bool rightDragging;
@@ -40,6 +44,9 @@ private:
     void render();
     void renderTerrain();
     void renderOverlays();
+    void renderMonsters();
+    void renderCitizens();
+    void renderItems();
     void renderSpawn();
     void renderPanel();
     void renderStatusBar();
@@ -47,9 +54,15 @@ private:
     void drawDarkGrass(int dstX, int dstY, int dstSize);
     bool cellInSafeZone(int col, int row) const;
     void drawOverlay(const OverlayDef& def, int cellX, int cellY, int cellSize);
+    void drawMonsterFromCatalog(const MonsterCatalogEntry& entry, int cellX, int cellY,
+                                int cellSize);
+    void drawItemFromCatalog(const ItemCatalogEntry& entry, int cellX, int cellY, int cellSize);
+    void drawCitizenPlaceholder(char label, int dstX, int dstY, int dstSize);
     void drawCharacter(int dstX, int dstY, int dstW, int dstH);
     void drawSaveIcon(const Toolbar::Button& b);
     void drawEraserIcon(const Toolbar::Button& b);
+    Palette& activePalette();
+    const Palette& activePalette() const;
 
 public:
     Editor(EditorMap initialMap, const std::string& mapPath);
