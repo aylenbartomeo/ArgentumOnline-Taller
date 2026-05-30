@@ -44,6 +44,8 @@ constexpr const char* HEALTHBAR_SHEET = "en_barradevida.bmp";
 constexpr const char* GROUND_SHEET = "5108.png";
 constexpr int GROUND_SRC_X = 416;
 constexpr int GROUND_SRC_Y = 384;
+constexpr int DARK_GROUND_SRC_X = 512;
+constexpr int DARK_GROUND_SRC_Y = 480;
 constexpr int GROUND_TILE = 32;
 
 std::string readWholeFile(const std::string& path) {
@@ -141,14 +143,26 @@ void Game::renderTerrain(const CameraOffset& camera) {
     SDL2pp::Renderer& renderer = window.getRenderer();
     SDL2pp::Texture& ground = textures.get(std::string(RESOURCES_DIR) + GROUND_SHEET);
     const SDL2pp::Rect groundSrc(GROUND_SRC_X, GROUND_SRC_Y, GROUND_TILE, GROUND_TILE);
+    const SDL2pp::Rect darkGroundSrc(DARK_GROUND_SRC_X, DARK_GROUND_SRC_Y, GROUND_TILE,
+                                     GROUND_TILE);
 
     for (int row = 0; row < map.getHeight(); ++row) {
         for (int col = 0; col < map.getWidth(); ++col) {
             const SDL2pp::Rect dstRect(col * TILE_SIZE - camera.x, row * TILE_SIZE - camera.y,
                                        TILE_SIZE, TILE_SIZE);
-            renderer.Copy(ground, groundSrc, dstRect);
+            renderer.Copy(ground, cellInSafeZone(col, row) ? darkGroundSrc : groundSrc, dstRect);
         }
     }
+}
+
+bool Game::cellInSafeZone(int col, int row) const {
+    for (const SafeZoneRect& zone: map.getSafeZones()) {
+        if (col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
+            row < zone.y + zone.height) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void Game::renderOverlays(const CameraOffset& camera) {
@@ -183,7 +197,7 @@ void Game::renderEntities(const CameraOffset& camera) {
     const SDL2pp::Rect headSrc(HEAD_FRAME_X, HEAD_FRAME_Y, HEAD_FRAME_W, HEAD_FRAME_H);
 
     auto drawEntity = [&](const EntityDTO& entity) {
-        const EntitySprite sprite = spriteForEntity(entity.type);
+        const EntitySprite sprite = spriteForEntity(entity.type, entity.sprite_id);
         SDL2pp::Texture& body = textures.get(std::string(RESOURCES_DIR) + sprite.bodySheet);
         const SDL2pp::Rect dstRect(entity.x * TILE_SIZE - camera.x,
                                    entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H - camera.y,
