@@ -6,6 +6,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
+#include "OverlayRegistry.h"
+
 #include "Camera.h"
 #include "EditorMap.h"
 #include "Palette.h"
@@ -29,8 +31,6 @@ private:
     bool dirty;
     Uint32 savedFlashUntil;
 
-    int tileCountFromTexture();
-
     void handleEvent(const SDL_Event& event, bool& running);
     void handleLeftClick(int x, int y);
     void handlePanelClick(int x, int y);
@@ -39,14 +39,17 @@ private:
 
     void render();
     void renderTerrain();
+    void renderOverlays();
     void renderSpawn();
     void renderPanel();
     void renderStatusBar();
-    void drawTile(int tileId, int dstX, int dstY, int dstSize);
+    void drawGrass(int dstX, int dstY, int dstSize);
+    void drawOverlay(const OverlayDef& def, int cellX, int cellY, int cellSize);
     void drawCharacter(int dstX, int dstY, int dstW, int dstH);
     void drawMinus(const Toolbar::Button& b);
     void drawPlus(const Toolbar::Button& b);
     void drawSaveIcon(const Toolbar::Button& b);
+    void drawEraserIcon(const Toolbar::Button& b);
 
 public:
     Editor(EditorMap initialMap, const std::string& mapPath);

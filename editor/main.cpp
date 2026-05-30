@@ -10,11 +10,11 @@
 
 namespace {
 constexpr const char* MAP_PATH = "maps/defaultMap.json";
-constexpr const char* TILESET_NAME = "tilemap_packed.png";
-constexpr int DEFAULT_WIDTH = 20;
-constexpr int DEFAULT_HEIGHT = 15;
-constexpr int DEFAULT_TILE_SIZE = 16;
-constexpr int DEFAULT_TILESET_COLS = 12;
+constexpr const char* TILESET_NAME = "5108.png";
+constexpr int DEFAULT_WIDTH = 60;
+constexpr int DEFAULT_HEIGHT = 60;
+constexpr int DEFAULT_TILE_SIZE = 32;
+constexpr int DEFAULT_TILESET_COLS = 32;
 
 std::string readWholeFile(const std::string& path) {
     std::ifstream file(path);

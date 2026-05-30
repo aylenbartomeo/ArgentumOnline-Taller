@@ -21,24 +21,29 @@ constexpr int BTN_W = PANEL_WIDTH - 20;
 constexpr int BTN_H = 34;
 constexpr int PINCEL_X = PANEL_X + 10;
 constexpr int PINCEL_Y = 10;
-constexpr int SPAWN_BTN_Y = 50;
+constexpr int ERASER_BTN_Y = 50;
+constexpr int SPAWN_BTN_Y = 90;
 
 constexpr int SIZE_HINT_X = PANEL_X + 12;
 constexpr int SIZE_BTN_W = 32;
 constexpr int SIZE_BTN_H = 28;
-constexpr int WIDTH_ROW_Y = 96;
-constexpr int HEIGHT_ROW_Y = 130;
+constexpr int WIDTH_ROW_Y = 136;
+constexpr int HEIGHT_ROW_Y = 170;
 constexpr int SIZE_MINUS_X = PANEL_X + 66;
 constexpr int SIZE_PLUS_X = PANEL_X + 104;
 
-constexpr int SAVE_Y = 166;
+constexpr int SAVE_Y = 206;
 
 constexpr int PALETTE_X = PANEL_X + 10;
-constexpr int PALETTE_Y = 210;
-constexpr int PALETTE_TILE = 20;
-constexpr int PALETTE_COLS = 9;
+constexpr int PALETTE_Y = 250;
+constexpr int PALETTE_TILE = 32;
+constexpr int PALETTE_COLS = 5;
 
-constexpr const char* TILESET_PATH = "resources/tilemap_packed.png";
+constexpr const char* RESOURCES_DIR = "resources/";
+constexpr const char* GRASS_SHEET_PATH = "resources/5108.png";
+constexpr int GRASS_SRC_X = 416;
+constexpr int GRASS_SRC_Y = 384;
+constexpr int GRASS_SRC_SIZE = 32;
 constexpr const char* CHARACTER_SHEET_PATH = "resources/1500.png";
 constexpr int CHARACTER_FRAME_X = 2;
 constexpr int CHARACTER_FRAME_Y = 4;
@@ -58,12 +63,6 @@ constexpr int HEAD_DRAW_H = 20;
 constexpr int HEAD_OVERLAP = 6;
 }  // namespace
 
-int Editor::tileCountFromTexture() {
-    SDL2pp::Texture& tex = textures.get(TILESET_PATH);
-    int srcTile = map.getTileSize();
-    return (tex.GetWidth() / srcTile) * (tex.GetHeight() / srcTile);
-}
-
 Editor::Editor(EditorMap initialMap, const std::string& mapPath):
         sdl(SDL_INIT_VIDEO),
         window("Editor de mapas - Argentum Online", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -72,7 +71,8 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
         textures(renderer),
         map(std::move(initialMap)),
         camera(CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SCREEN, map.getWidth(), map.getHeight()),
-        palette(PALETTE_X, PALETTE_Y, PALETTE_TILE, PALETTE_COLS, tileCountFromTexture()),
+        palette(PALETTE_X, PALETTE_Y, PALETTE_TILE, PALETTE_COLS,
+                static_cast<int>(getOverlayRegistry().size())),
         toolbar(),
         mapPath(mapPath),
         rightDragging(false),
@@ -83,6 +83,7 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
     toolbar.addToolButton(PINCEL_X, PINCEL_Y, BTN_W, BTN_H, Tool::PINCEL);
+    toolbar.addToolButton(PINCEL_X, ERASER_BTN_Y, BTN_W, BTN_H, Tool::ERASER);
     toolbar.addToolButton(PINCEL_X, SPAWN_BTN_Y, BTN_W, BTN_H, Tool::SPAWN);
     toolbar.addActionButton(SIZE_MINUS_X, WIDTH_ROW_Y, SIZE_BTN_W, SIZE_BTN_H,
                             ToolbarAction::WIDTH_MINUS);
@@ -157,10 +158,16 @@ void Editor::handleLeftClick(int x, int y) {
     if (x < CANVAS_WIDTH && y < CANVAS_HEIGHT) {
         Position cell = camera.screenToCell(x, y);
         if (cell.x >= 0 && cell.x < map.getWidth() && cell.y >= 0 && cell.y < map.getHeight()) {
-            if (toolbar.getActiveTool() == Tool::PINCEL) {
-                map.setTile(cell.x, cell.y, palette.getSelectedTile());
-            } else {
-                map.setSpawn(cell.x, cell.y);
+            switch (toolbar.getActiveTool()) {
+                case Tool::PINCEL:
+                    map.setTile(cell.x, cell.y, palette.getSelectedTile() + 1);
+                    break;
+                case Tool::ERASER:
+                    map.setTile(cell.x, cell.y, 0);
+                    break;
+                case Tool::SPAWN:
+                    map.setSpawn(cell.x, cell.y);
+                    break;
             }
             dirty = true;
             updateTitle();
@@ -235,13 +242,21 @@ void Editor::updateTitle() {
     window.SetTitle(title);
 }
 
-void Editor::drawTile(int tileId, int dstX, int dstY, int dstSize) {
-    SDL2pp::Texture& tex = textures.get(TILESET_PATH);
-    int srcTile = map.getTileSize();
-    int cols = map.getTilesetCols();
-    SDL2pp::Rect srcRect((tileId % cols) * srcTile, (tileId / cols) * srcTile, srcTile, srcTile);
-    SDL2pp::Rect dstRect(dstX, dstY, dstSize, dstSize);
+void Editor::drawGrass(int dstX, int dstY, int dstSize) {
+    SDL2pp::Texture& tex = textures.get(GRASS_SHEET_PATH);
+    const SDL2pp::Rect srcRect(GRASS_SRC_X, GRASS_SRC_Y, GRASS_SRC_SIZE, GRASS_SRC_SIZE);
+    const SDL2pp::Rect dstRect(dstX, dstY, dstSize, dstSize);
     renderer.Copy(tex, srcRect, dstRect);
+}
+
+void Editor::drawOverlay(const OverlayDef& def, int cellX, int cellY, int cellSize) {
+    SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + def.tilesheet);
+    const SDL2pp::Rect srcRect(def.srcX, def.srcY, def.srcW, def.srcH);
+    const int dstW = cellSize;
+    const int dstH = (def.srcH * cellSize) / def.srcW;
+    const int dstX = cellX;
+    const int dstY = cellY + cellSize - dstH;
+    renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
 }
 
 void Editor::drawCharacter(int dstX, int dstY, int dstW, int dstH) {
@@ -256,6 +271,7 @@ void Editor::render() {
     renderer.SetDrawColor(30, 30, 30, 255);
     renderer.Clear();
     renderTerrain();
+    renderOverlays();
     renderSpawn();
     renderPanel();
     renderStatusBar();
@@ -271,7 +287,27 @@ void Editor::renderTerrain() {
                 screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
                 continue;
             }
-            drawTile(map.tileAt(col, row), screen.x, screen.y, TILE_SCREEN);
+            drawGrass(screen.x, screen.y, TILE_SCREEN);
+        }
+    }
+    renderer.SetClipRect();
+}
+
+void Editor::renderOverlays() {
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+    renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
+    for (int row = 0; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int tileId = map.tileAt(col, row);
+            if (tileId <= 0 || tileId > static_cast<int>(registry.size())) {
+                continue;
+            }
+            Position screen = camera.cellToScreen(col, row);
+            if (screen.x + TILE_SCREEN <= 0 || screen.x >= CANVAS_WIDTH ||
+                screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
+                continue;
+            }
+            drawOverlay(registry[tileId - 1], screen.x, screen.y, TILE_SCREEN);
         }
     }
     renderer.SetClipRect();
@@ -336,7 +372,21 @@ void Editor::drawSaveIcon(const Toolbar::Button& b) {
     renderer.FillRect(SDL2pp::Rect(ix + 5, iy + s / 2, s - 10, s / 3 + 1));
 }
 
+void Editor::drawEraserIcon(const Toolbar::Button& b) {
+    int s = b.h - 12;
+    int ix = b.x + 10;
+    int iy = b.y + 6;
+    renderer.SetDrawColor(240, 200, 200, 255);
+    renderer.FillRect(SDL2pp::Rect(ix, iy, s, s));
+    renderer.SetDrawColor(200, 100, 100, 255);
+    renderer.FillRect(SDL2pp::Rect(ix, iy, s, s / 3));
+    renderer.SetDrawColor(120, 60, 60, 255);
+    renderer.DrawRect(SDL2pp::Rect(ix, iy, s, s));
+}
+
 void Editor::renderPanel() {
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+
     renderer.SetDrawColor(50, 50, 60, 255);
     renderer.FillRect(SDL2pp::Rect(PANEL_X, 0, PANEL_WIDTH, WINDOW_HEIGHT));
 
@@ -371,8 +421,11 @@ void Editor::renderPanel() {
             case ToolbarAction::TOOL_CHANGED:
                 if (b.tool == Tool::SPAWN) {
                     drawCharacter(b.x + 4, b.y + 2, b.h - 4, b.h - 4);
+                } else if (b.tool == Tool::ERASER) {
+                    drawEraserIcon(b);
                 } else {
-                    drawTile(palette.getSelectedTile(), b.x + 4, b.y + 2, b.h - 4);
+                    drawGrass(b.x + 4, b.y + 2, b.h - 4);
+                    drawOverlay(registry[palette.getSelectedTile()], b.x + 4, b.y + 2, b.h - 4);
                 }
                 break;
             case ToolbarAction::NONE:
@@ -394,7 +447,8 @@ void Editor::renderPanel() {
         if (dy + palette.getTileDrawSize() > CANVAS_HEIGHT) {
             break;
         }
-        drawTile(i, dx, dy, palette.getTileDrawSize());
+        drawGrass(dx, dy, palette.getTileDrawSize());
+        drawOverlay(registry[i], dx, dy, palette.getTileDrawSize());
         if (i == palette.getSelectedTile()) {
             renderer.SetDrawColor(255, 235, 0, 255);
             renderer.DrawRect(
@@ -404,14 +458,25 @@ void Editor::renderPanel() {
 }
 
 void Editor::renderStatusBar() {
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+
     renderer.SetDrawColor(20, 20, 25, 255);
     renderer.FillRect(SDL2pp::Rect(0, CANVAS_HEIGHT, WINDOW_WIDTH, STATUS_HEIGHT));
 
     int iconSize = STATUS_HEIGHT - 8;
-    if (toolbar.getActiveTool() == Tool::SPAWN) {
+    Tool active = toolbar.getActiveTool();
+    if (active == Tool::SPAWN) {
         drawCharacter(6, CANVAS_HEIGHT + 4, iconSize, iconSize);
+    } else if (active == Tool::ERASER) {
+        SDL2pp::Rect r(6, CANVAS_HEIGHT + 4, iconSize, iconSize);
+        renderer.SetDrawColor(240, 200, 200, 255);
+        renderer.FillRect(r);
+        renderer.SetDrawColor(200, 100, 100, 255);
+        renderer.DrawRect(r);
     } else {
-        drawTile(palette.getSelectedTile(), 6, CANVAS_HEIGHT + 4, iconSize);
+        drawGrass(6, CANVAS_HEIGHT + 4, iconSize);
+        drawOverlay(registry[palette.getSelectedTile()], 6, CANVAS_HEIGHT + 4, iconSize);
     }
-    drawTile(palette.getSelectedTile(), 6 + iconSize + 8, CANVAS_HEIGHT + 4, iconSize);
+    drawGrass(6 + iconSize + 8, CANVAS_HEIGHT + 4, iconSize);
+    drawOverlay(registry[palette.getSelectedTile()], 6 + iconSize + 8, CANVAS_HEIGHT + 4, iconSize);
 }
