@@ -15,6 +15,14 @@ TEST(ToolbarTest, ClickToolButtonChangesActiveTool) {
     EXPECT_EQ(toolbar.getActiveTool(), Tool::SPAWN);
 }
 
+TEST(ToolbarTest, ClickEraserButtonActivatesEraser) {
+    Toolbar toolbar;
+    toolbar.addToolButton(0, 0, 100, 30, Tool::ERASER);
+    ToolbarAction action = toolbar.handleClick(10, 10);
+    EXPECT_EQ(action, ToolbarAction::TOOL_CHANGED);
+    EXPECT_EQ(toolbar.getActiveTool(), Tool::ERASER);
+}
+
 TEST(ToolbarTest, ClickSaveButtonReturnsSave) {
     Toolbar toolbar;
     toolbar.addActionButton(0, 40, 100, 30, ToolbarAction::SAVE);

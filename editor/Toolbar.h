@@ -3,7 +3,7 @@
 
 #include <vector>
 
-enum class Tool { PINCEL, SPAWN };
+enum class Tool { PINCEL, ERASER, SPAWN };
 
 enum class ToolbarAction {
     NONE,
