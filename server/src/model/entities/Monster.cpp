@@ -65,6 +65,25 @@ std::string Monster::getName() const {
     }
 }
 
+uint16_t Monster::getSpriteId() const {
+    switch (this->type) {
+        case NPCType::GOBLIN:
+            return 1800;
+        case NPCType::ORC:
+            return 1875;
+        case NPCType::ZOMBIE:
+            return 1892;
+        case NPCType::SPIDER:
+            return 1052;
+        case NPCType::GOLEM:
+            return 1140;
+        case NPCType::SKELETON:
+            return 1238;
+        default:
+            return 25;
+    }
+}
+
 int Monster::getAttackMin() const { return this->attack_min; }
 int Monster::getAttackMax() const { return this->attack_max; }
 

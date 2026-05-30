@@ -51,7 +51,7 @@ public:
     uint16_t getLevel() const override;
     uint16_t getHp() const { return health; }
     uint16_t getMaxHp() const override;
-    uint16_t getSpriteId() const { return 25; }  // TODO: read from config
+    uint16_t getSpriteId() const;
     int getDefense() const override;
 
     void handleDeath() override;
