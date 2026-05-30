@@ -6,6 +6,7 @@ target_sources(argentum_online_editor
     Camera.cpp
     Palette.cpp
     Toolbar.cpp
+    SpawnCatalogs.cpp
     Editor.cpp
     ../client/src/TextureManager.cpp
     PUBLIC
@@ -14,5 +15,6 @@ target_sources(argentum_online_editor
     Camera.h
     Palette.h
     Toolbar.h
+    SpawnCatalogs.h
     Editor.h
     )
