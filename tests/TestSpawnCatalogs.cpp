@@ -30,11 +30,16 @@ TEST(SpawnCatalogsTest, MonsterCatalogReferencesExpectedSheets) {
 TEST(SpawnCatalogsTest, CitizenCatalogHasMerchantBankerPriest) {
     const auto& catalog = getCitizenCatalog();
     ASSERT_EQ(catalog.size(), 3u);
-    std::vector<std::string> types;
-    for (const auto& entry: catalog) types.push_back(entry.type);
-    EXPECT_NE(std::find(types.begin(), types.end(), "merchant"), types.end());
-    EXPECT_NE(std::find(types.begin(), types.end(), "banker"), types.end());
-    EXPECT_NE(std::find(types.begin(), types.end(), "priest"), types.end());
+    auto find = [&](const std::string& type) {
+        for (const auto& entry: catalog) {
+            if (entry.type == type)
+                return entry.sheet;
+        }
+        return std::string("");
+    };
+    EXPECT_EQ(find("merchant"), "1077.png");
+    EXPECT_EQ(find("banker"), "1071.png");
+    EXPECT_EQ(find("priest"), "1910.png");
 }
 
 TEST(SpawnCatalogsTest, ItemCatalogHasAtLeastOneEntry) {

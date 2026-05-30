@@ -58,18 +58,6 @@ constexpr int HEAD_DRAW_W = 18;
 constexpr int HEAD_DRAW_H = 20;
 constexpr int HEAD_OVERLAP = 6;
 
-SDL_Color colorForCitizenLabel(char label) {
-    switch (label) {
-        case 'M':
-            return {0, 200, 100, 255};
-        case 'B':
-            return {220, 200, 60, 255};
-        case 'P':
-            return {220, 220, 240, 255};
-        default:
-            return {180, 180, 180, 255};
-    }
-}
 }  // namespace
 
 Editor::Editor(EditorMap initialMap, const std::string& mapPath):
@@ -313,14 +301,15 @@ void Editor::drawItemFromCatalog(const ItemCatalogEntry& entry, int cellX, int c
     renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
 }
 
-void Editor::drawCitizenPlaceholder(char label, int dstX, int dstY, int dstSize) {
-    SDL_Color color = colorForCitizenLabel(label);
-    renderer.SetDrawColor(color.r, color.g, color.b, color.a);
-    renderer.FillRect(SDL2pp::Rect(dstX + 4, dstY + 4, dstSize - 8, dstSize - 8));
-    renderer.SetDrawColor(30, 30, 30, 255);
-    renderer.DrawRect(SDL2pp::Rect(dstX + 4, dstY + 4, dstSize - 8, dstSize - 8));
-    int markY = dstY + dstSize / 2 - 2;
-    renderer.FillRect(SDL2pp::Rect(dstX + dstSize / 2 - 2, markY, 4, 4));
+void Editor::drawCitizenFromCatalog(const CitizenCatalogEntry& entry, int cellX, int cellY,
+                                    int cellSize) {
+    SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + entry.sheet);
+    const SDL2pp::Rect srcRect(entry.srcX, entry.srcY, entry.srcW, entry.srcH);
+    const int dstW = cellSize;
+    const int dstH = (entry.srcH * cellSize) / entry.srcW;
+    const int dstX = cellX;
+    const int dstY = cellY + cellSize - dstH;
+    renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
 }
 
 void Editor::drawCharacter(int dstX, int dstY, int dstW, int dstH) {
@@ -411,19 +400,21 @@ void Editor::renderCitizens() {
     const auto& catalog = getCitizenCatalog();
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
     for (const CitizenSpawn& spawn: map.getCitizens()) {
-        char label = '?';
+        const CitizenCatalogEntry* entry = nullptr;
         for (const auto& candidate: catalog) {
             if (candidate.type == spawn.type) {
-                label = candidate.label;
+                entry = &candidate;
                 break;
             }
         }
+        if (!entry)
+            continue;
         Position screen = camera.cellToScreen(spawn.x, spawn.y);
         if (screen.x + TILE_SCREEN <= 0 || screen.x >= CANVAS_WIDTH ||
             screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
             continue;
         }
-        drawCitizenPlaceholder(label, screen.x, screen.y, TILE_SCREEN);
+        drawCitizenFromCatalog(*entry, screen.x, screen.y, TILE_SCREEN);
     }
     renderer.SetClipRect();
 }
@@ -550,7 +541,7 @@ void Editor::renderPanel() {
                         break;
                     case Tool::CITIZEN:
                         drawGrass(b.x + 4, b.y + 2, b.h - 4);
-                        drawCitizenPlaceholder(citizenCat[citizenPalette.getSelectedTile()].label,
+                        drawCitizenFromCatalog(citizenCat[citizenPalette.getSelectedTile()],
                                                b.x + 4, b.y + 2, b.h - 4);
                         break;
                     case Tool::ERASER:
@@ -591,7 +582,7 @@ void Editor::renderPanel() {
                 drawItemFromCatalog(itemCat[i], dx, dy, pal.getTileDrawSize());
                 break;
             case Tool::CITIZEN:
-                drawCitizenPlaceholder(citizenCat[i].label, dx, dy, pal.getTileDrawSize());
+                drawCitizenFromCatalog(citizenCat[i], dx, dy, pal.getTileDrawSize());
                 break;
             case Tool::OVERLAY:
             case Tool::ERASER:
@@ -643,7 +634,7 @@ void Editor::renderStatusBar() {
             break;
         case Tool::CITIZEN:
             drawGrass(x0, y0, iconSize);
-            drawCitizenPlaceholder(citizenCat[citizenPalette.getSelectedTile()].label, x0, y0,
+            drawCitizenFromCatalog(citizenCat[citizenPalette.getSelectedTile()], x0, y0,
                                    iconSize);
             break;
         case Tool::OVERLAY:

@@ -16,7 +16,11 @@ struct MonsterCatalogEntry {
 
 struct CitizenCatalogEntry {
     std::string type;
-    char label;
+    std::string sheet;
+    int srcX;
+    int srcY;
+    int srcW;
+    int srcH;
 };
 
 struct ItemCatalogEntry {

@@ -57,7 +57,8 @@ private:
     void drawMonsterFromCatalog(const MonsterCatalogEntry& entry, int cellX, int cellY,
                                 int cellSize);
     void drawItemFromCatalog(const ItemCatalogEntry& entry, int cellX, int cellY, int cellSize);
-    void drawCitizenPlaceholder(char label, int dstX, int dstY, int dstSize);
+    void drawCitizenFromCatalog(const CitizenCatalogEntry& entry, int cellX, int cellY,
+                                int cellSize);
     void drawCharacter(int dstX, int dstY, int dstW, int dstH);
     void drawSaveIcon(const Toolbar::Button& b);
     void drawEraserIcon(const Toolbar::Button& b);
