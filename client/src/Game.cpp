@@ -10,6 +10,7 @@
 #include <SDL2/SDL.h>
 
 #include "common/include/dto/StartMoveDTO.h"
+#include "OverlayRegistry.h"
 
 #include "CharacterSprites.h"
 #include "HealthBar.h"
@@ -115,6 +116,7 @@ void Game::render() {
 
     const CameraOffset camera = computeCamera();
     renderTerrain(camera);
+    renderOverlays(camera);
     renderEntities(camera);
 
     renderer.Present();
@@ -145,6 +147,27 @@ void Game::renderTerrain(const CameraOffset& camera) {
             const SDL2pp::Rect dstRect(col * TILE_SIZE - camera.x, row * TILE_SIZE - camera.y,
                                        TILE_SIZE, TILE_SIZE);
             renderer.Copy(ground, groundSrc, dstRect);
+        }
+    }
+}
+
+void Game::renderOverlays(const CameraOffset& camera) {
+    SDL2pp::Renderer& renderer = window.getRenderer();
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+    for (int row = 0; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int tileId = map.tileAt(col, row);
+            if (tileId <= 0 || tileId > static_cast<int>(registry.size())) {
+                continue;
+            }
+            const OverlayDef& def = registry[tileId - 1];
+            SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + def.tilesheet);
+            const SDL2pp::Rect srcRect(def.srcX, def.srcY, def.srcW, def.srcH);
+            const int dstW = TILE_SIZE;
+            const int dstH = (def.srcH * TILE_SIZE) / def.srcW;
+            const int dstX = col * TILE_SIZE - camera.x;
+            const int dstY = row * TILE_SIZE + TILE_SIZE - dstH - camera.y;
+            renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
         }
     }
 }

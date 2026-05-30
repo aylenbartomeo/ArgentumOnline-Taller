@@ -38,6 +38,7 @@ public:
 private:
     void render();
     void renderTerrain(const CameraOffset& camera);
+    void renderOverlays(const CameraOffset& camera);
     void renderEntities(const CameraOffset& camera);
     CameraOffset computeCamera();
     void sendMoveIfDue(const FrameInput& input);
