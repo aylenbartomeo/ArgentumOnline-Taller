@@ -19,6 +19,7 @@ target_sources(lib_common
     include/queue.h
     include/thread.h
     include/OverlayRegistry.h
+    include/SafeZoneRect.h
     src/protocol/Protocol.h
     utils/position.h
     utils/types.h

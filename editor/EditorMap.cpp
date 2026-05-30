@@ -42,6 +42,10 @@ EditorMap::EditorMap(const std::string& jsonText) {
 
     if (data.contains("safeZones")) {
         safeZonesData = data.at("safeZones");
+        for (const auto& zone: data.at("safeZones")) {
+            safeZones.push_back({zone.at("x").get<int>(), zone.at("y").get<int>(),
+                                 zone.at("width").get<int>(), zone.at("height").get<int>()});
+        }
     } else {
         safeZonesData = nlohmann::json::array();
     }
@@ -107,3 +111,4 @@ int EditorMap::getHeight() const { return height; }
 int EditorMap::getTileSize() const { return tileSize; }
 int EditorMap::getTilesetCols() const { return tilesetCols; }
 const std::string& EditorMap::getTileset() const { return tileset; }
+const std::vector<SafeZoneRect>& EditorMap::getSafeZones() const { return safeZones; }

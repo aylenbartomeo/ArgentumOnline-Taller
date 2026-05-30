@@ -80,6 +80,26 @@ TEST(EditorMapTest, LoadJsonWithWrongRowCountThrows) {
     EXPECT_THROW(EditorMap map(json), std::runtime_error);
 }
 
+TEST(EditorMapTest, ExposesSafeZonesParsedFromJson) {
+    std::string json = R"({
+        "tileSize": 32,
+        "tileset": "5108.png",
+        "tilesetCols": 32,
+        "width": 2,
+        "height": 2,
+        "tiles": [[0, 0], [0, 0]],
+        "safeZones": [
+            { "name": "Ullathorpe", "x": 4, "y": 5, "width": 6, "height": 3 }
+        ]
+    })";
+    EditorMap map(json);
+    ASSERT_EQ(map.getSafeZones().size(), 1u);
+    EXPECT_EQ(map.getSafeZones()[0].x, 4);
+    EXPECT_EQ(map.getSafeZones()[0].y, 5);
+    EXPECT_EQ(map.getSafeZones()[0].width, 6);
+    EXPECT_EQ(map.getSafeZones()[0].height, 3);
+}
+
 TEST(EditorMapTest, RetainsSafeZonesAndNPCsOnLoadAndSave) {
     std::string json = R"({
         "tileSize": 16,

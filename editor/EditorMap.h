@@ -6,6 +6,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "SafeZoneRect.h"
 #include "common/utils/position.h"
 
 class EditorMap {
@@ -17,6 +18,7 @@ private:
     std::string tileset;
     std::vector<std::vector<int>> tiles;
     Position spawnPos;
+    std::vector<SafeZoneRect> safeZones;
 
     // Metadata retention
     nlohmann::json safeZonesData;
@@ -41,6 +43,7 @@ public:
     int getTileSize() const;
     int getTilesetCols() const;
     const std::string& getTileset() const;
+    const std::vector<SafeZoneRect>& getSafeZones() const;
 };
 
 #endif

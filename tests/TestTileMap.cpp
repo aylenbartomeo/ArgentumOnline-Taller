@@ -44,3 +44,40 @@ TEST(TileMapTest, ThrowsWhenTilesDoNotMatchDimensions) {
             },
             std::runtime_error);
 }
+
+TEST(TileMapTest, ParsesSafeZones) {
+    std::string json = R"({
+        "tileSize": 32,
+        "tileset": "5108.png",
+        "tilesetCols": 32,
+        "width": 2,
+        "height": 2,
+        "tiles": [[0, 0], [0, 0]],
+        "safeZones": [
+            { "name": "Ullathorpe", "x": 5, "y": 6, "width": 8, "height": 4 },
+            { "name": "Nix", "x": 20, "y": 21, "width": 3, "height": 2 }
+        ]
+    })";
+
+    TileMap map(json);
+
+    ASSERT_EQ(map.getSafeZones().size(), 2u);
+    EXPECT_EQ(map.getSafeZones()[0].x, 5);
+    EXPECT_EQ(map.getSafeZones()[0].y, 6);
+    EXPECT_EQ(map.getSafeZones()[0].width, 8);
+    EXPECT_EQ(map.getSafeZones()[0].height, 4);
+    EXPECT_EQ(map.getSafeZones()[1].x, 20);
+}
+
+TEST(TileMapTest, NoSafeZonesWhenAbsent) {
+    std::string json = R"({
+        "tileSize": 32,
+        "tileset": "5108.png",
+        "tilesetCols": 32,
+        "width": 1,
+        "height": 1,
+        "tiles": [[0]]
+    })";
+    TileMap map(json);
+    EXPECT_TRUE(map.getSafeZones().empty());
+}

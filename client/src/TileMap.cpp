@@ -23,6 +23,13 @@ TileMap::TileMap(const std::string& jsonText) {
         })) {
         throw std::runtime_error("TileMap: una fila no coincide con width");
     }
+
+    if (data.contains("safeZones")) {
+        for (const auto& zone: data.at("safeZones")) {
+            safeZones.push_back({zone.at("x").get<int>(), zone.at("y").get<int>(),
+                                 zone.at("width").get<int>(), zone.at("height").get<int>()});
+        }
+    }
 }
 
 int TileMap::getWidth() const { return width; }
@@ -30,5 +37,6 @@ int TileMap::getHeight() const { return height; }
 int TileMap::getTileSize() const { return tileSize; }
 int TileMap::getTilesetCols() const { return tilesetCols; }
 const std::string& TileMap::getTileset() const { return tileset; }
+const std::vector<SafeZoneRect>& TileMap::getSafeZones() const { return safeZones; }
 
 int TileMap::tileAt(int col, int row) const { return tiles.at(row).at(col); }

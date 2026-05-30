@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "SafeZoneRect.h"
+
 class TileMap {
 private:
     int width;
@@ -12,6 +14,7 @@ private:
     int tilesetCols;
     std::string tileset;
     std::vector<std::vector<int>> tiles;
+    std::vector<SafeZoneRect> safeZones;
 
 public:
     explicit TileMap(const std::string& jsonText);
@@ -21,6 +24,7 @@ public:
     int getTileSize() const;
     int getTilesetCols() const;
     const std::string& getTileset() const;
+    const std::vector<SafeZoneRect>& getSafeZones() const;
 
     int tileAt(int col, int row) const;
 };
