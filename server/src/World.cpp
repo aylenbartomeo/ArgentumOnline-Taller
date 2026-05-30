@@ -6,6 +6,7 @@
 #include <memory>
 #include <utility>
 
+#include "config/MonsterConfigLoader.h"
 #include "model/combat/CombatManager.h"
 #include "model/entities/NPCFactory.h"
 #include "model/entities/Player.h"
@@ -84,6 +85,7 @@ bool World::removePlayer(uint32_t dbId) {
 bool World::loadMap(const std::string& path) {
     if (map.loadSpawnFromJson(path)) {
         spawnNPCs();
+        spawnMonsters();
         return true;
     }
     return false;
@@ -96,6 +98,23 @@ void World::spawnNPCs() {
         if (auto npc = factory.create(entityId, spawn.type, spawn.position)) {
             cityNPCs[entityId] = std::move(npc);
         }
+    }
+}
+
+void World::spawnMonsters() {
+    MonsterConfigs configs;
+    try {
+        configs = MonsterConfigLoader::loadMonsterConfigs("config/monsters.toml");
+    } catch (const std::exception& e) {
+        std::cerr << "No pude cargar configs de monstruos: " << e.what() << std::endl;
+        return;
+    }
+    for (const auto& spawn: map.getMonsterSpawns()) {
+        auto it = configs.find(spawn.type);
+        if (it == configs.end()) {
+            continue;
+        }
+        addMonster(spawn.type, spawn.pos, it->second);
     }
 }
 

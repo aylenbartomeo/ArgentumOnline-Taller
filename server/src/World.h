@@ -78,6 +78,7 @@ public:
     // Gestión de monstruos y NPCs
     uint32_t addMonster(NPCType type, Position pos, const MonsterConfig& config);
     void spawnNPCs();
+    void spawnMonsters();
 
     /* Metodos de acciones de los personajes en el mundo */
     void moveEntity(uint32_t playerId, Movement movement);
