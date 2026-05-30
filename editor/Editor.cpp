@@ -214,7 +214,7 @@ void Editor::drawDarkGrass(int dstX, int dstY, int dstSize) {
 }
 
 bool Editor::cellInSafeZone(int col, int row) const {
-    for (const SafeZoneRect& zone: map.getSafeZones()) {
+    for (const EditorSafeZone& zone: map.getSafeZones()) {
         if (col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
             row < zone.y + zone.height) {
             return true;

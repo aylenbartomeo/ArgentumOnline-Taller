@@ -1,13 +1,39 @@
 #ifndef EDITOR_MAP_H
 #define EDITOR_MAP_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
 #include <nlohmann/json.hpp>
 
-#include "SafeZoneRect.h"
 #include "common/utils/position.h"
+
+struct EditorSafeZone {
+    std::string name;
+    int x;
+    int y;
+    int width;
+    int height;
+};
+
+struct CitizenSpawn {
+    std::string type;
+    int x;
+    int y;
+};
+
+struct MonsterSpawn {
+    std::string type;
+    int x;
+    int y;
+};
+
+struct ItemSpawn {
+    uint32_t itemId;
+    int x;
+    int y;
+};
 
 class EditorMap {
 private:
@@ -18,11 +44,10 @@ private:
     std::string tileset;
     std::vector<std::vector<int>> tiles;
     Position spawnPos;
-    std::vector<SafeZoneRect> safeZones;
-
-    // Metadata retention
-    nlohmann::json safeZonesData;
-    nlohmann::json npcsData;
+    std::vector<EditorSafeZone> safeZones;
+    std::vector<CitizenSpawn> citizens;
+    std::vector<MonsterSpawn> monsters;
+    std::vector<ItemSpawn> items;
 
 public:
     EditorMap(int width, int height, int tileSize, const std::string& tileset, int tilesetCols);
@@ -43,7 +68,18 @@ public:
     int getTileSize() const;
     int getTilesetCols() const;
     const std::string& getTileset() const;
-    const std::vector<SafeZoneRect>& getSafeZones() const;
+
+    const std::vector<EditorSafeZone>& getSafeZones() const;
+
+    const std::vector<CitizenSpawn>& getCitizens() const;
+    void addCitizen(const std::string& type, int x, int y);
+    void removeEntitiesAt(int x, int y);
+
+    const std::vector<MonsterSpawn>& getMonsters() const;
+    void addMonster(const std::string& type, int x, int y);
+
+    const std::vector<ItemSpawn>& getItems() const;
+    void addItem(uint32_t itemId, int x, int y);
 };
 
 #endif
