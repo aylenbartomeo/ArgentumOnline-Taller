@@ -1,7 +1,7 @@
 {
-    "tileSize": 16,
-    "tileset": "tilemap_packed.png",
-    "tilesetCols": 12,
+    "tileSize": 32,
+    "tileset": "5108.png",
+    "tilesetCols": 32,
     "width": 60,
     "height": 60,
     "spawn": {
