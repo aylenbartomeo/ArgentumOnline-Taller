@@ -39,6 +39,7 @@ private:
     void render();
     void renderTerrain(const CameraOffset& camera);
     void renderOverlays(const CameraOffset& camera);
+    bool cellInSafeZone(int col, int row) const;
     void renderEntities(const CameraOffset& camera);
     CameraOffset computeCamera();
     void sendMoveIfDue(const FrameInput& input);
