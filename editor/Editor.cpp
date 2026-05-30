@@ -23,19 +23,10 @@ constexpr int PINCEL_X = PANEL_X + 10;
 constexpr int PINCEL_Y = 10;
 constexpr int ERASER_BTN_Y = 50;
 constexpr int SPAWN_BTN_Y = 90;
-
-constexpr int SIZE_HINT_X = PANEL_X + 12;
-constexpr int SIZE_BTN_W = 32;
-constexpr int SIZE_BTN_H = 28;
-constexpr int WIDTH_ROW_Y = 136;
-constexpr int HEIGHT_ROW_Y = 170;
-constexpr int SIZE_MINUS_X = PANEL_X + 66;
-constexpr int SIZE_PLUS_X = PANEL_X + 104;
-
-constexpr int SAVE_Y = 206;
+constexpr int SAVE_Y = 134;
 
 constexpr int PALETTE_X = PANEL_X + 10;
-constexpr int PALETTE_Y = 250;
+constexpr int PALETTE_Y = 184;
 constexpr int PALETTE_TILE = 32;
 constexpr int PALETTE_COLS = 5;
 
@@ -43,6 +34,8 @@ constexpr const char* RESOURCES_DIR = "resources/";
 constexpr const char* GRASS_SHEET_PATH = "resources/5108.png";
 constexpr int GRASS_SRC_X = 416;
 constexpr int GRASS_SRC_Y = 384;
+constexpr int DARK_GRASS_SRC_X = 512;
+constexpr int DARK_GRASS_SRC_Y = 480;
 constexpr int GRASS_SRC_SIZE = 32;
 constexpr const char* CHARACTER_SHEET_PATH = "resources/1500.png";
 constexpr int CHARACTER_FRAME_X = 2;
@@ -85,14 +78,6 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
     toolbar.addToolButton(PINCEL_X, PINCEL_Y, BTN_W, BTN_H, Tool::PINCEL);
     toolbar.addToolButton(PINCEL_X, ERASER_BTN_Y, BTN_W, BTN_H, Tool::ERASER);
     toolbar.addToolButton(PINCEL_X, SPAWN_BTN_Y, BTN_W, BTN_H, Tool::SPAWN);
-    toolbar.addActionButton(SIZE_MINUS_X, WIDTH_ROW_Y, SIZE_BTN_W, SIZE_BTN_H,
-                            ToolbarAction::WIDTH_MINUS);
-    toolbar.addActionButton(SIZE_PLUS_X, WIDTH_ROW_Y, SIZE_BTN_W, SIZE_BTN_H,
-                            ToolbarAction::WIDTH_PLUS);
-    toolbar.addActionButton(SIZE_MINUS_X, HEIGHT_ROW_Y, SIZE_BTN_W, SIZE_BTN_H,
-                            ToolbarAction::HEIGHT_MINUS);
-    toolbar.addActionButton(SIZE_PLUS_X, HEIGHT_ROW_Y, SIZE_BTN_W, SIZE_BTN_H,
-                            ToolbarAction::HEIGHT_PLUS);
     toolbar.addActionButton(PINCEL_X, SAVE_Y, BTN_W, BTN_H, ToolbarAction::SAVE);
 
     updateTitle();
@@ -183,34 +168,6 @@ void Editor::handlePanelClick(int x, int y) {
         case ToolbarAction::SAVE:
             save();
             break;
-        case ToolbarAction::WIDTH_PLUS:
-            map.resize(map.getWidth() + 1, map.getHeight());
-            camera.setMapSize(map.getWidth(), map.getHeight());
-            dirty = true;
-            updateTitle();
-            break;
-        case ToolbarAction::WIDTH_MINUS:
-            if (map.getWidth() > 1) {
-                map.resize(map.getWidth() - 1, map.getHeight());
-                camera.setMapSize(map.getWidth(), map.getHeight());
-                dirty = true;
-                updateTitle();
-            }
-            break;
-        case ToolbarAction::HEIGHT_PLUS:
-            map.resize(map.getWidth(), map.getHeight() + 1);
-            camera.setMapSize(map.getWidth(), map.getHeight());
-            dirty = true;
-            updateTitle();
-            break;
-        case ToolbarAction::HEIGHT_MINUS:
-            if (map.getHeight() > 1) {
-                map.resize(map.getWidth(), map.getHeight() - 1);
-                camera.setMapSize(map.getWidth(), map.getHeight());
-                dirty = true;
-                updateTitle();
-            }
-            break;
         case ToolbarAction::TOOL_CHANGED:
             break;
         case ToolbarAction::NONE:
@@ -247,6 +204,23 @@ void Editor::drawGrass(int dstX, int dstY, int dstSize) {
     const SDL2pp::Rect srcRect(GRASS_SRC_X, GRASS_SRC_Y, GRASS_SRC_SIZE, GRASS_SRC_SIZE);
     const SDL2pp::Rect dstRect(dstX, dstY, dstSize, dstSize);
     renderer.Copy(tex, srcRect, dstRect);
+}
+
+void Editor::drawDarkGrass(int dstX, int dstY, int dstSize) {
+    SDL2pp::Texture& tex = textures.get(GRASS_SHEET_PATH);
+    const SDL2pp::Rect srcRect(DARK_GRASS_SRC_X, DARK_GRASS_SRC_Y, GRASS_SRC_SIZE, GRASS_SRC_SIZE);
+    const SDL2pp::Rect dstRect(dstX, dstY, dstSize, dstSize);
+    renderer.Copy(tex, srcRect, dstRect);
+}
+
+bool Editor::cellInSafeZone(int col, int row) const {
+    for (const SafeZoneRect& zone: map.getSafeZones()) {
+        if (col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
+            row < zone.y + zone.height) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void Editor::drawOverlay(const OverlayDef& def, int cellX, int cellY, int cellSize) {
@@ -287,7 +261,11 @@ void Editor::renderTerrain() {
                 screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
                 continue;
             }
-            drawGrass(screen.x, screen.y, TILE_SCREEN);
+            if (cellInSafeZone(col, row)) {
+                drawDarkGrass(screen.x, screen.y, TILE_SCREEN);
+            } else {
+                drawGrass(screen.x, screen.y, TILE_SCREEN);
+            }
         }
     }
     renderer.SetClipRect();
@@ -344,22 +322,6 @@ void Editor::renderSpawn() {
     renderer.SetClipRect();
 }
 
-void Editor::drawMinus(const Toolbar::Button& b) {
-    renderer.SetDrawColor(240, 240, 240, 255);
-    int barW = b.w / 2;
-    int barH = 4;
-    renderer.FillRect(SDL2pp::Rect(b.x + (b.w - barW) / 2, b.y + b.h / 2 - barH / 2, barW, barH));
-}
-
-void Editor::drawPlus(const Toolbar::Button& b) {
-    renderer.SetDrawColor(240, 240, 240, 255);
-    int barW = b.w / 2;
-    int barH = 4;
-    renderer.FillRect(SDL2pp::Rect(b.x + (b.w - barW) / 2, b.y + b.h / 2 - barH / 2, barW, barH));
-    int vBarH = b.h / 2;
-    renderer.FillRect(SDL2pp::Rect(b.x + b.w / 2 - barH / 2, b.y + (b.h - vBarH) / 2, barH, vBarH));
-}
-
 void Editor::drawSaveIcon(const Toolbar::Button& b) {
     int s = b.h - 12;
     int ix = b.x + 10;
@@ -390,10 +352,6 @@ void Editor::renderPanel() {
     renderer.SetDrawColor(50, 50, 60, 255);
     renderer.FillRect(SDL2pp::Rect(PANEL_X, 0, PANEL_WIDTH, WINDOW_HEIGHT));
 
-    renderer.SetDrawColor(200, 200, 210, 255);
-    renderer.FillRect(SDL2pp::Rect(SIZE_HINT_X, WIDTH_ROW_Y + SIZE_BTN_H / 2 - 2, 40, 4));
-    renderer.FillRect(SDL2pp::Rect(SIZE_HINT_X + 18, HEIGHT_ROW_Y, 4, SIZE_BTN_H));
-
     for (const Toolbar::Button& b: toolbar.getButtons()) {
         if (b.action == ToolbarAction::SAVE) {
             if (SDL_GetTicks() < savedFlashUntil) {
@@ -407,14 +365,6 @@ void Editor::renderPanel() {
         renderer.FillRect(SDL2pp::Rect(b.x, b.y, b.w, b.h));
 
         switch (b.action) {
-            case ToolbarAction::WIDTH_MINUS:
-            case ToolbarAction::HEIGHT_MINUS:
-                drawMinus(b);
-                break;
-            case ToolbarAction::WIDTH_PLUS:
-            case ToolbarAction::HEIGHT_PLUS:
-                drawPlus(b);
-                break;
             case ToolbarAction::SAVE:
                 drawSaveIcon(b);
                 break;

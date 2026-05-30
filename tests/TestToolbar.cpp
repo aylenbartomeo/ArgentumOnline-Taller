@@ -29,12 +29,6 @@ TEST(ToolbarTest, ClickSaveButtonReturnsSave) {
     EXPECT_EQ(toolbar.handleClick(10, 50), ToolbarAction::SAVE);
 }
 
-TEST(ToolbarTest, ClickWidthPlusReturnsWidthPlus) {
-    Toolbar toolbar;
-    toolbar.addActionButton(0, 80, 35, 30, ToolbarAction::WIDTH_PLUS);
-    EXPECT_EQ(toolbar.handleClick(10, 90), ToolbarAction::WIDTH_PLUS);
-}
-
 TEST(ToolbarTest, ClickEmptyAreaReturnsNone) {
     Toolbar toolbar;
     toolbar.addActionButton(0, 80, 35, 30, ToolbarAction::SAVE);

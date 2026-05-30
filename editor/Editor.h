@@ -44,10 +44,10 @@ private:
     void renderPanel();
     void renderStatusBar();
     void drawGrass(int dstX, int dstY, int dstSize);
+    void drawDarkGrass(int dstX, int dstY, int dstSize);
+    bool cellInSafeZone(int col, int row) const;
     void drawOverlay(const OverlayDef& def, int cellX, int cellY, int cellSize);
     void drawCharacter(int dstX, int dstY, int dstW, int dstH);
-    void drawMinus(const Toolbar::Button& b);
-    void drawPlus(const Toolbar::Button& b);
     void drawSaveIcon(const Toolbar::Button& b);
     void drawEraserIcon(const Toolbar::Button& b);
 

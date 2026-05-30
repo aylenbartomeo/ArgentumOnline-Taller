@@ -5,15 +5,7 @@
 
 enum class Tool { PINCEL, ERASER, SPAWN };
 
-enum class ToolbarAction {
-    NONE,
-    TOOL_CHANGED,
-    SAVE,
-    WIDTH_PLUS,
-    WIDTH_MINUS,
-    HEIGHT_PLUS,
-    HEIGHT_MINUS
-};
+enum class ToolbarAction { NONE, TOOL_CHANGED, SAVE };
 
 class Toolbar {
 public:
