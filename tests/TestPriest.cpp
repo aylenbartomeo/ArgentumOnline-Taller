@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 
+#include "../common/include/dto/CommandDTO.h"
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
 
@@ -41,11 +42,15 @@ TEST(PriestTest, Priest_ResurrectsDeadPlayerSuccessfully) {
 
     NpcCommandDTO cmd = createPriestTestCommand(NpcCommandType::RESPAWN);
 
-    sacerdote.handleCommand(player, cmd);
+    // CAPTURAMOS EL RESULTADO
+    InteractionResult res = sacerdote.handleCommand(player, cmd);
 
-    // VALIDACIONES:
+    // VALIDACIONES DEL PROCESO:
     EXPECT_FALSE(player.isDead());
     EXPECT_GT(player.getHp(), 0u);
+
+    // VALIDACIONES DEL NUEVO CONTRATO:
+    EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
 }
 
 // =========================================================================
@@ -64,34 +69,47 @@ TEST(PriestTest, Priest_HealsHpAndManaToMaximum) {
 
     NpcCommandDTO cmd = createPriestTestCommand(NpcCommandType::HEAL);
 
-    sacerdote.handleCommand(player, cmd);
+    // CAPTURAMOS EL RESULTADO
+    InteractionResult res = sacerdote.handleCommand(player, cmd);
 
-    // VALIDACIONES:
+    // VALIDACIONES DEL PROCESO:
     EXPECT_EQ(player.getHp(), player.getMaxHp());
     EXPECT_EQ(player.getMana(), player.getMaxMana());
+
+    // VALIDACIONES DEL NUEVO CONTRATO:
+    EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
 }
 
 // =========================================================================
-// TEST 3: COMERCIO LIBRE - COMPRA EXITOSA DE UN ÍTEM
+// TEST 3: COMERCIO - COMPRA EXITOSA DE UN ÍTEM
 // =========================================================================
-TEST(PriestTest, Priest_AllowsFreeTradeBuyingAnyItem) {
+TEST(PriestTest, Priest_AllowsBuyingItemsInStock) {
     ItemRegistry registry("../config/items.toml");
     Priest sacerdote(1, {0, 0}, registry);
     Player player = makePriestTestPlayer();
+
+    // Nota: Asegurate de que en el constructor de Priest se añada el ítem 1001 al mapa stock,
+    // por ejemplo: stock[1001u] = 5; para que este test pase con stock limitado.
 
     player.addGold(500);
 
     // Compra directa de la Armadura 1001 usando la firma 'dto.arg'
     NpcCommandDTO cmd = createPriestTestCommand(NpcCommandType::BUY, "1001");
 
-    sacerdote.handleCommand(player, cmd);
+    // CAPTURAMOS EL RESULTADO
+    InteractionResult res = sacerdote.handleCommand(player, cmd);
 
-    // VALIDACIONES:
-    EXPECT_EQ(player.getGold(), 400u);
+    // VALIDACIONES DEL PROCESO:
+    // Nota: Cambiar el "400u" si el precio en items.toml para el id 1001 es diferente de 100 de oro
+    uint32_t expectedGold = 500u - registry.get_item(1001u)->getPrice();
+    EXPECT_EQ(player.getGold(), expectedGold);
 
     auto slotOpt = player.inspectSlot(0);
     ASSERT_TRUE(slotOpt.has_value());
     EXPECT_EQ(slotOpt->item_id, 1001u);
+
+    // VALIDACIONES DEL NUEVO CONTRATO:
+    EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
 }
 
 // =========================================================================
@@ -107,15 +125,20 @@ TEST(PriestTest, Priest_DeadPlayerCannotTrade) {
 
     ASSERT_TRUE(player.isDead());
 
-    NpcCommandDTO cmd = createPriestTestCommand(NpcCommandType::BUY, "4001");
+    NpcCommandDTO cmd = createPriestTestCommand(NpcCommandType::BUY, "1001");
 
-    sacerdote.handleCommand(player, cmd);
+    // CAPTURAMOS EL RESULTADO
+    InteractionResult res = sacerdote.handleCommand(player, cmd);
 
-    // VALIDACIONES:
-    EXPECT_EQ(player.getGold(), 500u);  // No gasta
+    // VALIDACIONES DEL PROCESO:
+    EXPECT_EQ(player.getGold(), 500u);  // No debe gastar oro
 
     if (player.getSize() > 0) {
         auto slotOpt = player.inspectSlot(0);
-        EXPECT_FALSE(slotOpt.has_value());  // No recibe ítems
+        EXPECT_FALSE(slotOpt.has_value());  // No debe recibir ítems
     }
+
+    // VALIDACIONES DEL NUEVO CONTRATO:
+    // pero falló la regla de negocio por estar muerto.
+    EXPECT_EQ(res.status, InteractionStatus::FAILURE);
 }

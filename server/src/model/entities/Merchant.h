@@ -22,6 +22,6 @@ public:
 
     Position getPosition() const override { return pos; }
     uint32_t getId() const override { return id; }
-    void beInteractedBy(Player& player) override;
-    void handleCommand(Player& player, const NpcCommandDTO& dto) override;
+    InteractionResult beInteractedBy(Player& player) override;
+    InteractionResult handleCommand(Player& player, const NpcCommandDTO& dto) override;
 };

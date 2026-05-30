@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <fstream>
 #include <memory>
 
@@ -439,12 +440,9 @@ TEST(WorldTest, World_PickUpItemIntoInventory) {
     // Y que el jugador lo tiene en su inventario
     // TestWorld no expone el Player interno, pero podemos ver los outgoing events
     auto evs = mundo.pollEvents();
-    bool pickedUpEvent = false;
-    for (const auto& ev: evs) {
-        if (ev.targetDbId == 1 && ev.message == "Item picked up.") {
-            pickedUpEvent = true;
-        }
-    }
+    bool pickedUpEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
+        return ev.targetDbId == 1 && ev.message == "Item picked up.";
+    });
     EXPECT_TRUE(pickedUpEvent);
 }
 
@@ -459,12 +457,9 @@ TEST(WorldTest, World_PickUpItemNothingToPickUp) {
     mundo.pickUpItem(1);
 
     auto evs = mundo.pollEvents();
-    bool nothingHereEvent = false;
-    for (const auto& ev: evs) {
-        if (ev.targetDbId == 1 && ev.message == "There are no items here to pick up.") {
-            nothingHereEvent = true;
-        }
-    }
+    bool nothingHereEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
+        return ev.targetDbId == 1 && ev.message == "There are no items here to pick up.";
+    });
     EXPECT_TRUE(nothingHereEvent);
 }
 
@@ -499,13 +494,10 @@ TEST(WorldTest, World_PickUpItemNoSpaceInInventory) {
     EXPECT_EQ(snap.groundItems[0].amount, 10);
 
     auto evs = mundo.pollEvents();
-    bool fullEvent = false;
-    for (const auto& ev: evs) {
-        if (ev.targetDbId == 1 &&
-            ev.message == "Inventory full. You couldn't pick up everything.") {
-            fullEvent = true;
-        }
-    }
+    bool fullEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
+        return ev.targetDbId == 1 &&
+               ev.message == "Inventory full. You couldn't pick up everything.";
+    });
     EXPECT_TRUE(fullEvent);
 }
 
@@ -557,13 +549,10 @@ TEST(WorldTest, World_DropItemNoSpaceOnGround) {
     mundo.dropItem(1, 0, 5);
 
     auto evs = mundo.pollEvents();
-    bool noSpaceEvent = false;
-    for (const auto& ev: evs) {
-        if (ev.targetDbId == 1 &&
-            ev.message == "Not enough space on the ground to drop the item.") {
-            noSpaceEvent = true;
-        }
-    }
+    bool noSpaceEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
+        return ev.targetDbId == 1 &&
+               ev.message == "Not enough space on the ground to drop the item.";
+    });
     EXPECT_TRUE(noSpaceEvent);
 }
 
@@ -613,12 +602,9 @@ TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Straight) {
     mundo.playerAttack(1, monsterId);
 
     auto evs = mundo.pollEvents();
-    bool blockedEvent = false;
-    for (const auto& ev: evs) {
-        if (ev.targetDbId == 1 && ev.message == "There is an obstacle blocking your vision.") {
-            blockedEvent = true;
-        }
-    }
+    bool blockedEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
+        return ev.targetDbId == 1 && ev.message == "There is an obstacle blocking your vision.";
+    });
     EXPECT_TRUE(blockedEvent);
 }
 
@@ -639,11 +625,8 @@ TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Diagonal) {
     mundo.playerAttack(1, monsterId);
 
     auto evs = mundo.pollEvents();
-    bool blockedEvent = false;
-    for (const auto& ev: evs) {
-        if (ev.targetDbId == 1 && ev.message == "There is an obstacle blocking your vision.") {
-            blockedEvent = true;
-        }
-    }
+    bool blockedEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
+        return ev.targetDbId == 1 && ev.message == "There is an obstacle blocking your vision.";
+    });
     EXPECT_TRUE(blockedEvent);
 }

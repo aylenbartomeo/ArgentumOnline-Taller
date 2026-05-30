@@ -3,8 +3,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "../entities/Player.h"
-#include "../items/ItemRegistry.h"
+#include "model/entities/Player.h"
+#include "model/items/ItemRegistry.h"
 
 #include "NpcCommandHandler.h"
 
@@ -20,50 +20,59 @@ public:
                  bool allowsSell):
             registry(registry), npcStock(stock), allowsSell(allowsSell) {}
 
-    bool execute(Player& player, const NpcCommandDTO& dto) override {
-        if (player.isDead())
-            return true;
+    InteractionResult execute(Player& player, const NpcCommandDTO& dto) override {
+        InteractionResult result;
+
+        if (player.isDead()) {
+            result.status = InteractionStatus::FAILURE;
+            result.msg = "Los fantasmas no pueden comerciar.";
+            return result;
+        }
 
         uint32_t itemId = 0;
         try {
             itemId = std::stoul(dto.arg);
         } catch (...) {
-            return true;
+            return result;
         }
 
-        // Validamos que el ítem exista en la base de datos del juego
         const Item* itemDef = registry.get_item(itemId);
         if (!itemDef)
-            return true;
+            return result;
 
-        int unitPrice = 100;  // Precio HARCODEADO --> Implementar itemDef.getPrice();
-
+        uint32_t unitPrice = itemDef->getPrice();
         if (dto.type == NpcCommandType::BUY) {
             auto it = npcStock.find(itemId);
-
-            // Si el NPC no tiene el ítem en su mapa o su stock llegó a 0, rebota
             if (it == npcStock.end() || it->second <= 0) {
-                // TODO: Notificar por red "No hay stock disponible"
-                return true;
+                result.status = InteractionStatus::FAILURE;
+                result.msg = "El comerciante no tiene stock de este artículo.";
+                return result;
             }
 
-            // Flujo económico del jugador
-            if (!player.removeGold(static_cast<uint32_t>(unitPrice)))
-                return true;
+            if (!player.removeGold(unitPrice)) {
+                result.status = InteractionStatus::FAILURE;
+                result.msg = "No tienes suficiente oro.";
+                return result;
+            }
 
             if (!player.addItem(itemId, 1)) {
-                player.addGold(static_cast<uint32_t>(unitPrice));  // Rollback oro
-                return true;
+                player.addGold(unitPrice);  // Rollback
+                result.status = InteractionStatus::FAILURE;
+                result.msg = "Tu inventario está lleno.";
+                return result;
             }
 
-            // Descontamos del stock del NPC de forma directa
             npcStock[itemId]--;
-            return true;
+            result.status = InteractionStatus::SUCCESS;
+            result.msg = "Compra exitosa: +1 " + itemDef->getName();
+            return result;
         }
-
         if (dto.type == NpcCommandType::SELL) {
-            if (!allowsSell)
-                return true;  // El Priest ignora este comando por completo
+            if (!allowsSell) {
+                result.status = InteractionStatus::UNHANDLED;
+                result.msg = "Los sacerdotes no pueden comprarte nada.";
+                return result;
+            }
 
             int playerSlot = -1;
             for (uint8_t i = 0; i < player.getSize(); ++i) {
@@ -73,19 +82,27 @@ public:
                     break;
                 }
             }
-            if (playerSlot == -1)
-                return true;  // No lo tiene
 
-            // Quitamos el ítem al jugador y le pagamos la mitad
+            if (playerSlot == -1) {
+                result.status = InteractionStatus::FAILURE;
+                result.msg = "No se encuentra el item en el inventario.";
+                return result;
+            }
+
+            // Quitamos el ítem al jugador y le pagamos la mitad del precio oficial
             player.removeItem(static_cast<uint8_t>(playerSlot), 1);
-            player.addGold(static_cast<uint32_t>(unitPrice / 2));
+            player.addGold(unitPrice / 2);
 
-            // El comerciante compra el ítem: incrementa su stock local.
-            // Si el ítem no figuraba en su mapa original, se inicializa en 1 de forma automática.
+            // El comerciante absorbe el ítem incrementando su stock
             npcStock[itemId]++;
-            return true;
+
+            // Corregido: Cargamos el mensaje de éxito y devolvemos el result
+            result.status = InteractionStatus::SUCCESS;
+            result.msg = "Venta exitosa: compraste 1 " + itemDef->getName() + " por " +
+                         std::to_string(unitPrice / 2) + " monedas de oro.";
+            return result;
         }
 
-        return false;
+        return result;
     }
 };
