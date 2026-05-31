@@ -126,12 +126,14 @@ TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES:
-    // 0. Verificamos que la venta fue exitosa
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
-    // 1. El slot de la mochila quedó limpio (devuelve nullopt)
+    
     auto slotOpt = player.inspectSlot(0);
     EXPECT_FALSE(slotOpt.has_value());
 
-    // 2. Se le pagó la mitad del costo base del mercader (100 / 2 = 50 de oro)
-    EXPECT_EQ(player.getGold(), 50u);
+    // Traemos el precio base del .toml (150) y calculamos la mitad (75)
+    uint32_t precioBase = registry.get_item(1001u)->getPrice();
+    uint32_t oroEsperado = precioBase / 2;
+
+    EXPECT_EQ(player.getGold(), oroEsperado);
 }

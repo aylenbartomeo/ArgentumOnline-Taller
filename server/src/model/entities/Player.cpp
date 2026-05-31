@@ -70,7 +70,14 @@ bool Player::equipFromSlot(uint8_t slotIndex) {
     return true;
 }
 
-void Player::update(float deltaSeconds) { regeneration.tick(deltaSeconds); }
+void Player::update(float dtMs) { 
+    if (this->isDead()) {
+        stats.clearBoosts(); // Regla AO: al morir se pierden los elixires
+        return;
+    }
+    stats.updateTicks(dtMs);
+    regeneration.tick(dtMs); 
+}
 
 bool Player::canEngageInCombatWith(const Attackable& other) const {
     // Regla 1: newbie no puede atacar ni ser atacado por jugadores
@@ -148,3 +155,7 @@ Position Player::tryMove(Movement direction) const {
     }
     return candidate;
 }
+
+void Player::applyBoost(BoostType type, uint8_t value, uint32_t durationMs) { 
+    stats.addBoost(type, value, durationMs); 
+} 

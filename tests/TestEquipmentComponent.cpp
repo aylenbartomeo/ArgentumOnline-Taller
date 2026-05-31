@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+﻿#include <gtest/gtest.h>
 
 #include "model/components/EquipmentComponent.h"
 #include "model/items/BodyArmor.h"
@@ -6,21 +6,21 @@
 #include "model/items/Shield.h"
 #include "model/items/Weapon.h"
 
-// Centraliza la creación de ítems para no repetirla en cada test.
-// Todos los ítems tienen min == max para que getDefense()/calculateDamage() sean deterministas y
+// Centraliza la creaciÃ³n de Ã­tems para no repetirla en cada test.
+// Todos los Ã­tems tienen min == max para que getDefense()/calculateDamage() sean deterministas y
 // los EXPECT sean exactos.
 class EquipmentComponentTest: public ::testing::Test {
 protected:
-    // Armaduras (min == max → rollDefense() siempre devuelve el mismo valor)
+    // Armaduras (min == max â†’ rollDefense() siempre devuelve el mismo valor)
     BodyArmor armor{1001, "Armadura de cuero", 5, 5};
     BodyArmor armor2{1002, "Armadura de placas", 20, 20};
     Helmet helmet{2001, "Casco de hierro", 6, 6};
     Shield shield{3001, "Escudo de tortuga", 2, 2};
 
     // Armas
-    Weapon sword{4001, "Espada", 3, 3, WeaponType::MELEE, 1};
-    Weapon bow{4002, "Arco simple", 2, 2, WeaponType::RANGED, 5};
-    Weapon staff{4003, "Vara de fresno", 2, 2, WeaponType::MAGIC, 3, 5};
+    Weapon sword{4001, "Espada", 100, WeaponType::MELEE, 3, 3, 1};
+    Weapon bow{4002, "Arco simple", 80, WeaponType::RANGED, 2, 2, 5};
+    Weapon staff{4003, "Vara de fresno", 120, WeaponType::MAGIC, 2, 2, 3, 5};
 
     EquipmentComponent eq;
 };
@@ -83,7 +83,7 @@ TEST_F(EquipmentComponentTest, DefenseWithOnlyArmorAndHelmet) {
 }
 
 // ============================================================================
-// 4. REEMPLAZO DE ÍTEMS (devuelve el ID del anterior)
+// 4. REEMPLAZO DE ÃTEMS (devuelve el ID del anterior)
 // ============================================================================
 TEST_F(EquipmentComponentTest, ReplacingArmorReturnsOldId) {
     eq.equipBodyArmor(&armor);
@@ -103,13 +103,13 @@ TEST_F(EquipmentComponentTest, ReplacingWeaponReturnsOldId) {
 }
 
 TEST_F(EquipmentComponentTest, EquipFirstArmorReturnsZero) {
-    // Si no había nada equipado, el ID del reemplazado debe ser 0
+    // Si no habÃ­a nada equipado, el ID del reemplazado debe ser 0
     uint32_t replaced = eq.equipBodyArmor(&armor);
     EXPECT_EQ(replaced, 0u);
 }
 
 // ============================================================================
-// 5. DESEQUIPAR EXPLÍCITAMENTE
+// 5. DESEQUIPAR EXPLÃCITAMENTE
 // ============================================================================
 // TEST_F(EquipmentComponentTest, UnequipBodyArmorRestoresDefenseToZero) {
 //     eq.equipBodyArmor(&armor);
@@ -132,7 +132,7 @@ TEST_F(EquipmentComponentTest, EquipFirstArmorReturnsZero) {
 // }
 
 // TEST_F(EquipmentComponentTest, UnequipFromEmptySlotReturnsZero) {
-//     // Desequipar algo que nunca fue equipado no debe crashear ni devolver id válido
+//     // Desequipar algo que nunca fue equipado no debe crashear ni devolver id vÃ¡lido
 //     uint32_t id = eq.unequip_helmet();
 //     EXPECT_EQ(id, 0u);
 // }
@@ -145,7 +145,7 @@ TEST_F(EquipmentComponentTest, EquipFirstArmorReturnsZero) {
 // }
 
 // ============================================================================
-// 6. equipItem (despacho polimórfico por tipo de ítem)
+// 6. equipItem (despacho polimÃ³rfico por tipo de Ã­tem)
 // ============================================================================
 TEST_F(EquipmentComponentTest, EquipItemDispatchesToCorrectSlot) {
     // BodyArmor se despacha al slot de armadura
@@ -172,7 +172,7 @@ TEST_F(EquipmentComponentTest, EquipItemWithNullptrDoesNothing) {
 }
 
 // ============================================================================
-// 7. ARMAS MÁGICAS (báculos con coste de maná)
+// 7. ARMAS MÃGICAS (bÃ¡culos con coste de manÃ¡)
 // ============================================================================
 TEST_F(EquipmentComponentTest, MagicWeaponEquipsCorrectly) {
     eq.equipWeapon(&staff);
@@ -192,3 +192,4 @@ TEST_F(EquipmentComponentTest, GetEquippedWeaponMatchesGetWeapon) {
     eq.equipWeapon(&bow);
     EXPECT_EQ(eq.getEquippedWeapon(), eq.getWeapon());
 }
+

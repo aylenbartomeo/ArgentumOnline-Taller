@@ -1,10 +1,11 @@
-# =========================
+﻿# =========================
 # ARMORS
 # =========================
 
 [[armor]]
 id = 1001
 name = "Armadura de cuero"
+price = 150
 slot = "body"
 min_defense = 2
 max_defense = 6
@@ -12,6 +13,7 @@ max_defense = 6
 [[armor]]
 id = 1002
 name = "Armadura de placas"
+price = 500
 slot = "body"
 min_defense = 15
 max_defense = 30
@@ -19,6 +21,7 @@ max_defense = 30
 [[armor]]
 id = 1003
 name = "Tunica azul"
+price = 200
 slot = "body"
 min_defense = 6
 max_defense = 10
@@ -26,6 +29,7 @@ max_defense = 10
 [[armor]]
 id = 2001
 name = "Capucha"
+price = 50
 slot = "helmet"
 min_defense = 1
 max_defense = 4
@@ -33,6 +37,7 @@ max_defense = 4
 [[armor]]
 id = 2002
 name = "Casco de hierro"
+price = 100
 slot = "helmet"
 min_defense = 4
 max_defense = 8
@@ -40,6 +45,7 @@ max_defense = 8
 [[armor]]
 id = 2003
 name = "Sombrero magico"
+price = 300
 slot = "helmet"
 min_defense = 4
 max_defense = 12
@@ -47,6 +53,7 @@ max_defense = 12
 [[armor]]
 id = 3001
 name = "Escudo de tortuga"
+price = 80
 slot = "shield"
 min_defense = 1
 max_defense = 2
@@ -54,6 +61,7 @@ max_defense = 2
 [[armor]]
 id = 3002
 name = "Escudo de hierro"
+price = 150
 slot = "shield"
 min_defense = 1
 max_defense = 4
@@ -65,6 +73,7 @@ max_defense = 4
 [[weapon]]
 id = 4001
 name = "Espada"
+price = 100
 min_damage = 2
 max_damage = 5
 type = "melee"
@@ -74,6 +83,7 @@ mana_cost = 0
 [[weapon]]
 id = 4002
 name = "Hacha"
+price = 120
 min_damage = 4
 max_damage = 5
 type = "melee"
@@ -83,6 +93,7 @@ mana_cost = 0
 [[weapon]]
 id = 4003
 name = "Martillo"
+price = 150
 min_damage = 1
 max_damage = 9
 type = "melee"
@@ -92,6 +103,7 @@ mana_cost = 0
 [[weapon]]
 id = 5001
 name = "Arco simple"
+price = 80
 min_damage = 1
 max_damage = 4
 type = "ranged"
@@ -101,6 +113,7 @@ mana_cost = 0
 [[weapon]]
 id = 5002
 name = "Arco compuesto"
+price = 200
 min_damage = 4
 max_damage = 16
 type = "ranged"
@@ -110,6 +123,7 @@ mana_cost = 0
 [[weapon]]
 id = 6001
 name = "Vara de fresno"
+price = 120
 min_damage = 2
 max_damage = 4
 type = "magic"
@@ -119,6 +133,7 @@ mana_cost = 5
 [[weapon]]
 id = 6002
 name = "Flauta elfica"
+price = 180
 min_damage = 0
 max_damage = 0
 type = "magic"
@@ -128,6 +143,7 @@ mana_cost = 100
 [[weapon]]
 id = 6003
 name = "Baculo nudoso"
+price = 200
 min_damage = 4
 max_damage = 8
 type = "magic"
@@ -137,6 +153,7 @@ mana_cost = 15
 [[weapon]]
 id = 6004
 name = "Baculo engarzado"
+price = 300
 min_damage = 8
 max_damage = 20
 type = "magic"
@@ -150,14 +167,17 @@ mana_cost = 30
 [[potion]]
 id = 7001
 name = "pocima de Mana"
+price = 50
 value = 3000
 
 [[potion]]
-id = 7004
+id = 7002
 name = "pocima de vida"
+price = 50
 value = 3000
 
 [[potion]]
 id = 7003
 name = "pocima de agilidad"
+price = 50
 value = 3000

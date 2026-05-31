@@ -1,4 +1,4 @@
-#include "server/src/config/ItemConfigLoader.h"
+﻿#include "server/src/config/ItemConfigLoader.h"
 
 #include <cstdint>
 #include <limits>
@@ -77,6 +77,7 @@ WeaponType parseWeaponType(const std::string& type) {
 ArmorConfig parseArmorConfig(const toml::table& armorTable) {
     ArmorConfig config{
             requiredInt(armorTable, "id"),
+            requiredInt(armorTable, "price"),
             parseArmorSlot(requiredString(armorTable, "slot")),
             requiredInt(armorTable, "min_defense"),
             requiredInt(armorTable, "max_defense"),
@@ -92,6 +93,7 @@ ArmorConfig parseArmorConfig(const toml::table& armorTable) {
 WeaponConfig parseWeaponConfig(const toml::table& weaponTable) {
     WeaponConfig config{
             requiredInt(weaponTable, "id"),
+            requiredInt(weaponTable, "price"),
             parseWeaponType(requiredString(weaponTable, "type")),
             requiredInt(weaponTable, "min_damage"),
             requiredInt(weaponTable, "max_damage"),
@@ -188,3 +190,5 @@ ItemFactories ItemConfigLoader::loadItemFactories(const std::filesystem::path& c
             loadWeaponFactory(configPath),
     };
 }
+
+

@@ -87,6 +87,9 @@ public:
     bool consumeMana(int amount) { return stats.consumeMana(static_cast<uint16_t>(amount)); }
     void restoreHp() { stats.restoreHp(); }
     void restoreMana() { stats.restoreMana(); }
+    void setHp(uint16_t newHp) { stats.setHp(newHp);}
+    void setMana(uint16_t newMana) { stats.setMana(newMana);}
+    void applyBoost(BoostType type, uint8_t value, uint32_t durationMs);
 
     // Inventory
     InventoryComponent& getInventory() { return this->inventory; }

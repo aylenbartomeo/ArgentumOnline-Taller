@@ -1,4 +1,4 @@
-#ifndef SERVER_SRC_MODEL_ITEMS_WEAPONFACTORY_H
+﻿#ifndef SERVER_SRC_MODEL_ITEMS_WEAPONFACTORY_H
 #define SERVER_SRC_MODEL_ITEMS_WEAPONFACTORY_H
 
 #include <memory>
@@ -9,6 +9,7 @@
 
 struct WeaponConfig {
     int id;
+    int price;
     WeaponType type;
     int minDamage;
     int maxDamage;
