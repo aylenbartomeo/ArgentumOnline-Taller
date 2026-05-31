@@ -47,6 +47,7 @@ target_sources(argentum_online_tests
     ../server/src/model/items/ItemRegistry.cpp
     ../server/src/model/items/ArmorFactory.cpp
     ../server/src/model/items/WeaponFactory.cpp
+    ../server/src/model/items/ConsumableFactory.cpp
     ../server/src/config/ItemConfigLoader.cpp
     ../server/src/config/MonsterConfigLoader.cpp
     ../server/src/auth/AuthManager.cpp
