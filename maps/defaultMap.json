@@ -1,5 +1,49 @@
 {
     "height": 60,
+    "items": [
+        {
+            "itemId": 1,
+            "x": 15,
+            "y": 6
+        }
+    ],
+    "monsters": [
+        {
+            "type": "skeleton",
+            "x": 16,
+            "y": 10
+        },
+        {
+            "type": "skeleton",
+            "x": 6,
+            "y": 13
+        },
+        {
+            "type": "goblin",
+            "x": 15,
+            "y": 2
+        },
+        {
+            "type": "zombie",
+            "x": 6,
+            "y": 3
+        },
+        {
+            "type": "orc",
+            "x": 0,
+            "y": 9
+        },
+        {
+            "type": "spider",
+            "x": 15,
+            "y": 14
+        },
+        {
+            "type": "golem",
+            "x": 11,
+            "y": 5
+        }
+    ],
     "npcs": [
         {
             "type": "merchant",
@@ -45,6 +89,21 @@
             "type": "banker",
             "x": 53,
             "y": 48
+        },
+        {
+            "type": "merchant",
+            "x": 12,
+            "y": 12
+        },
+        {
+            "type": "banker",
+            "x": 18,
+            "y": 12
+        },
+        {
+            "type": "priest",
+            "x": 1,
+            "y": 11
         }
     ],
     "safeZones": [
@@ -71,8 +130,8 @@
         }
     ],
     "spawn": {
-        "x": 43,
-        "y": 2
+        "x": 3,
+        "y": 6
     },
     "tileSize": 32,
     "tiles": [
@@ -341,7 +400,7 @@
             0,
             0,
             0,
-            0,
+            1,
             0,
             0,
             0,
@@ -583,7 +642,7 @@
             0,
             0,
             0,
-            0,
+            1,
             0,
             0,
             0,
