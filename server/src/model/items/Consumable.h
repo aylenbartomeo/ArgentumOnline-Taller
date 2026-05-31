@@ -20,14 +20,7 @@ public:
     Consumable(int id, std::string name, int price,
         ConsumableType type, int duration, int value) :
         Item(id, std::move(name), price), type(type),
-        durationMs(static_cast<uint32_t>(duration)), effectValue(static_cast<uint16_t>(value)) {
-        if (duration < 0) {
-            throw std::invalid_argument("Consumable duration cannot be negative");
-        }
-        if (value < 0) {
-            throw std::invalid_argument("Consumable effect value cannot be negative");
-        }
-    }
+        durationMs(static_cast<uint32_t>(duration)), effectValue(static_cast<uint16_t>(value)) {}
 
     bool use(Player& player) const {
         if (player.isDead()) {

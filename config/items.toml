@@ -1,9 +1,12 @@
 ﻿# =========================
-# ARMORS
+# ARMORS - 1000 a 1999
+# --- body 1001 a 1009
+# --- helmet 1010 a 1019
+# --- shield 1020 a 1029
 # =========================
 
 [[armor]]
-id = 1001
+id = 1000
 name = "Armadura de cuero"
 price = 150
 slot = "body"
@@ -11,7 +14,7 @@ min_defense = 2
 max_defense = 6
 
 [[armor]]
-id = 1002
+id = 1001
 name = "Armadura de placas"
 price = 500
 slot = "body"
@@ -19,7 +22,7 @@ min_defense = 15
 max_defense = 30
 
 [[armor]]
-id = 1003
+id = 1002
 name = "Tunica azul"
 price = 200
 slot = "body"
@@ -27,7 +30,7 @@ min_defense = 6
 max_defense = 10
 
 [[armor]]
-id = 2001
+id = 1010
 name = "Capucha"
 price = 50
 slot = "helmet"
@@ -35,7 +38,7 @@ min_defense = 1
 max_defense = 4
 
 [[armor]]
-id = 2002
+id = 1011
 name = "Casco de hierro"
 price = 100
 slot = "helmet"
@@ -43,7 +46,7 @@ min_defense = 4
 max_defense = 8
 
 [[armor]]
-id = 2003
+id = 1012
 name = "Sombrero magico"
 price = 300
 slot = "helmet"
@@ -51,7 +54,7 @@ min_defense = 4
 max_defense = 12
 
 [[armor]]
-id = 3001
+id = 1020
 name = "Escudo de tortuga"
 price = 80
 slot = "shield"
@@ -59,7 +62,7 @@ min_defense = 1
 max_defense = 2
 
 [[armor]]
-id = 3002
+id = 1021
 name = "Escudo de hierro"
 price = 150
 slot = "shield"
@@ -67,11 +70,14 @@ min_defense = 1
 max_defense = 4
 
 # =========================
-# WEAPONS
+# WEAPONS - 2000 a 2999
+# --- melee 2000 a 2009
+# --- ranged 2010 a 2019
+# --- magic 2020 a 2029
 # =========================
 
 [[weapon]]
-id = 4001
+id = 2000
 name = "Espada"
 price = 100
 min_damage = 2
@@ -81,7 +87,7 @@ attack_range = 1
 mana_cost = 0
 
 [[weapon]]
-id = 4002
+id = 2001
 name = "Hacha"
 price = 120
 min_damage = 4
@@ -91,7 +97,7 @@ attack_range = 1
 mana_cost = 0
 
 [[weapon]]
-id = 4003
+id = 2002
 name = "Martillo"
 price = 150
 min_damage = 1
@@ -101,7 +107,7 @@ attack_range = 1
 mana_cost = 0
 
 [[weapon]]
-id = 5001
+id = 2010
 name = "Arco simple"
 price = 80
 min_damage = 1
@@ -111,7 +117,7 @@ attack_range = 8
 mana_cost = 0
 
 [[weapon]]
-id = 5002
+id = 2011
 name = "Arco compuesto"
 price = 200
 min_damage = 4
@@ -121,7 +127,7 @@ attack_range = 8
 mana_cost = 0
 
 [[weapon]]
-id = 6001
+id = 2020
 name = "Vara de fresno"
 price = 120
 min_damage = 2
@@ -131,7 +137,7 @@ attack_range = 8
 mana_cost = 5
 
 [[weapon]]
-id = 6002
+id = 2021
 name = "Flauta elfica"
 price = 180
 min_damage = 0
@@ -141,7 +147,7 @@ attack_range = 8
 mana_cost = 100
 
 [[weapon]]
-id = 6003
+id = 2022
 name = "Baculo nudoso"
 price = 200
 min_damage = 4
@@ -151,7 +157,7 @@ attack_range = 8
 mana_cost = 15
 
 [[weapon]]
-id = 6004
+id = 2023
 name = "Baculo engarzado"
 price = 300
 min_damage = 8
@@ -161,23 +167,41 @@ attack_range = 8
 mana_cost = 30
 
 # =========================
-# POTIONS
+# CONSUMABLE - 3000 a 3999
+# --- health 3000 a 3009
+# --- mana 3010 a 3019
+# --- strentgh 3020 a 3029
+# --- agility 3030 a 3039
 # =========================
 
-[[potion]]
-id = 7001
+[[consumable]]
+id = 3000
 name = "pocima de Mana"
 price = 50
-value = 3000
+type = "mana"
+durationMs = 0
+effectValue = 10
 
-[[potion]]
-id = 7002
+[[consumable]]
+id = 3010
 name = "pocima de vida"
 price = 50
-value = 3000
+type = "health"
+durationMs = 0
+effectValue = 10
 
-[[potion]]
-id = 7003
+[[consumable]]
+id = 3020
+name = "pocima de fuerza"
+price = 50
+type = "boostStr"
+durationMs = 60000
+effectValue = 10
+
+[[consumable]]
+id = 3030
 name = "pocima de agilidad"
 price = 50
-value = 3000
+type = "boostAgi"
+durationMs = 60000
+effectValue = 10
