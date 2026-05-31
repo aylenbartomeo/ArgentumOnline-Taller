@@ -34,6 +34,9 @@ constexpr int PALETTE_TILE = 32;
 constexpr int PALETTE_COLS = 5;
 
 constexpr const char* RESOURCES_DIR = "resources/";
+constexpr const char* FONT_SHEET_PATH = "resources/19048.png";
+constexpr int LABEL_CHAR_W = 8;
+constexpr int LABEL_CHAR_H = 14;
 constexpr const char* GRASS_SHEET_PATH = "resources/5108.png";
 constexpr int GRASS_SRC_X = 416;
 constexpr int GRASS_SRC_Y = 384;
@@ -58,6 +61,23 @@ constexpr int HEAD_DRAW_W = 18;
 constexpr int HEAD_DRAW_H = 20;
 constexpr int HEAD_OVERLAP = 6;
 
+std::string labelForTool(Tool tool) {
+    switch (tool) {
+        case Tool::OVERLAY:
+            return "Overlay";
+        case Tool::MONSTER:
+            return "Monstruo";
+        case Tool::ITEM:
+            return "Item";
+        case Tool::CITIZEN:
+            return "Citizen";
+        case Tool::ERASER:
+            return "Goma";
+        case Tool::SPAWN:
+            return "Spawn";
+    }
+    return "";
+}
 }  // namespace
 
 Editor::Editor(EditorMap initialMap, const std::string& mapPath):
@@ -76,6 +96,7 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
                     static_cast<int>(getItemCatalog().size())),
         citizenPalette(PALETTE_X, PALETTE_Y, PALETTE_TILE, PALETTE_COLS,
                        static_cast<int>(getCitizenCatalog().size())),
+        font(textures, FONT_SHEET_PATH),
         toolbar(),
         mapPath(mapPath),
         rightDragging(false),
@@ -521,8 +542,12 @@ void Editor::renderPanel() {
         switch (b.action) {
             case ToolbarAction::SAVE:
                 drawSaveIcon(b);
+                font.drawString(renderer, "Guardar", b.x + b.h + 4, b.y + (b.h - LABEL_CHAR_H) / 2,
+                                LABEL_CHAR_W, LABEL_CHAR_H);
                 break;
             case ToolbarAction::TOOL_CHANGED:
+                font.drawString(renderer, labelForTool(b.tool), b.x + b.h + 4,
+                                b.y + (b.h - LABEL_CHAR_H) / 2, LABEL_CHAR_W, LABEL_CHAR_H);
                 switch (b.tool) {
                     case Tool::OVERLAY:
                         drawGrass(b.x + 4, b.y + 2, b.h - 4);
@@ -611,6 +636,7 @@ void Editor::renderStatusBar() {
     int x0 = 6;
     int y0 = CANVAS_HEIGHT + 4;
     Tool active = toolbar.getActiveTool();
+    std::string selectedName;
     switch (active) {
         case Tool::SPAWN:
             drawCharacter(x0, y0, iconSize, iconSize);
@@ -627,15 +653,18 @@ void Editor::renderStatusBar() {
             drawGrass(x0, y0, iconSize);
             drawMonsterFromCatalog(monsterCat[monsterPalette.getSelectedTile()], x0, y0,
                                    iconSize);
+            selectedName = monsterCat[monsterPalette.getSelectedTile()].type;
             break;
         case Tool::ITEM:
             drawGrass(x0, y0, iconSize);
             drawItemFromCatalog(itemCat[itemPalette.getSelectedTile()], x0, y0, iconSize);
+            selectedName = "item " + std::to_string(itemCat[itemPalette.getSelectedTile()].itemId);
             break;
         case Tool::CITIZEN:
             drawGrass(x0, y0, iconSize);
             drawCitizenFromCatalog(citizenCat[citizenPalette.getSelectedTile()], x0, y0,
                                    iconSize);
+            selectedName = citizenCat[citizenPalette.getSelectedTile()].type;
             break;
         case Tool::OVERLAY:
         default:
@@ -643,4 +672,10 @@ void Editor::renderStatusBar() {
             drawOverlay(overlayReg[overlayPalette.getSelectedTile()], x0, y0, iconSize);
             break;
     }
+    std::string status = labelForTool(active);
+    if (!selectedName.empty()) {
+        status += ": " + selectedName;
+    }
+    font.drawString(renderer, status, x0 + iconSize + 8, y0 + (iconSize - LABEL_CHAR_H) / 2,
+                    LABEL_CHAR_W, LABEL_CHAR_H);
 }

@@ -8,6 +8,7 @@
 
 #include "OverlayRegistry.h"
 
+#include "BitmapFont.h"
 #include "Camera.h"
 #include "EditorMap.h"
 #include "Palette.h"
@@ -27,6 +28,7 @@ private:
     Palette monsterPalette;
     Palette itemPalette;
     Palette citizenPalette;
+    BitmapFont font;
     Toolbar toolbar;
     std::string mapPath;
     bool rightDragging;
