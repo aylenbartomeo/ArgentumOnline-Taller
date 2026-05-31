@@ -65,13 +65,6 @@ EditorMap::EditorMap(const std::string& jsonText) {
                                 monster.at("x").get<int>(), monster.at("y").get<int>()});
         }
     }
-
-    if (data.contains("items")) {
-        for (const auto& item: data.at("items")) {
-            items.push_back({item.at("itemId").get<uint32_t>(), item.at("x").get<int>(),
-                             item.at("y").get<int>()});
-        }
-    }
 }
 
 std::string EditorMap::toJson() const {
@@ -114,15 +107,6 @@ std::string EditorMap::toJson() const {
                     {{"type", monster.type}, {"x", monster.x}, {"y", monster.y}});
         }
         data["monsters"] = monstersJson;
-    }
-
-    if (!items.empty()) {
-        nlohmann::json itemsJson = nlohmann::json::array();
-        for (const auto& item: items) {
-            itemsJson.push_back(
-                    {{"itemId", item.itemId}, {"x", item.x}, {"y", item.y}});
-        }
-        data["items"] = itemsJson;
     }
 
     data["tiles"] = tiles;
@@ -178,10 +162,6 @@ void EditorMap::addMonster(const std::string& type, int x, int y) {
     monsters.push_back({type, x, y});
 }
 
-const std::vector<ItemSpawn>& EditorMap::getItems() const { return items; }
-
-void EditorMap::addItem(uint32_t itemId, int x, int y) { items.push_back({itemId, x, y}); }
-
 void EditorMap::removeEntitiesAt(int x, int y) {
     auto matches = [x, y](auto& v) {
         v.erase(std::remove_if(v.begin(), v.end(),
@@ -190,5 +170,4 @@ void EditorMap::removeEntitiesAt(int x, int y) {
     };
     matches(citizens);
     matches(monsters);
-    matches(items);
 }

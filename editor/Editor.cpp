@@ -22,14 +22,13 @@ constexpr int BTN_H = 34;
 constexpr int BTN_X = PANEL_X + 10;
 constexpr int OVERLAY_BTN_Y = 10;
 constexpr int MONSTER_BTN_Y = 50;
-constexpr int ITEM_BTN_Y = 90;
-constexpr int CITIZEN_BTN_Y = 130;
-constexpr int ERASER_BTN_Y = 170;
-constexpr int SPAWN_BTN_Y = 210;
-constexpr int SAVE_Y = 254;
+constexpr int CITIZEN_BTN_Y = 90;
+constexpr int ERASER_BTN_Y = 130;
+constexpr int SPAWN_BTN_Y = 170;
+constexpr int SAVE_Y = 214;
 
 constexpr int PALETTE_X = PANEL_X + 10;
-constexpr int PALETTE_Y = 300;
+constexpr int PALETTE_Y = 260;
 constexpr int PALETTE_TILE = 32;
 constexpr int PALETTE_COLS = 5;
 
@@ -64,11 +63,9 @@ constexpr int HEAD_OVERLAP = 6;
 std::string labelForTool(Tool tool) {
     switch (tool) {
         case Tool::OVERLAY:
-            return "Overlay";
+            return "Items";
         case Tool::MONSTER:
             return "Monstruo";
-        case Tool::ITEM:
-            return "Item";
         case Tool::CITIZEN:
             return "Citizen";
         case Tool::ERASER:
@@ -92,8 +89,6 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
                        static_cast<int>(getOverlayRegistry().size())),
         monsterPalette(PALETTE_X, PALETTE_Y, PALETTE_TILE, PALETTE_COLS,
                        static_cast<int>(getMonsterCatalog().size())),
-        itemPalette(PALETTE_X, PALETTE_Y, PALETTE_TILE, PALETTE_COLS,
-                    static_cast<int>(getItemCatalog().size())),
         citizenPalette(PALETTE_X, PALETTE_Y, PALETTE_TILE, PALETTE_COLS,
                        static_cast<int>(getCitizenCatalog().size())),
         font(renderer, FONT_TTF_PATH, LABEL_FONT_SIZE),
@@ -108,7 +103,6 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
 
     toolbar.addToolButton(BTN_X, OVERLAY_BTN_Y, BTN_W, BTN_H, Tool::OVERLAY);
     toolbar.addToolButton(BTN_X, MONSTER_BTN_Y, BTN_W, BTN_H, Tool::MONSTER);
-    toolbar.addToolButton(BTN_X, ITEM_BTN_Y, BTN_W, BTN_H, Tool::ITEM);
     toolbar.addToolButton(BTN_X, CITIZEN_BTN_Y, BTN_W, BTN_H, Tool::CITIZEN);
     toolbar.addToolButton(BTN_X, ERASER_BTN_Y, BTN_W, BTN_H, Tool::ERASER);
     toolbar.addToolButton(BTN_X, SPAWN_BTN_Y, BTN_W, BTN_H, Tool::SPAWN);
@@ -185,10 +179,6 @@ void Editor::handleLeftClick(int x, int y) {
                     map.addMonster(getMonsterCatalog()[monsterPalette.getSelectedTile()].type,
                                    cell.x, cell.y);
                     break;
-                case Tool::ITEM:
-                    map.addItem(getItemCatalog()[itemPalette.getSelectedTile()].itemId, cell.x,
-                                cell.y);
-                    break;
                 case Tool::CITIZEN:
                     map.addCitizen(getCitizenCatalog()[citizenPalette.getSelectedTile()].type,
                                    cell.x, cell.y);
@@ -250,8 +240,6 @@ Palette& Editor::activePalette() {
     switch (toolbar.getActiveTool()) {
         case Tool::MONSTER:
             return monsterPalette;
-        case Tool::ITEM:
-            return itemPalette;
         case Tool::CITIZEN:
             return citizenPalette;
         case Tool::OVERLAY:
@@ -311,17 +299,6 @@ void Editor::drawMonsterFromCatalog(const MonsterCatalogEntry& entry, int cellX,
     renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
 }
 
-void Editor::drawItemFromCatalog(const ItemCatalogEntry& entry, int cellX, int cellY,
-                                 int cellSize) {
-    SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + entry.sheet);
-    const SDL2pp::Rect srcRect(entry.srcX, entry.srcY, entry.srcW, entry.srcH);
-    const int dstW = cellSize;
-    const int dstH = (entry.srcH * cellSize) / entry.srcW;
-    const int dstX = cellX;
-    const int dstY = cellY + cellSize - dstH;
-    renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
-}
-
 void Editor::drawCitizenFromCatalog(const CitizenCatalogEntry& entry, int cellX, int cellY,
                                     int cellSize) {
     SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + entry.sheet);
@@ -346,7 +323,6 @@ void Editor::render() {
     renderer.Clear();
     renderTerrain();
     renderOverlays();
-    renderItems();
     renderMonsters();
     renderCitizens();
     renderSpawn();
@@ -440,29 +416,6 @@ void Editor::renderCitizens() {
     renderer.SetClipRect();
 }
 
-void Editor::renderItems() {
-    const auto& catalog = getItemCatalog();
-    renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
-    for (const ItemSpawn& spawn: map.getItems()) {
-        const ItemCatalogEntry* entry = nullptr;
-        for (const auto& candidate: catalog) {
-            if (candidate.itemId == spawn.itemId) {
-                entry = &candidate;
-                break;
-            }
-        }
-        if (!entry)
-            continue;
-        Position screen = camera.cellToScreen(spawn.x, spawn.y);
-        if (screen.x + TILE_SCREEN <= 0 || screen.x >= CANVAS_WIDTH ||
-            screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
-            continue;
-        }
-        drawItemFromCatalog(*entry, screen.x, screen.y, TILE_SCREEN);
-    }
-    renderer.SetClipRect();
-}
-
 void Editor::renderSpawn() {
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
     Position spawn = map.getSpawn();
@@ -521,7 +474,6 @@ void Editor::drawEraserIcon(const Toolbar::Button& b) {
 void Editor::renderPanel() {
     const std::vector<OverlayDef>& overlayReg = getOverlayRegistry();
     const auto& monsterCat = getMonsterCatalog();
-    const auto& itemCat = getItemCatalog();
     const auto& citizenCat = getCitizenCatalog();
 
     renderer.SetDrawColor(50, 50, 60, 255);
@@ -558,11 +510,6 @@ void Editor::renderPanel() {
                         drawGrass(b.x + 4, b.y + 2, b.h - 4);
                         drawMonsterFromCatalog(monsterCat[monsterPalette.getSelectedTile()],
                                                b.x + 4, b.y + 2, b.h - 4);
-                        break;
-                    case Tool::ITEM:
-                        drawGrass(b.x + 4, b.y + 2, b.h - 4);
-                        drawItemFromCatalog(itemCat[itemPalette.getSelectedTile()], b.x + 4,
-                                            b.y + 2, b.h - 4);
                         break;
                     case Tool::CITIZEN:
                         drawGrass(b.x + 4, b.y + 2, b.h - 4);
@@ -603,9 +550,6 @@ void Editor::renderPanel() {
             case Tool::MONSTER:
                 drawMonsterFromCatalog(monsterCat[i], dx, dy, pal.getTileDrawSize());
                 break;
-            case Tool::ITEM:
-                drawItemFromCatalog(itemCat[i], dx, dy, pal.getTileDrawSize());
-                break;
             case Tool::CITIZEN:
                 drawCitizenFromCatalog(citizenCat[i], dx, dy, pal.getTileDrawSize());
                 break;
@@ -626,7 +570,6 @@ void Editor::renderPanel() {
 void Editor::renderStatusBar() {
     const std::vector<OverlayDef>& overlayReg = getOverlayRegistry();
     const auto& monsterCat = getMonsterCatalog();
-    const auto& itemCat = getItemCatalog();
     const auto& citizenCat = getCitizenCatalog();
 
     renderer.SetDrawColor(20, 20, 25, 255);
@@ -655,11 +598,6 @@ void Editor::renderStatusBar() {
                                    iconSize);
             selectedName = monsterCat[monsterPalette.getSelectedTile()].type;
             break;
-        case Tool::ITEM:
-            drawGrass(x0, y0, iconSize);
-            drawItemFromCatalog(itemCat[itemPalette.getSelectedTile()], x0, y0, iconSize);
-            selectedName = "item " + std::to_string(itemCat[itemPalette.getSelectedTile()].itemId);
-            break;
         case Tool::CITIZEN:
             drawGrass(x0, y0, iconSize);
             drawCitizenFromCatalog(citizenCat[citizenPalette.getSelectedTile()], x0, y0,
@@ -670,6 +608,7 @@ void Editor::renderStatusBar() {
         default:
             drawGrass(x0, y0, iconSize);
             drawOverlay(overlayReg[overlayPalette.getSelectedTile()], x0, y0, iconSize);
+            selectedName = overlayReg[overlayPalette.getSelectedTile()].name;
             break;
     }
     std::string status = labelForTool(active);

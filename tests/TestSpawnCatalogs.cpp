@@ -41,7 +41,3 @@ TEST(SpawnCatalogsTest, CitizenCatalogHasMerchantBankerPriest) {
     EXPECT_EQ(find("banker"), "1071.png");
     EXPECT_EQ(find("priest"), "1910.png");
 }
-
-TEST(SpawnCatalogsTest, ItemCatalogHasAtLeastOneEntry) {
-    EXPECT_GE(getItemCatalog().size(), 1u);
-}
