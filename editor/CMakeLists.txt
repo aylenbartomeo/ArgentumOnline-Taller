@@ -7,7 +7,7 @@ target_sources(argentum_online_editor
     Palette.cpp
     Toolbar.cpp
     SpawnCatalogs.cpp
-    BitmapFont.cpp
+    Font.cpp
     Editor.cpp
     ../client/src/TextureManager.cpp
     PUBLIC
@@ -17,7 +17,6 @@ target_sources(argentum_online_editor
     Palette.h
     Toolbar.h
     SpawnCatalogs.h
-    BitmapFont.h
-    CharRect.h
+    Font.h
     Editor.h
     )

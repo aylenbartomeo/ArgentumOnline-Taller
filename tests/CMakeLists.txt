@@ -73,7 +73,6 @@ target_sources(argentum_online_tests
     ../editor/Toolbar.cpp
     TestSpawnCatalogs.cpp
     ../editor/SpawnCatalogs.cpp
-    TestBitmapFont.cpp
 )
 
 target_include_directories(argentum_online_tests PRIVATE

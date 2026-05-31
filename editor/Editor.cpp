@@ -34,9 +34,9 @@ constexpr int PALETTE_TILE = 32;
 constexpr int PALETTE_COLS = 5;
 
 constexpr const char* RESOURCES_DIR = "resources/";
-constexpr const char* FONT_SHEET_PATH = "resources/19048.png";
-constexpr int LABEL_CHAR_W = 8;
-constexpr int LABEL_CHAR_H = 14;
+constexpr const char* FONT_TTF_PATH = "resources/DejaVuSans-Bold.ttf";
+constexpr int LABEL_FONT_SIZE = 14;
+constexpr SDL_Color LABEL_COLOR = {240, 240, 240, 255};
 constexpr const char* GRASS_SHEET_PATH = "resources/5108.png";
 constexpr int GRASS_SRC_X = 416;
 constexpr int GRASS_SRC_Y = 384;
@@ -96,7 +96,7 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
                     static_cast<int>(getItemCatalog().size())),
         citizenPalette(PALETTE_X, PALETTE_Y, PALETTE_TILE, PALETTE_COLS,
                        static_cast<int>(getCitizenCatalog().size())),
-        font(textures, FONT_SHEET_PATH),
+        font(renderer, FONT_TTF_PATH, LABEL_FONT_SIZE),
         toolbar(),
         mapPath(mapPath),
         rightDragging(false),
@@ -542,12 +542,12 @@ void Editor::renderPanel() {
         switch (b.action) {
             case ToolbarAction::SAVE:
                 drawSaveIcon(b);
-                font.drawString(renderer, "Guardar", b.x + b.h + 4, b.y + (b.h - LABEL_CHAR_H) / 2,
-                                LABEL_CHAR_W, LABEL_CHAR_H);
+                font.drawString("Guardar", b.x + b.h + 4, b.y + (b.h - LABEL_FONT_SIZE) / 2 - 2,
+                                LABEL_COLOR);
                 break;
             case ToolbarAction::TOOL_CHANGED:
-                font.drawString(renderer, labelForTool(b.tool), b.x + b.h + 4,
-                                b.y + (b.h - LABEL_CHAR_H) / 2, LABEL_CHAR_W, LABEL_CHAR_H);
+                font.drawString(labelForTool(b.tool), b.x + b.h + 4,
+                                b.y + (b.h - LABEL_FONT_SIZE) / 2 - 2, LABEL_COLOR);
                 switch (b.tool) {
                     case Tool::OVERLAY:
                         drawGrass(b.x + 4, b.y + 2, b.h - 4);
@@ -676,6 +676,6 @@ void Editor::renderStatusBar() {
     if (!selectedName.empty()) {
         status += ": " + selectedName;
     }
-    font.drawString(renderer, status, x0 + iconSize + 8, y0 + (iconSize - LABEL_CHAR_H) / 2,
-                    LABEL_CHAR_W, LABEL_CHAR_H);
+    font.drawString(status, x0 + iconSize + 8, y0 + (iconSize - LABEL_FONT_SIZE) / 2 - 2,
+                    LABEL_COLOR);
 }
