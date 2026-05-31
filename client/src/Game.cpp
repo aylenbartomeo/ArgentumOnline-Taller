@@ -48,6 +48,16 @@ constexpr int DARK_GROUND_SRC_X = 512;
 constexpr int DARK_GROUND_SRC_Y = 480;
 constexpr int GROUND_TILE = 32;
 
+const char* citizenSheet(const std::string& type) {
+    if (type == "merchant")
+        return "1077.png";
+    if (type == "banker")
+        return "1071.png";
+    if (type == "priest")
+        return "1910.png";
+    return "1200.png";
+}
+
 std::string readWholeFile(const std::string& path) {
     std::ifstream file(path);
     if (!file) {
@@ -119,6 +129,7 @@ void Game::render() {
     const CameraOffset camera = computeCamera();
     renderTerrain(camera);
     renderOverlays(camera);
+    renderCitizens(camera);
     renderEntities(camera);
 
     renderer.Present();
@@ -152,6 +163,19 @@ void Game::renderTerrain(const CameraOffset& camera) {
                                        TILE_SIZE, TILE_SIZE);
             renderer.Copy(ground, cellInSafeZone(col, row) ? darkGroundSrc : groundSrc, dstRect);
         }
+    }
+}
+
+void Game::renderCitizens(const CameraOffset& camera) {
+    SDL2pp::Renderer& renderer = window.getRenderer();
+    const SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
+                               CHARACTER_FRAME_H);
+    for (const MapCitizen& citizen: map.getCitizens()) {
+        SDL2pp::Texture& body = textures.get(std::string(RESOURCES_DIR) + citizenSheet(citizen.type));
+        const SDL2pp::Rect dstRect(citizen.x * TILE_SIZE - camera.x,
+                                   citizen.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H - camera.y,
+                                   TILE_SIZE, CHARACTER_DRAW_H);
+        renderer.Copy(body, srcRect, dstRect);
     }
 }
 

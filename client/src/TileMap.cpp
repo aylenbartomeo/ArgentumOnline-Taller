@@ -30,6 +30,13 @@ TileMap::TileMap(const std::string& jsonText) {
                                  zone.at("width").get<int>(), zone.at("height").get<int>()});
         }
     }
+
+    if (data.contains("npcs")) {
+        for (const auto& npc: data.at("npcs")) {
+            citizens.push_back({npc.at("type").get<std::string>(), npc.at("x").get<int>(),
+                                npc.at("y").get<int>()});
+        }
+    }
 }
 
 int TileMap::getWidth() const { return width; }
@@ -38,5 +45,6 @@ int TileMap::getTileSize() const { return tileSize; }
 int TileMap::getTilesetCols() const { return tilesetCols; }
 const std::string& TileMap::getTileset() const { return tileset; }
 const std::vector<SafeZoneRect>& TileMap::getSafeZones() const { return safeZones; }
+const std::vector<MapCitizen>& TileMap::getCitizens() const { return citizens; }
 
 int TileMap::tileAt(int col, int row) const { return tiles.at(row).at(col); }
