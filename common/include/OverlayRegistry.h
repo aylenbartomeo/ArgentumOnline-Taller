@@ -10,6 +10,7 @@ struct OverlayDef {
     int srcY;
     int srcW;
     int srcH;
+    std::string name;
 };
 
 const std::vector<OverlayDef>& getOverlayRegistry();
