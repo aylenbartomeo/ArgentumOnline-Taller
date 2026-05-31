@@ -11,9 +11,9 @@ const std::vector<MonsterCatalogEntry>& getMonsterCatalog() {
 
 const std::vector<CitizenCatalogEntry>& getCitizenCatalog() {
     static const std::vector<CitizenCatalogEntry> catalog = {
-            {"merchant", 'M'},
-            {"banker", 'B'},
-            {"priest", 'P'},
+            {"merchant", "1077.png", 2, 4, 24, 44},
+            {"banker", "1071.png", 2, 4, 24, 44},
+            {"priest", "1910.png", 2, 4, 24, 44},
     };
     return catalog;
 }
