@@ -1,15 +1,8 @@
 /**
- * TestPersistence.cpp
- *
  * Verifica el flujo completo de guardado y carga de estado de jugador:
  *   1. PlayerDataStore  — serialización binaria de todos los campos nuevos
  *   2. StatsComponent   — getters getRace() / getCharacterClass()
  *   3. World            — round-trip addPlayer → getPlayerPersistData → addPlayer
- *
- * Convención de nombres: <Módulo>_<Escenario>_<Resultado esperado>
- * Agregar al CMakeLists.txt:
- *   TestPersistence.cpp
- *   ../server/src/config/CharacterConfigLoader.cpp   ← si no está ya
  */
 
 #include <filesystem>
@@ -479,6 +472,37 @@ TEST_F(WorldPersistenceTest, RoundTrip_Level_SurvivesReconnect) {
     EXPECT_EQ(after->level, 5);
     EXPECT_EQ(after->exp, 4000u);
 }
+
+// TEST_F(WorldPersistenceTest, RoundTrip_Inventory_SurvivesReconnect) {
+//     World mundo(1, "Tester", registry, configs);
+//     std::string user = "Collector";
+
+//     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
+//     // Items con IDs que deben existir en items.toml; ajustar si es necesario
+//     seed.inventorySize  = 2;
+//     seed.inventory[0]   = {1, 5};
+//     seed.inventory[1]   = {2, 1};
+//     ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+
+//     auto saved = mundo.getPlayerPersistData(1);
+//     ASSERT_TRUE(saved.has_value());
+//     mundo.removePlayer(1);
+
+//     ASSERT_TRUE(mundo.addPlayer(1, user, saved.value()));
+
+//     auto after = mundo.getPlayerPersistData(1);
+//     ASSERT_TRUE(after.has_value());
+//     // Verificar que el inventario restaurado contiene los ítems
+//     bool foundItem1 = false;
+//     bool foundItem2 = false;
+//     for (uint8_t i = 0; i < after->inventorySize; ++i) {
+//         if (after->inventory[i].item_id == 1 && after->inventory[i].amount == 5) foundItem1 =
+//         true; if (after->inventory[i].item_id == 2 && after->inventory[i].amount == 1) foundItem2
+//         = true;
+//     }
+//     EXPECT_TRUE(foundItem1);
+//     EXPECT_TRUE(foundItem2);
+// }
 
 TEST_F(WorldPersistenceTest, RoundTrip_MultipleAllRaces_AllClasses) {
     World mundo(1, "Tester", registry, configs);
