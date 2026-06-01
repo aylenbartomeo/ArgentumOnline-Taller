@@ -11,6 +11,8 @@ struct OverlayDef {
     int srcW;
     int srcH;
     std::string name;
+    int itemId;
+    bool solid;
 };
 
 const std::vector<OverlayDef>& getOverlayRegistry();

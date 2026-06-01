@@ -182,6 +182,52 @@ TEST(EditorMapTest, RetainsSafeZonesAndNPCsOnLoadAndSave) {
     EXPECT_EQ(parsedOut["npcs"][0]["type"], "merchant");
 }
 
+TEST(EditorMapTest, ToJsonEmitsItemsForRealItemOverlays) {
+    EditorMap map(4, 4, 32, "5108.png", 32);
+    map.setTile(0, 0, 1);
+    map.setTile(1, 2, 5);
+
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+
+    ASSERT_TRUE(out.contains("items"));
+    ASSERT_EQ(out["items"].size(), 1u);
+    EXPECT_EQ(out["items"][0]["id"], 2000);
+    EXPECT_EQ(out["items"][0]["x"], 1);
+    EXPECT_EQ(out["items"][0]["y"], 2);
+    EXPECT_EQ(out["items"][0]["amount"], 1);
+}
+
+TEST(EditorMapTest, ToJsonOmitsItemsWhenOnlySolidOverlayIsPlaced) {
+    EditorMap map(2, 2, 32, "5108.png", 32);
+    map.setTile(0, 0, 1);
+
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+
+    EXPECT_FALSE(out.contains("items"));
+}
+
+TEST(EditorMapTest, ToJsonEmitsObstaclesForSolidOverlays) {
+    EditorMap map(4, 4, 32, "5108.png", 32);
+    map.setTile(0, 0, 1);
+    map.setTile(1, 2, 5);
+
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+
+    ASSERT_TRUE(out.contains("obstacles"));
+    ASSERT_EQ(out["obstacles"].size(), 1u);
+    EXPECT_EQ(out["obstacles"][0]["x"], 0);
+    EXPECT_EQ(out["obstacles"][0]["y"], 0);
+}
+
+TEST(EditorMapTest, ToJsonOmitsObstaclesWhenNoSolidOverlayIsPlaced) {
+    EditorMap map(2, 2, 32, "5108.png", 32);
+    map.setTile(0, 0, 5);
+
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+
+    EXPECT_FALSE(out.contains("obstacles"));
+}
+
 TEST(EditorMapTest, ResizeGrowFillsWithZero) {
     EditorMap map(2, 2, 16, "tilemap_packed.png", 12);
     map.setTile(0, 0, 7);
