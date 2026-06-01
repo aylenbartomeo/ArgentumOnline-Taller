@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "server/src/model/items/Armor.h"
+#include "Armor.h"
 
 class EquipmentComponent;
 

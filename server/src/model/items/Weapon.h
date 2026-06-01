@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+
 #include "Item.h"
 
 class EquipmentComponent;
@@ -20,8 +21,8 @@ private:
 public:
     ~Weapon() override = default;
 
-    Weapon(int id, std::string name, int price, 
-        WeaponType type, int minDamage, int maxDamage, int attackRange = 1, int manaCost = 0);
+    Weapon(int id, std::string name, int price, WeaponType type, int minDamage, int maxDamage,
+           int attackRange = 1, int manaCost = 0);
 
     int getMinDamage() const;
     int getMaxDamage() const;

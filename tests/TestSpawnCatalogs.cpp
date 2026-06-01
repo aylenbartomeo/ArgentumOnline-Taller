@@ -6,9 +6,7 @@
 
 #include "SpawnCatalogs.h"
 
-TEST(SpawnCatalogsTest, MonsterCatalogHasSixEntries) {
-    EXPECT_EQ(getMonsterCatalog().size(), 6u);
-}
+TEST(SpawnCatalogsTest, MonsterCatalogHasSixEntries) { EXPECT_EQ(getMonsterCatalog().size(), 6u); }
 
 TEST(SpawnCatalogsTest, MonsterCatalogReferencesExpectedSheets) {
     const auto& catalog = getMonsterCatalog();
@@ -42,6 +40,4 @@ TEST(SpawnCatalogsTest, CitizenCatalogHasMerchantBankerPriest) {
     EXPECT_EQ(find("priest"), "1910.png");
 }
 
-TEST(SpawnCatalogsTest, ItemCatalogHasAtLeastOneEntry) {
-    EXPECT_GE(getItemCatalog().size(), 1u);
-}
+TEST(SpawnCatalogsTest, ItemCatalogHasAtLeastOneEntry) { EXPECT_GE(getItemCatalog().size(), 1u); }

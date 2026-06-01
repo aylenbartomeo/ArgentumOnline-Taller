@@ -4,8 +4,9 @@
 
 #include "../components/EquipmentComponent.h"
 
-Shield::Shield(const int id, std::string name, const int minDefense, const int maxDefense, const int price):
-    Armor(id, std::move(name), price, minDefense, maxDefense) {}
+Shield::Shield(const int id, std::string name, const int minDefense, const int maxDefense,
+               const int price):
+        Armor(id, std::move(name), price, minDefense, maxDefense) {}
 
 int Shield::getDefense() const { return rollDefense(); }
 

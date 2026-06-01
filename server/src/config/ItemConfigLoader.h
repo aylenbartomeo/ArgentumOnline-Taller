@@ -24,7 +24,7 @@ public:
             const std::filesystem::path& configPath);
 
     static std::unordered_map<std::string, ConsumableConfig> loadConsumableConfigs(
-        const std::filesystem::path& configPath);
+            const std::filesystem::path& configPath);
 
     static ArmorFactory loadArmorFactory(const std::filesystem::path& configPath);
     static WeaponFactory loadWeaponFactory(const std::filesystem::path& configPath);

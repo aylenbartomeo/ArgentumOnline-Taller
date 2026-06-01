@@ -13,7 +13,7 @@ std::unique_ptr<Weapon> WeaponFactory::create(const std::string& itemName) const
     }
 
     const WeaponConfig& itemConfig = config->second;
-    return std::make_unique<Weapon>(itemConfig.id, itemName, itemConfig.price,
-                                    itemConfig.type, itemConfig.minDamage, itemConfig.maxDamage,
+    return std::make_unique<Weapon>(itemConfig.id, itemName, itemConfig.price, itemConfig.type,
+                                    itemConfig.minDamage, itemConfig.maxDamage,
                                     itemConfig.attackRange, itemConfig.manaCost);
 }

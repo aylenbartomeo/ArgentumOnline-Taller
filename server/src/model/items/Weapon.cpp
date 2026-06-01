@@ -6,13 +6,13 @@
 #include "model/FormulaEngine.h"
 
 Weapon::Weapon(int id, std::string name, int price, WeaponType type, int minDamage, int maxDamage,
-         int attackRange, int manaCost) :
-     Item(id, std::move(name), price),
-     minDamage(minDamage),
-     maxDamage(maxDamage),
-     type(type),
-     attackRange(attackRange),
-     manaCost(manaCost) {
+               int attackRange, int manaCost):
+        Item(id, std::move(name), price),
+        minDamage(minDamage),
+        maxDamage(maxDamage),
+        type(type),
+        attackRange(attackRange),
+        manaCost(manaCost) {
 
     // Validate weapon-specific parameters (name is already validated by Item)
     if (minDamage < 0) {

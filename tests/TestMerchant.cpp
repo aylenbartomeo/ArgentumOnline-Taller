@@ -126,7 +126,7 @@ TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
 
     // VALIDACIONES:
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
-    
+
     auto slotOpt = player.inspectSlot(0);
     EXPECT_FALSE(slotOpt.has_value());
 

@@ -10,10 +10,10 @@
 #include <SDL2/SDL.h>
 
 #include "common/include/dto/StartMoveDTO.h"
-#include "OverlayRegistry.h"
 
 #include "CharacterSprites.h"
 #include "HealthBar.h"
+#include "OverlayRegistry.h"
 
 namespace {
 constexpr int TILE_SIZE = 32;
@@ -239,15 +239,15 @@ void Game::renderEntities(const CameraOffset& camera) {
 
     const SDL2pp::Rect barSrc(0, 0, barSheet.GetWidth(), barSheet.GetHeight());
     auto drawHealthBar = [&](const EntityDTO& entity) {
-        const HealthBarLayout bar = computeHealthBar(entity.current_hp, entity.max_hp,
-                                                     entity.x * TILE_SIZE - camera.x,
-                                                     entity.y * TILE_SIZE - camera.y, TILE_SIZE);
+        const HealthBarLayout bar =
+                computeHealthBar(entity.current_hp, entity.max_hp, entity.x * TILE_SIZE - camera.x,
+                                 entity.y * TILE_SIZE - camera.y, TILE_SIZE);
         if (!bar.visible) {
             return;
         }
         renderer.SetDrawColor(20, 20, 20, 255);
-        renderer.FillRect(
-                SDL2pp::Rect(bar.background.x, bar.background.y, bar.background.w, bar.background.h));
+        renderer.FillRect(SDL2pp::Rect(bar.background.x, bar.background.y, bar.background.w,
+                                       bar.background.h));
         if (bar.fill.w > 0) {
             renderer.Copy(barSheet, barSrc,
                           SDL2pp::Rect(bar.fill.x, bar.fill.y, bar.fill.w, bar.fill.h));

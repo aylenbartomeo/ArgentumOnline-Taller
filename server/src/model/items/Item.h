@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 #include <utility>
-#include <stdexcept>
 
 class EquipmentComponent;
 
@@ -14,14 +14,12 @@ private:
     int price;
 
 public:
-    Item(int id, std::string name, int price) : id(id),
-        name(std::move(name)),
-        price(price) {}
+    Item(int id, std::string name, int price): id(id), name(std::move(name)), price(price) {}
     virtual ~Item() = default;
 
-    virtual int getId() const { return id;}
-    virtual const std::string& getName() const {return name;}
-    int getPrice() const {return price;}
+    virtual int getId() const { return id; }
+    virtual const std::string& getName() const { return name; }
+    int getPrice() const { return price; }
 
     virtual bool is_wearable() const { return false; }
 

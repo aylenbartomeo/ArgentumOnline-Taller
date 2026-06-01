@@ -44,6 +44,9 @@ public:
     void run() override;
     void stop() override;
 
+    // Getter para pruebas unitarias
+    World& getWorld() { return this->world; }
+
     GameLoop(const GameLoop&) = delete;
     GameLoop& operator=(const GameLoop&) = delete;
 };

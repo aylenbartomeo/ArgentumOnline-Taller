@@ -245,5 +245,3 @@ ItemFactories ItemConfigLoader::loadItemFactories(const std::filesystem::path& c
             loadConsumableFactory(configPath),
     };
 }
-
-

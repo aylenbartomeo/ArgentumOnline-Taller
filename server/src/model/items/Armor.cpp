@@ -4,7 +4,8 @@
 #include <stdexcept>
 #include <utility>
 
-Armor::Armor(const int id, std::string name, const int price, const int minDefense, const int maxDefense):
+Armor::Armor(const int id, std::string name, const int price, const int minDefense,
+             const int maxDefense):
         Item(id, std::move(name), price), minDefense(minDefense), maxDefense(maxDefense) {}
 
 int Armor::rollDefense() const {

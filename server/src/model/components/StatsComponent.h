@@ -1,19 +1,17 @@
 #pragma once
 #include <algorithm>
 #include <cstdint>
+#include <vector>
 
 #include "../../include/model/FormulaEngine.h"
 #include "../config/CharacterConfig.h"
 
-enum class BoostType {
-    STRENGTH,
-    AGILITY
-};
+enum class BoostType { STRENGTH, AGILITY };
 
 struct TemporaryBoost {
     BoostType type;
-    uint8_t value;           // Cuánto suma (ej: +5)
-    uint32_t timeLeftMs;     // Tiempo restante en milisegundos
+    uint8_t value;        // Cuánto suma (ej: +5)
+    uint32_t timeLeftMs;  // Tiempo restante en milisegundos
 };
 
 class StatsComponent {
@@ -37,9 +35,9 @@ private:
     // Progresión
     uint32_t exp;
     uint16_t level;
-    
+
     // Buffs activos del Player
-    std::vector<TemporaryBoost> activeBoosts; 
+    std::vector<TemporaryBoost> activeBoosts;
     // Método privado auxiliar para recalcular los techos de vida y maná
     void recalculateMaxStats();
 
@@ -52,16 +50,18 @@ public:
     // --- GETTERS ---
     uint8_t getStrength() const {
         uint16_t total = strength;
-        for (const auto& boost : activeBoosts) {
-            if (boost.type == BoostType::STRENGTH) total += boost.value;
+        for (const auto& boost: activeBoosts) {
+            if (boost.type == BoostType::STRENGTH)
+                total += boost.value;
         }
         return static_cast<uint8_t>(total);
     }
 
     uint8_t getAgility() const {
         uint16_t total = agility;
-        for (const auto& boost : activeBoosts) {
-            if (boost.type == BoostType::AGILITY) total += boost.value;
+        for (const auto& boost: activeBoosts) {
+            if (boost.type == BoostType::AGILITY)
+                total += boost.value;
         }
         return static_cast<uint8_t>(total);
     }
@@ -80,8 +80,8 @@ public:
     void addExperience(uint32_t amount);
     void takeDamage(uint16_t amount);
     void heal(uint16_t amount);
-    void setHp(uint16_t newHp) { health = newHp;}
-    void setMana(uint16_t newMana) { mana = newMana;}
+    void setHp(uint16_t newHp) { health = newHp; }
+    void setMana(uint16_t newMana) { mana = newMana; }
     void restoreHp();
     bool consumeMana(uint16_t amount);
     void recoverMana(uint16_t amount);
@@ -89,24 +89,22 @@ public:
 
     // -- Manejo de Boosts --
     void addBoost(BoostType type, uint8_t value, uint32_t durationMs) {
-        for (auto& boost : activeBoosts) {
+        for (auto& boost: activeBoosts) {
             if (boost.type == type) {
                 boost.timeLeftMs = std::max(boost.timeLeftMs, durationMs);
-                boost.value = std::max(boost.value, value); // Mantiene el elixir más fuerte
+                boost.value = std::max(boost.value, value);  // Mantiene el elixir más fuerte
                 return;
             }
         }
         activeBoosts.push_back({type, value, durationMs});
     }
 
-    void clearBoosts() {
-        activeBoosts.clear();
-    }
+    void clearBoosts() { activeBoosts.clear(); }
 
     void updateTicks(uint32_t dtMs) {
-        for (auto it = activeBoosts.begin(); it != activeBoosts.end(); ) {
+        for (auto it = activeBoosts.begin(); it != activeBoosts.end();) {
             if (it->timeLeftMs <= dtMs) {
-                it = activeBoosts.erase(it); // Expira el boost
+                it = activeBoosts.erase(it);  // Expira el boost
             } else {
                 it->timeLeftMs -= dtMs;
                 ++it;

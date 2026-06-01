@@ -153,5 +153,3 @@ TEST(CombatManagerTest, MonsterAttackSuccessful) {
 
     CombatManager::getInstance().processAttack(attacker, target);
 }
-
-

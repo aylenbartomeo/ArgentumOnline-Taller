@@ -693,3 +693,14 @@ bool World::areClanmates(uint32_t playerADbId, uint32_t playerBDbId) const {
     auto clanB = clanRepo.getClanIdOfPlayer(playerBDbId);
     return (clanA && clanB && *clanA == *clanB);
 }
+
+// Obtiene el puntero a un Player del mundo usando su ID de base de datos
+Player* World::getPlayerById(uint32_t dbId) {
+    auto itMap = this->dbIdToEntityId.find(dbId);
+    if (itMap == this->dbIdToEntityId.end())
+        return nullptr;
+    auto it = this->players.find(itMap->second);
+    if (it == this->players.end())
+        return nullptr;
+    return it->second.get();
+}

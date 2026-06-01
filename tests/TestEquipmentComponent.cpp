@@ -192,4 +192,3 @@ TEST_F(EquipmentComponentTest, GetEquippedWeaponMatchesGetWeapon) {
     eq.equipWeapon(&bow);
     EXPECT_EQ(eq.getEquippedWeapon(), eq.getWeapon());
 }
-

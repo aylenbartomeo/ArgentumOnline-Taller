@@ -19,6 +19,8 @@ target_sources(argentum_online_tests
     TestGroundItemLayer.cpp
     TestSafeZoneLayer.cpp
     TestNPCLayer.cpp
+    TestPlayer.cpp
+    TestConsumable.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
     ../server/src/model/map/GroundItemLayer.cpp
