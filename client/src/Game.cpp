@@ -134,13 +134,9 @@ void Game::processChatInput(const FrameInput& input) {
 
     // ¿Es mensaje privado?
     if (auto priv = tryParsePrivateChat(text)) {
-        // Mostrar eco local con prefijo [PM →]
-        miniChat.pushMessage("[PM →" + priv->recipientNick + "] " + priv->message);
         client.sendCommand(*priv);
     } else {
-        // Mensaje broadcast (si el servidor lo implementa en el futuro)
-        // Por ahora también se muestra localmente
-        miniChat.pushMessage("[Tú] " + text);
+        // Mensaje broadcast
         client.sendCommand(ChatDTO{text});
     }
 }
