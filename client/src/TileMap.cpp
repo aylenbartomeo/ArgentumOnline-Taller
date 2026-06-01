@@ -1,6 +1,7 @@
 #include "TileMap.h"
 
 #include <algorithm>
+#include <iterator>
 #include <stdexcept>
 
 #include <nlohmann/json.hpp>
@@ -25,17 +26,22 @@ TileMap::TileMap(const std::string& jsonText) {
     }
 
     if (data.contains("safeZones")) {
-        for (const auto& zone: data.at("safeZones")) {
-            safeZones.push_back({zone.at("x").get<int>(), zone.at("y").get<int>(),
-                                 zone.at("width").get<int>(), zone.at("height").get<int>()});
-        }
+        const auto& zones = data.at("safeZones");
+        std::transform(zones.begin(), zones.end(), std::back_inserter(safeZones),
+                       [](const nlohmann::json& zone) {
+                           return SafeZoneRect{zone.at("x").get<int>(), zone.at("y").get<int>(),
+                                               zone.at("width").get<int>(),
+                                               zone.at("height").get<int>()};
+                       });
     }
 
     if (data.contains("npcs")) {
-        for (const auto& npc: data.at("npcs")) {
-            citizens.push_back({npc.at("type").get<std::string>(), npc.at("x").get<int>(),
-                                npc.at("y").get<int>()});
-        }
+        const auto& npcs = data.at("npcs");
+        std::transform(npcs.begin(), npcs.end(), std::back_inserter(citizens),
+                       [](const nlohmann::json& npc) {
+                           return MapCitizen{npc.at("type").get<std::string>(),
+                                             npc.at("x").get<int>(), npc.at("y").get<int>()};
+                       });
     }
 }
 

@@ -12,14 +12,14 @@
 class TradeHandler: public NpcCommandHandler {
 private:
     const ItemRegistry& registry;
-    std::unordered_map<uint32_t, int>& npcStock; // Stock del NPC: itemId -> cantidad disponible
+    std::unordered_map<uint32_t, int>& npcStock;  // Stock del NPC: itemId -> cantidad disponible
     bool allowsSell;  // true: Merchant (compra/vende), false: Priest (solo vende)
-    std::function<bool(const Item*)> isItemPermitted; // Indica si el elemento lo comercia el NPC
+    std::function<bool(const Item*)> isItemPermitted;  // Indica si el elemento lo comercia el NPC
 
 public:
-    TradeHandler(const ItemRegistry& registry, std::unordered_map<uint32_t, int>& stock,
-                 bool allowsSell,
-                std::function<bool(const Item*)> filter = [](const Item*) { return true; }):
+    TradeHandler(
+            const ItemRegistry& registry, std::unordered_map<uint32_t, int>& stock, bool allowsSell,
+            std::function<bool(const Item*)> filter = [](const Item*) { return true; }):
             registry(registry), npcStock(stock), allowsSell(allowsSell), isItemPermitted(filter) {}
 
     InteractionResult execute(Player& player, const NpcCommandDTO& dto) override {
@@ -47,7 +47,7 @@ public:
             result.msg = "Este tipo de artículo no se comercia en este establecimiento.";
             return result;
         }
-        
+
         uint32_t unitPrice = itemDef->getPrice();
         if (dto.type == NpcCommandType::BUY) {
             auto it = npcStock.find(itemId);

@@ -17,4 +17,3 @@ const std::vector<CitizenCatalogEntry>& getCitizenCatalog() {
     };
     return catalog;
 }
-
