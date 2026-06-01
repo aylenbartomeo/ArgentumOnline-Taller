@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "../include/model/ServerEvents.h"
+#include "config/CharacterConfig.h"
 #include "dto/ClientCommands.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
@@ -18,6 +19,8 @@
 #include "model/entities/GlobalBank.h"
 #include "model/entities/Monster.h"
 #include "model/entities/Player.h"
+#include "model/items/ItemRegistry.h"
+#include "persistence/PlayerDataStore.h"
 
 #include "Map.h"
 #include "queue.h"
@@ -28,7 +31,6 @@ struct WorldEvent {
     uint32_t targetDbId;
     std::string message;
 };
-class ItemRegistry;
 
 class World: public IWorldContext {
 private:
@@ -53,6 +55,8 @@ private:
     ClanController clanController;
     bool enforceFairPlay = true;  // Regla de mundo: Modo arena
 
+    CharacterConfigs characterConfigs;
+
     // Busca un Attackable por ID (busca en players y luego en monsters)
     Attackable* findAttackable(uint32_t id);
     // Busca un interactable por ID
@@ -66,7 +70,7 @@ private:
 
 public:
     explicit World(int worldId, const std::string& creatorPlayerName,
-                   const ItemRegistry& itemRegistry);
+                   const ItemRegistry& itemRegistry, const CharacterConfigs& configs);
 
     // Métodos lógicos: Entrar y salir del mundo virtual
     bool addPlayer(uint32_t playerId, std::string& username,

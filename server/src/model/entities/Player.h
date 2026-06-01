@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "../../../../common/include/dto/CommandDTO.h"
+#include "../../common/utils/types.h"
 #include "../combat/CombatManager.h"
 #include "../components/EquipmentComponent.h"
 #include "../components/InventoryComponent.h"
@@ -33,10 +34,9 @@ private:
     RegenerationComponent regeneration;
     const ItemRegistry* itemRegistry;  // Puntero para permitir nullptr en tests
 public:
-    Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
-           CharacterClass charClass, const RaceConfig& raceConf,
-           const CharacterClassConfig& classConf, const PlayerConfig& playerBase,
-           const ItemRegistry& itemRegistry, const Position& spawn);
+    Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race, CharacterClass cls,
+           const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,
+           const PlayerConfig& playerBase, const ItemRegistry& itemRegistry, const Position& spawn);
 
     // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
     // de valores random (no requiere ItemRegistry)
@@ -90,6 +90,8 @@ public:
     bool consumeMana(int amount) { return stats.consumeMana(static_cast<uint16_t>(amount)); }
     void restoreHp() { stats.restoreHp(); }
     void restoreMana() { stats.restoreMana(); }
+    Race getRace() const { return stats.getRace(); }
+    CharacterClass getCharacterClass() const { return stats.getCharacterClass(); }
 
     // Inventory
     InventoryComponent& getInventory() { return this->inventory; }
@@ -126,10 +128,6 @@ public:
     bool canAttack() const { return this->state.canAttack(); }
     bool canBeAttacked() const override { return this->state.canBeAttacked(); }
     void handleDeath() override;
-
-    // capacidad de volcar su estado actual hacia el DTO de persistencia, y viceversa.
-    PlayerPersistData toPersistData() const;
-    void restoreFromPersistData(const PlayerPersistData& data);
 
     void resurrect();
 };

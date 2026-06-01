@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdint>
 
+#include "../../common/utils/types.h"
 #include "../../include/model/FormulaEngine.h"
 #include "../config/CharacterConfig.h"
 
@@ -12,9 +13,6 @@ private:
     const FormulaEngine& formulaEngine;
     RaceConfig raceConfig;
     CharacterClassConfig classConfig;
-
-    Race race;
-    CharacterClass charClass;
 
     // Atributos principales
     uint8_t strength;      // Fuerza
@@ -32,13 +30,21 @@ private:
     uint32_t exp;
     uint16_t level;
 
+    Race race;
+    CharacterClass characterClass;
+
     // Método privado auxiliar para recalcular los techos de vida y maná
     void recalculateMaxStats();
 
 public:
     // Constructor completo basado en tu nueva lista de atributos
-    StatsComponent(const RaceConfig& raceConf, const CharacterClassConfig& classConfig,
-                   const PlayerConfig& playerBase, Race race, CharacterClass charClass,
+    StatsComponent(Race raceEnum, CharacterClass classEnum, const RaceConfig& race,
+                   const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
+                   const FormulaEngine& engine = FormulaEngine::getInstance());
+
+    // Constructor de test: mantiene compatibilidad sin enums
+    StatsComponent(const RaceConfig& race, const CharacterClassConfig& characterClass,
+                   const PlayerConfig& playerBase,
                    const FormulaEngine& engine = FormulaEngine::getInstance());
 
     // --- GETTERS ---
@@ -62,8 +68,9 @@ public:
     bool consumeMana(uint16_t amount);
     void recoverMana(uint16_t amount);
 
-    Race getRace() const { return this->race; }
-    CharacterClass getCharClass() const { return this->charClass; }
+    Race getRace() const { return race; }
+    CharacterClass getCharacterClass() const { return characterClass; }
+
 
     // --- Restauracion desde persistencia ---
     void restoreFromPersist(uint16_t savedHp, uint16_t savedMana, uint32_t savedExp,

@@ -7,13 +7,15 @@
 #include "dto/ClanCommandDTO.h"
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
-                   const std::filesystem::path& configPath, const std::string& persistenceDir):
+                   const std::filesystem::path& configDir, const std::string& persistenceDir):
         isRunning(true),
         gameQueue(gameQueue),
         monitor(monitor),
-        itemRegistry(configPath),
+        itemRegistry(configDir / "items.toml"),
         playerDataStore(persistenceDir),
-        world(1, "Server", itemRegistry) {
+        characterConfigs(
+                CharacterConfigLoader::loadCharacterConfigs(configDir / "characters.toml")),
+        world(1, "Server", itemRegistry, characterConfigs) {
     world.loadMap("maps/defaultMap.json");
 }
 
@@ -64,6 +66,10 @@ void GameLoop::processInputs() {
             std::cout << "[GAMELOOP] Player joined: " << joinData.username << std::endl;
 
             auto savedData = playerDataStore.loadPlayerData(joinData.username);
+            std::optional<Position> savedPos = std::nullopt;
+            if (savedData.has_value()) {
+                savedPos = Position{savedData->posX, savedData->posY};
+            }
             world.addPlayer(joinData.clientId, joinData.username, savedData);
 
             // 2. Un jugador se desconecta
@@ -145,7 +151,6 @@ void GameLoop::persistOnlinePlayers() {
     for (uint32_t dbId: dbIds) {
         auto username = world.getPlayerUsername(dbId);
         auto persistData = world.getPlayerPersistData(dbId);
-
         if (username.has_value() && persistData.has_value()) {
             playerDataStore.savePlayerData(username.value(), persistData.value());
         }

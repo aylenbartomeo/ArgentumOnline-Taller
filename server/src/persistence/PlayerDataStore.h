@@ -8,52 +8,31 @@
 
 #include "../../common/utils/position.h"
 #include "../../common/utils/types.h"
-
-static constexpr size_t MAX_INVENTORY_SLOTS = 20;
-
-// Slot de inventario persistente (ID de item + cantidad)
-struct PersistedSlot {
-    uint32_t itemId{0};
-    uint32_t amount{0};
-};
-
-
-// Struct de tamaño fijo para persistencia binaria. (512 bytes)
+// Struct de tamaño fijo para persistencia binaria.
+// El tamaño se fija a 128 bytes para permitir expansión futura.
+#pragma pack(push, 1)
 struct PlayerPersistData {
     // Ubicacion e identidad
     uint32_t dbId;
     int32_t posX;
     int32_t posY;
-
-    // Estadisticas
-    uint32_t level{1};
-    uint32_t exp{0};
-    uint32_t hp{0};
-    uint32_t maxHp{0};
-    uint32_t mana{0};
-    uint32_t maxMana{0};
-    uint32_t gold{0};
-
-    // Identidad y Estado
-    uint32_t race{0};
-    uint32_t charClass{0};
-    bool isGhost{false};
-    char padding[3]{0, 0, 0};
-
-    // Inventario
-    PersistedSlot inventory[MAX_INVENTORY_SLOTS]{};
-
-    //  Equipamiento
-    uint32_t equippedWeapon{0};
-    uint32_t equippedArmor{0};
-    uint32_t equippedShield{0};
-    uint32_t equippedHelmet{0};
-
-    // Espacio reservado para expansión futura (Banco, stats de combate extra, clan Id, etc.)
-    char reserved[284]{0};
+    uint16_t hp;
+    uint16_t mana;
+    uint16_t level;
+    uint32_t exp;
+    uint32_t gold;
+    uint8_t stateId;
+    uint8_t race;
+    uint8_t characterClass;
+    uint8_t inventorySize;
+    struct SlotData {
+        uint32_t item_id;
+        uint16_t amount;
+    } inventory[16];
+    uint8_t _pad[2];
 };
-
-static_assert(sizeof(PlayerPersistData) == 512, "PlayerPersistData must be exactly 512 bytes");
+#pragma pack(pop)
+static_assert(sizeof(PlayerPersistData) == 128, "PlayerPersistData must be 128 bytes");
 
 class PlayerDataStore {
 private:
