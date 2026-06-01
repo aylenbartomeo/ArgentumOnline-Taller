@@ -11,6 +11,7 @@
 
 #include <SDL2/SDL.h>
 
+#include "common/include/dto/ClientCommands.h"
 #include "common/include/dto/StartMoveDTO.h"
 
 #include "CharacterSprites.h"
@@ -22,6 +23,8 @@ constexpr int TILE_SIZE = 32;
 constexpr int WINDOW_WIDTH = 640;
 constexpr int WINDOW_HEIGHT = 480;
 constexpr Uint32 MOVE_INTERVAL_MS = 200;
+
+constexpr const char* CHAT_FONT_PATH = "resources/fonts/DejaVuSans.ttf";
 
 constexpr const char* RESOURCES_DIR = "resources/";
 constexpr int CHARACTER_FRAME_X = 2;
@@ -69,6 +72,21 @@ std::string readWholeFile(const std::string& path) {
     buffer << file.rdbuf();
     return buffer.str();
 }
+
+// Parsea "@nick mensaje" → PrivateChatDTO. Retorna nullopt si no es privado.
+std::optional<PrivateChatDTO> tryParsePrivateChat(const std::string& text) {
+    if (text.empty() || text[0] != '@')
+        return std::nullopt;
+    const auto space = text.find(' ', 1);
+    if (space == std::string::npos || space == 1)
+        return std::nullopt;
+    PrivateChatDTO dto;
+    dto.recipientNick = text.substr(1, space - 1);
+    dto.message = text.substr(space + 1);
+    if (dto.message.empty())
+        return std::nullopt;
+    return dto;
+}
 }  // namespace
 
 Game::Game(Client& client):
@@ -78,6 +96,7 @@ Game::Game(Client& client):
         client(client),
         textures(window.getRenderer()),
         map(readWholeFile("maps/defaultMap.json")),
+        miniChat(CHAT_FONT_PATH),
         lastSnapshot(),
         lastMoveSentMs(0) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
@@ -90,13 +109,46 @@ void Game::run() {
         if (input.quit) {
             break;
         }
+        drainIncomingChat();
+        processChatInput(input);
         sendMoveIfDue(input);
-        render();
+        render(input);
         SDL_Delay(16);
     }
 }
 
+void Game::drainIncomingChat() {
+    ChatDTO chat;
+    while (client.tryPopChatMessage(chat)) {
+        miniChat.pushMessage(chat.message);
+    }
+}
+
+void Game::processChatInput(const FrameInput& input) {
+    if (!input.chatSubmitted)
+        return;
+
+    const std::string& text = input.chatText;
+    if (text.empty())
+        return;
+
+    // ¿Es mensaje privado?
+    if (auto priv = tryParsePrivateChat(text)) {
+        // Mostrar eco local con prefijo [PM →]
+        miniChat.pushMessage("[PM →" + priv->recipientNick + "] " + priv->message);
+        client.sendCommand(*priv);
+    } else {
+        // Mensaje broadcast (si el servidor lo implementa en el futuro)
+        // Por ahora también se muestra localmente
+        miniChat.pushMessage("[Tú] " + text);
+        client.sendCommand(ChatDTO{text});
+    }
+}
+
 void Game::sendMoveIfDue(const FrameInput& input) {
+    if (input.chatInputActive)
+        return;
+
     const Uint32 now = SDL_GetTicks();
     if (now - lastMoveSentMs < MOVE_INTERVAL_MS) {
         return;
@@ -118,7 +170,7 @@ void Game::sendMoveIfDue(const FrameInput& input) {
     }
 }
 
-void Game::render() {
+void Game::render(const FrameInput& input) {
     SnapshotDTO incoming;
     while (client.tryPopSnapshot(incoming)) {
         lastSnapshot = incoming;
@@ -134,19 +186,24 @@ void Game::render() {
     renderCitizens(camera);
     renderEntities(camera);
 
+    // MiniChat superpuesto
+    miniChat.render(renderer.Get(), WINDOW_WIDTH, WINDOW_HEIGHT, input.chatInputActive,
+                    input.chatText);
+
     renderer.Present();
 }
 
 CameraOffset Game::computeCamera() {
     const uint32_t myId = client.getClientId();
-    int focusX = 0;
-    int focusY = 0;
+    int focusX = 0, focusY = 0;
     auto it = std::find_if(lastSnapshot.players.begin(), lastSnapshot.players.end(),
                            [myId](const EntityDTO& entity) { return entity.id == myId; });
+
     if (it != lastSnapshot.players.end()) {
         focusX = it->x * TILE_SIZE + TILE_SIZE / 2;
         focusY = it->y * TILE_SIZE + TILE_SIZE / 2;
     }
+
     return computeCameraOffset(focusX, focusY, WINDOW_WIDTH, WINDOW_HEIGHT,
                                map.getWidth() * TILE_SIZE, map.getHeight() * TILE_SIZE);
 }
@@ -182,11 +239,11 @@ void Game::renderCitizens(const CameraOffset& camera) {
 }
 
 bool Game::cellInSafeZone(int col, int row) const {
-    const auto& zones = map.getSafeZones();
-    return std::any_of(zones.begin(), zones.end(), [col, row](const SafeZoneRect& zone) {
-        return col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
-               row < zone.y + zone.height;
-    });
+    return std::any_of(map.getSafeZones().begin(), map.getSafeZones().end(),
+                       [col, row](const SafeZoneRect& zone) {
+                           return col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
+                                  row < zone.y + zone.height;
+                       });
 }
 
 void Game::renderOverlays(const CameraOffset& camera) {

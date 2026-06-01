@@ -122,6 +122,41 @@ void GameLoop::processInputs() {
             } else if (std::holds_alternative<ClanCommandDTO>(pCmd.command)) {
                 ClanCommandDTO clanCmd = std::get<ClanCommandDTO>(pCmd.command);
                 world.processClanCommand(pCmd.clientId, clanCmd);
+            } else if (std::holds_alternative<ChatDTO>(pCmd.command)) {
+                // Por ahora: broadcast a todos (chat general).
+                const std::string& msg = std::get<ChatDTO>(pCmd.command).message;
+                auto senderName = world.getPlayerUsername(pCmd.clientId);
+                if (senderName.has_value()) {
+                    ChatDTO broadcast;
+                    broadcast.message = "[" + senderName.value() + "] " + msg;
+                    monitor.broadcastChat(broadcast);
+                }
+
+            } else if (std::holds_alternative<PrivateChatDTO>(pCmd.command)) {
+                const PrivateChatDTO& priv = std::get<PrivateChatDTO>(pCmd.command);
+                auto senderName = world.getPlayerUsername(pCmd.clientId);
+                if (!senderName.has_value())
+                    return;
+
+                // Resolver nick destinatario → dbId
+                uint32_t recipientId = world.resolveNickToDbId(priv.recipientNick);
+                if (recipientId == 0) {
+                    // Destinatario no encontrado: avisar al remitente
+                    ChatDTO err;
+                    err.message = "[Server] Usuario '" + priv.recipientNick + "' no encontrado.";
+                    monitor.sendToClient(pCmd.clientId, err);
+                    return;
+                }
+
+                // Enviar al destinatario
+                ChatDTO toRecipient;
+                toRecipient.message = "[PM de " + senderName.value() + "] " + priv.message;
+                monitor.sendToClient(recipientId, toRecipient);
+
+                // Confirmar al remitente
+                ChatDTO toSender;
+                toSender.message = "[PM → " + priv.recipientNick + "] " + priv.message;
+                monitor.sendToClient(pCmd.clientId, toSender);
             }
         }
     }
