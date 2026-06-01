@@ -1,5 +1,4 @@
-#ifndef WEAPON_H
-#define WEAPON_H
+#pragma once
 
 #include <cstdint>
 #include <string>
@@ -13,10 +12,8 @@ enum class WeaponType { MELEE, RANGED, MAGIC };
 
 class Weapon: public Item {
 private:
-    int id;
     int minDamage;
     int maxDamage;
-    std::string name;
     WeaponType type;
     int attackRange;
     int manaCost;
@@ -24,12 +21,12 @@ private:
 public:
     ~Weapon() override = default;
 
-    Weapon(int id, const std::string& name, int minDamage, int maxDamage, WeaponType type,
-           int attackRange, int manaCost = 0);
-    int getId() const override;
+    Weapon(int id, std::string name, int price, WeaponType type, int minDamage, int maxDamage,
+           int attackRange = 1, int manaCost = 0);
+
+    bool isMagic() const override;
     int getMinDamage() const;
     int getMaxDamage() const;
-    const std::string& getName() const override;
     WeaponType getType() const;
     int getAttackRange() const;
     int getManaCost() const;
@@ -37,5 +34,3 @@ public:
     bool is_wearable() const override { return true; }
     uint32_t equip_on(EquipmentComponent& equipment) const override;
 };
-
-#endif

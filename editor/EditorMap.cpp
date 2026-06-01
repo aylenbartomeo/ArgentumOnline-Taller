@@ -61,8 +61,8 @@ EditorMap::EditorMap(const std::string& jsonText) {
 
     if (data.contains("monsters")) {
         for (const auto& monster: data.at("monsters")) {
-            monsters.push_back({monster.at("type").get<std::string>(),
-                                monster.at("x").get<int>(), monster.at("y").get<int>()});
+            monsters.push_back({monster.at("type").get<std::string>(), monster.at("x").get<int>(),
+                                monster.at("y").get<int>()});
         }
     }
 }
@@ -79,10 +79,8 @@ std::string EditorMap::toJson() const {
     if (!safeZones.empty()) {
         nlohmann::json zonesJson = nlohmann::json::array();
         for (const auto& zone: safeZones) {
-            nlohmann::json zoneJson = {{"x", zone.x},
-                                       {"y", zone.y},
-                                       {"width", zone.width},
-                                       {"height", zone.height}};
+            nlohmann::json zoneJson = {
+                    {"x", zone.x}, {"y", zone.y}, {"width", zone.width}, {"height", zone.height}};
             if (!zone.name.empty()) {
                 zoneJson["name"] = zone.name;
             }
@@ -94,8 +92,7 @@ std::string EditorMap::toJson() const {
     if (!citizens.empty()) {
         nlohmann::json citizensJson = nlohmann::json::array();
         for (const auto& citizen: citizens) {
-            citizensJson.push_back(
-                    {{"type", citizen.type}, {"x", citizen.x}, {"y", citizen.y}});
+            citizensJson.push_back({{"type", citizen.type}, {"x", citizen.x}, {"y", citizen.y}});
         }
         data["npcs"] = citizensJson;
     }
@@ -103,12 +100,22 @@ std::string EditorMap::toJson() const {
     if (!monsters.empty()) {
         nlohmann::json monstersJson = nlohmann::json::array();
         for (const auto& monster: monsters) {
-            monstersJson.push_back(
-                    {{"type", monster.type}, {"x", monster.x}, {"y", monster.y}});
+            monstersJson.push_back({{"type", monster.type}, {"x", monster.x}, {"y", monster.y}});
         }
         data["monsters"] = monstersJson;
     }
 
+<<<<<<< HEAD
+    if (!items.empty()) {
+        nlohmann::json itemsJson = nlohmann::json::array();
+        for (const auto& item: items) {
+            itemsJson.push_back({{"itemId", item.itemId}, {"x", item.x}, {"y", item.y}});
+        }
+        data["items"] = itemsJson;
+    }
+
+=======
+>>>>>>> develop
     data["tiles"] = tiles;
     return data.dump(4);
 }

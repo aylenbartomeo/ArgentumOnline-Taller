@@ -2,6 +2,11 @@
 
 const std::vector<OverlayDef>& getOverlayRegistry() {
     static const std::vector<OverlayDef> registry = {
+<<<<<<< HEAD
+            {"5137.png", 604, 283, 39, 35}, {"5137.png", 707, 221, 25, 35},
+            {"5137.png", 703, 358, 27, 25}, {"5137.png", 805, 230, 18, 25},
+            {"5137.png", 607, 232, 34, 23},
+=======
             {"5137.png", 604, 283, 39, 35, "Caja"},
             {"5137.png", 707, 221, 25, 35, "Barril"},
             {"5137.png", 703, 358, 27, 25, "Tonel"},
@@ -28,6 +33,7 @@ const std::vector<OverlayDef>& getOverlayRegistry() {
             {"101.png", 232, 41, 14, 13, "Sombrero magico"},
             {"102.png", 288, 64, 32, 32, "Escudo de tortuga"},
             {"112.png", 578, 128, 28, 32, "Escudo de hierro"},
+>>>>>>> develop
     };
     return registry;
 }

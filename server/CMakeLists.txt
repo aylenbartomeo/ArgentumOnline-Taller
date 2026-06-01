@@ -36,6 +36,7 @@ target_sources(argentum_online_server
     src/model/items/Helmet.cpp
     src/model/items/Shield.cpp
     src/model/items/Weapon.cpp  
+    src/model/items/ConsumableFactory.cpp
     src/model/items/WeaponFactory.cpp
     src/model/items/ItemRegistry.cpp 
 
@@ -106,6 +107,8 @@ target_sources(argentum_online_server
     src/model/items/Item.h
     src/model/items/ItemRegistry.h
     src/model/items/Shield.h
+    src/model/items/Consumable.h
+    src/model/items/ConsumableFactory.h
     src/model/items/Weapon.h
     src/model/items/WeaponFactory.h
     

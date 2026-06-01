@@ -250,9 +250,7 @@ Palette& Editor::activePalette() {
     }
 }
 
-const Palette& Editor::activePalette() const {
-    return const_cast<Editor*>(this)->activePalette();
-}
+const Palette& Editor::activePalette() const { return const_cast<Editor*>(this)->activePalette(); }
 
 void Editor::drawGrass(int dstX, int dstY, int dstSize) {
     SDL2pp::Texture& tex = textures.get(GRASS_SHEET_PATH);
@@ -503,8 +501,8 @@ void Editor::renderPanel() {
                 switch (b.tool) {
                     case Tool::OVERLAY:
                         drawGrass(b.x + 4, b.y + 2, b.h - 4);
-                        drawOverlay(overlayReg[overlayPalette.getSelectedTile()], b.x + 4,
-                                    b.y + 2, b.h - 4);
+                        drawOverlay(overlayReg[overlayPalette.getSelectedTile()], b.x + 4, b.y + 2,
+                                    b.h - 4);
                         break;
                     case Tool::MONSTER:
                         drawGrass(b.x + 4, b.y + 2, b.h - 4);
@@ -594,14 +592,12 @@ void Editor::renderStatusBar() {
         }
         case Tool::MONSTER:
             drawGrass(x0, y0, iconSize);
-            drawMonsterFromCatalog(monsterCat[monsterPalette.getSelectedTile()], x0, y0,
-                                   iconSize);
+            drawMonsterFromCatalog(monsterCat[monsterPalette.getSelectedTile()], x0, y0, iconSize);
             selectedName = monsterCat[monsterPalette.getSelectedTile()].type;
             break;
         case Tool::CITIZEN:
             drawGrass(x0, y0, iconSize);
-            drawCitizenFromCatalog(citizenCat[citizenPalette.getSelectedTile()], x0, y0,
-                                   iconSize);
+            drawCitizenFromCatalog(citizenCat[citizenPalette.getSelectedTile()], x0, y0, iconSize);
             selectedName = citizenCat[citizenPalette.getSelectedTile()].type;
             break;
         case Tool::OVERLAY:
