@@ -41,9 +41,11 @@ TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
 
     // Intentamos comprar la "Espada" (ID: 4001 de tu TOML)
     NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "4001");
-    comerciante.handleCommand(player, cmd);
+    InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES:
+    // 0. Verificamos que la compra fue exitosa
+    EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
     // 1. Se debitó el oro del inventario (500 - 100 de unitPrice base = 400)
     EXPECT_EQ(player.getGold(), 400u);
 
@@ -73,9 +75,11 @@ TEST(MerchantTest, Merchant_BuyWithFullInventoryDoesNotStealGold) {
 
     // Intentamos comprar la Espada (4001)
     NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "4001");
-    comerciante.handleCommand(player, cmd);
+    InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES CRÍTICAS:
+    // 0. Verificamos que la compra fue rechazada
+    EXPECT_EQ(res.status, InteractionStatus::FAILURE);
     // 1. ¡Rollback exitoso! El oro debe permanecer en 200 de forma segura
     EXPECT_EQ(player.getGold(), 200u);
 }
@@ -91,8 +95,10 @@ TEST(MerchantTest, Merchant_RejectsMagicItemsBasedOnName) {
     player.addGold(300);
 
     NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "6003");  // Baculo nudoso
-    comerciante.handleCommand(player, cmd);
+    InteractionResult res = comerciante.handleCommand(player, cmd);
 
+    // 0. Verificamos que la compra fue rechazada por filtro de magia
+    EXPECT_EQ(res.status, InteractionStatus::FAILURE);
     // 1. Verificamos que no se le haya descontado un solo centavo de oro
     EXPECT_EQ(player.getGold(), 300u);
 
@@ -118,9 +124,11 @@ TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
 
     // Ejecutamos el comando de venta de la armadura
     NpcCommandDTO cmd = createTestCommand(NpcCommandType::SELL, "1001");
-    comerciante.handleCommand(player, cmd);
+    InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES:
+    // 0. Verificamos que la venta fue exitosa
+    EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
     // 1. El slot de la mochila quedó limpio (devuelve nullopt)
     auto slotOpt = player.inspectSlot(0);
     EXPECT_FALSE(slotOpt.has_value());

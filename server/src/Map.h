@@ -28,6 +28,11 @@ struct MapElement {
     MapElementType type;
 };
 
+struct MapMonsterSpawn {
+    NPCType type;
+    Position pos;
+};
+
 class Map {
 private:
     int width, height;
@@ -35,6 +40,7 @@ private:
     GroundItemLayer groundItems;
     SafeZoneLayer safeZones;
     NPCLayer npcs;
+    std::vector<MapMonsterSpawn> monsterSpawns;
     std::pair<float, float> spawn_point;
     CollisionLayer collisionLayer;
     // Area initArea(const int x, const int y, const int weight, const int height);
@@ -78,6 +84,9 @@ public:
     uint32_t addNPC(NPCType type, const Position& pos);
     std::optional<NPCSpawn> findNPCNear(const Position& pos, int range) const;
     const std::vector<NPCSpawn>& getAllNPCs() const;
+
+    /* Monstruos cargados desde el mapa */
+    const std::vector<MapMonsterSpawn>& getMonsterSpawns() const;
 
     /* Expone los elementos para que el GameLoop arme los snapshots compartidos */
     const std::vector<MapElement>& getElements() const;

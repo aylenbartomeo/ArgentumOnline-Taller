@@ -2,14 +2,14 @@
 
 #include <algorithm>
 
-Toolbar::Toolbar(): activeTool(Tool::PINCEL) {}
+Toolbar::Toolbar(): activeTool(Tool::OVERLAY) {}
 
 void Toolbar::addToolButton(int x, int y, int w, int h, Tool tool) {
     buttons.push_back({x, y, w, h, ToolbarAction::TOOL_CHANGED, tool});
 }
 
 void Toolbar::addActionButton(int x, int y, int w, int h, ToolbarAction action) {
-    buttons.push_back({x, y, w, h, action, Tool::PINCEL});
+    buttons.push_back({x, y, w, h, action, Tool::OVERLAY});
 }
 
 ToolbarAction Toolbar::handleClick(int x, int y) {

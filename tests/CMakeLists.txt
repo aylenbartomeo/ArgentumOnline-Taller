@@ -48,6 +48,7 @@ target_sources(argentum_online_tests
     ../server/src/model/items/ArmorFactory.cpp
     ../server/src/model/items/WeaponFactory.cpp
     ../server/src/config/ItemConfigLoader.cpp
+    ../server/src/config/MonsterConfigLoader.cpp
     ../server/src/auth/AuthManager.cpp
     ../server/src/persistence/PlayerDataStore.cpp
     TestPlayerDataStore.cpp
@@ -56,6 +57,12 @@ target_sources(argentum_online_tests
     ../server/src/model/clan/ClanService.cpp
     ../server/src/model/clan/ClanController.cpp
     ../client/src/TileMap.cpp
+    TestHealthBar.cpp
+    ../client/src/HealthBar.cpp
+    TestViewport.cpp
+    ../client/src/Viewport.cpp
+    TestCharacterSprites.cpp
+    ../client/src/CharacterSprites.cpp
     TestEditorMap.cpp
     ../editor/EditorMap.cpp
     TestCamera.cpp
@@ -64,6 +71,8 @@ target_sources(argentum_online_tests
     ../editor/Palette.cpp
     TestToolbar.cpp
     ../editor/Toolbar.cpp
+    TestSpawnCatalogs.cpp
+    ../editor/SpawnCatalogs.cpp
 )
 
 target_include_directories(argentum_online_tests PRIVATE

@@ -14,15 +14,23 @@ Merchant::Merchant(uint32_t id, Position pos, const ItemRegistry& registry):
     commandHandlers[NpcCommandType::SELL] = std::make_unique<TradeHandler>(registry, stock, true);
 }
 
-void Merchant::beInteractedBy(Player& player) {
-    if (player.isDead())
-        return;
-    // TODO: Abrir interfaz de la grilla de la tienda
+InteractionResult Merchant::beInteractedBy(Player& player) {
+    InteractionResult result;
+    if (player.isDead()) {
+        result.msg = "[MERCHANT] Si estas muerto, no me podes comprar nada joven viajero. Pedile "
+                     "ayuda al sacerdote";
+    } else {
+        result.msg = "[MERCHANT] Saludos, viajero. ¿Lo puedo ayudar con algo?";
+    }
+    return result;
 }
 
-void Merchant::handleCommand(Player& player, const NpcCommandDTO& dto) {
+InteractionResult Merchant::handleCommand(Player& player, const NpcCommandDTO& dto) {
     auto it = commandHandlers.find(dto.type);
     if (it != commandHandlers.end()) {
-        it->second->execute(player, dto);
+        return it->second->execute(player, dto);
     }
+    InteractionResult fallbackResult;
+    fallbackResult.status = InteractionStatus::UNHANDLED;
+    return fallbackResult;
 }

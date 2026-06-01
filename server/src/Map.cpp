@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <fstream>
+#include <optional>
 #include <utility>
 
 #include <nlohmann/json.hpp>
@@ -94,8 +95,33 @@ bool Map::loadSpawnFromJson(const std::string& path) {
         }
     }
 
+    if (data.contains("monsters")) {
+        for (const auto& monster: data["monsters"]) {
+            std::string typeStr = monster["type"].get<std::string>();
+            std::optional<NPCType> type;
+            if (typeStr == "goblin")
+                type = NPCType::GOBLIN;
+            else if (typeStr == "skeleton")
+                type = NPCType::SKELETON;
+            else if (typeStr == "zombie")
+                type = NPCType::ZOMBIE;
+            else if (typeStr == "spider")
+                type = NPCType::SPIDER;
+            else if (typeStr == "orc")
+                type = NPCType::ORC;
+            else if (typeStr == "golem")
+                type = NPCType::GOLEM;
+            if (!type)
+                continue;
+            Position pos{monster["x"].get<int>(), monster["y"].get<int>()};
+            monsterSpawns.push_back({*type, pos});
+        }
+    }
+
     return true;
 }
+
+const std::vector<MapMonsterSpawn>& Map::getMonsterSpawns() const { return monsterSpawns; }
 
 int Map::heightLimit() const { return this->height; }
 

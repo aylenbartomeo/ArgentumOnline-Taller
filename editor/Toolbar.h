@@ -3,17 +3,9 @@
 
 #include <vector>
 
-enum class Tool { PINCEL, SPAWN };
+enum class Tool { OVERLAY, MONSTER, CITIZEN, ERASER, SPAWN };
 
-enum class ToolbarAction {
-    NONE,
-    TOOL_CHANGED,
-    SAVE,
-    WIDTH_PLUS,
-    WIDTH_MINUS,
-    HEIGHT_PLUS,
-    HEIGHT_MINUS
-};
+enum class ToolbarAction { NONE, TOOL_CHANGED, SAVE };
 
 class Toolbar {
 public:

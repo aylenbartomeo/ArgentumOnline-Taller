@@ -9,6 +9,7 @@
 #include "EventHandler.h"
 #include "TextureManager.h"
 #include "TileMap.h"
+#include "Viewport.h"
 #include "Window.h"
 
 class Game {
@@ -36,8 +37,12 @@ public:
 
 private:
     void render();
-    void renderTerrain();
-    void renderEntities();
+    void renderTerrain(const CameraOffset& camera);
+    void renderOverlays(const CameraOffset& camera);
+    void renderCitizens(const CameraOffset& camera);
+    bool cellInSafeZone(int col, int row) const;
+    void renderEntities(const CameraOffset& camera);
+    CameraOffset computeCamera();
     void sendMoveIfDue(const FrameInput& input);
 };
 

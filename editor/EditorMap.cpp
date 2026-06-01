@@ -41,15 +41,29 @@ EditorMap::EditorMap(const std::string& jsonText) {
     }
 
     if (data.contains("safeZones")) {
-        safeZonesData = data.at("safeZones");
-    } else {
-        safeZonesData = nlohmann::json::array();
+        for (const auto& zone: data.at("safeZones")) {
+            EditorSafeZone safeZone;
+            safeZone.name = zone.value("name", std::string(""));
+            safeZone.x = zone.at("x").get<int>();
+            safeZone.y = zone.at("y").get<int>();
+            safeZone.width = zone.at("width").get<int>();
+            safeZone.height = zone.at("height").get<int>();
+            safeZones.push_back(safeZone);
+        }
     }
 
     if (data.contains("npcs")) {
-        npcsData = data.at("npcs");
-    } else {
-        npcsData = nlohmann::json::array();
+        for (const auto& npc: data.at("npcs")) {
+            citizens.push_back({npc.at("type").get<std::string>(), npc.at("x").get<int>(),
+                                npc.at("y").get<int>()});
+        }
+    }
+
+    if (data.contains("monsters")) {
+        for (const auto& monster: data.at("monsters")) {
+            monsters.push_back({monster.at("type").get<std::string>(),
+                                monster.at("x").get<int>(), monster.at("y").get<int>()});
+        }
     }
 }
 
@@ -62,11 +76,37 @@ std::string EditorMap::toJson() const {
     data["height"] = height;
     data["spawn"] = {{"x", spawnPos.x}, {"y", spawnPos.y}};
 
-    if (!safeZonesData.empty() && !safeZonesData.is_null()) {
-        data["safeZones"] = safeZonesData;
+    if (!safeZones.empty()) {
+        nlohmann::json zonesJson = nlohmann::json::array();
+        for (const auto& zone: safeZones) {
+            nlohmann::json zoneJson = {{"x", zone.x},
+                                       {"y", zone.y},
+                                       {"width", zone.width},
+                                       {"height", zone.height}};
+            if (!zone.name.empty()) {
+                zoneJson["name"] = zone.name;
+            }
+            zonesJson.push_back(zoneJson);
+        }
+        data["safeZones"] = zonesJson;
     }
-    if (!npcsData.empty() && !npcsData.is_null()) {
-        data["npcs"] = npcsData;
+
+    if (!citizens.empty()) {
+        nlohmann::json citizensJson = nlohmann::json::array();
+        for (const auto& citizen: citizens) {
+            citizensJson.push_back(
+                    {{"type", citizen.type}, {"x", citizen.x}, {"y", citizen.y}});
+        }
+        data["npcs"] = citizensJson;
+    }
+
+    if (!monsters.empty()) {
+        nlohmann::json monstersJson = nlohmann::json::array();
+        for (const auto& monster: monsters) {
+            monstersJson.push_back(
+                    {{"type", monster.type}, {"x", monster.x}, {"y", monster.y}});
+        }
+        data["monsters"] = monstersJson;
     }
 
     data["tiles"] = tiles;
@@ -107,3 +147,27 @@ int EditorMap::getHeight() const { return height; }
 int EditorMap::getTileSize() const { return tileSize; }
 int EditorMap::getTilesetCols() const { return tilesetCols; }
 const std::string& EditorMap::getTileset() const { return tileset; }
+
+const std::vector<EditorSafeZone>& EditorMap::getSafeZones() const { return safeZones; }
+
+const std::vector<CitizenSpawn>& EditorMap::getCitizens() const { return citizens; }
+
+void EditorMap::addCitizen(const std::string& type, int x, int y) {
+    citizens.push_back({type, x, y});
+}
+
+const std::vector<MonsterSpawn>& EditorMap::getMonsters() const { return monsters; }
+
+void EditorMap::addMonster(const std::string& type, int x, int y) {
+    monsters.push_back({type, x, y});
+}
+
+void EditorMap::removeEntitiesAt(int x, int y) {
+    auto matches = [x, y](auto& v) {
+        v.erase(std::remove_if(v.begin(), v.end(),
+                               [x, y](const auto& e) { return e.x == x && e.y == y; }),
+                v.end());
+    };
+    matches(citizens);
+    matches(monsters);
+}

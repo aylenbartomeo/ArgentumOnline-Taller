@@ -6,6 +6,7 @@
 #include <memory>
 #include <utility>
 
+#include "config/MonsterConfigLoader.h"
 #include "model/combat/CombatManager.h"
 #include "model/entities/NPCFactory.h"
 #include "model/entities/Player.h"
@@ -114,6 +115,7 @@ bool World::removePlayer(uint32_t dbId) {
 bool World::loadMap(const std::string& path) {
     if (map.loadSpawnFromJson(path)) {
         spawnNPCs();
+        spawnMonsters();
         return true;
     }
     return false;
@@ -126,6 +128,23 @@ void World::spawnNPCs() {
         if (auto npc = factory.create(entityId, spawn.type, spawn.position)) {
             cityNPCs[entityId] = std::move(npc);
         }
+    }
+}
+
+void World::spawnMonsters() {
+    MonsterConfigs configs;
+    try {
+        configs = MonsterConfigLoader::loadMonsterConfigs("config/monsters.toml");
+    } catch (const std::exception& e) {
+        std::cerr << "No pude cargar configs de monstruos: " << e.what() << std::endl;
+        return;
+    }
+    for (const auto& spawn: map.getMonsterSpawns()) {
+        auto it = configs.find(spawn.type);
+        if (it == configs.end()) {
+            continue;
+        }
+        addMonster(spawn.type, spawn.pos, it->second);
     }
 }
 
@@ -349,8 +368,11 @@ void World::playerInteract(uint32_t dbId, uint32_t targetNpcId) {
     // 4. REGISTRO DE SESIÓN: El mundo toma nota de la interacción
     activeInteractions[playerEntityId] = npc;
 
-    // 5. Polimorfismo: El NPC reacciona (pendiente acople con cliente/UI)
-    npc->beInteractedBy(player);
+    // Capturamos el resultado puro de la interacción
+    InteractionResult res = npc->beInteractedBy(player);
+
+    // Traducimos los mensajes del NPC en WorldEvents salientes para ese jugador
+    outgoingEvents.push_back({dbId, res.msg});
 }
 
 void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
@@ -380,9 +402,27 @@ void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
         return;
     }
 
-    // El NPC ejecuta el comando de negocio (compra, venta, etc.)
-    // Nota: el envío de WorldEvent hacia la UI está pendiente de acople
-    npc->handleCommand(player, dto);
+    // Capturamos el resultado del comando ejecutado
+    InteractionResult res = npc->handleCommand(player, dto);
+    switch (res.status) {
+        case InteractionStatus::SUCCESS:
+            // Todo joya, procesamos los mensajes de éxito
+            outgoingEvents.push_back({dbId, res.msg});
+            // Acá podrías disparar efectos visuales en el mundo si quisieras (ej: destello de cura)
+            break;
+
+        case InteractionStatus::FAILURE:
+            // Falló una regla de negocio. Mandamos los mensajes de error al jugador
+            outgoingEvents.push_back({dbId, "[INFO] " + res.msg});
+            break;
+
+        case InteractionStatus::UNHANDLED:
+            // El NPC no sabe qué hacer con este comando.
+            // Le mandamos un contra-mensaje útil al jugador.
+            std::string npcError = "El NPC no comprende ese comando.";
+            outgoingEvents.push_back({dbId, npcError});
+            break;
+    }
 }
 
 Player* World::findNearestPlayer(const Monster& monster, int range) {
