@@ -6,6 +6,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include "OverlayRegistry.h"
+
 EditorMap::EditorMap(int width, int height, int tileSize, const std::string& tileset,
                      int tilesetCols):
         width(width),
@@ -113,6 +115,31 @@ std::string EditorMap::toJson() const {
                                    {"type", monster.type}, {"x", monster.x}, {"y", monster.y}};
                        });
         data["monsters"] = monstersJson;
+    }
+
+    nlohmann::json itemsJson = nlohmann::json::array();
+    nlohmann::json obstaclesJson = nlohmann::json::array();
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+    for (int row = 0; row < height; ++row) {
+        for (int col = 0; col < width; ++col) {
+            int tile = tiles[row][col];
+            if (tile <= 0 || tile > static_cast<int>(registry.size())) {
+                continue;
+            }
+            const OverlayDef& def = registry[tile - 1];
+            if (def.itemId != 0) {
+                itemsJson.push_back({{"id", def.itemId}, {"x", col}, {"y", row}, {"amount", 1}});
+            }
+            if (def.solid) {
+                obstaclesJson.push_back({{"x", col}, {"y", row}});
+            }
+        }
+    }
+    if (!itemsJson.empty()) {
+        data["items"] = itemsJson;
+    }
+    if (!obstaclesJson.empty()) {
+        data["obstacles"] = obstaclesJson;
     }
 
     data["tiles"] = tiles;
