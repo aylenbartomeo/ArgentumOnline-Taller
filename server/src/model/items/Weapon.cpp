@@ -32,6 +32,13 @@ Weapon::Weapon(int id, std::string name, int price, WeaponType type, int minDama
     }
 }
 
+bool Weapon::isMagic() const {
+    if (type == WeaponType::MAGIC) {
+        return true;
+    }
+    return false;
+}
+
 int Weapon::getMinDamage() const { return minDamage; }
 int Weapon::getMaxDamage() const { return maxDamage; }
 WeaponType Weapon::getType() const { return type; }

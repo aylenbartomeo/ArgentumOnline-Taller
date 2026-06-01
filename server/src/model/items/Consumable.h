@@ -21,6 +21,7 @@ public:
             durationMs(static_cast<uint32_t>(duration)),
             effectValue(static_cast<uint16_t>(value)) {}
 
+    bool isMagic() const override { return false; }
     bool use(Player& player) const {
         if (player.isDead()) {
             return false;

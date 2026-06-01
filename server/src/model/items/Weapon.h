@@ -24,6 +24,7 @@ public:
     Weapon(int id, std::string name, int price, WeaponType type, int minDamage, int maxDamage,
            int attackRange = 1, int manaCost = 0);
 
+    bool isMagic() const override;
     int getMinDamage() const;
     int getMaxDamage() const;
     WeaponType getType() const;

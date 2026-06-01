@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 
@@ -11,14 +12,15 @@
 class TradeHandler: public NpcCommandHandler {
 private:
     const ItemRegistry& registry;
-    // Mapa de stock real del NPC: itemId -> cantidad disponible
-    std::unordered_map<uint32_t, int>& npcStock;
+    std::unordered_map<uint32_t, int>& npcStock; // Stock del NPC: itemId -> cantidad disponible
     bool allowsSell;  // true: Merchant (compra/vende), false: Priest (solo vende)
+    std::function<bool(const Item*)> isItemPermitted; // Indica si el elemento lo comercia el NPC
 
 public:
     TradeHandler(const ItemRegistry& registry, std::unordered_map<uint32_t, int>& stock,
-                 bool allowsSell):
-            registry(registry), npcStock(stock), allowsSell(allowsSell) {}
+                 bool allowsSell,
+                std::function<bool(const Item*)> filter = [](const Item*) { return true; }):
+            registry(registry), npcStock(stock), allowsSell(allowsSell), isItemPermitted(filter) {}
 
     InteractionResult execute(Player& player, const NpcCommandDTO& dto) override {
         InteractionResult result;
@@ -40,6 +42,12 @@ public:
         if (!itemDef)
             return result;
 
+        if (!isItemPermitted(itemDef)) {
+            result.status = InteractionStatus::FAILURE;
+            result.msg = "Este tipo de artículo no se comercia en este establecimiento.";
+            return result;
+        }
+        
         uint32_t unitPrice = itemDef->getPrice();
         if (dto.type == NpcCommandType::BUY) {
             auto it = npcStock.find(itemId);
@@ -96,7 +104,7 @@ public:
             // El comerciante absorbe el ítem incrementando su stock
             npcStock[itemId]++;
 
-            // Corregido: Cargamos el mensaje de éxito y devolvemos el result
+            // Cargamos el mensaje de éxito y devolvemos el result
             result.status = InteractionStatus::SUCCESS;
             result.msg = "Venta exitosa: compraste 1 " + itemDef->getName() + " por " +
                          std::to_string(unitPrice / 2) + " monedas de oro.";

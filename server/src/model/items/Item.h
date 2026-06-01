@@ -20,7 +20,7 @@ public:
     virtual int getId() const { return id; }
     virtual const std::string& getName() const { return name; }
     int getPrice() const { return price; }
-
+    virtual bool isMagic() const = 0;
     virtual bool is_wearable() const { return false; }
 
     virtual uint32_t equip_on(EquipmentComponent& equipment) const {
