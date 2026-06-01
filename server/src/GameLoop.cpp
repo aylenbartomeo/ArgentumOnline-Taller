@@ -140,12 +140,13 @@ void GameLoop::processInputs() {
 
                 // Resolver nick destinatario → dbId
                 uint32_t recipientId = world.resolveNickToDbId(priv.recipientNick);
+
                 if (recipientId == 0) {
                     // Destinatario no encontrado: avisar al remitente
                     ChatDTO err;
                     err.message = "[Server] Usuario '" + priv.recipientNick + "' no encontrado.";
                     monitor.sendToClient(pCmd.clientId, err);
-                    return;
+                    continue;
                 }
 
                 // Enviar al destinatario
