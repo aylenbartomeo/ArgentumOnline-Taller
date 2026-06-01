@@ -131,6 +131,7 @@ void Game::render() {
     const CameraOffset camera = computeCamera();
     renderTerrain(camera);
     renderOverlays(camera);
+    renderGroundItems(camera);
     renderCitizens(camera);
     renderEntities(camera);
 
@@ -163,6 +164,30 @@ void Game::renderTerrain(const CameraOffset& camera) {
             const SDL2pp::Rect dstRect(col * TILE_SIZE - camera.x, row * TILE_SIZE - camera.y,
                                        TILE_SIZE, TILE_SIZE);
             renderer.Copy(ground, cellInSafeZone(col, row) ? darkGroundSrc : groundSrc, dstRect);
+        }
+    }
+    renderer.SetClipRect();
+}
+
+void Game::renderGroundItems(const CameraOffset& camera) {
+    SDL2pp::Renderer& renderer = window.getRenderer();
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+
+    for (const auto& item: lastSnapshot.groundItems) {
+        auto it = std::find_if(registry.begin(), registry.end(), [&item](const OverlayDef& def) {
+            return static_cast<uint32_t>(def.itemId) == item.itemId;
+        });
+
+        if (it != registry.end()) {
+            const OverlayDef& def = *it;
+            SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + def.tilesheet);
+            const SDL2pp::Rect srcRect(def.srcX, def.srcY, def.srcW, def.srcH);
+            const int dstW = TILE_SIZE;
+            const int dstH = (def.srcH * TILE_SIZE) / def.srcW;
+            const int dstX = item.x * TILE_SIZE - camera.x;
+            const int dstY = item.y * TILE_SIZE + TILE_SIZE - dstH - camera.y;
+
+            renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
         }
     }
 }
@@ -199,6 +224,9 @@ void Game::renderOverlays(const CameraOffset& camera) {
                 continue;
             }
             const OverlayDef& def = registry[tileId - 1];
+            if (!def.solid) {
+                continue;
+            }
             SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + def.tilesheet);
             const SDL2pp::Rect srcRect(def.srcX, def.srcY, def.srcW, def.srcH);
             const int dstW = TILE_SIZE;

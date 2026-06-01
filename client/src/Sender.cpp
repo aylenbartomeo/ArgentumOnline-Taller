@@ -15,6 +15,8 @@ void Sender::run() {
                 protocol.send_start_move(std::get<StartMoveDTO>(cmd));
             } else if (std::holds_alternative<StopMoveDTO>(cmd)) {
                 protocol.send_stop_move();
+            } else if (std::holds_alternative<GrabItemDTO>(cmd)) {
+                protocol.send_grab_item();
             }
         }
     } catch (...) {}

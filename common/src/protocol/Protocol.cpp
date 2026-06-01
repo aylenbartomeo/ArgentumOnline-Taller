@@ -94,6 +94,14 @@ void Protocol::send_snapshot(const SnapshotDTO& snap) {
         send_uint16(entity.max_hp);
         send_uint16(entity.sprite_id);
     }
+
+    send_uint16(static_cast<uint16_t>(snap.groundItems.size()));
+    for (const auto& item: snap.groundItems) {
+        send_uint32(item.itemId);
+        send_uint16(item.amount);
+        send_uint16(item.x);
+        send_uint16(item.y);
+    }
 }
 
 void Protocol::send_login_success(uint32_t clientId) {
@@ -179,6 +187,16 @@ SnapshotDTO Protocol::receive_snapshot_body() {
         entity.max_hp = recv_uint16();
         entity.sprite_id = recv_uint16();
         snap.monsters.push_back(entity);
+    }
+
+    uint16_t items_count = recv_uint16();
+    for (uint16_t i = 0; i < items_count; ++i) {
+        GroundItemDTO item;
+        item.itemId = recv_uint32();
+        item.amount = recv_uint16();
+        item.x = recv_uint16();
+        item.y = recv_uint16();
+        snap.groundItems.push_back(item);
     }
 
     return snap;
