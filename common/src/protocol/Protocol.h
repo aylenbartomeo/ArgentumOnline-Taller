@@ -47,12 +47,14 @@ public:
     void send_use_item(const UseItemDTO& dto);
     void send_grab_item();
     void send_chat(const ChatDTO& dto);
+    void send_private_chat(const PrivateChatDTO& dto);
 
     // --- MÉTODOS DE ENVÍO (Servidor -> Cliente) ---
     void send_snapshot(const SnapshotDTO& snap);
     SnapshotDTO receive_snapshot_body();
 
     ChatDTO receive_chat_body();
+    PrivateChatDTO receive_private_chat_body();
 
     void send_register_success(uint32_t clientId);
     void send_register_failed(const std::string& errorMessage);
