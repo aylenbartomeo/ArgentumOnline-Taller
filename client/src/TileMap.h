@@ -6,6 +6,12 @@
 
 #include "SafeZoneRect.h"
 
+struct MapCitizen {
+    std::string type;
+    int x;
+    int y;
+};
+
 class TileMap {
 private:
     int width;
@@ -15,6 +21,7 @@ private:
     std::string tileset;
     std::vector<std::vector<int>> tiles;
     std::vector<SafeZoneRect> safeZones;
+    std::vector<MapCitizen> citizens;
 
 public:
     explicit TileMap(const std::string& jsonText);
@@ -25,6 +32,7 @@ public:
     int getTilesetCols() const;
     const std::string& getTileset() const;
     const std::vector<SafeZoneRect>& getSafeZones() const;
+    const std::vector<MapCitizen>& getCitizens() const;
 
     int tileAt(int col, int row) const;
 };

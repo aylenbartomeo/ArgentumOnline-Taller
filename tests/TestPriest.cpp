@@ -25,7 +25,8 @@ static Player makePriestTestPlayer(uint32_t id = 1) {
     PlayerConfig cfg = {15, 15, 15, 15, 1, 0, 0};
 
     // Invoca al constructor de test proveído en tu firma
-    return Player(id, id, name, race, cls, cfg, FormulaEngine::getInstance());
+    return Player(id, id, name, Race::HUMAN, CharacterClass::WARRIOR, race, cls, cfg,
+                  FormulaEngine::getInstance());
 }
 
 // =========================================================================

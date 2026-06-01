@@ -11,13 +11,15 @@
 #include "model/entities/NPCFactory.h"
 #include "model/entities/Player.h"
 
-World::World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry):
+World::World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry,
+             const CharacterConfigs& configs):
         worldId(worldId),
         creatorPlayerName(creatorPlayerName),
         itemRegistry(itemRegistry),
         map(),
         clanService(clanRepo),
-        clanController(clanService) {
+        clanController(clanService),
+        characterConfigs(configs) {
     map.setDimensions(20, 15);
     map.setSpawnPoint(0, 0);
 }
@@ -27,7 +29,7 @@ std::string World::getCreatorPlayerName() const { return this->creatorPlayerName
 int World::getWorldId() const { return this->worldId; }
 
 bool World::addPlayer(uint32_t dbId, std::string& username,
-                      const std::optional<Position>& savedPosition) {
+                      const std::optional<PlayerPersistData>& savedData) {
     if (this->dbIdToEntityId.find(dbId) != this->dbIdToEntityId.end()) {
         return false;
     }
@@ -39,17 +41,112 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
     RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig classConfig = {1.0f, 1.0f, 1.0f, false};
 
-    Position spawnPos;
-    if (savedPosition.has_value() && map.canMoveTo(savedPosition.value())) {
-        spawnPos = savedPosition.value();
-    } else {
-        std::pair<float, float> spawn = map.getInitialPosition();
-        spawnPos = Position{static_cast<int>(spawn.first), static_cast<int>(spawn.second)};
-    }
-    this->players[entityId] = std::make_unique<Player>(
-            entityId, dbId, username, raceConfig, classConfig, baseConfig, itemRegistry, spawnPos);
+    // Declarar fuera del if para que estén disponibles en el make_unique
+    Race savedRace = Race::HUMAN;
+    CharacterClass savedClass = CharacterClass::WARRIOR;
 
+    std::pair<float, float> defaultSpawn = map.getInitialPosition();
+    Position spawnPos =
+            Position{static_cast<int>(defaultSpawn.first), static_cast<int>(defaultSpawn.second)};
+
+    if (savedData.has_value()) {
+        const PlayerPersistData& d = savedData.value();
+
+        Position savedPos{d.posX, d.posY};
+        if (map.canMoveTo(savedPos))
+            spawnPos = savedPos;
+
+        baseConfig.startingLevel = d.level;
+        baseConfig.startingExperience = d.exp;
+        baseConfig.startingGold = d.gold;
+
+        savedRace = static_cast<Race>(d.race);
+        savedClass = static_cast<CharacterClass>(d.characterClass);
+
+        auto raceIt = characterConfigs.races.find(savedRace);
+        auto classIt = characterConfigs.classes.find(savedClass);
+        if (raceIt != characterConfigs.races.end())
+            raceConfig = raceIt->second;
+        if (classIt != characterConfigs.classes.end())
+            classConfig = classIt->second;
+    }
+
+    // Un solo make_unique con la firma completa
+    auto player =
+            std::make_unique<Player>(entityId, dbId, username, savedRace, savedClass, raceConfig,
+                                     classConfig, baseConfig, itemRegistry, spawnPos);
+
+    if (savedData.has_value()) {
+        const PlayerPersistData& d = savedData.value();
+
+        player->getStats().restoreHp();
+        player->getStats().restoreMana();
+        uint16_t maxHp = player->getStats().getMaxHp();
+        uint16_t maxMana = player->getStats().getMaxMana();
+        if (d.hp < maxHp)
+            player->getStats().takeDamage(maxHp - d.hp);
+        if (d.mana < maxMana)
+            player->getStats().consumeMana(maxMana - d.mana);
+
+        uint8_t slots = std::min<uint8_t>(d.inventorySize, 16);
+        for (uint8_t i = 0; i < slots; ++i) {
+            if (d.inventory[i].item_id != 0 && d.inventory[i].amount > 0) {
+                player->getInventory().addItem(d.inventory[i].item_id, d.inventory[i].amount,
+                                               /*stackable=*/false);
+            }
+        }
+
+        if (d.stateId == 1)
+            player->getState().die();
+        else if (d.stateId == 2)
+            player->getState().startMeditating();
+    }
+
+    this->players[entityId] = std::move(player);
     return true;
+}
+
+std::optional<PlayerPersistData> World::getPlayerPersistData(uint32_t dbId) const {
+    auto itMap = dbIdToEntityId.find(dbId);
+    if (itMap == dbIdToEntityId.end())
+        return std::nullopt;
+    auto it = players.find(itMap->second);
+    if (it == players.end())
+        return std::nullopt;
+
+    const Player& p = *it->second;
+    PlayerPersistData d{};
+
+    d.dbId = dbId;
+    d.posX = p.getPosition().x;
+    d.posY = p.getPosition().y;
+    d.hp = p.getHp();
+    d.mana = p.getMana();
+    d.level = p.getLevel();
+    d.exp = p.getStats().getExp();
+    d.gold = p.getGold();
+
+    // Estado
+    if (p.getState().isGhost())
+        d.stateId = 1;
+    else if (p.getState().isMeditating())
+        d.stateId = 2;
+    else
+        d.stateId = 0;
+
+    // Raza y clase: guarda el raw byte si los tienes como uint8_t/enum
+    d.race = static_cast<uint8_t>(p.getRace());
+    d.characterClass = static_cast<uint8_t>(p.getCharacterClass());
+
+    // Inventario
+    const auto& slots = p.getInventory().getSlots();
+    d.inventorySize = static_cast<uint8_t>(std::min(slots.size(), size_t(16)));
+    for (uint8_t i = 0; i < d.inventorySize; ++i) {
+        d.inventory[i].item_id = slots[i].item_id;
+        d.inventory[i].amount = slots[i].amount;
+    }
+
+    return d;
 }
 
 bool World::removePlayer(uint32_t dbId) {

@@ -29,12 +29,6 @@ struct MonsterSpawn {
     int y;
 };
 
-struct ItemSpawn {
-    uint32_t itemId;
-    int x;
-    int y;
-};
-
 class EditorMap {
 private:
     int width;
@@ -47,7 +41,6 @@ private:
     std::vector<EditorSafeZone> safeZones;
     std::vector<CitizenSpawn> citizens;
     std::vector<MonsterSpawn> monsters;
-    std::vector<ItemSpawn> items;
 
 public:
     EditorMap(int width, int height, int tileSize, const std::string& tileset, int tilesetCols);
@@ -77,9 +70,6 @@ public:
 
     const std::vector<MonsterSpawn>& getMonsters() const;
     void addMonster(const std::string& type, int x, int y);
-
-    const std::vector<ItemSpawn>& getItems() const;
-    void addItem(uint32_t itemId, int x, int y);
 };
 
 #endif

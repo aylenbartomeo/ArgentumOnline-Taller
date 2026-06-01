@@ -100,7 +100,7 @@ TEST(EditorMapTest, ExposesSafeZonesParsedFromJson) {
     EXPECT_EQ(map.getSafeZones()[0].height, 3);
 }
 
-TEST(EditorMapTest, ParsesCitizensMonstersAndItems) {
+TEST(EditorMapTest, ParsesCitizensAndMonsters) {
     std::string json = R"({
         "tileSize": 32,
         "tileset": "5108.png",
@@ -109,8 +109,7 @@ TEST(EditorMapTest, ParsesCitizensMonstersAndItems) {
         "height": 1,
         "tiles": [[0]],
         "npcs": [{ "type": "merchant", "x": 5, "y": 6 }],
-        "monsters": [{ "type": "goblin", "x": 7, "y": 8 }],
-        "items": [{ "itemId": 1, "x": 9, "y": 10 }]
+        "monsters": [{ "type": "goblin", "x": 7, "y": 8 }]
     })";
     EditorMap map(json);
 
@@ -122,13 +121,9 @@ TEST(EditorMapTest, ParsesCitizensMonstersAndItems) {
     ASSERT_EQ(map.getMonsters().size(), 1u);
     EXPECT_EQ(map.getMonsters()[0].type, "goblin");
     EXPECT_EQ(map.getMonsters()[0].x, 7);
-
-    ASSERT_EQ(map.getItems().size(), 1u);
-    EXPECT_EQ(map.getItems()[0].itemId, 1u);
-    EXPECT_EQ(map.getItems()[0].x, 9);
 }
 
-TEST(EditorMapTest, RoundTripPreservesCitizensMonstersItems) {
+TEST(EditorMapTest, RoundTripPreservesCitizensAndMonsters) {
     std::string json = R"({
         "tileSize": 32,
         "tileset": "5108.png",
@@ -137,8 +132,7 @@ TEST(EditorMapTest, RoundTripPreservesCitizensMonstersItems) {
         "height": 1,
         "tiles": [[0]],
         "npcs": [{ "type": "priest", "x": 1, "y": 2 }],
-        "monsters": [{ "type": "skeleton", "x": 3, "y": 4 }],
-        "items": [{ "itemId": 42, "x": 5, "y": 6 }]
+        "monsters": [{ "type": "skeleton", "x": 3, "y": 4 }]
     })";
     EditorMap original(json);
     EditorMap reloaded(original.toJson());
@@ -146,23 +140,18 @@ TEST(EditorMapTest, RoundTripPreservesCitizensMonstersItems) {
     EXPECT_EQ(reloaded.getCitizens()[0].type, "priest");
     ASSERT_EQ(reloaded.getMonsters().size(), 1u);
     EXPECT_EQ(reloaded.getMonsters()[0].type, "skeleton");
-    ASSERT_EQ(reloaded.getItems().size(), 1u);
-    EXPECT_EQ(reloaded.getItems()[0].itemId, 42u);
 }
 
 TEST(EditorMapTest, AddRemoveEntitiesAtPosition) {
     EditorMap map(5, 5, 32, "5108.png", 32);
     map.addCitizen("merchant", 2, 3);
     map.addMonster("goblin", 2, 3);
-    map.addItem(7, 2, 3);
     EXPECT_EQ(map.getCitizens().size(), 1u);
     EXPECT_EQ(map.getMonsters().size(), 1u);
-    EXPECT_EQ(map.getItems().size(), 1u);
 
     map.removeEntitiesAt(2, 3);
     EXPECT_TRUE(map.getCitizens().empty());
     EXPECT_TRUE(map.getMonsters().empty());
-    EXPECT_TRUE(map.getItems().empty());
 }
 
 TEST(EditorMapTest, RetainsSafeZonesAndNPCsOnLoadAndSave) {

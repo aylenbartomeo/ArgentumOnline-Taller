@@ -3,37 +3,46 @@
 #include "server/src/model/items/Item.h"
 #include "server/src/model/items/ItemRegistry.h"
 
-Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
-               const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
+Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
+               CharacterClass cls, const RaceConfig& raceConfig,
+               const CharacterClassConfig& classConfig, const PlayerConfig& playerBase,
                const ItemRegistry& itemRegistry, const Position& spawn):
         id(entityId),
         dbId(dbId),
         name(name),
         pos(spawn),
         // Stats ahora solo maneja combate (sin max_gold)
-        stats(race, characterClass, playerBase),
+        stats(race, cls, raceConfig, classConfig, playerBase),
         // Inventario ahora absorbe la economía: 20 slots, 5000 seguro, 100000 tope máximo
         inventory(InventoryConfig{20, 100000}, 5000),
         equipment(),
         state(),
-        regeneration(stats, state, race, characterClass),
-        itemRegistry(&itemRegistry) {}
+        regeneration(stats, state, raceConfig, classConfig),
+        itemRegistry(&itemRegistry) {
+    // Restauramos el oro inicial que arregló el test
+    this->addGold(playerBase.startingGold);
+}
 
 // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
 // de valores random
-Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
-               const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
+Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
+               CharacterClass charClass, const RaceConfig& raceConf,
+               const CharacterClassConfig& classConf, const PlayerConfig& playerBase,
                const FormulaEngine& testEngine):
         id(entityId),
         dbId(dbId),
         name(name),
         pos({0, 0}),
-        stats(race, characterClass, playerBase, testEngine),
+        // Respetamos el mismo orden de parámetros que en StatsComponent
+        stats(race, charClass, raceConf, classConf, playerBase, testEngine),
         inventory(InventoryConfig{20, 100000}, 5000),
         equipment(),
         state(),
-        regeneration(stats, state, race, characterClass, testEngine),
-        itemRegistry(nullptr) {}
+        regeneration(stats, state, raceConf, classConf, testEngine),
+        itemRegistry(nullptr) {
+    // También agregamos el oro inicial para que los tests pasen
+    this->addGold(playerBase.startingGold);
+}
 
 uint32_t Player::equipItemById(uint32_t itemId) {
     if (!itemRegistry)

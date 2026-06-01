@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "../../../../common/include/dto/CommandDTO.h"
+#include "../../common/utils/types.h"
 #include "../combat/CombatManager.h"
 #include "../components/EquipmentComponent.h"
 #include "../components/InventoryComponent.h"
@@ -14,6 +15,7 @@
 #include "../components/StatsComponent.h"
 #include "../interfaces/Attackable.h"
 #include "../interfaces/Interactable.h"
+#include "../persistence/PlayerDataStore.h"
 
 #include "position.h"
 
@@ -32,14 +34,15 @@ private:
     RegenerationComponent regeneration;
     const ItemRegistry* itemRegistry;  // Puntero para permitir nullptr en tests
 public:
-    Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
-           const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
-           const ItemRegistry& itemRegistry, const Position& spawn);
+    Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race, CharacterClass cls,
+           const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,
+           const PlayerConfig& playerBase, const ItemRegistry& itemRegistry, const Position& spawn);
 
     // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
     // de valores random (no requiere ItemRegistry)
-    Player(uint32_t entityId, uint32_t dbId, const std::string& name, const RaceConfig& race,
-           const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
+    Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
+           CharacterClass charClass, const RaceConfig& raceConf,
+           const CharacterClassConfig& classConf, const PlayerConfig& playerBase,
            const FormulaEngine& testEngine);
 
     // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
@@ -87,9 +90,13 @@ public:
     bool consumeMana(int amount) { return stats.consumeMana(static_cast<uint16_t>(amount)); }
     void restoreHp() { stats.restoreHp(); }
     void restoreMana() { stats.restoreMana(); }
+
     void setHp(uint16_t newHp) { stats.setHp(newHp); }
     void setMana(uint16_t newMana) { stats.setMana(newMana); }
     void applyBoost(BoostType type, uint8_t value, uint32_t durationMs);
+
+    Race getRace() const { return stats.getRace(); }
+    CharacterClass getCharacterClass() const { return stats.getCharacterClass(); }
 
     // Inventory
     InventoryComponent& getInventory() { return this->inventory; }
@@ -126,6 +133,7 @@ public:
     bool canAttack() const { return this->state.canAttack(); }
     bool canBeAttacked() const override { return this->state.canBeAttacked(); }
     void handleDeath() override;
+
     void resurrect();
 };
 

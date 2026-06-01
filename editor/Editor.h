@@ -25,7 +25,6 @@ private:
     Camera camera;
     Palette overlayPalette;
     Palette monsterPalette;
-    Palette itemPalette;
     Palette citizenPalette;
     Font font;
     Toolbar toolbar;
@@ -47,7 +46,6 @@ private:
     void renderOverlays();
     void renderMonsters();
     void renderCitizens();
-    void renderItems();
     void renderSpawn();
     void renderPanel();
     void renderStatusBar();
@@ -57,7 +55,6 @@ private:
     void drawOverlay(const OverlayDef& def, int cellX, int cellY, int cellSize);
     void drawMonsterFromCatalog(const MonsterCatalogEntry& entry, int cellX, int cellY,
                                 int cellSize);
-    void drawItemFromCatalog(const ItemCatalogEntry& entry, int cellX, int cellY, int cellSize);
     void drawCitizenFromCatalog(const CitizenCatalogEntry& entry, int cellX, int cellY,
                                 int cellSize);
     void drawCharacter(int dstX, int dstY, int dstW, int dstH);

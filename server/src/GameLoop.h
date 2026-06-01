@@ -9,6 +9,8 @@
 #include "../../common/include/dto/ClientCommands.h"
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
+#include "config/CharacterConfig.h"
+#include "config/CharacterConfigLoader.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
 #include "model/items/ItemRegistry.h"
@@ -24,6 +26,7 @@ private:
     ConnectionMonitor& monitor;
     ItemRegistry itemRegistry;
     PlayerDataStore playerDataStore;
+    CharacterConfigs characterConfigs;
     World world;
 
     // Timer para guardado periódico
@@ -38,7 +41,7 @@ private:
 
 public:
     GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
-             const std::filesystem::path& configPath,
+             const std::filesystem::path& configDir,
              const std::string& persistenceDir = "game_data/");
 
     void run() override;

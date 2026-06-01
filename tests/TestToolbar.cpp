@@ -14,13 +14,6 @@ TEST(ToolbarTest, ClickMonsterButtonActivatesMonster) {
     EXPECT_EQ(toolbar.getActiveTool(), Tool::MONSTER);
 }
 
-TEST(ToolbarTest, ClickItemButtonActivatesItem) {
-    Toolbar toolbar;
-    toolbar.addToolButton(0, 0, 100, 30, Tool::ITEM);
-    EXPECT_EQ(toolbar.handleClick(10, 10), ToolbarAction::TOOL_CHANGED);
-    EXPECT_EQ(toolbar.getActiveTool(), Tool::ITEM);
-}
-
 TEST(ToolbarTest, ClickCitizenButtonActivatesCitizen) {
     Toolbar toolbar;
     toolbar.addToolButton(0, 0, 100, 30, Tool::CITIZEN);

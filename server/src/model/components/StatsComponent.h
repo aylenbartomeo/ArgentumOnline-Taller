@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "../../common/utils/types.h"
 #include "../../include/model/FormulaEngine.h"
 #include "../config/CharacterConfig.h"
 
@@ -38,11 +39,19 @@ private:
 
     // Buffs activos del Player
     std::vector<TemporaryBoost> activeBoosts;
+
+    Race race;
+    CharacterClass characterClass;
     // Método privado auxiliar para recalcular los techos de vida y maná
     void recalculateMaxStats();
 
 public:
     // Constructor completo basado en tu nueva lista de atributos
+    StatsComponent(Race raceEnum, CharacterClass classEnum, const RaceConfig& race,
+                   const CharacterClassConfig& characterClass, const PlayerConfig& playerBase,
+                   const FormulaEngine& engine = FormulaEngine::getInstance());
+
+    // Constructor de test: mantiene compatibilidad sin enums
     StatsComponent(const RaceConfig& race, const CharacterClassConfig& characterClass,
                    const PlayerConfig& playerBase,
                    const FormulaEngine& engine = FormulaEngine::getInstance());
@@ -85,6 +94,21 @@ public:
     void restoreHp();
     bool consumeMana(uint16_t amount);
     void recoverMana(uint16_t amount);
+
+    Race getRace() const { return race; }
+    CharacterClass getCharacterClass() const { return characterClass; }
+
+
+    // --- Restauracion desde persistencia ---
+    void restoreFromPersist(uint16_t savedHp, uint16_t savedMana, uint32_t savedExp,
+                            uint16_t savedLevel) {
+        level = savedLevel;
+        exp = savedExp;
+        recalculateMaxStats();  // Recalcula max_health y max_mana según el nivel restaurado
+        health = std::min(savedHp, max_health);
+        mana = std::min(savedMana, max_mana);
+    }
+
     void restoreMana();
 
     // -- Manejo de Boosts --

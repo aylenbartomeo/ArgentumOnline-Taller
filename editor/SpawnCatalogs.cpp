@@ -18,9 +18,3 @@ const std::vector<CitizenCatalogEntry>& getCitizenCatalog() {
     return catalog;
 }
 
-const std::vector<ItemCatalogEntry>& getItemCatalog() {
-    static const std::vector<ItemCatalogEntry> catalog = {
-            {1, "5137.png", 607, 232, 34, 23},
-    };
-    return catalog;
-}

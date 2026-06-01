@@ -1,20 +1,43 @@
 #include "StatsComponent.h"
 
-StatsComponent::StatsComponent(const RaceConfig& race, const CharacterClassConfig& characterClass,
+StatsComponent::StatsComponent(Race raceEnum, CharacterClass classEnum,
+                               const RaceConfig& raceConfigData,
+                               const CharacterClassConfig& characterClassData,
                                const PlayerConfig& playerBase, const FormulaEngine& engine):
         formulaEngine(engine),
-        raceConfig(race),
-        classConfig(characterClass),
+        raceConfig(raceConfigData),
+        classConfig(characterClassData),
         strength(static_cast<uint8_t>(playerBase.baseStrength)),
         intelligence(static_cast<uint8_t>(playerBase.baseIntelligence)),
         agility(static_cast<uint8_t>(playerBase.baseAgility)),
         constitution(static_cast<uint8_t>(playerBase.baseConstitution)),
         exp(playerBase.startingExperience),
-        level(playerBase.startingLevel) {
+        level(playerBase.startingLevel),
+        race(raceEnum),
+        characterClass(classEnum) {
     // Calculamos los techos iniciales
     recalculateMaxStats();
 
     // Tanques llenos al iniciar
+    this->health = this->max_health;
+    this->mana = this->max_mana;
+}
+
+StatsComponent::StatsComponent(const RaceConfig& raceConfigData,
+                               const CharacterClassConfig& characterClassData,
+                               const PlayerConfig& playerBase, const FormulaEngine& engine):
+        formulaEngine(engine),
+        raceConfig(raceConfigData),
+        classConfig(characterClassData),
+        strength(static_cast<uint8_t>(playerBase.baseStrength)),
+        intelligence(static_cast<uint8_t>(playerBase.baseIntelligence)),
+        agility(static_cast<uint8_t>(playerBase.baseAgility)),
+        constitution(static_cast<uint8_t>(playerBase.baseConstitution)),
+        exp(playerBase.startingExperience),
+        level(playerBase.startingLevel),
+        race(Race::HUMAN),
+        characterClass(CharacterClass::WARRIOR) {
+    recalculateMaxStats();
     this->health = this->max_health;
     this->mana = this->max_mana;
 }

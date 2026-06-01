@@ -81,3 +81,37 @@ TEST(TileMapTest, NoSafeZonesWhenAbsent) {
     TileMap map(json);
     EXPECT_TRUE(map.getSafeZones().empty());
 }
+
+TEST(TileMapTest, ParsesCitizens) {
+    std::string json = R"({
+        "tileSize": 32,
+        "tileset": "5108.png",
+        "tilesetCols": 32,
+        "width": 2,
+        "height": 2,
+        "tiles": [[0, 0], [0, 0]],
+        "npcs": [
+            { "type": "merchant", "x": 1, "y": 1 },
+            { "type": "priest", "x": 0, "y": 1 }
+        ]
+    })";
+    TileMap map(json);
+    ASSERT_EQ(map.getCitizens().size(), 2u);
+    EXPECT_EQ(map.getCitizens()[0].type, "merchant");
+    EXPECT_EQ(map.getCitizens()[0].x, 1);
+    EXPECT_EQ(map.getCitizens()[0].y, 1);
+    EXPECT_EQ(map.getCitizens()[1].type, "priest");
+}
+
+TEST(TileMapTest, NoCitizensWhenAbsent) {
+    std::string json = R"({
+        "tileSize": 32,
+        "tileset": "5108.png",
+        "tilesetCols": 32,
+        "width": 1,
+        "height": 1,
+        "tiles": [[0]]
+    })";
+    TileMap map(json);
+    EXPECT_TRUE(map.getCitizens().empty());
+}
