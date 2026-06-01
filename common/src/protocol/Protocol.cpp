@@ -233,6 +233,22 @@ void Protocol::send_chat(const ChatDTO& dto) {
 }
 
 // =======================================================
+// LOGICA DE CHAT PRIVADO (CLIENTE -> SERVIDOR)
+// =======================================================
+void Protocol::send_private_chat(const PrivateChatDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::PRIVATE_CHAT));
+    send_string(dto.recipientNick);
+    send_string(dto.message);
+}
+
+PrivateChatDTO Protocol::receive_private_chat_body() {
+    PrivateChatDTO dto;
+    dto.recipientNick = recv_string();
+    dto.message = recv_string();
+    return dto;
+}
+
+// =======================================================
 // CAPA SEMÁNTICA (RECEPCIÓN DEL SERVIDOR)
 // =======================================================
 
@@ -287,6 +303,9 @@ CommandVariant Protocol::receive_command() {
             UseItemDTO dto;
             dto.slot = recv_uint8();
             return dto;
+        }
+        case OPCODE::PRIVATE_CHAT: {
+            return receive_private_chat_body();
         }
         default:
             throw std::runtime_error("Unknown command received in-game");
