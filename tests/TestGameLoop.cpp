@@ -85,7 +85,7 @@ TEST(GameLoopTest, GameLoop_ConsumablesStopAffectingStatsAfterDuration) {
     // y las estadísticas del jugador vuelvan a su valor base.
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
-    GameLoop loop(gameQueue, monitor, "../config/items.toml");
+    GameLoop loop(gameQueue, monitor, "../config");
 
     // 1. Unimos un jugador al mundo
     JoinEvent join;

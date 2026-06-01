@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <utility>
+#include <vector>
 
 namespace {
 constexpr int WINDOW_WIDTH = 800;
@@ -267,13 +268,11 @@ void Editor::drawDarkGrass(int dstX, int dstY, int dstSize) {
 }
 
 bool Editor::cellInSafeZone(int col, int row) const {
-    for (const EditorSafeZone& zone: map.getSafeZones()) {
-        if (col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
-            row < zone.y + zone.height) {
-            return true;
-        }
-    }
-    return false;
+    const auto& zones = map.getSafeZones();
+    return std::any_of(zones.begin(), zones.end(), [col, row](const EditorSafeZone& zone) {
+        return col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
+               row < zone.y + zone.height;
+    });
 }
 
 void Editor::drawOverlay(const OverlayDef& def, int cellX, int cellY, int cellSize) {
@@ -372,13 +371,11 @@ void Editor::renderMonsters() {
     const auto& catalog = getMonsterCatalog();
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
     for (const MonsterSpawn& spawn: map.getMonsters()) {
-        const MonsterCatalogEntry* entry = nullptr;
-        for (const auto& candidate: catalog) {
-            if (candidate.type == spawn.type) {
-                entry = &candidate;
-                break;
-            }
-        }
+        auto it = std::find_if(catalog.begin(), catalog.end(),
+                               [&spawn](const MonsterCatalogEntry& candidate) {
+                                   return candidate.type == spawn.type;
+                               });
+        const MonsterCatalogEntry* entry = (it != catalog.end()) ? &(*it) : nullptr;
         if (!entry)
             continue;
         Position screen = camera.cellToScreen(spawn.x, spawn.y);
@@ -395,13 +392,11 @@ void Editor::renderCitizens() {
     const auto& catalog = getCitizenCatalog();
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
     for (const CitizenSpawn& spawn: map.getCitizens()) {
-        const CitizenCatalogEntry* entry = nullptr;
-        for (const auto& candidate: catalog) {
-            if (candidate.type == spawn.type) {
-                entry = &candidate;
-                break;
-            }
-        }
+        auto it = std::find_if(catalog.begin(), catalog.end(),
+                               [&spawn](const CitizenCatalogEntry& candidate) {
+                                   return candidate.type == spawn.type;
+                               });
+        const CitizenCatalogEntry* entry = (it != catalog.end()) ? &(*it) : nullptr;
         if (!entry)
             continue;
         Position screen = camera.cellToScreen(spawn.x, spawn.y);
@@ -532,7 +527,7 @@ void Editor::renderPanel() {
         }
     }
 
-    Palette& pal = activePalette();
+    const Palette& pal = activePalette();
     Tool tool = toolbar.getActiveTool();
     int count = pal.getTileCount();
     for (int i = 0; i < count; ++i) {

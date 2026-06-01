@@ -1,11 +1,13 @@
 #include "Game.h"
 
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <SDL2/SDL.h>
 
@@ -139,12 +141,11 @@ CameraOffset Game::computeCamera() {
     const uint32_t myId = client.getClientId();
     int focusX = 0;
     int focusY = 0;
-    for (const EntityDTO& entity: lastSnapshot.players) {
-        if (entity.id == myId) {
-            focusX = entity.x * TILE_SIZE + TILE_SIZE / 2;
-            focusY = entity.y * TILE_SIZE + TILE_SIZE / 2;
-            break;
-        }
+    auto it = std::find_if(lastSnapshot.players.begin(), lastSnapshot.players.end(),
+                           [myId](const EntityDTO& entity) { return entity.id == myId; });
+    if (it != lastSnapshot.players.end()) {
+        focusX = it->x * TILE_SIZE + TILE_SIZE / 2;
+        focusY = it->y * TILE_SIZE + TILE_SIZE / 2;
     }
     return computeCameraOffset(focusX, focusY, WINDOW_WIDTH, WINDOW_HEIGHT,
                                map.getWidth() * TILE_SIZE, map.getHeight() * TILE_SIZE);
@@ -171,7 +172,8 @@ void Game::renderCitizens(const CameraOffset& camera) {
     const SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
                                CHARACTER_FRAME_H);
     for (const MapCitizen& citizen: map.getCitizens()) {
-        SDL2pp::Texture& body = textures.get(std::string(RESOURCES_DIR) + citizenSheet(citizen.type));
+        SDL2pp::Texture& body =
+                textures.get(std::string(RESOURCES_DIR) + citizenSheet(citizen.type));
         const SDL2pp::Rect dstRect(citizen.x * TILE_SIZE - camera.x,
                                    citizen.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H - camera.y,
                                    TILE_SIZE, CHARACTER_DRAW_H);
@@ -180,13 +182,11 @@ void Game::renderCitizens(const CameraOffset& camera) {
 }
 
 bool Game::cellInSafeZone(int col, int row) const {
-    for (const SafeZoneRect& zone: map.getSafeZones()) {
-        if (col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
-            row < zone.y + zone.height) {
-            return true;
-        }
-    }
-    return false;
+    const auto& zones = map.getSafeZones();
+    return std::any_of(zones.begin(), zones.end(), [col, row](const SafeZoneRect& zone) {
+        return col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
+               row < zone.y + zone.height;
+    });
 }
 
 void Game::renderOverlays(const CameraOffset& camera) {

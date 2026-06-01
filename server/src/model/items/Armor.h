@@ -26,7 +26,7 @@ public:
     int getMaxDefense() const;
 
     virtual int getDefense() const = 0;
-    bool isMagic() const override { return false;}
+    bool isMagic() const override { return false; }
     bool is_wearable() const override { return true; }
 };
 

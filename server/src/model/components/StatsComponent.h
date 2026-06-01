@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <cstdint>
+#include <numeric>
 #include <vector>
 
 #include "../../common/utils/types.h"
@@ -58,20 +59,20 @@ public:
 
     // --- GETTERS ---
     uint8_t getStrength() const {
-        uint16_t total = strength;
-        for (const auto& boost: activeBoosts) {
-            if (boost.type == BoostType::STRENGTH)
-                total += boost.value;
-        }
+        uint16_t total = std::accumulate(
+                activeBoosts.begin(), activeBoosts.end(), static_cast<uint16_t>(strength),
+                [](uint16_t sum, const TemporaryBoost& boost) {
+                    return sum + (boost.type == BoostType::STRENGTH ? boost.value : 0);
+                });
         return static_cast<uint8_t>(total);
     }
 
     uint8_t getAgility() const {
-        uint16_t total = agility;
-        for (const auto& boost: activeBoosts) {
-            if (boost.type == BoostType::AGILITY)
-                total += boost.value;
-        }
+        uint16_t total = std::accumulate(
+                activeBoosts.begin(), activeBoosts.end(), static_cast<uint16_t>(agility),
+                [](uint16_t sum, const TemporaryBoost& boost) {
+                    return sum + (boost.type == BoostType::AGILITY ? boost.value : 0);
+                });
         return static_cast<uint8_t>(total);
     }
 
@@ -113,12 +114,12 @@ public:
 
     // -- Manejo de Boosts --
     void addBoost(BoostType type, uint8_t value, uint32_t durationMs) {
-        for (auto& boost: activeBoosts) {
-            if (boost.type == type) {
-                boost.timeLeftMs = std::max(boost.timeLeftMs, durationMs);
-                boost.value = std::max(boost.value, value);  // Mantiene el elixir más fuerte
-                return;
-            }
+        auto it = std::find_if(activeBoosts.begin(), activeBoosts.end(),
+                               [type](const TemporaryBoost& boost) { return boost.type == type; });
+        if (it != activeBoosts.end()) {
+            it->timeLeftMs = std::max(it->timeLeftMs, durationMs);
+            it->value = std::max(it->value, value);  // Mantiene el elixir más fuerte
+            return;
         }
         activeBoosts.push_back({type, value, durationMs});
     }
