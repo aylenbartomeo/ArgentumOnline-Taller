@@ -15,20 +15,20 @@ protected:
     PlayerConfig baseLv5{15, 15, 15, 15, 5, 0, 0};
 
     StatsComponent humanMageLv1() {
-        return StatsComponent(humanRace, mageClass, baseLv1, Race::HUMAN, CharacterClass::MAGE);
+        return StatsComponent(Race::HUMAN, CharacterClass::MAGE, humanRace, mageClass, baseLv1);
     }
 
     StatsComponent humanMageLv5() {
-        return StatsComponent(humanRace, mageClass, baseLv5, Race::HUMAN, CharacterClass::MAGE);
+        return StatsComponent(Race::HUMAN, CharacterClass::MAGE, humanRace, mageClass, baseLv5);
     }
 
     StatsComponent elfMageLv1() {
-        return StatsComponent(elfRace, mageClass, baseLv1, Race::ELF, CharacterClass::MAGE);
+        return StatsComponent(Race::ELF, CharacterClass::MAGE, elfRace, mageClass, baseLv1);
     }
 
     StatsComponent humanWarriorLv1() {
-        return StatsComponent(humanRace, warriorClass, baseLv1, Race::HUMAN,
-                              CharacterClass::WARRIOR);
+        return StatsComponent(Race::HUMAN, CharacterClass::WARRIOR, humanRace, warriorClass,
+                              baseLv1);
     }
 };
 

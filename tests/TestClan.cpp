@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include "../common/include/queue.h"
+#include "config/CharacterConfig.h"
 #include "dto/ClanCommandDTO.h"
 #include "model/clan/ClanController.h"
 #include "model/clan/ClanRepository.h"
@@ -13,6 +14,13 @@
 
 #include "GameLoop.h"
 #include "World.h"
+
+static CharacterConfigs getTestConfigs() {
+    PlayerConfig base{15, 15, 15, 15, 1, 0, 0};
+    RaceConfig human{1.0f, 1.0f, 1.0f};
+    CharacterClassConfig warrior{1.0f, 1.0f, 1.0f, false};
+    return CharacterConfigs{base, {{Race::HUMAN, human}}, {{CharacterClass::WARRIOR, warrior}}};
+}
 
 class ClanSystemTest: public ::testing::Test {
 protected:
@@ -316,8 +324,10 @@ protected:
     World* world = nullptr;
 
     void SetUp() override {
+
         registry = new ItemRegistry("../config/items.toml");
-        world = new World(1, "Tester", *registry);
+        CharacterConfigs configs = getTestConfigs();
+        world = new World(1, "Tester", *registry, configs);
 
         // Desactivamos el Fair Play (Modo Arena) y bajamos el nivel de clan a 1 para los tests
         world->setFairPlayRules(false);
@@ -495,8 +505,7 @@ TEST_F(WorldClanTest, World_ProcessClanCommand_FounderCannotLeave) {
 TEST(ClanGameLoopTest, GameLoop_ProcessesClanFoundCommand) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
-    GameLoop loop(gameQueue, monitor, "../config/items.toml");
-
+    GameLoop loop(gameQueue, monitor, "../config");
     // Jugador ingresa
     JoinEvent join;
     join.clientId = 1;
@@ -526,7 +535,7 @@ TEST(ClanGameLoopTest, GameLoop_ProcessesClanFoundCommand) {
 TEST(ClanGameLoopTest, GameLoop_ProcessesClanJoinAndAccept) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
-    GameLoop loop(gameQueue, monitor, "../config/items.toml");
+    GameLoop loop(gameQueue, monitor, "../config");
 
     // Dos jugadores ingresan
     auto pushJoin = [&](uint32_t id, const std::string& name) {

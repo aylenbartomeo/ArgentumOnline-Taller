@@ -4,27 +4,34 @@
 
 #include <gtest/gtest.h>
 
+#include "config/CharacterConfig.h"
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
+#include "persistence/PlayerDataStore.h"
 
 #include "World.h"
 
-static PlayerPersistData makePersistData(int x, int y) {
-    PlayerPersistData data{};
-    data.dbId = 0;
-    data.posX = x;
-    data.posY = y;
-    data.level = 1;
-    data.hp = 15;
-    data.maxHp = 15;
-    data.mana = 10;
-    data.maxMana = 10;
-    return data;
+static CharacterConfigs getTestConfigs() {
+    PlayerConfig base{15, 15, 15, 15, 1, 0, 0};
+    RaceConfig human{1.0f, 1.0f, 1.0f};
+    CharacterClassConfig warrior{1.0f, 1.0f, 1.0f, false};
+    return CharacterConfigs{base, {{Race::HUMAN, human}}, {{CharacterClass::WARRIOR, warrior}}};
+}
+
+static PlayerPersistData makeSpawnData(int x, int y) {
+    PlayerPersistData d{};
+    d.posX = x;
+    d.posY = y;
+    d.hp = 15;
+    d.mana = 15;
+    d.level = 1;
+    return d;
 }
 
 TEST(WorldTest, World_InitializesCorrectly) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(42, "PaladinGM", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(42, "PaladinGM", registry, configs);
 
     EXPECT_EQ(mundo.getWorldId(), 42);
     EXPECT_EQ(mundo.getCreatorPlayerName(), "PaladinGM");
@@ -34,7 +41,8 @@ TEST(WorldTest, World_InitializesCorrectly) {
 
 TEST(WorldTest, World_HandlesPlayerLifecycleWithUniquePtr) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "ServerAdmin", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "ServerAdmin", registry, configs);
 
     uint32_t id1 = 100;
     std::string username1 = "PlayerOne";
@@ -65,7 +73,8 @@ TEST(WorldTest, World_HandlesPlayerLifecycleWithUniquePtr) {
 
 TEST(WorldTest, World_PlayerCannotMoveOutsideMap) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
     std::string user = "EdgeWalker";
     ASSERT_TRUE(mundo.addPlayer(1, user));
 
@@ -80,7 +89,8 @@ TEST(WorldTest, World_PlayerCannotMoveOutsideMap) {
 
 TEST(WorldTest, World_RemoveNonExistentPlayerReturnsFalse) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     // Intentar sacar a alguien de un mundo vacío no debería romper nada
     EXPECT_FALSE(mundo.removePlayer(999));
@@ -89,7 +99,8 @@ TEST(WorldTest, World_RemoveNonExistentPlayerReturnsFalse) {
 TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
     // 1. Inicializamos un mundo vacío
     ItemRegistry registry("../config/items.toml");
-    World mundo(42, "PaladinGM", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(42, "PaladinGM", registry, configs);
 
     // Verificamos que el snapshot inicial esté vacío
     SnapshotDTO snapshotInicial = mundo.generateSnapshot();
@@ -151,7 +162,8 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
 
 TEST(WorldTest, World_PlayerCannotMoveIntoObstacle) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
     std::string user = "Blocker";
     ASSERT_TRUE(mundo.addPlayer(1, user));
 
@@ -168,7 +180,8 @@ TEST(WorldTest, World_PlayerCannotMoveIntoObstacle) {
 
 TEST(WorldTest, World_UpdateTriggersMonsterAttack) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
     std::string user = "Player1";
     ASSERT_TRUE(mundo.addPlayer(1, user));
 
@@ -196,7 +209,8 @@ TEST(WorldTest, World_UpdateTriggersMonsterAttack) {
 
 TEST(WorldTest, World_UpdateDoesNotTriggerMonsterAttackIfOutOfRange) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
     std::string user = "Player1";
     ASSERT_TRUE(mundo.addPlayer(1, user));
 
@@ -226,7 +240,8 @@ TEST(WorldTest, World_AddPlayerSpawnsAtMapSpawn) {
     out.close();
 
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
     ASSERT_TRUE(mundo.loadMap(path));
 
     std::string user = "Spawner";
@@ -240,13 +255,12 @@ TEST(WorldTest, World_AddPlayerSpawnsAtMapSpawn) {
 
 TEST(WorldTest, World_AddPlayerWithSavedPositionSpawnsThere) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     std::string user = "SavedPlayer";
-    PlayerPersistData savedData{};
-    savedData.posX = 5;
-    savedData.posY = 5;
-    ASSERT_TRUE(mundo.addPlayer(1, user, savedData));
+    Position savedPos{5, 5};
+    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(savedPos.x, savedPos.y)));
 
     SnapshotDTO snap = mundo.generateSnapshot();
     ASSERT_EQ(snap.players.size(), 1u);
@@ -256,13 +270,12 @@ TEST(WorldTest, World_AddPlayerWithSavedPositionSpawnsThere) {
 
 TEST(WorldTest, World_AddPlayerWithInvalidPositionUsesDefault) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     std::string user = "InvalidPosPlayer";
-    PlayerPersistData invalidData{};
-    invalidData.posX = -1;  // Usa los valores que tenías en invalidPos original
-    invalidData.posY = -1;
-    ASSERT_TRUE(mundo.addPlayer(1, user, invalidData));
+    Position invalidPos{-1, -1};  // assuming this is out of bounds
+    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(invalidPos.x, invalidPos.y)));
 
     SnapshotDTO snap = mundo.generateSnapshot();
     ASSERT_EQ(snap.players.size(), 1u);
@@ -273,7 +286,8 @@ TEST(WorldTest, World_AddPlayerWithInvalidPositionUsesDefault) {
 
 TEST(WorldTest, World_GetPlayerPositionReturnsCurrentPos) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     std::string user = "MovingPlayer";
     ASSERT_TRUE(mundo.addPlayer(1, user));
@@ -289,7 +303,8 @@ TEST(WorldTest, World_GetPlayerPositionReturnsCurrentPos) {
 
 TEST(WorldTest, World_GetPlayerUsernameReturnsCorrectName) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     std::string user = "TestUser";
     ASSERT_TRUE(mundo.addPlayer(42, user));
@@ -301,7 +316,8 @@ TEST(WorldTest, World_GetPlayerUsernameReturnsCorrectName) {
 
 TEST(WorldTest, World_GetOnlinePlayerDbIdsReturnsAllActive) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     std::string u1 = "u1";
     std::string u2 = "u2";
@@ -322,7 +338,8 @@ TEST(WorldTest, World_GetOnlinePlayerDbIdsReturnsAllActive) {
 
 TEST(WorldTest, World_PlaceAndPickUpItemOnGround) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     Position pos{5, 5};
     EXPECT_TRUE(mundo.placeItemOnGround(pos, 1, 10));
@@ -335,7 +352,8 @@ TEST(WorldTest, World_PlaceAndPickUpItemOnGround) {
 
 TEST(WorldTest, World_SnapshotIncludesGroundItems) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     mundo.placeItemOnGround(Position{2, 2}, 1, 5);
     mundo.placeItemOnGround(Position{3, 3}, 2, 1);
@@ -357,7 +375,8 @@ TEST(WorldTest, World_SnapshotIncludesGroundItems) {
 
 TEST(WorldTest, World_IsSafeZone_delegates_to_map) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     // Por defecto Map tiene una safe zone en 45, 45, 10x10
     EXPECT_TRUE(mundo.isSafeZone(50, 50));
@@ -366,15 +385,16 @@ TEST(WorldTest, World_IsSafeZone_delegates_to_map) {
 
 TEST(WorldTest, World_PlayerCannotAttackInSafeZone) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     // Player 1 in safe zone (50, 50)
     std::string p1 = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, p1, makePersistData(50, 50)));
+    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(50, 50)));
 
     // Player 2 in safe zone (51, 50)
     std::string p2 = "Player2";
-    ASSERT_TRUE(mundo.addPlayer(2, p2, makePersistData(51, 50)));
+    ASSERT_TRUE(mundo.addPlayer(2, p2, makeSpawnData(51, 50)));
 
     // Attack should fail
     mundo.playerAttack(1, 2);
@@ -388,11 +408,12 @@ TEST(WorldTest, World_PlayerCannotAttackInSafeZone) {
 
 TEST(WorldTest, World_MonsterCannotAttackInSafeZone) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     // Player 1 in safe zone (50, 50)
     std::string p1 = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, p1, makePersistData(50, 50)));
+    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(50, 50)));
 
     // Monster in safe zone (51, 50)
     MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone"};
@@ -410,11 +431,12 @@ TEST(WorldTest, World_MonsterCannotAttackInSafeZone) {
 
 TEST(WorldTest, World_MonsterLosesAggroInSafeZone) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     // Player 1 in safe zone (50, 50)
     std::string p1 = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, p1, makePersistData(50, 50)));
+    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(50, 50)));
 
     // Monster OUTSIDE safe zone but in detection range (44, 50) -> dist = 6 (range 10)
     // Safe zone is 45 to 54. So 44 is outside.
@@ -440,10 +462,11 @@ TEST(WorldTest, World_MonsterLosesAggroInSafeZone) {
 
 TEST(WorldTest, World_PickUpItemIntoInventory) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user, makePersistData(5, 5)));
+    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
 
     // Ponemos ítem en el piso donde está el jugador
     mundo.placeItemOnGround(Position{5, 5}, 202, 10);  // 202 es poción roja
@@ -465,10 +488,11 @@ TEST(WorldTest, World_PickUpItemIntoInventory) {
 
 TEST(WorldTest, World_PickUpItemNothingToPickUp) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user, makePersistData(5, 5)));
+    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
 
     // No ponemos nada en el piso
     mundo.pickUpItem(1);
@@ -482,10 +506,11 @@ TEST(WorldTest, World_PickUpItemNothingToPickUp) {
 
 TEST(WorldTest, World_PickUpItemNoSpaceInInventory) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user, makePersistData(5, 5)));
+    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
 
     // Llenamos el inventario del jugador forzadamente droppeándole ítems hasta que no pueda más?
     // En TestWorld no podemos acceder al player directamente, pero podemos darle 20 items de
@@ -520,10 +545,11 @@ TEST(WorldTest, World_PickUpItemNoSpaceInInventory) {
 
 TEST(WorldTest, World_DropItemSuccess) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user, makePersistData(5, 5)));
+    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
 
     // Agarra un ítem
     mundo.placeItemOnGround(Position{5, 5}, 202, 10);
@@ -540,10 +566,11 @@ TEST(WorldTest, World_DropItemSuccess) {
 
 TEST(WorldTest, World_DropItemNoSpaceOnGround) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user, makePersistData(5, 5)));
+    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
 
     // El jugador agarra 1 item
     mundo.placeItemOnGround(Position{5, 5}, 202, 10);
@@ -575,10 +602,11 @@ TEST(WorldTest, World_DropItemNoSpaceOnGround) {
 
 TEST(WorldTest, World_PlayerDeathDropsInventoryItems) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     std::string p1 = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, p1, makePersistData(5, 5)));
+    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(5, 5)));
 
     // Le damos ítems a Player 1 (3 items distintos en slots diferentes)
     mundo.placeItemOnGround(Position{5, 5}, 202, 10);  // pocion
@@ -604,10 +632,11 @@ TEST(WorldTest, World_PlayerDeathDropsInventoryItems) {
 
 TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Straight) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     std::string p1 = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, p1, makePersistData(5, 5)));
+    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(5, 5)));
 
     MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, "zone"};  // Rango suficiente
     uint32_t monsterId = mundo.addMonster(NPCType::GOBLIN, Position{9, 5}, mConfig);
@@ -627,10 +656,11 @@ TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Straight) {
 
 TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Diagonal) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry);
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs);
 
     std::string p1 = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, p1, makePersistData(5, 5)));
+    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(5, 5)));
 
     MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, "zone"};  // Rango suficiente
     uint32_t monsterId = mundo.addMonster(NPCType::GOBLIN, Position{9, 9}, mConfig);

@@ -12,7 +12,7 @@ TEST(GameLoopTest, GameLoop_RunsAndProcessesEventsAsynchronously) {
     ConnectionMonitor monitor;  // Ajustá si tu constructor pide parámetros
 
     // Creación del GameLoop (nace con isRunning = true pero sin morder el hilo aún)
-    GameLoop loop(gameQueue, monitor, "../config/items.toml");
+    GameLoop loop(gameQueue, monitor, "../config");
 
     // 2. Preparamos los datos de prueba: un JoinEvent y un comando de movimiento
     JoinEvent join;
@@ -57,7 +57,7 @@ TEST(GameLoopTest, GameLoop_RunsAndProcessesEventsAsynchronously) {
 TEST(GameLoopTest, GameLoop_StopsCleanlyEvenWithEmptyQueue) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
-    GameLoop loop(gameQueue, monitor, "../config/items.toml");
+    GameLoop loop(gameQueue, monitor, "../config");
 
     // Lanzamos con la cola vacía
     std::thread hiloGameLoop(&GameLoop::run, &loop);
