@@ -1,0 +1,41 @@
+@startuml "Interfaz Attackable"
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+interface Attackable {
+    + {abstract} isDead() : bool
+    + {abstract} canBeAttacked() : bool
+    + {abstract} getPosition() : Position
+    + distance_to(other : Attackable&) : int
+    + {abstract} getStrength() : uint16_t
+    + {abstract} getIntelligence() : uint16_t
+    + {abstract} getAgility() : uint16_t
+    + {abstract} getLevel() : uint16_t
+    + {abstract} getMaxHp() : uint16_t
+    + {abstract} getDefense() : int
+    + {abstract} receiveDamage(amount : int) : void
+    + {abstract} handleDeath() : void
+    + {abstract} canEngageInCombatWith(other : Attackable&) : bool
+}
+
+class Player {
+    - id : uint32_t
+    - name : String
+
+}
+
+class Monster {
+    - npcTypeId : int
+    - zone : String
+    - pos : Position
+    - detection_range : int
+    - attack_range : int
+    - strength : int
+    - health : int
+    - maxHealth : int
+}
+
+Attackable <|.left. Player
+Attackable <|.right. Monster
+
+@enduml

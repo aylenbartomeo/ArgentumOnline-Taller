@@ -1,0 +1,27 @@
+@startuml "CombatManager"
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+class CombatManager {
+    - resolveCombat(attacker : const Attackable&, target : Attackable&, 
+    params : const AttackParams&) : int
+    --
+    + {static} getInstance() : CombatManager&
+    + processAttack(attacker : Player&, target : Attackable&) : void
+    + processAttack(attacker : const Monster&, target : Attackable&) : void
+}
+
+struct AttackParams {
+    + minDamage : uint16_t
+    + maxDamage : uint16_t
+    + attackRange : int
+    + manaCost : int
+    + isMagic : bool
+}
+
+' --- Relaciones de Uso y Dependencia ---
+CombatManager ..> AttackParams : "utiliza"
+Player ..> CombatManager : "invoca"
+Monster ..> CombatManager : "invoca"
+
+@enduml

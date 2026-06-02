@@ -1,0 +1,95 @@
+@startuml "secuenciaBanker"
+skinparam style strictuml
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+box "Cliente" #LightBlue
+participant "Cliente / UI" as Client
+end box
+
+box "Servidor (Motor de Juego)" #LightYellow
+participant "GameLoop" as Net
+participant "World" as World
+participant "Player" as Player
+participant "Banker (NPC)" as Banker
+participant "GlobalBank" as Bank
+end box
+
+== Fase 1: Click Inicial (Apertura de Sesión e Interacción) ==
+
+Client -> Net : 1. Click en NPC (targetNpcId)
+Net -> World : 2. playerInteract(dbId, targetNpcId)
+activate World
+
+World -> Player : 3. Get Position
+activate Player
+Player --> World : returns playerPos
+deactivate Player
+
+World -> Banker : 4. Get Position
+activate Banker
+Banker --> World : returns npcPos
+deactivate Banker
+
+note over World: Validación de Distancia Chebyshev <= 2
+alt Distancia > 2
+    World --> Client : "El NPC está demasiado lejos."
+else Distancia <= 2
+    note over World: El Mundo registra la sesión activa\nactiveInteractions[playerEntityId] = npc
+    World -> World : Registrar sesión en activeInteractions
+    
+    World -> Banker : 5. beInteractedBy(player)
+    activate Banker
+    Banker -> Player : 6. isDead()
+    activate Player
+    Player --> Banker : returns false
+    deactivate Player
+    
+    Banker --> Client : 7. Envía "OPEN_BANK_INTERFACE"
+    deactivate Banker
+end
+deactivate World
+
+== Fase 2: Ejecución del Comando (/depositar 4001) ==
+
+Client -> Net : 8. Envía comando ("/depositar 4001")
+Net -> World : 9. playerExecuteNpcCommand(dbId, dto)
+activate World
+
+note over World: Valida si el jugador tiene una\nsesión abierta con el NPC
+alt No existe en activeInteractions
+    World --> Client : "Debes seleccionar un NPC primero."
+else Existe en activeInteractions
+    World -> Player : 10. Get Position
+    activate Player
+    Player --> World : returns playerPos
+    deactivate Player
+    
+    note over World: Doble check de seguridad (Chebyshev)\npor si caminó o usó cheats
+    alt Distancia > 2
+        World -> World : erase(playerEntityId) (Rompe sesión)
+        World --> Client : "Te has alejado demasiado del NPC."
+    else Distancia <= 2
+        
+        World -> Banker : 11. handleCommand(player, dto)
+        activate Banker
+        
+        Banker -> Player : 12. inspectSlot() / Buscar ID 4001
+        activate Player
+        Player --> Banker : returns slot con ítem
+        deactivate Player
+        
+        Banker -> Bank : 13. depositItem(playerId, 4001, 1)
+        activate Bank
+        Bank --> Banker : returns true (Bóveda con espacio)
+        deactivate Bank
+        
+        Banker -> Player : 14. removeItem(slotIndex, 1)
+        
+        Banker --> Client : 15. Notifica éxito ("Depositaste 1x Espada")
+        deactivate Banker
+    end
+end
+deactivate World
+
+@enduml

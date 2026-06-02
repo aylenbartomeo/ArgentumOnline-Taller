@@ -1,0 +1,33 @@
+@startuml "Interactable"
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+interface Interactable {
+    + {abstract} getPosition() : Position
+    + {abstract} beInteractedBy(player : Player&) : void
+    + {abstract} handleCommand(player : Player&, cmd : NpcCommand&) : void
+}
+
+class Priest {
+    - pos : Position
+    - registry : ItemRegistry&
+
+}
+
+class Merchant {
+    - pos : Position
+    - registry : ItemRegistry&
+    - stock : unordered_map<uint32_t, int> 
+}
+
+class Banker {
+    - pos : Position
+    - registry : ItemRegistry&
+    - bank : GlobalBank&
+}
+
+Interactable <|.left. Priest
+Interactable <|.right. Merchant
+Interactable <|.down. Banker
+
+@enduml
