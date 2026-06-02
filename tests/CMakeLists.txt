@@ -66,6 +66,8 @@ target_sources(argentum_online_tests
     ../client/src/Viewport.cpp
     TestCharacterSprites.cpp
     ../client/src/CharacterSprites.cpp
+    TestCharacterAnimator.cpp
+    ../client/src/CharacterAnimator.cpp
     TestEditorMap.cpp
     ../editor/EditorMap.cpp
     TestCamera.cpp
