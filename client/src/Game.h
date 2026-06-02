@@ -1,10 +1,14 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <cstdint>
+#include <unordered_map>
+
 #include <SDL2pp/SDL2pp.hh>
 
 #include "common/include/dto/Snapshot.h"
 
+#include "CharacterAnimator.h"
 #include "Client.h"
 #include "EventHandler.h"
 #include "TextureManager.h"
@@ -22,6 +26,7 @@ private:
     TileMap map;
     SnapshotDTO lastSnapshot;
     Uint32 lastMoveSentMs;
+    std::unordered_map<uint32_t, CharacterAnimator> animators;
 
 public:
     explicit Game(Client& client);

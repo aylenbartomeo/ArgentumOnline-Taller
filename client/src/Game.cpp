@@ -215,6 +215,7 @@ void Game::renderEntities(const CameraOffset& camera) {
     SDL2pp::Texture& headSheet = textures.get(std::string(RESOURCES_DIR) + HEAD_SHEET);
     SDL2pp::Texture& barSheet = textures.get(std::string(RESOURCES_DIR) + HEALTHBAR_SHEET);
     const uint32_t myId = client.getClientId();
+    const uint32_t now = SDL_GetTicks();
 
     const SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
                                CHARACTER_FRAME_H);
@@ -223,16 +224,30 @@ void Game::renderEntities(const CameraOffset& camera) {
     auto drawEntity = [&](const EntityDTO& entity) {
         const EntitySprite sprite = spriteForEntity(entity.type, entity.sprite_id);
         SDL2pp::Texture& body = textures.get(std::string(RESOURCES_DIR) + sprite.bodySheet);
+
+        SDL2pp::Rect bodySrc = srcRect;
+        SDL2pp::Rect headSrcRect = headSrc;
+        if (entity.type == EntityType::PLAYER) {
+            CharacterAnimator& anim = animators[entity.id];
+            anim.update(entity.x, entity.y, now);
+            const Movement facing = anim.getFacing();
+            const FrameRect bf = bodyFrameRect(facing, anim.frameColumn(now));
+            bodySrc = SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h);
+            const FrameRect hf = headFrameRect(facing);
+            headSrcRect = SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h);
+        }
+
         const SDL2pp::Rect dstRect(entity.x * TILE_SIZE - camera.x,
                                    entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H - camera.y,
                                    TILE_SIZE, CHARACTER_DRAW_H);
-        renderer.Copy(body, srcRect, dstRect);
+        renderer.Copy(body, bodySrc, dstRect);
 
         if (sprite.drawHead) {
             const int headX = entity.x * TILE_SIZE + TILE_SIZE / 2 - HEAD_DRAW_W / 2 - camera.x;
             const int headY = entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H +
                               sprite.headOverlap - HEAD_DRAW_H - camera.y;
-            renderer.Copy(headSheet, headSrc, SDL2pp::Rect(headX, headY, HEAD_DRAW_W, HEAD_DRAW_H));
+            renderer.Copy(headSheet, headSrcRect,
+                          SDL2pp::Rect(headX, headY, HEAD_DRAW_W, HEAD_DRAW_H));
         }
 
         if (entity.type == EntityType::PLAYER && entity.id == myId) {
@@ -259,6 +274,16 @@ void Game::renderEntities(const CameraOffset& camera) {
     }
     for (const EntityDTO& monster: lastSnapshot.monsters) {
         drawEntity(monster);
+    }
+
+    for (auto it = animators.begin(); it != animators.end();) {
+        const bool alive = std::any_of(lastSnapshot.players.begin(), lastSnapshot.players.end(),
+                                       [&](const EntityDTO& p) { return p.id == it->first; });
+        if (alive) {
+            ++it;
+        } else {
+            it = animators.erase(it);
+        }
     }
 
     const SDL2pp::Rect barSrc(0, 0, barSheet.GetWidth(), barSheet.GetHeight());

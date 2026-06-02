@@ -10,6 +10,7 @@ target_sources(argentum_online_client
     src/HealthBar.cpp
     src/Viewport.cpp
     src/CharacterSprites.cpp
+    src/CharacterAnimator.cpp
     src/Receiver.cpp
     src/Sender.cpp
     src/TextureManager.cpp
@@ -27,6 +28,7 @@ target_sources(argentum_online_client
     src/HealthBar.h
     src/Viewport.h
     src/CharacterSprites.h
+    src/CharacterAnimator.h
     src/Receiver.h
     src/Sender.h
     src/TextureManager.h
