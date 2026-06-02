@@ -6,12 +6,17 @@
 Merchant::Merchant(uint32_t id, Position pos, const ItemRegistry& registry):
         id(id), pos(pos), stock() {
     // El comerciante abre con sus artículos locales
-    stock[4001u] = 5;  // 5 Espadas
-    stock[1001u] = 3;  // 3 Armaduras
+    stock[2000u] = 5;  // 5 Espadas
+    stock[1000u] = 3;  // 3 Armaduras de cuero
 
+    auto merchantFilter = [](const Item* item) {
+        return !item->isMagic();  // Si es Weapon MAGIC, retorna false
+    };
     // Inyección: El mercader compra y vende (allowsSell = true)
-    commandHandlers[NpcCommandType::BUY] = std::make_unique<TradeHandler>(registry, stock, true);
-    commandHandlers[NpcCommandType::SELL] = std::make_unique<TradeHandler>(registry, stock, true);
+    commandHandlers[NpcCommandType::BUY] =
+            std::make_unique<TradeHandler>(registry, stock, true, merchantFilter);
+    commandHandlers[NpcCommandType::SELL] =
+            std::make_unique<TradeHandler>(registry, stock, true, merchantFilter);
 }
 
 InteractionResult Merchant::beInteractedBy(Player& player) {
@@ -20,6 +25,7 @@ InteractionResult Merchant::beInteractedBy(Player& player) {
         result.msg = "[MERCHANT] Si estas muerto, no me podes comprar nada joven viajero. Pedile "
                      "ayuda al sacerdote";
     } else {
+        player.onActionStarted();
         result.msg = "[MERCHANT] Saludos, viajero. ¿Lo puedo ayudar con algo?";
     }
     return result;

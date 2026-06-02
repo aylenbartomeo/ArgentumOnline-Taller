@@ -26,6 +26,7 @@ InteractionResult Priest::beInteractedBy(Player& player) {
     if (player.isDead()) {
         result.msg = "[PRIEST] Tu alma vaga en el limbo. Usa /resucitar para volver a la vida.";
     } else {
+        player.onActionStarted();
         result.msg = " [PRIEST] Saludos, viajero. ¿En qué puedo ayudarte hoy?";
     }
     return result;

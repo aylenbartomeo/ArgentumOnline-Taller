@@ -48,6 +48,9 @@ public:
     // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
     void update(float deltaSeconds);
 
+    void startMeditating() { state.startMeditating(); }
+    void stopMeditating() { state.stopMeditating(); }
+
     // Equipa un ítem resolviendo su ID contra el registry
     uint32_t equipItemById(uint32_t itemId);
 
@@ -90,6 +93,11 @@ public:
     bool consumeMana(int amount) { return stats.consumeMana(static_cast<uint16_t>(amount)); }
     void restoreHp() { stats.restoreHp(); }
     void restoreMana() { stats.restoreMana(); }
+
+    void setHp(uint16_t newHp) { stats.setHp(newHp); }
+    void setMana(uint16_t newMana) { stats.setMana(newMana); }
+    void applyBoost(BoostType type, uint8_t value, uint32_t durationMs);
+
     Race getRace() const { return stats.getRace(); }
     CharacterClass getCharacterClass() const { return stats.getCharacterClass(); }
 

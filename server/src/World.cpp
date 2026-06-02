@@ -3,13 +3,17 @@
 #include <algorithm>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <utility>
 
 #include "config/MonsterConfigLoader.h"
 #include "model/combat/CombatManager.h"
+#include "model/entities/Merchant.h"
 #include "model/entities/NPCFactory.h"
 #include "model/entities/Player.h"
+#include "model/entities/Priest.h"
+#include "model/items/ItemRegistry.h"
 
 World::World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry,
              const CharacterConfigs& configs):
@@ -37,13 +41,20 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
     uint32_t entityId = nextEntityId++;
     this->dbIdToEntityId[dbId] = entityId;
 
-    PlayerConfig baseConfig = {15, 15, 15, 15, 1, 0, 0};
+    PlayerConfig baseConfig = characterConfigs.player;
+    Race savedRace = Race::HUMAN;
+    CharacterClass savedClass = CharacterClass::WARRIOR;
+
+    // Usar configs del TOML para la raza y clase por defecto
     RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig classConfig = {1.0f, 1.0f, 1.0f, false};
 
-    // Declarar fuera del if para que estén disponibles en el make_unique
-    Race savedRace = Race::HUMAN;
-    CharacterClass savedClass = CharacterClass::WARRIOR;
+    auto defaultRaceIt = characterConfigs.races.find(savedRace);
+    auto defaultClassIt = characterConfigs.classes.find(savedClass);
+    if (defaultRaceIt != characterConfigs.races.end())
+        raceConfig = defaultRaceIt->second;
+    if (defaultClassIt != characterConfigs.classes.end())
+        classConfig = defaultClassIt->second;
 
     std::pair<float, float> defaultSpawn = map.getInitialPosition();
     Position spawnPos =
@@ -79,27 +90,27 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
     if (savedData.has_value()) {
         const PlayerPersistData& d = savedData.value();
 
-        player->getStats().restoreHp();
-        player->getStats().restoreMana();
-        uint16_t maxHp = player->getStats().getMaxHp();
-        uint16_t maxMana = player->getStats().getMaxMana();
+        player->restoreHp();
+        player->restoreMana();
+
+        uint16_t maxHp = player->getMaxHp();
+        uint16_t maxMana = player->getMaxMana();
         if (d.hp < maxHp)
-            player->getStats().takeDamage(maxHp - d.hp);
+            player->receiveDamage(maxHp - d.hp);
         if (d.mana < maxMana)
-            player->getStats().consumeMana(maxMana - d.mana);
+            player->consumeMana(maxMana - d.mana);
 
         uint8_t slots = std::min<uint8_t>(d.inventorySize, 16);
         for (uint8_t i = 0; i < slots; ++i) {
             if (d.inventory[i].item_id != 0 && d.inventory[i].amount > 0) {
-                player->getInventory().addItem(d.inventory[i].item_id, d.inventory[i].amount,
-                                               /*stackable=*/false);
+                player->addInventoryItem(d.inventory[i].item_id, d.inventory[i].amount);
             }
         }
 
         if (d.stateId == 1)
-            player->getState().die();
+            player->handleDeath();
         else if (d.stateId == 2)
-            player->getState().startMeditating();
+            player->startMeditating();
     }
 
     this->players[entityId] = std::move(player);
@@ -324,8 +335,6 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
         return;
     }
 
-    attacker.onActionStarted();
-
     // Notificar a los clanmates del target que está siendo atacado
     auto targetPlayerIt = dynamic_cast<Player*>(target);
     if (targetPlayerIt) {
@@ -421,6 +430,11 @@ void World::playerInteract(uint32_t dbId, uint32_t targetNpcId) {
         return;
     Player& player = *(itPlayer->second);
 
+    if (player.isDead()) {
+        outgoingEvents.push_back({dbId, "You can't do that as a ghost."});
+        return;
+    }
+
     // 2. Buscar al NPC
     Interactable* npc = this->findInteractable(targetNpcId);
     if (!npc)
@@ -452,6 +466,13 @@ void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
     if (itPlayer == this->players.end())
         return;
     Player& player = *(itPlayer->second);
+
+    player.onActionStarted();
+
+    if (player.isDead()) {
+        outgoingEvents.push_back({dbId, "You can't do that as a ghost."});
+        return;
+    }
 
     // El mundo busca al NPC en su tabla de interacciones, no en el Player
     auto itInteract = activeInteractions.find(playerEntityId);
@@ -513,6 +534,30 @@ Player* World::findNearestPlayer(const Monster& monster, int range) {
     return nearest;
 }
 
+void World::moveMonsterTowards(Monster& monster, const Player& target) {
+    if (!monster.canMove())
+        return;
+
+    Position mPos = monster.getPosition();
+    Position tPos = target.getPosition();
+    Position candidate = mPos;
+
+    if (tPos.x > mPos.x)
+        candidate.x++;
+    else if (tPos.x < mPos.x)
+        candidate.x--;
+
+    if (tPos.y > mPos.y)
+        candidate.y++;
+    else if (tPos.y < mPos.y)
+        candidate.y--;
+
+    if (candidate != mPos && map.canMoveTo(candidate)) {
+        monster.setPosition(candidate);
+        monster.resetMoveCooldown();
+    }
+}
+
 // --- Update del mundo (tick del game loop) ---
 
 void World::update(float delta_time) {
@@ -526,18 +571,55 @@ void World::update(float delta_time) {
         if (monster->isDead())
             continue;
 
+        // Actualizar cooldowns del monstruo
+        monster->update(delta_time);  // delta_time ya viene en ms desde GameLoop
+
         // Buscar al Player más cercano dentro del rango de detección
         Player* target = findNearestPlayer(*monster, monster->get_detection_range());
-        if (!target)
+        if (!target) {
+            monster->setTargetId(0);
             continue;
+        }
+
+        if (monster->getTargetId() != target->getId()) {
+            monster->setTargetId(target->getId());
+            monster->resetAttackCooldown();
+            monster->resetMoveCooldown();
+        }
 
         int dist = monster->distance_to(*target);
 
         if (dist <= monster->get_attack_range()) {
-            // Está en rango de ataque: atacar
-            monsterAttack(*monster, *target);
+            // Está en rango de ataque: atacar si no está en cooldown
+            if (monster->canAttack()) {
+                monsterAttack(*monster, *target);
+                monster->resetAttackCooldown();
+            }
+        } else {
+            // Si está en rango de detección pero no de ataque, mover hacia el jugador...
+            moveMonsterTowards(*monster, *target);
         }
-        // Si está en rango de detección pero no de ataque, mover hacia el jugador...
+    }
+
+    // Procesar resurrecciones pendientes
+    for (auto it = pendingResurrections.begin(); it != pendingResurrections.end();) {
+        it->remainingTimeMs -= delta_time;  // delta_time ya viene en ms
+        if (it->remainingTimeMs <= 0.0f) {
+            auto itMap = dbIdToEntityId.find(it->playerDbId);
+            if (itMap != dbIdToEntityId.end()) {
+                auto itPlayer = players.find(itMap->second);
+                if (itPlayer != players.end()) {
+                    // cppcheck-suppress constVariableReference
+                    Player& player = *(itPlayer->second);
+                    player.setPosition(it->targetPos);
+                    player.resurrect();  // revivir completo (HP + estado)
+                    outgoingEvents.push_back({it->playerDbId, "You have been resurrected!"});
+                }
+            }
+            it = pendingResurrections.erase(it);
+        } else {
+            ++it;
+        }
     }
 }
 
@@ -646,14 +728,19 @@ void World::pickUpItem(uint32_t dbId) {
     if (!posOpt)
         return;
 
+    auto itPlayer = players.find(dbIdToEntityId[dbId]);
+    Player& player = *(itPlayer->second);
+
+    if (player.isDead()) {
+        outgoingEvents.push_back({dbId, "You can't do that as a ghost."});
+        return;
+    }
+
     auto itemOpt = map.pickUpItem(posOpt.value());
     if (!itemOpt) {
         outgoingEvents.push_back({dbId, "There are no items here to pick up."});
         return;
     }
-
-    auto itPlayer = players.find(dbIdToEntityId[dbId]);
-    Player& player = *(itPlayer->second);
 
     uint16_t leftover = player.addInventoryItem(itemOpt->itemId, itemOpt->amount);
 
@@ -665,6 +752,21 @@ void World::pickUpItem(uint32_t dbId) {
     }
 }
 
+void World::playerMeditate(uint32_t dbId) {
+    if (dbIdToEntityId.find(dbId) == dbIdToEntityId.end())
+        return;
+
+    auto itPlayer = players.find(dbIdToEntityId[dbId]);
+    Player& player = *(itPlayer->second);
+
+    if (player.isDead()) {
+        outgoingEvents.push_back({dbId, "You can't do that as a ghost."});
+        return;
+    }
+
+    player.startMeditating();
+}
+
 void World::dropItem(uint32_t dbId, uint8_t slot, uint16_t amount) {
     auto posOpt = getPlayerPosition(dbId);
     if (!posOpt)
@@ -672,6 +774,11 @@ void World::dropItem(uint32_t dbId, uint8_t slot, uint16_t amount) {
 
     auto itPlayer = players.find(dbIdToEntityId[dbId]);
     Player& player = *(itPlayer->second);
+
+    if (player.isDead()) {
+        outgoingEvents.push_back({dbId, "You can't do that as a ghost."});
+        return;
+    }
 
     auto slotOpt = player.inspectInventorySlot(slot);
     if (!slotOpt || slotOpt->amount < amount)
@@ -695,6 +802,8 @@ void World::handlePlayerDeath(uint32_t dbId) {
     Player& player = *(itPlayer->second);
     Position pos = player.getPosition();
 
+    player.onActionStarted();
+
     uint32_t dropped_gold = player.dropExcessGold();
     if (dropped_gold > 0) {
         // TODO: map.placeItemNearby(pos, GOLD_ITEM_ID, dropped_gold);
@@ -704,6 +813,52 @@ void World::handlePlayerDeath(uint32_t dbId) {
     for (const auto& slot: dropped_items) {
         map.placeItemNearby(pos, slot.item_id, slot.amount);
     }
+}
+
+void World::playerResurrect(uint32_t dbId) {
+    auto itMap = this->dbIdToEntityId.find(dbId);
+    if (itMap == this->dbIdToEntityId.end())
+        return;
+
+    auto itPlayer = players.find(itMap->second);
+    if (itPlayer == players.end())
+        return;
+
+    const Player& player = *(itPlayer->second);
+
+    if (!player.isDead()) {
+        outgoingEvents.push_back({dbId, "You are not a ghost."});
+        return;
+    }
+
+    // Buscar sacerdote más cercano (NPCType::PRIEST) en cityNPCs
+    // cppcheck-suppress constVariablePointer
+    Interactable* nearestPriest = nullptr;
+    int minDistance = std::numeric_limits<int>::max();
+
+    for (auto& [id, npc]: cityNPCs) {
+        if (dynamic_cast<Priest*>(npc.get())) {
+            int dist = player.getPosition().distance_to(npc->getPosition());
+            if (dist < minDistance) {
+                minDistance = dist;
+                nearestPriest = npc.get();
+            }
+        }
+    }
+
+    if (!nearestPriest) {
+        outgoingEvents.push_back({dbId, "There are no priests in this world to resurrect you."});
+        return;
+    }
+
+    // Calcular delay: distancia de Manhattan * 200 ms
+    int delayMs = player.getPosition().distance_to(nearestPriest->getPosition()) * 200;
+
+    pendingResurrections.push_back(
+            {dbId, static_cast<float>(delayMs), nearestPriest->getPosition()});
+
+    outgoingEvents.push_back(
+            {dbId, "Resurrecting... Please wait " + std::to_string(delayMs / 1000) + " seconds."});
 }
 
 // =============================================================================
@@ -789,4 +944,15 @@ bool World::areClanmates(uint32_t playerADbId, uint32_t playerBDbId) const {
     auto clanA = clanRepo.getClanIdOfPlayer(playerADbId);
     auto clanB = clanRepo.getClanIdOfPlayer(playerBDbId);
     return (clanA && clanB && *clanA == *clanB);
+}
+
+// Obtiene el puntero a un Player del mundo usando su ID de base de datos
+Player* World::getPlayerById(uint32_t dbId) {
+    auto itMap = this->dbIdToEntityId.find(dbId);
+    if (itMap == this->dbIdToEntityId.end())
+        return nullptr;
+    auto it = this->players.find(itMap->second);
+    if (it == this->players.end())
+        return nullptr;
+    return it->second.get();
 }

@@ -4,66 +4,78 @@
 
 [monsters.goblin]
 max_health = 30
-strength = 5
+strength = 1
 agility = 8
-attack_min = 1
-attack_max = 4
+attack_min = 2
+attack_max = 5
 detection_range = 6
 attack_range = 1
 zone = "forest"
 level = 1
+attack_cooldown_ms = 1200
+move_cooldown_ms = 600
 
 [monsters.skeleton]
 max_health = 45
-strength = 8
+strength = 1
 agility = 5
-attack_min = 2
-attack_max = 6
+attack_min = 4
+attack_max = 8
 detection_range = 6
 attack_range = 1
 zone = "dungeon"
 level = 1
+attack_cooldown_ms = 1500
+move_cooldown_ms = 700
 
 [monsters.zombie]
 max_health = 55
-strength = 9
+strength = 1
 agility = 2
-attack_min = 2
-attack_max = 7
+attack_min = 5
+attack_max = 10
 detection_range = 5
 attack_range = 1
 zone = "cemetery"
 level = 1
+attack_cooldown_ms = 2000
+move_cooldown_ms = 1000
 
 [monsters.spider]
-max_health = 35
-strength = 6
+max_health = 25
+strength = 1
 agility = 10
-attack_min = 1
-attack_max = 5
+attack_min = 2
+attack_max = 4
 detection_range = 7
 attack_range = 1
 zone = "forest"
 level = 1
+attack_cooldown_ms = 900
+move_cooldown_ms = 500
 
 [monsters.orc]
 max_health = 80
-strength = 15
+strength = 1
 agility = 4
-attack_min = 4
-attack_max = 10
+attack_min = 8
+attack_max = 14
 detection_range = 6
 attack_range = 1
 zone = "wilderness"
 level = 1
+attack_cooldown_ms = 1800
+move_cooldown_ms = 800
 
 [monsters.golem]
 max_health = 140
-strength = 22
+strength = 1
 agility = 1
-attack_min = 6
-attack_max = 14
+attack_min = 15
+attack_max = 25
 detection_range = 4
 attack_range = 1
 zone = "dungeon"
 level = 1
+attack_cooldown_ms = 3000
+move_cooldown_ms = 1200

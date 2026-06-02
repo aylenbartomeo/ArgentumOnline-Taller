@@ -15,13 +15,26 @@ Monster::Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& c
         agility(config.agility),
         attack_min(config.attackMin),
         attack_max(config.attackMax),
-        level(config.level) {}
+        level(config.level),
+        attack_cooldown_ms(config.attackCooldownMs),
+        move_cooldown_ms(config.moveCooldownMs),
+        time_since_last_attack(0.0f),
+        time_since_last_move(0.0f) {}
 
-void Monster::move(const Position& new_pos) {
-    // Lógica de movimiento, podría ser aleatorio dentro de un rango o siguiendo al jugador si lo
-    // detecta
-    this->pos = new_pos;
+void Monster::move(const Position& new_pos) { this->pos = new_pos; }
+
+void Monster::update(float deltaMs) {
+    time_since_last_attack += deltaMs;
+    time_since_last_move += deltaMs;
 }
+
+bool Monster::canAttack() const { return time_since_last_attack >= attack_cooldown_ms; }
+
+bool Monster::canMove() const { return time_since_last_move >= move_cooldown_ms; }
+
+void Monster::resetAttackCooldown() { time_since_last_attack = 0.0f; }
+
+void Monster::resetMoveCooldown() { time_since_last_move = 0.0f; }
 
 void Monster::receiveDamage(int amount) {
     if (amount < 0)

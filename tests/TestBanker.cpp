@@ -60,11 +60,11 @@ TEST(BankerTest, Banker_DepositsItemFromInventorySuccessfully) {
     Player player = makeBankerTestPlayer();
 
     // Seteamos la precondición: le damos la Espada (ID: 4001) al jugador
-    player.addItem(4001u, 1);
+    player.addItem(2000u, 1);
     ASSERT_TRUE(player.inspectSlot(0).has_value());
 
     // Mandamos el comando unificado enviando el ID del ítem como argumento string
-    NpcCommandDTO cmd = {NpcCommandType::DEPOSIT, "4001"};
+    NpcCommandDTO cmd = {NpcCommandType::DEPOSIT, "2000"};
     InteractionResult res = banquero.handleCommand(player, cmd);
 
     // VALIDACIONES:
@@ -76,7 +76,7 @@ TEST(BankerTest, Banker_DepositsItemFromInventorySuccessfully) {
 
     // 2. Verificamos que el ítem fue extraído por el banquero y depositado en la bóveda global
     // Intentamos retirarlo directamente del banco para probar que quedó ahí guardado
-    uint16_t cantidadEnBanco = bancoInstance.withdrawItemById(player.getDbId(), 4001u, 1);
+    uint16_t cantidadEnBanco = bancoInstance.withdrawItemById(player.getDbId(), 2000u, 1);
     EXPECT_EQ(cantidadEnBanco, 1);
 }
 

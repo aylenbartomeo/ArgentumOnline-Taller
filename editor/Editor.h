@@ -6,11 +6,10 @@
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
-#include "OverlayRegistry.h"
-
 #include "Camera.h"
 #include "EditorMap.h"
 #include "Font.h"
+#include "OverlayRegistry.h"
 #include "Palette.h"
 #include "SpawnCatalogs.h"
 #include "TextureManager.h"

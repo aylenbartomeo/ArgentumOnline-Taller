@@ -39,8 +39,8 @@ TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
     // Configuramos precondiciones usando la API real de tu InventoryComponent
     player.addGold(500);
 
-    // Intentamos comprar la "Espada" (ID: 4001 de tu TOML)
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "4001");
+    // Intentamos comprar la "Espada"
+    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "2000");
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES:
@@ -52,7 +52,7 @@ TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
     // 2. El ítem 4001 ingresó efectivamente en el slot 0 de la mochila
     auto slotOpt = player.inspectSlot(0);
     ASSERT_TRUE(slotOpt.has_value());
-    EXPECT_EQ(slotOpt->item_id, 4001u);
+    EXPECT_EQ(slotOpt->item_id, 2000u);
     EXPECT_EQ(slotOpt->amount, 1);
 }
 
@@ -70,11 +70,10 @@ TEST(MerchantTest, Merchant_BuyWithFullInventoryDoesNotStealGold) {
     // para evitar apilamiento automático del mismo ítem.
     uint8_t sizeMochila = player.getSize();
     for (uint8_t i = 0; i < sizeMochila; ++i) {
-        player.addItem(1001u + i, 1);  // IDs distintos para ocupar cada slot
+        player.addItem(1000u + i, 1);  // IDs distintos para ocupar cada slot
     }
 
-    // Intentamos comprar la Espada (4001)
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "4001");
+    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "2000");
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES CRÍTICAS:
@@ -94,7 +93,7 @@ TEST(MerchantTest, Merchant_RejectsMagicItemsBasedOnName) {
 
     player.addGold(300);
 
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "6003");  // Baculo nudoso
+    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "2022");  // Baculo nudoso
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // 0. Verificamos que la compra fue rechazada por filtro de magia
@@ -119,20 +118,22 @@ TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
     Player player = makeTestPlayer();
 
     // Le damos una "Armadura de cuero" (ID: 1001) directo en la mochila
-    player.addItem(1001, 1);
+    player.addItem(1000, 1);
     EXPECT_EQ(player.getGold(), 0u);  // Arranca seco
 
     // Ejecutamos el comando de venta de la armadura
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::SELL, "1001");
+    NpcCommandDTO cmd = createTestCommand(NpcCommandType::SELL, "1000");
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES:
-    // 0. Verificamos que la venta fue exitosa
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
-    // 1. El slot de la mochila quedó limpio (devuelve nullopt)
+
     auto slotOpt = player.inspectSlot(0);
     EXPECT_FALSE(slotOpt.has_value());
 
-    // 2. Se le pagó la mitad del costo base del mercader (100 / 2 = 50 de oro)
-    EXPECT_EQ(player.getGold(), 50u);
+    // Traemos el precio base del .toml (150) y calculamos la mitad (75)
+    uint32_t precioBase = registry.get_item(1000u)->getPrice();
+    uint32_t oroEsperado = precioBase / 2;
+
+    EXPECT_EQ(player.getGold(), oroEsperado);
 }

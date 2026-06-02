@@ -19,6 +19,8 @@ target_sources(argentum_online_tests
     TestGroundItemLayer.cpp
     TestSafeZoneLayer.cpp
     TestNPCLayer.cpp
+    TestPlayer.cpp
+    TestConsumable.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
     ../server/src/model/map/GroundItemLayer.cpp
@@ -47,6 +49,7 @@ target_sources(argentum_online_tests
     ../server/src/model/items/ItemRegistry.cpp
     ../server/src/model/items/ArmorFactory.cpp
     ../server/src/model/items/WeaponFactory.cpp
+    ../server/src/model/items/ConsumableFactory.cpp
     ../server/src/config/ItemConfigLoader.cpp
     ../server/src/config/MonsterConfigLoader.cpp
     ../server/src/auth/AuthManager.cpp

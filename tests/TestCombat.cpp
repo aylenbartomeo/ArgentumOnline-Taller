@@ -37,7 +37,7 @@ static Player makeTestPlayer(uint32_t id = 1) {
 
 // Helper: crea un Monster base para tests
 static Monster makeTestMonster(uint32_t id = 10000, Position pos = {0, 0}) {
-    MonsterConfig cfg = {100, 10, 0, 5, 15, 5, 2, 1, "zone"};
+    MonsterConfig cfg = {100, 10, 0, 5, 15, 5, 2, 1, "zone", 0, 0};
     return Monster(id, NPCType::GOBLIN, pos, cfg);
 }
 
@@ -47,7 +47,7 @@ TEST(CombatManagerTest, PlayerAttackNoWeapon) {
     Player attacker = makeTestPlayer();
     MockAttackable target;
 
-    // Sin arma equipada, no debería llamar a receiveDamage
+    // Sin arma equipada, no deberÃ­a llamar a receiveDamage
     EXPECT_CALL(target, receiveDamage(testing::_)).Times(0);
 
     CombatManager::getInstance().processAttack(attacker, target);
@@ -58,7 +58,7 @@ TEST(CombatManagerTest, PlayerAttackOutOfRange) {
     MockAttackable target;
 
     // Equipar un arma con rango 1
-    Weapon sword(1, "TestSword", 10, 20, WeaponType::MELEE, 1, 0);
+    Weapon sword(1, "TestSword", 100, WeaponType::MELEE, 10, 20, 1, 0);
     attacker.getEquipment().equipWeapon(&sword);
 
     // Target a distancia 5, rango 1
@@ -73,7 +73,7 @@ TEST(CombatManagerTest, PlayerPhysicalAttackSuccessful) {
     Player attacker = makeTestPlayer();
     MockAttackable target;
 
-    Weapon sword(1, "TestSword", 10, 20, WeaponType::MELEE, 1, 0);
+    Weapon sword(1, "TestSword", 100, WeaponType::MELEE, 10, 20, 1, 0);
     attacker.getEquipment().equipWeapon(&sword);
 
     EXPECT_CALL(target, getPosition()).WillRepeatedly(testing::Return(Position{0, 0}));
@@ -93,11 +93,11 @@ TEST(CombatManagerTest, PlayerMagicAttackInsufficientMana) {
     Player attacker = makeTestPlayer();
     MockAttackable target;
 
-    // Arma mágica con costo de maná 999 (más de lo que tiene el Player)
-    Weapon staff(2, "TestStaff", 10, 20, WeaponType::MAGIC, 5, 999);
+    // Arma mÃ¡gica con costo de manÃ¡ 999 (mÃ¡s de lo que tiene el Player)
+    Weapon staff(2, "TestStaff", 150, WeaponType::MAGIC, 10, 20, 1, 999);
     attacker.getEquipment().equipWeapon(&staff);
 
-    // No debería recibir daño porque no hay maná suficiente
+    // No deberÃ­a recibir daÃ±o porque no hay manÃ¡ suficiente
     EXPECT_CALL(target, receiveDamage(testing::_)).Times(0);
 
     CombatManager::getInstance().processAttack(attacker, target);
@@ -107,8 +107,8 @@ TEST(CombatManagerTest, PlayerMagicAttackSuccessful) {
     Player attacker = makeTestPlayer();
     MockAttackable target;
 
-    // Arma mágica con costo de maná 1 (el Player tiene 15)
-    Weapon staff(2, "TestStaff", 10, 20, WeaponType::MAGIC, 5, 1);
+    // Arma mÃ¡gica con costo de manÃ¡ 1 (el Player tiene 15)
+    Weapon staff(2, "TestStaff", 150, WeaponType::MAGIC, 10, 20, 1, 1);
     attacker.getEquipment().equipWeapon(&staff);
 
     EXPECT_CALL(target, getPosition()).WillRepeatedly(testing::Return(Position{0, 0}));

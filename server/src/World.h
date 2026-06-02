@@ -65,6 +65,9 @@ private:
     // IA de monstruos: busca al Player más cercano dentro de un rango
     Player* findNearestPlayer(const Monster& monster, int range);
 
+    // Mueve al monstruo hacia el objetivo (si está en cooldown no hace nada)
+    void moveMonsterTowards(Monster& monster, const Player& target);
+
     // Procesa el ataque de un Monster a un Player
     void monsterAttack(const Monster& monster, Player& target);
 
@@ -130,8 +133,17 @@ public:
 
     // Acciones de comandos del jugador
     void pickUpItem(uint32_t dbId);
+    void playerMeditate(uint32_t dbId);
     void dropItem(uint32_t dbId, uint8_t slot, uint16_t amount);
     void handlePlayerDeath(uint32_t dbId);
+    void playerResurrect(uint32_t dbId);
+
+    struct PendingResurrection {
+        uint32_t playerDbId;
+        float remainingTimeMs;
+        Position targetPos;
+    };
+    std::vector<PendingResurrection> pendingResurrections;
 
     // Zonas seguras (delega al map)
     bool isSafeZone(float x, float y) const;
@@ -151,6 +163,9 @@ public:
     // Configuraciones de reglas de juego (para testing y ajustes de balance)
     void setFairPlayRules(bool enforce) { enforceFairPlay = enforce; }
     void setClanMinLevel(uint16_t level) { clanService.setMinLevelToFound(level); }
+
+    // Obtener una referencia al Player según su ID de base de datos
+    Player* getPlayerById(uint32_t dbId);
 
     ~World() = default;
 };

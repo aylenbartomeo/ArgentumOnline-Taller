@@ -1,25 +1,30 @@
 #include "Game.h"
 
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <SDL2/SDL.h>
 
+#include "common/include/dto/ClientCommands.h"
 #include "common/include/dto/StartMoveDTO.h"
-#include "OverlayRegistry.h"
 
 #include "CharacterSprites.h"
 #include "HealthBar.h"
+#include "OverlayRegistry.h"
 
 namespace {
 constexpr int TILE_SIZE = 32;
 constexpr int WINDOW_WIDTH = 640;
 constexpr int WINDOW_HEIGHT = 480;
 constexpr Uint32 MOVE_INTERVAL_MS = 200;
+
+constexpr const char* CHAT_FONT_PATH = "resources/fonts/DejaVuSans.ttf";
 
 constexpr const char* RESOURCES_DIR = "resources/";
 constexpr int CHARACTER_FRAME_X = 2;
@@ -67,6 +72,7 @@ std::string readWholeFile(const std::string& path) {
     buffer << file.rdbuf();
     return buffer.str();
 }
+
 }  // namespace
 
 Game::Game(Client& client):
@@ -76,6 +82,8 @@ Game::Game(Client& client):
         client(client),
         textures(window.getRenderer()),
         map(readWholeFile("maps/defaultMap.json")),
+        miniChat(CHAT_FONT_PATH),
+        chatParser(),
         lastSnapshot(),
         lastMoveSentMs(0) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
@@ -88,13 +96,33 @@ void Game::run() {
         if (input.quit) {
             break;
         }
+        drainIncomingChat();
+        processChatInput(input);
         sendMoveIfDue(input);
-        render();
+        render(input);
         SDL_Delay(16);
     }
 }
 
+void Game::drainIncomingChat() {
+    ChatDTO chat;
+    while (client.tryPopChatMessage(chat)) {
+        miniChat.pushMessage(chat.message);
+    }
+}
+
+void Game::processChatInput(const FrameInput& input) {
+    if (!input.chatSubmitted || input.chatText.empty())
+        return;
+
+    CommandVariant cmd = chatParser.parse(input.chatText);
+    client.sendCommand(cmd);
+}
+
 void Game::sendMoveIfDue(const FrameInput& input) {
+    if (input.chatInputActive)
+        return;
+
     const Uint32 now = SDL_GetTicks();
     if (now - lastMoveSentMs < MOVE_INTERVAL_MS) {
         return;
@@ -116,7 +144,7 @@ void Game::sendMoveIfDue(const FrameInput& input) {
     }
 }
 
-void Game::render() {
+void Game::render(const FrameInput& input) {
     SnapshotDTO incoming;
     while (client.tryPopSnapshot(incoming)) {
         lastSnapshot = incoming;
@@ -129,23 +157,28 @@ void Game::render() {
     const CameraOffset camera = computeCamera();
     renderTerrain(camera);
     renderOverlays(camera);
+    renderGroundItems(camera);
     renderCitizens(camera);
     renderEntities(camera);
+
+    // MiniChat superpuesto
+    miniChat.render(renderer.Get(), WINDOW_WIDTH, WINDOW_HEIGHT, input.chatInputActive,
+                    input.chatText);
 
     renderer.Present();
 }
 
 CameraOffset Game::computeCamera() {
     const uint32_t myId = client.getClientId();
-    int focusX = 0;
-    int focusY = 0;
-    for (const EntityDTO& entity: lastSnapshot.players) {
-        if (entity.id == myId) {
-            focusX = entity.x * TILE_SIZE + TILE_SIZE / 2;
-            focusY = entity.y * TILE_SIZE + TILE_SIZE / 2;
-            break;
-        }
+    int focusX = 0, focusY = 0;
+    auto it = std::find_if(lastSnapshot.players.begin(), lastSnapshot.players.end(),
+                           [myId](const EntityDTO& entity) { return entity.id == myId; });
+
+    if (it != lastSnapshot.players.end()) {
+        focusX = it->x * TILE_SIZE + TILE_SIZE / 2;
+        focusY = it->y * TILE_SIZE + TILE_SIZE / 2;
     }
+
     return computeCameraOffset(focusX, focusY, WINDOW_WIDTH, WINDOW_HEIGHT,
                                map.getWidth() * TILE_SIZE, map.getHeight() * TILE_SIZE);
 }
@@ -164,6 +197,30 @@ void Game::renderTerrain(const CameraOffset& camera) {
             renderer.Copy(ground, cellInSafeZone(col, row) ? darkGroundSrc : groundSrc, dstRect);
         }
     }
+    renderer.SetClipRect();
+}
+
+void Game::renderGroundItems(const CameraOffset& camera) {
+    SDL2pp::Renderer& renderer = window.getRenderer();
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+
+    for (const auto& item: lastSnapshot.groundItems) {
+        auto it = std::find_if(registry.begin(), registry.end(), [&item](const OverlayDef& def) {
+            return static_cast<uint32_t>(def.itemId) == item.itemId;
+        });
+
+        if (it != registry.end()) {
+            const OverlayDef& def = *it;
+            SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + def.tilesheet);
+            const SDL2pp::Rect srcRect(def.srcX, def.srcY, def.srcW, def.srcH);
+            const int dstW = TILE_SIZE;
+            const int dstH = (def.srcH * TILE_SIZE) / def.srcW;
+            const int dstX = item.x * TILE_SIZE - camera.x;
+            const int dstY = item.y * TILE_SIZE + TILE_SIZE - dstH - camera.y;
+
+            renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
+        }
+    }
 }
 
 void Game::renderCitizens(const CameraOffset& camera) {
@@ -171,7 +228,8 @@ void Game::renderCitizens(const CameraOffset& camera) {
     const SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
                                CHARACTER_FRAME_H);
     for (const MapCitizen& citizen: map.getCitizens()) {
-        SDL2pp::Texture& body = textures.get(std::string(RESOURCES_DIR) + citizenSheet(citizen.type));
+        SDL2pp::Texture& body =
+                textures.get(std::string(RESOURCES_DIR) + citizenSheet(citizen.type));
         const SDL2pp::Rect dstRect(citizen.x * TILE_SIZE - camera.x,
                                    citizen.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H - camera.y,
                                    TILE_SIZE, CHARACTER_DRAW_H);
@@ -180,13 +238,11 @@ void Game::renderCitizens(const CameraOffset& camera) {
 }
 
 bool Game::cellInSafeZone(int col, int row) const {
-    for (const SafeZoneRect& zone: map.getSafeZones()) {
-        if (col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
-            row < zone.y + zone.height) {
-            return true;
-        }
-    }
-    return false;
+    return std::any_of(map.getSafeZones().begin(), map.getSafeZones().end(),
+                       [col, row](const SafeZoneRect& zone) {
+                           return col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
+                                  row < zone.y + zone.height;
+                       });
 }
 
 void Game::renderOverlays(const CameraOffset& camera) {
@@ -199,6 +255,9 @@ void Game::renderOverlays(const CameraOffset& camera) {
                 continue;
             }
             const OverlayDef& def = registry[tileId - 1];
+            if (!def.solid) {
+                continue;
+            }
             SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + def.tilesheet);
             const SDL2pp::Rect srcRect(def.srcX, def.srcY, def.srcW, def.srcH);
             const int dstW = TILE_SIZE;
@@ -263,15 +322,15 @@ void Game::renderEntities(const CameraOffset& camera) {
 
     const SDL2pp::Rect barSrc(0, 0, barSheet.GetWidth(), barSheet.GetHeight());
     auto drawHealthBar = [&](const EntityDTO& entity) {
-        const HealthBarLayout bar = computeHealthBar(entity.current_hp, entity.max_hp,
-                                                     entity.x * TILE_SIZE - camera.x,
-                                                     entity.y * TILE_SIZE - camera.y, TILE_SIZE);
+        const HealthBarLayout bar =
+                computeHealthBar(entity.current_hp, entity.max_hp, entity.x * TILE_SIZE - camera.x,
+                                 entity.y * TILE_SIZE - camera.y, TILE_SIZE);
         if (!bar.visible) {
             return;
         }
         renderer.SetDrawColor(20, 20, 20, 255);
-        renderer.FillRect(
-                SDL2pp::Rect(bar.background.x, bar.background.y, bar.background.w, bar.background.h));
+        renderer.FillRect(SDL2pp::Rect(bar.background.x, bar.background.y, bar.background.w,
+                                       bar.background.h));
         if (bar.fill.w > 0) {
             renderer.Copy(barSheet, barSrc,
                           SDL2pp::Rect(bar.fill.x, bar.fill.y, bar.fill.w, bar.fill.h));

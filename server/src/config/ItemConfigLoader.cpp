@@ -1,4 +1,4 @@
-#include "server/src/config/ItemConfigLoader.h"
+﻿#include "server/src/config/ItemConfigLoader.h"
 
 #include <cstdint>
 #include <limits>
@@ -74,9 +74,26 @@ WeaponType parseWeaponType(const std::string& type) {
     throw std::runtime_error("Unknown weapon type: " + type);
 }
 
+ConsumableType parseConsumableType(const std::string& type) {
+    if (type == "health") {
+        return ConsumableType::HEALTH;
+    }
+    if (type == "mana") {
+        return ConsumableType::MANA;
+    }
+    if (type == "boostStr") {
+        return ConsumableType::BOOST_STR;
+    }
+    if (type == "boostAgi") {
+        return ConsumableType::BOOST_AGI;
+    }
+    throw std::runtime_error("Unknown consumable type: " + type);
+}
+
 ArmorConfig parseArmorConfig(const toml::table& armorTable) {
     ArmorConfig config{
             requiredInt(armorTable, "id"),
+            requiredInt(armorTable, "price"),
             parseArmorSlot(requiredString(armorTable, "slot")),
             requiredInt(armorTable, "min_defense"),
             requiredInt(armorTable, "max_defense"),
@@ -92,6 +109,7 @@ ArmorConfig parseArmorConfig(const toml::table& armorTable) {
 WeaponConfig parseWeaponConfig(const toml::table& weaponTable) {
     WeaponConfig config{
             requiredInt(weaponTable, "id"),
+            requiredInt(weaponTable, "price"),
             parseWeaponType(requiredString(weaponTable, "type")),
             requiredInt(weaponTable, "min_damage"),
             requiredInt(weaponTable, "max_damage"),
@@ -104,6 +122,16 @@ WeaponConfig parseWeaponConfig(const toml::table& weaponTable) {
     }
 
     return config;
+}
+
+ConsumableConfig parseConsumableConfig(const toml::table& consumableTable) {
+    return ConsumableConfig{
+            requiredInt(consumableTable, "id"),
+            requiredInt(consumableTable, "price"),
+            parseConsumableType(requiredString(consumableTable, "type")),
+            requiredInt(consumableTable, "durationMs"),
+            requiredInt(consumableTable, "effectValue"),
+    };
 }
 
 void validateUniqueId(std::unordered_set<int>& ids, const int id) {
@@ -174,6 +202,30 @@ std::unordered_map<std::string, WeaponConfig> ItemConfigLoader::loadWeaponConfig
     return weaponConfigs;
 }
 
+std::unordered_map<std::string, ConsumableConfig> ItemConfigLoader::loadConsumableConfigs(
+        const std::filesystem::path& configPath) {
+    const toml::table config = parseConfigFile(configPath);
+    const toml::array* consumables = config["consumable"].as_array();
+    if (consumables == nullptr) {
+        throw std::runtime_error("Item TOML config must define at least one [[consumable]] table");
+    }
+    std::unordered_map<std::string, ConsumableConfig> consumableConfigs;
+    std::unordered_set<int> ids;
+    for (const toml::node& consumableNode: *consumables) {
+        const toml::table* consumableTable = consumableNode.as_table();
+        if (consumableTable == nullptr) {
+            throw std::runtime_error("Each consumable entry must be a TOML table");
+        }
+        const std::string name = requiredString(*consumableTable, "name");
+        ConsumableConfig consumableConfig = parseConsumableConfig(*consumableTable);
+        validateUniqueId(ids, consumableConfig.id);
+        if (!consumableConfigs.emplace(name, consumableConfig).second) {
+            throw std::runtime_error("Duplicated consumable name in TOML config: " + name);
+        }
+    }
+    return consumableConfigs;
+}
+
 ArmorFactory ItemConfigLoader::loadArmorFactory(const std::filesystem::path& configPath) {
     return ArmorFactory(loadArmorConfigs(configPath));
 }
@@ -182,9 +234,14 @@ WeaponFactory ItemConfigLoader::loadWeaponFactory(const std::filesystem::path& c
     return WeaponFactory(loadWeaponConfigs(configPath));
 }
 
+ConsumableFactory ItemConfigLoader::loadConsumableFactory(const std::filesystem::path& configPath) {
+    return ConsumableFactory(loadConsumableConfigs(configPath));
+}
+
 ItemFactories ItemConfigLoader::loadItemFactories(const std::filesystem::path& configPath) {
     return ItemFactories{
             loadArmorFactory(configPath),
             loadWeaponFactory(configPath),
+            loadConsumableFactory(configPath),
     };
 }
