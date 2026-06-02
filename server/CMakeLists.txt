@@ -81,7 +81,6 @@ target_sources(argentum_online_server
 
     src/model/entities/MonsterFactory.h
     src/model/entities/Player.h
-    src/model/entities/PlayerFactory.h
     src/model/entities/Priest.h
     src/model/entities/Merchant.h
     src/model/entities/Banker.h
