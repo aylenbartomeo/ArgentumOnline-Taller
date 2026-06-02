@@ -90,27 +90,27 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
     if (savedData.has_value()) {
         const PlayerPersistData& d = savedData.value();
 
-        player->getStats().restoreHp();
-        player->getStats().restoreMana();
-        uint16_t maxHp = player->getStats().getMaxHp();
-        uint16_t maxMana = player->getStats().getMaxMana();
+        player->restoreHp();
+        player->restoreMana();
+
+        uint16_t maxHp = player->getMaxHp();
+        uint16_t maxMana = player->getMaxMana();
         if (d.hp < maxHp)
-            player->getStats().takeDamage(maxHp - d.hp);
+            player->receiveDamage(maxHp - d.hp);
         if (d.mana < maxMana)
-            player->getStats().consumeMana(maxMana - d.mana);
+            player->consumeMana(maxMana - d.mana);
 
         uint8_t slots = std::min<uint8_t>(d.inventorySize, 16);
         for (uint8_t i = 0; i < slots; ++i) {
             if (d.inventory[i].item_id != 0 && d.inventory[i].amount > 0) {
-                player->getInventory().addItem(d.inventory[i].item_id, d.inventory[i].amount,
-                                               /*stackable=*/false);
+                player->addInventoryItem(d.inventory[i].item_id, d.inventory[i].amount);
             }
         }
 
         if (d.stateId == 1)
-            player->getState().die();
+            player->handleDeath();
         else if (d.stateId == 2)
-            player->getState().startMeditating();
+            player->startMeditating();
     }
 
     this->players[entityId] = std::move(player);
@@ -335,8 +335,6 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
         return;
     }
 
-    attacker.onActionStarted();
-
     // Notificar a los clanmates del target que está siendo atacado
     auto targetPlayerIt = dynamic_cast<Player*>(target);
     if (targetPlayerIt) {
@@ -468,6 +466,8 @@ void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
     if (itPlayer == this->players.end())
         return;
     Player& player = *(itPlayer->second);
+
+    player.onActionStarted();
 
     if (player.isDead()) {
         outgoingEvents.push_back({dbId, "You can't do that as a ghost."});
@@ -764,7 +764,7 @@ void World::playerMeditate(uint32_t dbId) {
         return;
     }
 
-    player.getState().startMeditating();
+    player.startMeditating();
 }
 
 void World::dropItem(uint32_t dbId, uint8_t slot, uint16_t amount) {
@@ -801,6 +801,8 @@ void World::handlePlayerDeath(uint32_t dbId) {
     auto itPlayer = players.find(itMap->second);
     Player& player = *(itPlayer->second);
     Position pos = player.getPosition();
+
+    player.onActionStarted();
 
     uint32_t dropped_gold = player.dropExcessGold();
     if (dropped_gold > 0) {

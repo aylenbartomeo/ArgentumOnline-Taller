@@ -48,6 +48,9 @@ public:
     // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
     void update(float deltaSeconds);
 
+    void startMeditating() { state.startMeditating(); }
+    void stopMeditating() { state.stopMeditating(); }
+
     // Equipa un ítem resolviendo su ID contra el registry
     uint32_t equipItemById(uint32_t itemId);
 
