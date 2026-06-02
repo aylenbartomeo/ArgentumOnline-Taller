@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-#include "../include/model/ServerEvents.h"
+#include "../include/ServerEvents.h"
 #include "config/CharacterConfig.h"
 #include "dto/ClientCommands.h"
 #include "dto/CommandDTO.h"

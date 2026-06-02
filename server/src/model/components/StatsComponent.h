@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "../../common/utils/types.h"
-#include "../../include/model/FormulaEngine.h"
+#include "../../include/FormulaEngine.h"
 #include "../config/CharacterConfig.h"
 
 enum class BoostType { STRENGTH, AGILITY };
