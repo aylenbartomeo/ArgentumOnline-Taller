@@ -251,6 +251,62 @@ void Protocol::send_chat(const ChatDTO& dto) {
 }
 
 // =======================================================
+// LOGICA DE CHAT PRIVADO (CLIENTE -> SERVIDOR)
+// =======================================================
+void Protocol::send_private_chat(const PrivateChatDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::PRIVATE_CHAT));
+    send_string(dto.recipientNick);
+    send_string(dto.message);
+}
+
+PrivateChatDTO Protocol::receive_private_chat_body() {
+    PrivateChatDTO dto;
+    dto.recipientNick = recv_string();
+    dto.message = recv_string();
+    return dto;
+}
+
+void Protocol::send_meditate() { send_uint8(static_cast<uint8_t>(OPCODE::MEDITATE)); }
+
+void Protocol::receive_meditate_body() {
+    // No hay payload para meditar
+}
+
+void Protocol::send_resurrect() { send_uint8(static_cast<uint8_t>(OPCODE::RESURRECT)); }
+
+void Protocol::receive_resurrect_body() {
+    // No hay payload para resucitar
+}
+
+void Protocol::send_npc_command(const NpcCommandDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::NPC_CMD));
+    send_uint8(static_cast<uint8_t>(dto.type));
+    send_string(dto.arg);
+}
+
+NpcCommandDTO Protocol::receive_npc_command_body() {
+    NpcCommandDTO dto;
+    dto.type = static_cast<NpcCommandType>(recv_uint8());
+    dto.arg = recv_string();
+    return dto;
+}
+
+void Protocol::send_clan_command(const ClanCommandDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::CLAN_CMD));
+    send_uint8(static_cast<uint8_t>(dto.type));
+    send_string(dto.arg1);
+    send_uint32(dto.targetDbId);
+}
+
+ClanCommandDTO Protocol::receive_clan_command_body() {
+    ClanCommandDTO dto;
+    dto.type = static_cast<ClanCommandType>(recv_uint8());
+    dto.arg1 = recv_string();
+    dto.targetDbId = recv_uint32();
+    return dto;
+}
+
+// =======================================================
 // CAPA SEMÁNTICA (RECEPCIÓN DEL SERVIDOR)
 // =======================================================
 
@@ -305,6 +361,23 @@ CommandVariant Protocol::receive_command() {
             UseItemDTO dto;
             dto.slot = recv_uint8();
             return dto;
+        }
+        case OPCODE::PRIVATE_CHAT: {
+            return receive_private_chat_body();
+        }
+        case OPCODE::MEDITATE: {
+            receive_meditate_body();
+            return MeditateDTO{};
+        }
+        case OPCODE::RESURRECT: {
+            receive_resurrect_body();
+            return ResurrectDTO{};
+        }
+        case OPCODE::NPC_CMD: {
+            return receive_npc_command_body();
+        }
+        case OPCODE::CLAN_CMD: {
+            return receive_clan_command_body();
         }
         default:
             throw std::runtime_error("Unknown command received in-game");

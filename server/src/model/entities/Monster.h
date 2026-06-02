@@ -27,6 +27,11 @@ private:
     int attack_max;
     int level;
 
+    float attack_cooldown_ms;
+    float move_cooldown_ms;
+    float time_since_last_attack;
+    float time_since_last_move;
+
 public:
     Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config);
 
@@ -37,6 +42,12 @@ public:
     int getAttackMin() const;
     int getAttackMax() const;
     const std::string& get_zone() const;
+
+    void update(float deltaMs);
+    bool canAttack() const;
+    bool canMove() const;
+    void resetAttackCooldown();
+    void resetMoveCooldown();
 
     /* IMPLEMENTACION DE ATTACKABLE */
     std::string getName() const override;

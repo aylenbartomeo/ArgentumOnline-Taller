@@ -54,11 +54,17 @@ std::string requiredString(const toml::table& table, std::string_view fieldName)
 
 MonsterConfig parseMonsterConfig(const toml::table& monsterTable) {
     MonsterConfig config{
-            requiredInt(monsterTable, "max_health"),   requiredInt(monsterTable, "strength"),
-            requiredInt(monsterTable, "agility"),      requiredInt(monsterTable, "attack_min"),
-            requiredInt(monsterTable, "attack_max"),   requiredInt(monsterTable, "detection_range"),
-            requiredInt(monsterTable, "attack_range"), requiredInt(monsterTable, "level"),
+            requiredInt(monsterTable, "max_health"),
+            requiredInt(monsterTable, "strength"),
+            requiredInt(monsterTable, "agility"),
+            requiredInt(monsterTable, "attack_min"),
+            requiredInt(monsterTable, "attack_max"),
+            requiredInt(monsterTable, "detection_range"),
+            requiredInt(monsterTable, "attack_range"),
+            requiredInt(monsterTable, "level"),
             requiredString(monsterTable, "zone"),
+            requiredInt(monsterTable, "attack_cooldown_ms"),
+            requiredInt(monsterTable, "move_cooldown_ms"),
     };
 
     if (config.maxHealth <= 0) {

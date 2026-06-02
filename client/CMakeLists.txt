@@ -16,6 +16,8 @@ target_sources(argentum_online_client
     src/TileMap.cpp
     src/Window.cpp
     src/Launcher.cpp
+    src/MiniChat.cpp
+    src/ChatCommandParser.cpp
 
     ui/launcher.ui
 
@@ -34,3 +36,9 @@ target_sources(argentum_online_client
     src/Window.h
     src/Launcher.h
     )
+
+find_package(SDL2_ttf REQUIRED)
+target_link_libraries(argentum_online_client
+    SDL2::SDL2
+    SDL2_ttf::SDL2_ttf
+)
