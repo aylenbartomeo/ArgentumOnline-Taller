@@ -54,6 +54,7 @@ uint32_t Player::equipItemById(uint32_t itemId) {
 }
 
 bool Player::equipFromSlot(uint8_t slotIndex) {
+    onActionStarted();
     auto slotOpt = inventory.inspectSlot(slotIndex);
     if (!slotOpt)
         return false;
@@ -85,7 +86,7 @@ void Player::update(float dtMs) {
         return;
     }
     stats.updateTicks(dtMs);
-    regeneration.tick(dtMs);
+    regeneration.tick(dtMs / 1000.0f);  // tick espera segundos, dtMs viene en ms
 }
 
 bool Player::canEngageInCombatWith(const Attackable& other) const {
@@ -106,9 +107,7 @@ bool Player::canEngageInCombatWith(const Attackable& other) const {
 
 void Player::handleDeath() {
     state.die();
-    // A death should also zero the HP so isDead() becomes true
     stats.takeDamage(stats.getHp());
-    // TODO: inventory->dropItems();
 }
 
 void Player::resurrect() {
@@ -118,6 +117,7 @@ void Player::resurrect() {
 
 uint16_t Player::addInventoryItem(uint32_t item_id, uint16_t amount) {
     bool stackable = true;
+    onActionStarted();
     if (this->itemRegistry != nullptr) {
         stackable = this->itemRegistry->isStackable(item_id);
     }
@@ -125,6 +125,7 @@ uint16_t Player::addInventoryItem(uint32_t item_id, uint16_t amount) {
 }
 
 uint16_t Player::removeInventoryItem(uint8_t slot_index, uint16_t amount) {
+    onActionStarted();
     return this->inventory.removeItem(slot_index, amount);
 }
 
@@ -138,7 +139,7 @@ uint32_t Player::dropExcessGold() { return this->inventory.dropExcessGold(); }
 void Player::onActionStarted() { state.stopMeditating(); }
 
 void Player::receiveDamage(int amount) {
-    state.stopMeditating();
+    onActionStarted();
     if (amount < 0)
         return;
     stats.takeDamage(static_cast<uint16_t>(amount));

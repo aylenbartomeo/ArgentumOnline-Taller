@@ -71,6 +71,12 @@ bool Map::loadSpawnFromJson(const std::string& path) {
     setSpawnPoint(static_cast<float>(data["spawn"]["x"].get<int>()),
                   static_cast<float>(data["spawn"]["y"].get<int>()));
 
+    safeZones.clear();
+    npcs.clear();
+    monsterSpawns.clear();
+    mapElements.clear();
+    groundItems.clear();
+
     if (data.contains("safeZones")) {
         for (const auto& zone: data["safeZones"]) {
             safeZones.addZone(zone["name"].get<std::string>(), zone["x"].get<int>(),
@@ -115,6 +121,28 @@ bool Map::loadSpawnFromJson(const std::string& path) {
                 continue;
             Position pos{monster["x"].get<int>(), monster["y"].get<int>()};
             monsterSpawns.push_back({*type, pos});
+        }
+    }
+
+    if (data.contains("obstacles")) {
+        for (const auto& obs: data["obstacles"]) {
+            int x = obs["x"].get<int>();
+            int y = obs["y"].get<int>();
+            MapElement el;
+            el.type = MapElementType::OBSTACLE;
+            el.area = {x, y, 1, 1};
+            mapElements.push_back(el);
+        }
+        generate_collision_grid();
+    }
+
+    if (data.contains("items")) {
+        for (const auto& item: data["items"]) {
+            int id = item["id"].get<int>();
+            int x = item["x"].get<int>();
+            int y = item["y"].get<int>();
+            int amount = item.value("amount", 1);
+            placeItem(Position{x, y}, static_cast<uint32_t>(id), static_cast<uint16_t>(amount));
         }
     }
 

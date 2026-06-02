@@ -33,6 +33,8 @@ public:
 
     void sendToClient(uint32_t clientId, const ChatDTO& msg);
 
+    void broadcastChat(const ChatDTO& msg);
+
     ConnectionMonitor(const ConnectionMonitor&) = delete;
     ConnectionMonitor& operator=(const ConnectionMonitor&) = delete;
 

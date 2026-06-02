@@ -25,6 +25,7 @@ InteractionResult Merchant::beInteractedBy(Player& player) {
         result.msg = "[MERCHANT] Si estas muerto, no me podes comprar nada joven viajero. Pedile "
                      "ayuda al sacerdote";
     } else {
+        player.onActionStarted();
         result.msg = "[MERCHANT] Saludos, viajero. ¿Lo puedo ayudar con algo?";
     }
     return result;

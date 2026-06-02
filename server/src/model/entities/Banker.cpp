@@ -16,6 +16,7 @@ InteractionResult Banker::beInteractedBy(Player& player) {
         result.msg = "[BANKER] PELIGRO ESTAMOS EN EL CORRALITO. Mentira buen hombre, solo se "
                      "encuentra muerto. Hable con San Pedro";
     } else {
+        player.onActionStarted();
         result.msg = "[BANKER] Saludos, viajero. ¿Lo puedo ayudar con algo?";
     }
     return result;
