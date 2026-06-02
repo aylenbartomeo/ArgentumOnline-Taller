@@ -37,10 +37,6 @@ constexpr int MARKER_SEGMENTS = 24;
 constexpr int MARKER_SHIFT_X = 3;
 
 constexpr const char* HEAD_SHEET = "420.png";
-constexpr int HEAD_FRAME_X = 6;
-constexpr int HEAD_FRAME_Y = 13;
-constexpr int HEAD_FRAME_W = 13;
-constexpr int HEAD_FRAME_H = 15;
 constexpr int HEAD_DRAW_W = 18;
 constexpr int HEAD_DRAW_H = 20;
 
@@ -61,6 +57,18 @@ const char* citizenSheet(const std::string& type) {
     if (type == "priest")
         return "1910.png";
     return "1200.png";
+}
+
+constexpr int CITIZEN_HEAD_OVERLAP = 6;
+
+FrameRect citizenHead(const std::string& type) {
+    if (type == "merchant")
+        return FrameRect{115, 13, 13, 15};
+    if (type == "banker")
+        return FrameRect{142, 13, 13, 15};
+    if (type == "priest")
+        return FrameRect{170, 13, 11, 15};
+    return FrameRect{6, 13, 13, 15};
 }
 
 std::string readWholeFile(const std::string& path) {
@@ -225,6 +233,7 @@ void Game::renderGroundItems(const CameraOffset& camera) {
 
 void Game::renderCitizens(const CameraOffset& camera) {
     SDL2pp::Renderer& renderer = window.getRenderer();
+    SDL2pp::Texture& headSheet = textures.get(std::string(RESOURCES_DIR) + HEAD_SHEET);
     const SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
                                CHARACTER_FRAME_H);
     for (const MapCitizen& citizen: map.getCitizens()) {
@@ -234,6 +243,13 @@ void Game::renderCitizens(const CameraOffset& camera) {
                                    citizen.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H - camera.y,
                                    TILE_SIZE, CHARACTER_DRAW_H);
         renderer.Copy(body, srcRect, dstRect);
+
+        const FrameRect hf = citizenHead(citizen.type);
+        const int headX = citizen.x * TILE_SIZE + TILE_SIZE / 2 - HEAD_DRAW_W / 2 - camera.x;
+        const int headY = citizen.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H +
+                          CITIZEN_HEAD_OVERLAP - HEAD_DRAW_H - camera.y;
+        renderer.Copy(headSheet, SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h),
+                      SDL2pp::Rect(headX, headY, HEAD_DRAW_W, HEAD_DRAW_H));
     }
 }
 
@@ -271,37 +287,41 @@ void Game::renderOverlays(const CameraOffset& camera) {
 
 void Game::renderEntities(const CameraOffset& camera) {
     SDL2pp::Renderer& renderer = window.getRenderer();
-    SDL2pp::Texture& headSheet = textures.get(std::string(RESOURCES_DIR) + HEAD_SHEET);
     SDL2pp::Texture& barSheet = textures.get(std::string(RESOURCES_DIR) + HEALTHBAR_SHEET);
     const uint32_t myId = client.getClientId();
     const uint32_t now = SDL_GetTicks();
-
-    const SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
-                               CHARACTER_FRAME_H);
-    const SDL2pp::Rect headSrc(HEAD_FRAME_X, HEAD_FRAME_Y, HEAD_FRAME_W, HEAD_FRAME_H);
 
     auto drawEntity = [&](const EntityDTO& entity) {
         const EntitySprite sprite = spriteForEntity(entity.type, entity.sprite_id);
         SDL2pp::Texture& body = textures.get(std::string(RESOURCES_DIR) + sprite.bodySheet);
 
-        SDL2pp::Rect bodySrc = srcRect;
-        SDL2pp::Rect headSrcRect = headSrc;
+        int bodyW = sprite.bodySrcW;
+        int bodyH = sprite.bodySrcH;
+        SDL2pp::Rect bodySrc(sprite.bodySrcX, sprite.bodySrcY, bodyW, bodyH);
+        SDL2pp::Rect headSrcRect(sprite.headSrcX, sprite.headSrcY, sprite.headSrcW,
+                                 sprite.headSrcH);
         if (entity.type == EntityType::PLAYER) {
             CharacterAnimator& anim = animators[entity.id];
             anim.update(entity.x, entity.y, now);
             const Movement facing = anim.getFacing();
             const FrameRect bf = bodyFrameRect(facing, anim.frameColumn(now));
             bodySrc = SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h);
+            bodyW = bf.w;
+            bodyH = bf.h;
             const FrameRect hf = headFrameRect(facing);
             headSrcRect = SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h);
         }
 
-        const SDL2pp::Rect dstRect(entity.x * TILE_SIZE - camera.x,
-                                   entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H - camera.y,
-                                   TILE_SIZE, CHARACTER_DRAW_H);
+        const int bodyDstW = bodyW * TILE_SIZE / CHARACTER_FRAME_W;
+        const int bodyDstH = bodyH * CHARACTER_DRAW_H / CHARACTER_FRAME_H;
+        const SDL2pp::Rect dstRect(entity.x * TILE_SIZE + (TILE_SIZE - bodyDstW) / 2 - camera.x,
+                                   entity.y * TILE_SIZE + TILE_SIZE - bodyDstH - camera.y, bodyDstW,
+                                   bodyDstH);
         renderer.Copy(body, bodySrc, dstRect);
 
         if (sprite.drawHead) {
+            SDL2pp::Texture& headSheet =
+                    textures.get(std::string(RESOURCES_DIR) + sprite.headSheet);
             const int headX = entity.x * TILE_SIZE + TILE_SIZE / 2 - HEAD_DRAW_W / 2 - camera.x;
             const int headY = entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H +
                               sprite.headOverlap - HEAD_DRAW_H - camera.y;

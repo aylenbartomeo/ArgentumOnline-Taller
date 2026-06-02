@@ -9,6 +9,15 @@ struct EntitySprite {
     const char* bodySheet;
     bool drawHead;
     int headOverlap;
+    const char* headSheet;
+    int headSrcX;
+    int headSrcY;
+    int headSrcW;
+    int headSrcH;
+    int bodySrcX;
+    int bodySrcY;
+    int bodySrcW;
+    int bodySrcH;
 };
 
 EntitySprite spriteForEntity(EntityType type, uint16_t spriteId);
