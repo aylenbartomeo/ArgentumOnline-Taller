@@ -13,7 +13,6 @@ target_sources(argentum_online_server
     src/main.cpp
 
     # Config
-    src/config/ArmorConfigLoader.cpp
     src/config/CharacterConfigLoader.cpp
     src/config/ItemConfigLoader.cpp
     src/config/MonsterConfigLoader.cpp
@@ -74,7 +73,6 @@ target_sources(argentum_online_server
 
     PUBLIC
     # .h files
-    src/config/ArmorConfigLoader.h
     src/config/CharacterConfig.h
     src/config/CharacterConfigLoader.h
     src/config/ItemConfigLoader.h
