@@ -19,7 +19,7 @@ target_sources(argentum_online_server
     src/config/MonsterConfigLoader.cpp
 
     # Formulas
-    src/model/FormulaEngine.cpp
+    include/FormulaEngine.cpp
 
     # Entities
     src/model/entities/Player.cpp
@@ -119,7 +119,7 @@ target_sources(argentum_online_server
     src/Server.h
     src/ConnectionMonitor.h
     src/GameLoop.h
-    include/model/FormulaEngine.h
+    include/FormulaEngine.h
 
     src/Map.h
     src/model/map/GroundItemLayer.h

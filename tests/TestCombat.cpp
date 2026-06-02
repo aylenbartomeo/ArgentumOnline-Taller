@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "model/FormulaEngine.h"
+#include "FormulaEngine.h"
 #include "model/combat/CombatManager.h"
 #include "model/entities/Monster.h"
 #include "model/entities/Player.h"

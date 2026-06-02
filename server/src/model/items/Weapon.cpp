@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 #include "../components/EquipmentComponent.h"
-#include "model/FormulaEngine.h"
+#include "FormulaEngine.h"
 
 Weapon::Weapon(int id, std::string name, int price, WeaponType type, int minDamage, int maxDamage,
                int attackRange, int manaCost):

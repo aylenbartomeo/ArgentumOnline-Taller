@@ -3,7 +3,7 @@
 #include <iostream>
 #include <variant>
 
-#include "../include/model/ServerEvents.h"
+#include "../include/ServerEvents.h"
 #include "dto/ClanCommandDTO.h"
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
