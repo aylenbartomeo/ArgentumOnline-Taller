@@ -41,13 +41,20 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
     uint32_t entityId = nextEntityId++;
     this->dbIdToEntityId[dbId] = entityId;
 
-    PlayerConfig baseConfig = {15, 15, 15, 15, 1, 0, 0};
+    PlayerConfig baseConfig = characterConfigs.player;
+    Race savedRace = Race::HUMAN;
+    CharacterClass savedClass = CharacterClass::WARRIOR;
+
+    // Usar configs del TOML para la raza y clase por defecto
     RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig classConfig = {1.0f, 1.0f, 1.0f, false};
 
-    // Declarar fuera del if para que estén disponibles en el make_unique
-    Race savedRace = Race::HUMAN;
-    CharacterClass savedClass = CharacterClass::WARRIOR;
+    auto defaultRaceIt = characterConfigs.races.find(savedRace);
+    auto defaultClassIt = characterConfigs.classes.find(savedClass);
+    if (defaultRaceIt != characterConfigs.races.end())
+        raceConfig = defaultRaceIt->second;
+    if (defaultClassIt != characterConfigs.classes.end())
+        classConfig = defaultClassIt->second;
 
     std::pair<float, float> defaultSpawn = map.getInitialPosition();
     Position spawnPos =
@@ -565,12 +572,20 @@ void World::update(float delta_time) {
             continue;
 
         // Actualizar cooldowns del monstruo
-        monster->update(delta_time * 1000.0f);  // Convertimos de segundos a ms
+        monster->update(delta_time);  // delta_time ya viene en ms desde GameLoop
 
         // Buscar al Player más cercano dentro del rango de detección
         Player* target = findNearestPlayer(*monster, monster->get_detection_range());
-        if (!target)
+        if (!target) {
+            monster->setTargetId(0);
             continue;
+        }
+
+        if (monster->getTargetId() != target->getId()) {
+            monster->setTargetId(target->getId());
+            monster->resetAttackCooldown();
+            monster->resetMoveCooldown();
+        }
 
         int dist = monster->distance_to(*target);
 
@@ -588,7 +603,7 @@ void World::update(float delta_time) {
 
     // Procesar resurrecciones pendientes
     for (auto it = pendingResurrections.begin(); it != pendingResurrections.end();) {
-        it->remainingTimeMs -= delta_time * 1000.0f;
+        it->remainingTimeMs -= delta_time;  // delta_time ya viene en ms
         if (it->remainingTimeMs <= 0.0f) {
             auto itMap = dbIdToEntityId.find(it->playerDbId);
             if (itMap != dbIdToEntityId.end()) {
@@ -597,7 +612,7 @@ void World::update(float delta_time) {
                     // cppcheck-suppress constVariableReference
                     Player& player = *(itPlayer->second);
                     player.setPosition(it->targetPos);
-                    player.getState().resurrect();  // revivir
+                    player.resurrect();  // revivir completo (HP + estado)
                     outgoingEvents.push_back({it->playerDbId, "You have been resurrected!"});
                 }
             }
@@ -713,17 +728,17 @@ void World::pickUpItem(uint32_t dbId) {
     if (!posOpt)
         return;
 
-    auto itemOpt = map.pickUpItem(posOpt.value());
-    if (!itemOpt) {
-        outgoingEvents.push_back({dbId, "There are no items here to pick up."});
-        return;
-    }
-
     auto itPlayer = players.find(dbIdToEntityId[dbId]);
     Player& player = *(itPlayer->second);
 
     if (player.isDead()) {
         outgoingEvents.push_back({dbId, "You can't do that as a ghost."});
+        return;
+    }
+
+    auto itemOpt = map.pickUpItem(posOpt.value());
+    if (!itemOpt) {
+        outgoingEvents.push_back({dbId, "There are no items here to pick up."});
         return;
     }
 

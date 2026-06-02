@@ -85,7 +85,7 @@ void Player::update(float dtMs) {
         return;
     }
     stats.updateTicks(dtMs);
-    regeneration.tick(dtMs);
+    regeneration.tick(dtMs / 1000.0f);  // tick espera segundos, dtMs viene en ms
 }
 
 bool Player::canEngageInCombatWith(const Attackable& other) const {
