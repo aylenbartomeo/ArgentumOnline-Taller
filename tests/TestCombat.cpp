@@ -1,4 +1,4 @@
-﻿#include <gmock/gmock.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "model/FormulaEngine.h"
@@ -37,7 +37,7 @@ static Player makeTestPlayer(uint32_t id = 1) {
 
 // Helper: crea un Monster base para tests
 static Monster makeTestMonster(uint32_t id = 10000, Position pos = {0, 0}) {
-    MonsterConfig cfg = {100, 10, 0, 5, 15, 5, 2, 1, "zone"};
+    MonsterConfig cfg = {100, 10, 0, 5, 15, 5, 2, 1, "zone", 0, 0};
     return Monster(id, NPCType::GOBLIN, pos, cfg);
 }
 

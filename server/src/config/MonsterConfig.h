@@ -16,6 +16,8 @@ struct MonsterConfig {
     int attackRange;
     int level;
     std::string zone;
+    int attackCooldownMs;
+    int moveCooldownMs;
 };
 
 using MonsterConfigs = std::unordered_map<NPCType, MonsterConfig>;

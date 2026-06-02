@@ -186,7 +186,7 @@ TEST(WorldTest, World_UpdateTriggersMonsterAttack) {
     ASSERT_TRUE(mundo.addPlayer(1, user));
 
     // Config de monstruo con rango de ataque suficiente
-    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone"};
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone", 0, 0};
     Position mPos = {1, 0};  // Player está en {0, 0}
     mundo.addMonster(NPCType::GOBLIN, mPos, mConfig);
 
@@ -215,7 +215,7 @@ TEST(WorldTest, World_UpdateDoesNotTriggerMonsterAttackIfOutOfRange) {
     ASSERT_TRUE(mundo.addPlayer(1, user));
 
     // Config de monstruo con rango de ataque pequeño
-    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 1, 1, "zone"};
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 1, 1, "zone", 0, 0};
     Position mPos = {3, 0};  // Player está en {0, 0}, dist = 3.
     mundo.addMonster(NPCType::GOBLIN, mPos, mConfig);
 
@@ -416,7 +416,7 @@ TEST(WorldTest, World_MonsterCannotAttackInSafeZone) {
     ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(50, 50)));
 
     // Monster in safe zone (51, 50)
-    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone"};
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone", 0, 0};
     mundo.addMonster(NPCType::GOBLIN, Position{51, 50}, mConfig);
 
     // Update should not trigger attack
@@ -440,7 +440,7 @@ TEST(WorldTest, World_MonsterLosesAggroInSafeZone) {
 
     // Monster OUTSIDE safe zone but in detection range (44, 50) -> dist = 6 (range 10)
     // Safe zone is 45 to 54. So 44 is outside.
-    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone"};
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone", 0, 0};
     mundo.addMonster(NPCType::GOBLIN, Position{44, 50}, mConfig);
 
     mundo.update(1.0f);
@@ -638,7 +638,7 @@ TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Straight) {
     std::string p1 = "Player1";
     ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(5, 5)));
 
-    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, "zone"};  // Rango suficiente
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, "zone", 0, 0};  // Rango suficiente
     uint32_t monsterId = mundo.addMonster(NPCType::GOBLIN, Position{9, 5}, mConfig);
 
     // Obstáculo en medio de la línea recta (7, 5)
@@ -662,7 +662,7 @@ TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Diagonal) {
     std::string p1 = "Player1";
     ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(5, 5)));
 
-    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, "zone"};  // Rango suficiente
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, "zone", 0, 0};  // Rango suficiente
     uint32_t monsterId = mundo.addMonster(NPCType::GOBLIN, Position{9, 9}, mConfig);
 
     // Obstáculo en medio de la línea diagonal (7, 7)
