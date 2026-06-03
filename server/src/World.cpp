@@ -16,10 +16,11 @@
 #include "model/items/ItemRegistry.h"
 
 World::World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry,
-             const CharacterConfigs& configs):
+             const CharacterConfigs& configs, const InventoryConfig& inventoryConfig):
         worldId(worldId),
         creatorPlayerName(creatorPlayerName),
         itemRegistry(itemRegistry),
+        inventoryConfig(inventoryConfig),
         map(),
         clanService(clanRepo),
         clanController(clanService),
@@ -85,7 +86,7 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
     // Un solo make_unique con la firma completa
     auto player =
             std::make_unique<Player>(entityId, dbId, username, savedRace, savedClass, raceConfig,
-                                     classConfig, baseConfig, itemRegistry, spawnPos);
+                                     classConfig, baseConfig, itemRegistry, inventoryConfig, spawnPos);
 
     if (savedData.has_value()) {
         const PlayerPersistData& d = savedData.value();

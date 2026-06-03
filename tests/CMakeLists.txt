@@ -80,6 +80,7 @@ target_sources(argentum_online_tests
     ../editor/SpawnCatalogs.cpp
     TestPersistence.cpp
     ../server/src/config/CharacterConfigLoader.cpp
+    ../server/src/config/InventoryConfigLoader.cpp
 )
 
 target_include_directories(argentum_online_tests PRIVATE

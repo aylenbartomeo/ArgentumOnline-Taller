@@ -36,13 +36,14 @@ private:
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race, CharacterClass cls,
            const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,
-           const PlayerConfig& playerBase, const ItemRegistry& itemRegistry, const Position& spawn);
+           const PlayerConfig& playerBase, const ItemRegistry& itemRegistry, const InventoryConfig& inventoryConfig, const Position& spawn);
 
     // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
     // de valores random (no requiere ItemRegistry)
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
            CharacterClass charClass, const RaceConfig& raceConf,
            const CharacterClassConfig& classConf, const PlayerConfig& playerBase,
+           const InventoryConfig& inventoryConfig,
            const FormulaEngine& testEngine);
 
     // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
