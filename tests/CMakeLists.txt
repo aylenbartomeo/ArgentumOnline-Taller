@@ -40,7 +40,7 @@ target_sources(argentum_online_tests
     ../server/src/model/components/EquipmentComponent.cpp
     ../server/src/model/components/RegenerationComponent.cpp
     ../server/src/model/combat/CombatManager.cpp
-    ../server/src/model/FormulaEngine.cpp
+    ../server/include/FormulaEngine.cpp
     ../server/src/model/items/Armor.cpp
     ../server/src/model/items/Weapon.cpp
     ../server/src/model/items/BodyArmor.cpp
@@ -66,6 +66,8 @@ target_sources(argentum_online_tests
     ../client/src/Viewport.cpp
     TestCharacterSprites.cpp
     ../client/src/CharacterSprites.cpp
+    TestCharacterAnimator.cpp
+    ../client/src/CharacterAnimator.cpp
     TestEditorMap.cpp
     ../editor/EditorMap.cpp
     TestCamera.cpp
@@ -78,6 +80,7 @@ target_sources(argentum_online_tests
     ../editor/SpawnCatalogs.cpp
     TestPersistence.cpp
     ../server/src/config/CharacterConfigLoader.cpp
+    ../server/src/config/InventoryConfigLoader.cpp
 )
 
 target_include_directories(argentum_online_tests PRIVATE

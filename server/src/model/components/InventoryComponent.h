@@ -30,7 +30,7 @@ private:
     uint32_t max_gold;         // Capacidad máxima de la billetera/mochila
 
 public:
-    explicit InventoryComponent(const InventoryConfig& config, uint32_t initial_safe_gold);
+    explicit InventoryComponent(const InventoryConfig& config);
     ~InventoryComponent() = default;
 
     // Bloqueamos copia para evitar duplicaciones accidentales de ítems en memoria

@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-#include "../include/model/ServerEvents.h"
+#include "../include/ServerEvents.h"
 #include "config/CharacterConfig.h"
 #include "dto/ClientCommands.h"
 #include "dto/CommandDTO.h"
@@ -37,6 +37,7 @@ private:
     int worldId;
     std::string creatorPlayerName;
     const ItemRegistry& itemRegistry;
+    const InventoryConfig inventoryConfig;
     GlobalBank globalBank;
 
     Map map;
@@ -73,7 +74,8 @@ private:
 
 public:
     explicit World(int worldId, const std::string& creatorPlayerName,
-                   const ItemRegistry& itemRegistry, const CharacterConfigs& configs);
+                   const ItemRegistry& itemRegistry, const CharacterConfigs& configs,
+                   const InventoryConfig& inventoryConfig);
 
     // Métodos lógicos: Entrar y salir del mundo virtual
     bool addPlayer(uint32_t playerId, std::string& username,

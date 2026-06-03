@@ -22,6 +22,10 @@ static CharacterConfigs getTestConfigs() {
     return CharacterConfigs{base, {{Race::HUMAN, human}}, {{CharacterClass::WARRIOR, warrior}}};
 }
 
+static InventoryConfig getTestInventoryConfig() {
+    return {16, 0, 10000, 5000};
+}
+
 class ClanSystemTest: public ::testing::Test {
 protected:
     ClanRepository repo;
@@ -327,7 +331,7 @@ protected:
 
         registry = new ItemRegistry("../config/items.toml");
         CharacterConfigs configs = getTestConfigs();
-        world = new World(1, "Tester", *registry, configs);
+        world = new World(1, "Tester", *registry, configs, getTestInventoryConfig());
 
         // Desactivamos el Fair Play (Modo Arena) y bajamos el nivel de clan a 1 para los tests
         world->setFairPlayRules(false);

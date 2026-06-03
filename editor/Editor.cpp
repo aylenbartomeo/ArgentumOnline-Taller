@@ -294,6 +294,16 @@ void Editor::drawMonsterFromCatalog(const MonsterCatalogEntry& entry, int cellX,
     const int dstX = cellX;
     const int dstY = cellY + cellSize - dstH;
     renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
+
+    if (entry.drawHead) {
+        SDL2pp::Texture& headTex = textures.get(std::string(RESOURCES_DIR) + entry.headSheet);
+        const int headW = HEAD_DRAW_W * cellSize / TILE_SCREEN;
+        const int headH = HEAD_DRAW_H * cellSize / TILE_SCREEN;
+        const int headX = cellX + (cellSize - headW) / 2;
+        const int headY = dstY + entry.headOverlap * cellSize / TILE_SCREEN - headH;
+        renderer.Copy(headTex, SDL2pp::Rect(entry.headX, entry.headY, entry.headW, entry.headH),
+                      SDL2pp::Rect(headX, headY, headW, headH));
+    }
 }
 
 void Editor::drawCitizenFromCatalog(const CitizenCatalogEntry& entry, int cellX, int cellY,
@@ -305,6 +315,14 @@ void Editor::drawCitizenFromCatalog(const CitizenCatalogEntry& entry, int cellX,
     const int dstX = cellX;
     const int dstY = cellY + cellSize - dstH;
     renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
+
+    SDL2pp::Texture& headTex = textures.get(std::string(RESOURCES_DIR) + entry.headSheet);
+    const int headW = HEAD_DRAW_W * cellSize / TILE_SCREEN;
+    const int headH = HEAD_DRAW_H * cellSize / TILE_SCREEN;
+    const int headX = cellX + (cellSize - headW) / 2;
+    const int headY = dstY + entry.headOverlap * cellSize / TILE_SCREEN - headH;
+    renderer.Copy(headTex, SDL2pp::Rect(entry.headX, entry.headY, entry.headW, entry.headH),
+                  SDL2pp::Rect(headX, headY, headW, headH));
 }
 
 void Editor::drawCharacter(int dstX, int dstY, int dstW, int dstH) {

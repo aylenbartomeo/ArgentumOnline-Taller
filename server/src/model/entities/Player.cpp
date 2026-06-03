@@ -6,7 +6,7 @@
 Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
                CharacterClass cls, const RaceConfig& raceConfig,
                const CharacterClassConfig& classConfig, const PlayerConfig& playerBase,
-               const ItemRegistry& itemRegistry, const Position& spawn):
+               const ItemRegistry& itemRegistry, const InventoryConfig& inventoryConfig, const Position& spawn):
         id(entityId),
         dbId(dbId),
         name(name),
@@ -14,7 +14,7 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race r
         // Stats ahora solo maneja combate (sin max_gold)
         stats(race, cls, raceConfig, classConfig, playerBase),
         // Inventario ahora absorbe la economía: 20 slots, 5000 seguro, 100000 tope máximo
-        inventory(InventoryConfig{20, 100000}, 5000),
+        inventory(inventoryConfig),
         equipment(),
         state(),
         regeneration(stats, state, raceConfig, classConfig),
@@ -28,6 +28,7 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race r
 Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
                CharacterClass charClass, const RaceConfig& raceConf,
                const CharacterClassConfig& classConf, const PlayerConfig& playerBase,
+               const InventoryConfig& inventoryConfig,
                const FormulaEngine& testEngine):
         id(entityId),
         dbId(dbId),
@@ -35,7 +36,7 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race r
         pos({0, 0}),
         // Respetamos el mismo orden de parámetros que en StatsComponent
         stats(race, charClass, raceConf, classConf, playerBase, testEngine),
-        inventory(InventoryConfig{20, 100000}, 5000),
+        inventory(inventoryConfig),
         equipment(),
         state(),
         regeneration(stats, state, raceConf, classConf, testEngine),

@@ -13,13 +13,13 @@ target_sources(argentum_online_server
     src/main.cpp
 
     # Config
-    src/config/ArmorConfigLoader.cpp
     src/config/CharacterConfigLoader.cpp
     src/config/ItemConfigLoader.cpp
     src/config/MonsterConfigLoader.cpp
+    src/config/InventoryConfigLoader.cpp
 
     # Formulas
-    src/model/FormulaEngine.cpp
+    include/FormulaEngine.cpp
 
     # Entities
     src/model/entities/Player.cpp
@@ -74,16 +74,16 @@ target_sources(argentum_online_server
 
     PUBLIC
     # .h files
-    src/config/ArmorConfigLoader.h
     src/config/CharacterConfig.h
     src/config/CharacterConfigLoader.h
     src/config/ItemConfigLoader.h
     src/config/MonsterConfig.h
     src/config/MonsterConfigLoader.h
+    src/config/InventoryConfig.h
+    src/config/InventoryConfigLoader.h
 
     src/model/entities/MonsterFactory.h
     src/model/entities/Player.h
-    src/model/entities/PlayerFactory.h
     src/model/entities/Priest.h
     src/model/entities/Merchant.h
     src/model/entities/Banker.h
@@ -119,7 +119,7 @@ target_sources(argentum_online_server
     src/Server.h
     src/ConnectionMonitor.h
     src/GameLoop.h
-    include/model/FormulaEngine.h
+    include/FormulaEngine.h
 
     src/Map.h
     src/model/map/GroundItemLayer.h
