@@ -7,12 +7,18 @@ target_sources(argentum_online_client
     src/Client.cpp
     src/EventHandler.cpp
     src/Game.cpp
+    src/HealthBar.cpp
+    src/Viewport.cpp
+    src/CharacterSprites.cpp
+    src/CharacterAnimator.cpp
     src/Receiver.cpp
     src/Sender.cpp
     src/TextureManager.cpp
     src/TileMap.cpp
     src/Window.cpp
     src/Launcher.cpp
+    src/MiniChat.cpp
+    src/ChatCommandParser.cpp
 
     ui/launcher.ui
 
@@ -21,6 +27,10 @@ target_sources(argentum_online_client
     src/Client.h
     src/EventHandler.h
     src/Game.h
+    src/HealthBar.h
+    src/Viewport.h
+    src/CharacterSprites.h
+    src/CharacterAnimator.h
     src/Receiver.h
     src/Sender.h
     src/TextureManager.h
@@ -28,3 +38,9 @@ target_sources(argentum_online_client
     src/Window.h
     src/Launcher.h
     )
+
+find_package(SDL2_ttf REQUIRED)
+target_link_libraries(argentum_online_client
+    SDL2::SDL2
+    SDL2_ttf::SDL2_ttf
+)

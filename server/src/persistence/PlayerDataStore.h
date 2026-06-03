@@ -7,16 +7,31 @@
 #include <unordered_map>
 
 #include "../../common/utils/position.h"
-
+#include "../../common/utils/types.h"
 // Struct de tamaño fijo para persistencia binaria.
 // El tamaño se fija a 128 bytes para permitir expansión futura.
+#pragma pack(push, 1)
 struct PlayerPersistData {
+    // Ubicacion e identidad
     uint32_t dbId;
     int32_t posX;
     int32_t posY;
-    // Espacio reservado para expansión futura (HP, mana, level, exp, gold, etc.)
-    char reserved[116];
+    uint16_t hp;
+    uint16_t mana;
+    uint16_t level;
+    uint32_t exp;
+    uint32_t gold;
+    uint8_t stateId;
+    uint8_t race;
+    uint8_t characterClass;
+    uint8_t inventorySize;
+    struct SlotData {
+        uint32_t item_id;
+        uint16_t amount;
+    } inventory[16];
+    uint8_t _pad[2];
 };
+#pragma pack(pop)
 static_assert(sizeof(PlayerPersistData) == 128, "PlayerPersistData must be 128 bytes");
 
 class PlayerDataStore {

@@ -5,9 +5,9 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "../../common/include/dto/ServerMessage.h"
 #include "../../common/include/queue.h"
 #include "dto/Snapshot.h"
-#include "../../common/include/dto/ServerMessage.h"
 
 /**
  * @class ConnectionMonitor
@@ -32,6 +32,8 @@ public:
     void broadcast(const SnapshotDTO& snapshot);
 
     void sendToClient(uint32_t clientId, const ChatDTO& msg);
+
+    void broadcastChat(const ChatDTO& msg);
 
     ConnectionMonitor(const ConnectionMonitor&) = delete;
     ConnectionMonitor& operator=(const ConnectionMonitor&) = delete;

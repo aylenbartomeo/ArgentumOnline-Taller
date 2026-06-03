@@ -5,15 +5,18 @@
 #include <string>
 #include <variant>
 
+#include "ClanCommandDTO.h"
 #include "LoginDTO.h"
 #include "RegisterDTO.h"
 #include "StartMoveDTO.h"
 
 // DTOs vacíos (solo indican la intención)
 struct StopMoveDTO {};
+
 struct AttackDTO {
     uint32_t targetId;
 };
+
 struct GrabItemDTO {};
 
 // DTOs con Payload
@@ -30,12 +33,34 @@ struct UseItemDTO {
     uint8_t slot;
 };
 
+struct MeditateDTO {};
+
+struct ResurrectDTO {};
+
 struct ChatDTO {
     std::string message;
 };
 
+struct PrivateChatDTO {
+    std::string recipientNick;
+    std::string message;
+};
+
+struct SelectNpcDTO {
+    uint32_t npcId;
+};
+
+enum NpcCommandType { RESPAWN, HEAL, BUY, SELL, DEPOSIT, WITHDRAW, LIST };
+
+struct NpcCommandDTO {
+    NpcCommandType type;
+    std::string arg;
+};
+
 // Esto es lo que la cola del Servidor va a recibir.
-using CommandVariant = std::variant<RegisterDTO, LoginDTO, StartMoveDTO, StopMoveDTO, AttackDTO,
-                                    UseItemDTO, EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO>;
+using CommandVariant =
+        std::variant<RegisterDTO, LoginDTO, StartMoveDTO, StopMoveDTO, AttackDTO, UseItemDTO,
+                     EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO, PrivateChatDTO, SelectNpcDTO,
+                     NpcCommandDTO, ClanCommandDTO, MeditateDTO, ResurrectDTO>;
 
 #endif  // CLIENT_COMMANDS_H

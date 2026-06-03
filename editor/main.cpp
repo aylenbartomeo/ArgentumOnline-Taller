@@ -10,11 +10,11 @@
 
 namespace {
 constexpr const char* MAP_PATH = "maps/defaultMap.json";
-constexpr const char* TILESET_NAME = "tilemap_packed.png";
-constexpr int DEFAULT_WIDTH = 20;
-constexpr int DEFAULT_HEIGHT = 15;
-constexpr int DEFAULT_TILE_SIZE = 16;
-constexpr int DEFAULT_TILESET_COLS = 12;
+constexpr const char* TILESET_NAME = "5108.png";
+constexpr int DEFAULT_WIDTH = 60;
+constexpr int DEFAULT_HEIGHT = 60;
+constexpr int DEFAULT_TILE_SIZE = 32;
+constexpr int DEFAULT_TILESET_COLS = 32;
 
 std::string readWholeFile(const std::string& path) {
     std::ifstream file(path);
@@ -27,9 +27,9 @@ std::string readWholeFile(const std::string& path) {
 int main() {
     try {
         EditorMap map = std::filesystem::exists(MAP_PATH) ?
-                EditorMap(readWholeFile(MAP_PATH)) :
-                EditorMap(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_TILE_SIZE, TILESET_NAME,
-                          DEFAULT_TILESET_COLS);
+                                EditorMap(readWholeFile(MAP_PATH)) :
+                                EditorMap(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_TILE_SIZE,
+                                          TILESET_NAME, DEFAULT_TILESET_COLS);
         Editor editor(std::move(map), MAP_PATH);
         editor.run();
     } catch (const std::exception& e) {

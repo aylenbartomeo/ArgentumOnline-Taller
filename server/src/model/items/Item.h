@@ -1,18 +1,26 @@
-#ifndef SERVER_SRC_MODEL_ITEMS_ITEM_H
-#define SERVER_SRC_MODEL_ITEMS_ITEM_H
+#pragma once
 
 #include <cstdint>
+#include <stdexcept>
 #include <string>
+#include <utility>
 
 class EquipmentComponent;
 
 class Item {
+private:
+    int id;
+    std::string name;
+    int price;
+
 public:
+    Item(int id, std::string name, int price): id(id), name(std::move(name)), price(price) {}
     virtual ~Item() = default;
 
-    virtual int getId() const = 0;
-    virtual const std::string& getName() const = 0;
-
+    virtual int getId() const { return id; }
+    virtual const std::string& getName() const { return name; }
+    int getPrice() const { return price; }
+    virtual bool isMagic() const = 0;
     virtual bool is_wearable() const { return false; }
 
     virtual uint32_t equip_on(EquipmentComponent& equipment) const {
@@ -20,5 +28,3 @@ public:
         return 0;
     }
 };
-
-#endif

@@ -1,4 +1,4 @@
-#ifndef SERVER_SRC_MODEL_ITEMS_ARMORFACTORY_H
+﻿#ifndef SERVER_SRC_MODEL_ITEMS_ARMORFACTORY_H
 #define SERVER_SRC_MODEL_ITEMS_ARMORFACTORY_H
 
 #include <memory>
@@ -15,6 +15,7 @@ enum class ArmorSlot {
 
 struct ArmorConfig {
     int id;
+    int price;
     ArmorSlot slot;
     int minDefense;
     int maxDefense;

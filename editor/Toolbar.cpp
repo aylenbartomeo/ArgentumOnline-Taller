@@ -1,23 +1,27 @@
 #include "Toolbar.h"
 
-Toolbar::Toolbar(): activeTool(Tool::PINCEL) {}
+#include <algorithm>
+
+Toolbar::Toolbar(): activeTool(Tool::OVERLAY) {}
 
 void Toolbar::addToolButton(int x, int y, int w, int h, Tool tool) {
     buttons.push_back({x, y, w, h, ToolbarAction::TOOL_CHANGED, tool});
 }
 
 void Toolbar::addActionButton(int x, int y, int w, int h, ToolbarAction action) {
-    buttons.push_back({x, y, w, h, action, Tool::PINCEL});
+    buttons.push_back({x, y, w, h, action, Tool::OVERLAY});
 }
 
 ToolbarAction Toolbar::handleClick(int x, int y) {
-    for (const auto& b: buttons) {
-        if (x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h) {
-            if (b.action == ToolbarAction::TOOL_CHANGED) {
-                activeTool = b.tool;
-            }
-            return b.action;
+    auto it = std::find_if(buttons.begin(), buttons.end(), [x, y](const Button& b) {
+        return x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;
+    });
+
+    if (it != buttons.end()) {
+        if (it->action == ToolbarAction::TOOL_CHANGED) {
+            activeTool = it->tool;
         }
+        return it->action;
     }
     return ToolbarAction::NONE;
 }

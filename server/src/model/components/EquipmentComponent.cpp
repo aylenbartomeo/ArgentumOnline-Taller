@@ -1,6 +1,6 @@
 #include "EquipmentComponent.h"
 
-#include "model/FormulaEngine.h"
+#include "FormulaEngine.h"
 #include "model/items/BodyArmor.h"
 #include "model/items/Helmet.h"
 #include "model/items/Item.h"

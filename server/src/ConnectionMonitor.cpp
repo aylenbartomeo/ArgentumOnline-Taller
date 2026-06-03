@@ -38,3 +38,12 @@ void ConnectionMonitor::sendToClient(uint32_t clientId, const ChatDTO& msg) {
         } catch (...) {}
     }
 }
+
+void ConnectionMonitor::broadcastChat(const ChatDTO& msg) {
+    std::lock_guard<std::mutex> lock(mtx);
+    for (auto& [id, queue]: clientQueues) {
+        try {
+            queue->push(msg);
+        } catch (...) {}
+    }
+}

@@ -21,7 +21,8 @@ private:
 
     // Lógica compartida de combate. Retorna el daño final infligido, o -1 si
     // el ataque no se concretó (fuera de rango, esquivado, target muerto).
-    CombatResult resolveCombat(const Attackable& attacker, Attackable& target, const AttackParams& params);
+    CombatResult resolveCombat(const Attackable& attacker, Attackable& target,
+                               const AttackParams& params);
 
 public:
     CombatManager(const CombatManager&) = delete;
@@ -37,6 +38,10 @@ public:
 
     // Monster ataca a cualquier entidad (típicamente un Player)
     CombatResult processAttack(const Monster& attacker, Attackable& target);
+
+    // Variante con bonuses de clan pre-calculados por World
+    CombatResult processAttack(Player& attacker, Attackable& target, float attackBonus,
+                               float defenseBonus);
 };
 
 #endif

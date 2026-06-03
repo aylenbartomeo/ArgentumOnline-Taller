@@ -4,12 +4,12 @@
 #include <atomic>
 #include <string>
 
+#include "../../common/include/dto/ServerMessage.h"
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
 #include "../../common/src/protocol/Protocol.h"
 #include "../../common/src/socket/socket.h"
-#include "../../common/include/dto/ServerMessage.h"
-#include "../include/model/ServerEvents.h"
+#include "../include/ServerEvents.h"
 #include "auth/AuthManager.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"

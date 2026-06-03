@@ -1,2 +1,5 @@
 build/
 tags.*
+# Carpetas de datos de juego y autenticación para pruebas locales
+auth_data/
+game_data/

@@ -1,6 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <utility>
+
 #include "common/utils/position.h"
 
 class Camera {

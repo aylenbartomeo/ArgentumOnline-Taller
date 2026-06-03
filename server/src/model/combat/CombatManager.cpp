@@ -6,16 +6,16 @@
 #include "../entities/Monster.h"
 #include "../entities/Player.h"
 #include "../items/Weapon.h"
-#include "model/FormulaEngine.h"
+#include "FormulaEngine.h"
 
 // --- Lógica compartida de combate ---
 
 CombatResult CombatManager::resolveCombat(const Attackable& attacker, Attackable& target,
-                                 const AttackParams& params) {
+                                          const AttackParams& params) {
     CombatResult res;
     // 1. Validar distancia
     if (attacker.distance_to(target) > params.attackRange) {
-        return res; // attackHappened = false
+        return res;  // attackHappened = false
     }
 
     // 2. Validar que el target pueda ser atacado
@@ -91,7 +91,7 @@ CombatResult CombatManager::processAttack(Player& attacker, Attackable& target) 
                 target.getMaxHp(), attacker.getLevel(), target.getLevel());
         attacker.addExperience(killXp);
     }
-    
+
     return res;
 }
 
@@ -113,6 +113,45 @@ CombatResult CombatManager::processAttack(const Monster& attacker, Attackable& t
     if (target.isDead()) {
         target.handleDeath();
     }
-    
+
+    return res;
+}
+
+// --- Player ataca con bonus de clan ---
+
+CombatResult CombatManager::processAttack(Player& attacker, Attackable& target, float attackBonus,
+                                          float defenseBonus) {
+    const Weapon* weapon = attacker.getEquippedWeapon();
+    if (!weapon)
+        return CombatResult{};
+
+    AttackParams params{static_cast<uint16_t>(weapon->getMinDamage()),
+                        static_cast<uint16_t>(weapon->getMaxDamage()),
+                        weapon->getAttackRange(),
+                        weapon->getManaCost(),
+                        weapon->getType() == WeaponType::MAGIC,
+                        attackBonus,
+                        defenseBonus};
+
+    if (params.isMagic) {
+        if (!attacker.consumeMana(params.manaCost))
+            return CombatResult{};
+    }
+
+    CombatResult res = resolveCombat(attacker, target, params);
+    if (!res.attackHappened || res.evaded)
+        return res;
+
+    uint32_t attackXp = FormulaEngine::getInstance().calculate_attack_xp_gain(
+            res.damage, attacker.getLevel(), target.getLevel());
+    attacker.addExperience(attackXp);
+
+    if (target.isDead()) {
+        target.handleDeath();
+        uint32_t killXp = FormulaEngine::getInstance().calculate_kill_xp_gain(
+                target.getMaxHp(), attacker.getLevel(), target.getLevel());
+        attacker.addExperience(killXp);
+    }
+
     return res;
 }

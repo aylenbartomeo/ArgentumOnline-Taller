@@ -1,6 +1,7 @@
 #ifndef INVENTORY_COMPONENT_H
 #define INVENTORY_COMPONENT_H
 
+#include <algorithm>
 #include <cstdint>
 #include <optional>
 #include <vector>
@@ -9,6 +10,8 @@
 
 // Representa un casillero individual dentro de la grilla del inventario.
 struct Slot {
+    static constexpr uint16_t MAX_STACK_SIZE = 99;
+
     uint32_t item_id{0};
     uint16_t amount{0};
 
@@ -27,7 +30,7 @@ private:
     uint32_t max_gold;         // Capacidad máxima de la billetera/mochila
 
 public:
-    explicit InventoryComponent(const InventoryConfig& config, uint32_t initial_safe_gold);
+    explicit InventoryComponent(const InventoryConfig& config);
     ~InventoryComponent() = default;
 
     // Bloqueamos copia para evitar duplicaciones accidentales de ítems en memoria
@@ -42,8 +45,11 @@ public:
     // ========================================================================
 
     // Intenta añadir ítems aplicando apilamiento automático (Stacking).
-    // return true si se pudo almacenar todo, false si no hay espacio disponible.
-    bool addItem(uint32_t item_id, uint16_t amount);
+    // return cantidad de items sobrantes que no se pudieron guardar (0 si entró todo).
+    uint16_t addItem(uint32_t item_id, uint16_t amount, bool stackable = true);
+
+    // Vacía todos los slots del inventario y retorna los ítems que había.
+    std::vector<Slot> dropAllItems();
 
     // Remueve una cantidad específica de ítems de un casillero.
     // return Cantidad real que se logró remover.
@@ -67,6 +73,17 @@ public:
     // Aplica la penalidad por muerte: retiene el límite seguro y suelta el resto.
     // return Cantidad de oro en exceso que debe caer al suelo.
     uint32_t dropExcessGold();
+
+    // -- Restauracion desde persistencia --
+    void setGold(uint32_t amount) { gold = std::min(amount, max_gold); }
+
+    // Carga un slot directamente por índice (usado solo al restaurar desde disco)
+    void restoreSlot(uint8_t index, uint32_t item_id, uint16_t amount) {
+        if (index >= slots.size() || item_id == 0 || amount == 0)
+            return;
+        slots[index].item_id = item_id;
+        slots[index].amount = amount;
+    }
 
     // ========================================================================
     // SERIALIZACIÓN / INSPECCIÓN EXTERNA

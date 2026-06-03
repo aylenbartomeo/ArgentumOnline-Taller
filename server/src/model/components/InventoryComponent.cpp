@@ -2,48 +2,79 @@
 
 #include <algorithm>
 
-InventoryComponent::InventoryComponent(const InventoryConfig& config, uint32_t initial_safe_gold):
-        slots(config.maxSlots, Slot{0, 0}),
-        gold(0),
-        safe_gold_limit(initial_safe_gold),
-        max_gold(config.maxGold) {}
+InventoryComponent::InventoryComponent(const InventoryConfig& config):
+    slots(config.maxSlots, Slot{0, 0}),
+    gold(config.gold),
+    safe_gold_limit(config.initialSafeGold),
+    max_gold(config.maxGold) {}
 
-bool InventoryComponent::addItem(uint32_t item_id, uint16_t amount) {
-    if (amount == 0 || item_id == 0)
-        return false;
+uint16_t InventoryComponent::addItem(uint32_t item_id, uint16_t amount, bool stackable) {
+    if (amount == 0)
+        return 0;
+    if (item_id == 0)
+        return amount;
 
     uint16_t remaining = amount;
     std::vector<size_t> empty_slots;
 
-    // 1. Primer pasada: Intentamos llenar slots del mismo ítem que tengan espacio
-    for (size_t i = 0; i < slots.size(); ++i) {
-        if (slots[i].item_id == item_id) {
-            uint16_t space_available = UINT16_MAX - slots[i].amount;
-            if (space_available > 0) {
+    // 1. Primera pasada: Stacking (Solo si es stackable)
+    if (stackable) {
+        for (size_t i = 0; i < slots.size(); ++i) {
+            if (slots[i].item_id == item_id && slots[i].amount < Slot::MAX_STACK_SIZE) {
+                uint16_t space_available = Slot::MAX_STACK_SIZE - slots[i].amount;
                 uint16_t to_add = std::min(remaining, space_available);
                 slots[i].amount += to_add;
                 remaining -= to_add;
 
                 if (remaining == 0)
-                    return true;  // Se ubicó todo con éxito
+                    return 0;  // Se ubicó todo con éxito
+            } else if (slots[i].is_empty()) {
+                empty_slots.push_back(i);  // Guardamos los vacíos por si sobra
             }
-        } else if (slots[i].is_empty()) {
-            empty_slots.push_back(i);  // Guardamos los vacíos por si sobra
+        }
+    } else {
+        // Si no es stackable, igual recopilamos los vacíos
+        for (size_t i = 0; i < slots.size(); ++i) {
+            if (slots[i].is_empty()) {
+                empty_slots.push_back(i);
+            }
         }
     }
 
-    // 2. Segunda pasada: Si todavía queda remanente, usamos los slots vacíos
+    // 2. Segunda pasada: Ocupar slots vacíos
     for (size_t empty_idx: empty_slots) {
         slots[empty_idx].item_id = item_id;
-        slots[empty_idx].amount =
-                remaining;  // En este punto 'remaining' entra seguro en un slot vacío
-        return true;
+
+        if (stackable) {
+            uint16_t to_add = std::min(remaining, Slot::MAX_STACK_SIZE);
+            slots[empty_idx].amount = to_add;
+            remaining -= to_add;
+            if (remaining == 0) {
+                return 0;
+            }
+        } else {
+            // No stackable: ocupa 1 slot por unidad
+            slots[empty_idx].amount = 1;
+            remaining--;
+            if (remaining == 0) {
+                return 0;
+            }
+        }
     }
 
-    // Si llegamos acá y 'remaining < amount', significa que se guardó ALGO pero no todo.
-    // Para simplificar tu contrato actual, si no entra TODO el fardo devolvemos false
-    // (o podés revertir el estado si preferís transacciones atómicas).
-    return remaining == 0;
+    // Retorna lo que sobró y no se pudo guardar
+    return remaining;
+}
+
+std::vector<Slot> InventoryComponent::dropAllItems() {
+    std::vector<Slot> dropped_items;
+    for (auto& slot: slots) {
+        if (!slot.is_empty()) {
+            dropped_items.push_back(slot);
+            slot.clear();
+        }
+    }
+    return dropped_items;
 }
 
 uint16_t InventoryComponent::removeItem(uint8_t slot_index, uint16_t amount) {

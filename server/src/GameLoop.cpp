@@ -3,14 +3,20 @@
 #include <iostream>
 #include <variant>
 
-#include "../include/model/ServerEvents.h"
+#include "../include/ServerEvents.h"
+#include "dto/ClanCommandDTO.h"
 
-GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor, 
-                   const std::filesystem::path& configPath,
-                   const std::string& persistenceDir):
-        isRunning(true), gameQueue(gameQueue), monitor(monitor), 
-        itemRegistry(configPath), playerDataStore(persistenceDir), 
-        world(1, "Server", itemRegistry) {
+GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
+                   const std::filesystem::path& configDir, const std::string& persistenceDir):
+        isRunning(true),
+        gameQueue(gameQueue),
+        monitor(monitor),
+        itemRegistry(configDir / "items.toml"),
+        playerDataStore(persistenceDir),
+        characterConfigs(
+                CharacterConfigLoader::loadCharacterConfigs(configDir / "characters.toml")),
+        inventoryConfig(InventoryConfigLoader::loadInventoryConfig(configDir / "inventory.toml")),
+        world(1, "Server", itemRegistry, characterConfigs, inventoryConfig) {
     world.loadMap("maps/defaultMap.json");
 }
 
@@ -59,32 +65,28 @@ void GameLoop::processInputs() {
         if (std::holds_alternative<JoinEvent>(event)) {
             JoinEvent joinData = std::get<JoinEvent>(event);
             std::cout << "[GAMELOOP] Player joined: " << joinData.username << std::endl;
-            
+
             auto savedData = playerDataStore.loadPlayerData(joinData.username);
             std::optional<Position> savedPos = std::nullopt;
             if (savedData.has_value()) {
                 savedPos = Position{savedData->posX, savedData->posY};
             }
-            
-            world.addPlayer(joinData.clientId, joinData.username, savedPos);
+            world.addPlayer(joinData.clientId, joinData.username, savedData);
 
             // 2. Un jugador se desconecta
         } else if (std::holds_alternative<DisconnectEvent>(event)) {
             DisconnectEvent discData = std::get<DisconnectEvent>(event);
             std::cout << "[GAMELOOP] Player " << discData.clientId << " requested disconnect."
                       << std::endl;
-            
-            // Persistir posición antes de eliminar al jugador del mundo
+
+            // Extraer y persistir TODA la data antes de borrar al jugador
             auto username = world.getPlayerUsername(discData.clientId);
-            auto position = world.getPlayerPosition(discData.clientId);
-            if (username.has_value() && position.has_value()) {
-                PlayerPersistData data{};
-                data.dbId = discData.clientId;
-                data.posX = position->x;
-                data.posY = position->y;
-                playerDataStore.savePlayerData(username.value(), data);
+            auto persistData = world.getPlayerPersistData(discData.clientId);
+
+            if (username.has_value() && persistData.has_value()) {
+                playerDataStore.savePlayerData(username.value(), persistData.value());
             }
-                      
+
             world.removePlayer(discData.clientId);
 
             // 3. Checkeo de comandos in-game
@@ -103,8 +105,64 @@ void GameLoop::processInputs() {
                 world.playerAttack(pCmd.clientId, attack_dto.targetId);
 
             } else if (std::holds_alternative<DropItemDTO>(pCmd.command)) {
-                // DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
-                // world.drop_item(pCmd.clientId, drop_dto.slot, drop_dto.amount);
+                DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
+                world.dropItem(pCmd.clientId, drop_dto.slot, drop_dto.amount);
+            } else if (std::holds_alternative<GrabItemDTO>(pCmd.command)) {
+                world.pickUpItem(pCmd.clientId);
+            } else if (std::holds_alternative<MeditateDTO>(pCmd.command)) {
+                world.playerMeditate(pCmd.clientId);
+            } else if (std::holds_alternative<ResurrectDTO>(pCmd.command)) {
+                world.playerResurrect(pCmd.clientId);
+            } else if (std::holds_alternative<SelectNpcDTO>(pCmd.command)) {
+                SelectNpcDTO selectDto = std::get<SelectNpcDTO>(pCmd.command);
+                std::cout << "[GAMELOOP] Player " << pCmd.clientId
+                          << " clicked NPC: " << selectDto.npcId << std::endl;
+                world.playerInteract(pCmd.clientId, selectDto.npcId);
+            } else if (std::holds_alternative<NpcCommandDTO>(pCmd.command)) {
+                NpcCommandDTO cmdDto = std::get<NpcCommandDTO>(pCmd.command);
+                std::cout << "[GAMELOOP] Player " << pCmd.clientId
+                          << " executed NPC command type: " << static_cast<int>(cmdDto.type)
+                          << std::endl;
+                world.playerExecuteNpcCommand(pCmd.clientId, cmdDto);
+            } else if (std::holds_alternative<ClanCommandDTO>(pCmd.command)) {
+                ClanCommandDTO clanCmd = std::get<ClanCommandDTO>(pCmd.command);
+                world.processClanCommand(pCmd.clientId, clanCmd);
+            } else if (std::holds_alternative<ChatDTO>(pCmd.command)) {
+                // Por ahora: broadcast a todos (chat general).
+                const std::string& msg = std::get<ChatDTO>(pCmd.command).message;
+                auto senderName = world.getPlayerUsername(pCmd.clientId);
+                if (senderName.has_value()) {
+                    ChatDTO broadcast;
+                    broadcast.message = "[" + senderName.value() + "] " + msg;
+                    monitor.broadcastChat(broadcast);
+                }
+
+            } else if (std::holds_alternative<PrivateChatDTO>(pCmd.command)) {
+                const PrivateChatDTO& priv = std::get<PrivateChatDTO>(pCmd.command);
+                auto senderName = world.getPlayerUsername(pCmd.clientId);
+                if (!senderName.has_value())
+                    return;
+
+                // Resolver nick destinatario → dbId
+                uint32_t recipientId = world.resolveNickToDbId(priv.recipientNick);
+
+                if (recipientId == 0) {
+                    // Destinatario no encontrado: avisar al remitente
+                    ChatDTO err;
+                    err.message = "[Server] Usuario '" + priv.recipientNick + "' no encontrado.";
+                    monitor.sendToClient(pCmd.clientId, err);
+                    continue;
+                }
+
+                // Enviar al destinatario
+                ChatDTO toRecipient;
+                toRecipient.message = "[PM de " + senderName.value() + "] " + priv.message;
+                monitor.sendToClient(recipientId, toRecipient);
+
+                // Confirmar al remitente
+                ChatDTO toSender;
+                toSender.message = "[PM → " + priv.recipientNick + "] " + priv.message;
+                monitor.sendToClient(pCmd.clientId, toSender);
             }
         }
     }
@@ -131,15 +189,11 @@ void GameLoop::broadcastState() {
 
 void GameLoop::persistOnlinePlayers() {
     auto dbIds = world.getOnlinePlayerDbIds();
-    for (uint32_t dbId : dbIds) {
+    for (uint32_t dbId: dbIds) {
         auto username = world.getPlayerUsername(dbId);
-        auto position = world.getPlayerPosition(dbId);
-        if (username.has_value() && position.has_value()) {
-            PlayerPersistData data{};
-            data.dbId = dbId;
-            data.posX = position->x;
-            data.posY = position->y;
-            playerDataStore.savePlayerData(username.value(), data);
+        auto persistData = world.getPlayerPersistData(dbId);
+        if (username.has_value() && persistData.has_value()) {
+            playerDataStore.savePlayerData(username.value(), persistData.value());
         }
     }
 }
