@@ -170,3 +170,58 @@ Position Player::tryMove(Movement direction) const {
 void Player::applyBoost(BoostType type, uint8_t value, uint32_t durationMs) {
     stats.addBoost(type, value, durationMs);
 }
+
+// Exporta el estado completo del jugador a un struct de persistencia binaria
+PlayerPersistData Player::toPersistData() const {
+    PlayerPersistData d{};
+    d.dbId = this->dbId;
+    d.posX = pos.x;
+    d.posY = pos.y;
+    d.hp = stats.getHp();
+    d.mana = stats.getMana();
+    d.level = stats.getLevel();
+    d.exp = stats.getExp();
+    d.gold = inventory.getGold();
+
+    // Estado
+    if (state.isGhost())
+        d.stateId = 1;
+    else if (state.isMeditating())
+        d.stateId = 2;
+    else
+        d.stateId = 0;
+
+    // Raza y clase
+    d.race = static_cast<uint8_t>(stats.getRace());
+    d.characterClass = static_cast<uint8_t>(stats.getCharacterClass());
+
+    // Inventario
+    const auto& slots = inventory.getSlots();
+    d.inventorySize = static_cast<uint8_t>(std::min(slots.size(), size_t(16)));
+    for (uint8_t i = 0; i < d.inventorySize; ++i) {
+        d.inventory[i].item_id = slots[i].item_id;
+        d.inventory[i].amount = slots[i].amount;
+    }
+
+    return d;
+}
+
+// Restaura el estado del jugador desde un struct de persistencia binaria
+void Player::fromPersistData(const PlayerPersistData& data) {
+    // Restaurar stats usando el método dedicado de StatsComponent
+    stats.restoreFromPersist(data.hp, data.mana, data.exp, data.level);
+
+    // Inventario
+    uint8_t slots = std::min<uint8_t>(data.inventorySize, 16);
+    for (uint8_t i = 0; i < slots; ++i) {
+        if (data.inventory[i].item_id != 0 && data.inventory[i].amount > 0) {
+            addInventoryItem(data.inventory[i].item_id, data.inventory[i].amount);
+        }
+    }
+
+    // Estado
+    if (data.stateId == 1)
+        handleDeath();
+    else if (data.stateId == 2)
+        startMeditating();
+}
