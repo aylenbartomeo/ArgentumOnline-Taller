@@ -5,7 +5,7 @@
 #include "../common/include/dto/ClientCommands.h"
 #include "../common/include/dto/ServerMessage.h"
 #include "../common/include/queue.h"
-#include "../server/include/model/ServerEvents.h"
+#include "../server/include/ServerEvents.h"
 #include "../server/src/ConnectionMonitor.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"

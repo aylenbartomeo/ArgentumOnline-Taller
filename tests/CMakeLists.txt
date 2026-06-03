@@ -40,7 +40,7 @@ target_sources(argentum_online_tests
     ../server/src/model/components/EquipmentComponent.cpp
     ../server/src/model/components/RegenerationComponent.cpp
     ../server/src/model/combat/CombatManager.cpp
-    ../server/src/model/FormulaEngine.cpp
+    ../server/include/FormulaEngine.cpp
     ../server/src/model/items/Armor.cpp
     ../server/src/model/items/Weapon.cpp
     ../server/src/model/items/BodyArmor.cpp
