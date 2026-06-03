@@ -1,16 +1,23 @@
 cmake_minimum_required(VERSION 3.24)
 
+set(CMAKE_C_COMPILER gcc)
+set(CMAKE_CXX_COMPILER g++)
+
 if (POLICY CMP0135)
     cmake_policy(SET CMP0135 NEW)
 endif()
 
+# Cumple con la restricción de C++20 del cliente
 if (NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 20)
 endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Seteamos también un estándar de C moderno para las librerías
 if (NOT DEFINED CMAKE_C_STANDARD)
     set(CMAKE_C_STANDARD 11)
 endif()
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(CMAKE_POLICY_VERSION_MINIMUM "3.5")
 set(CMAKE_CXX_EXTENSIONS ON)
