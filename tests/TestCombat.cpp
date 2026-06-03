@@ -1,11 +1,12 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "FormulaEngine.h"
 #include "model/combat/CombatManager.h"
 #include "model/entities/Monster.h"
 #include "model/entities/Player.h"
 #include "model/items/Weapon.h"
+
+#include "FormulaEngine.h"
 
 // MockAttackable se usa como TARGET (no como attacker)
 class MockAttackable: public Attackable {

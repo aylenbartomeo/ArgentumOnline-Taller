@@ -54,9 +54,7 @@ static CharacterConfigs makeTestConfigs() {
     };
 }
 
-static InventoryConfig getTestInventoryConfig() {
-    return {16, 0, 10000, 5000};
-}
+static InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
 
 // Construye un PlayerPersistData con todos los campos relevantes completados
 static PlayerPersistData makeFullPersistData(uint32_t dbId, int32_t x, int32_t y) {

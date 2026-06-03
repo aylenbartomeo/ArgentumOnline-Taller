@@ -54,6 +54,10 @@ std::pair<float, float> Map::getInitialPosition() { return this->spawn_point; }
 void Map::setSpawnPoint(float x, float y) { this->spawn_point = {x, y}; }
 
 bool Map::loadSpawnFromJson(const std::string& path) {
+    return loadSpawnFromJson(path, MapLoadOptions{});
+}
+
+bool Map::loadSpawnFromJson(const std::string& path, const MapLoadOptions& options) {
     std::ifstream file(path);
     if (!file) {
         return false;
@@ -101,7 +105,7 @@ bool Map::loadSpawnFromJson(const std::string& path) {
         }
     }
 
-    if (data.contains("monsters")) {
+    if (options.spawnMonsters && data.contains("monsters")) {
         for (const auto& monster: data["monsters"]) {
             std::string typeStr = monster["type"].get<std::string>();
             std::optional<NPCType> type;
@@ -136,7 +140,7 @@ bool Map::loadSpawnFromJson(const std::string& path) {
         generate_collision_grid();
     }
 
-    if (data.contains("items")) {
+    if (options.spawnGroundItems && data.contains("items")) {
         for (const auto& item: data["items"]) {
             int id = item["id"].get<int>();
             int x = item["x"].get<int>();

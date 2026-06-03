@@ -14,7 +14,8 @@ TEST(GameLoopTest, GameLoop_RunsAndProcessesEventsAsynchronously) {
     ConnectionMonitor monitor;  // Ajustá si tu constructor pide parámetros
 
     // Creación del GameLoop (nace con isRunning = true pero sin morder el hilo aún)
-    GameLoop loop(gameQueue, monitor, "../config");
+    WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
+    GameLoop loop(gameQueue, monitor, "../config", wConfig);
 
     // 2. Preparamos los datos de prueba: un JoinEvent y un comando de movimiento
     JoinEvent join;
@@ -59,7 +60,8 @@ TEST(GameLoopTest, GameLoop_RunsAndProcessesEventsAsynchronously) {
 TEST(GameLoopTest, GameLoop_StopsCleanlyEvenWithEmptyQueue) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
-    GameLoop loop(gameQueue, monitor, "../config");
+    WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
+    GameLoop loop(gameQueue, monitor, "../config", wConfig);
 
     // Lanzamos con la cola vacía
     std::thread hiloGameLoop(&GameLoop::run, &loop);
@@ -85,7 +87,8 @@ TEST(GameLoopTest, GameLoop_ConsumablesStopAffectingStatsAfterDuration) {
     // y las estadísticas del jugador vuelvan a su valor base.
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
-    GameLoop loop(gameQueue, monitor, "../config");
+    WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
+    GameLoop loop(gameQueue, monitor, "../config", wConfig);
 
     // 1. Unimos un jugador al mundo
     JoinEvent join;

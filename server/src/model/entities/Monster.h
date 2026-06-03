@@ -4,6 +4,7 @@
 #include <string>
 #include <utility>
 
+#include "../../persistence/WorldPersistData.h"
 #include "../interfaces/Attackable.h"
 #include "../utils/position.h"
 #include "../utils/types.h"
@@ -49,6 +50,11 @@ public:
     bool canMove() const;
     void resetAttackCooldown();
     void resetMoveCooldown();
+
+    uint32_t getId() const { return id; }
+    void setHealth(int hp) { this->health = hp; }
+    MonsterPersistData toPersistData() const;
+    void fromPersistData(const MonsterPersistData& data);
 
     uint32_t getTargetId() const { return current_target_id; }
     void setTargetId(uint32_t targetId) { current_target_id = targetId; }

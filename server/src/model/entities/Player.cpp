@@ -1,12 +1,15 @@
 #include "Player.h"
 
+#include <algorithm>
+
 #include "server/src/model/items/Item.h"
 #include "server/src/model/items/ItemRegistry.h"
 
 Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
                CharacterClass cls, const RaceConfig& raceConfig,
                const CharacterClassConfig& classConfig, const PlayerConfig& playerBase,
-               const ItemRegistry& itemRegistry, const InventoryConfig& inventoryConfig, const Position& spawn):
+               const ItemRegistry& itemRegistry, const InventoryConfig& inventoryConfig,
+               const Position& spawn):
         id(entityId),
         dbId(dbId),
         name(name),
@@ -28,8 +31,7 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race r
 Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
                CharacterClass charClass, const RaceConfig& raceConf,
                const CharacterClassConfig& classConf, const PlayerConfig& playerBase,
-               const InventoryConfig& inventoryConfig,
-               const FormulaEngine& testEngine):
+               const InventoryConfig& inventoryConfig, const FormulaEngine& testEngine):
         id(entityId),
         dbId(dbId),
         name(name),

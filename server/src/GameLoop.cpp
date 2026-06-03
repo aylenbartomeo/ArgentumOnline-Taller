@@ -4,20 +4,33 @@
 #include <variant>
 
 #include "../include/ServerEvents.h"
+#include "config/MonsterConfigLoader.h"
 #include "dto/ClanCommandDTO.h"
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
-                   const std::filesystem::path& configDir, const std::string& persistenceDir):
+                   const std::filesystem::path& configDir, const WorldConfig& wConfig):
         isRunning(true),
         gameQueue(gameQueue),
         monitor(monitor),
         itemRegistry(configDir / "items.toml"),
-        playerDataStore(persistenceDir),
+        playerDataStore(wConfig.worldDir),
         characterConfigs(
                 CharacterConfigLoader::loadCharacterConfigs(configDir / "characters.toml")),
         inventoryConfig(InventoryConfigLoader::loadInventoryConfig(configDir / "inventory.toml")),
-        world(1, "Server", itemRegistry, characterConfigs, inventoryConfig) {
-    world.loadMap("maps/defaultMap.json");
+        worldConfig(wConfig),
+        worldDataStore("worlds/"),
+        world(wConfig.worldId, wConfig.worldName, itemRegistry, characterConfigs, inventoryConfig) {
+    if (worldConfig.isNewWorld) {
+        world.loadMap(worldConfig.baseMapPath, true);
+    } else {
+        world.loadMap(worldConfig.baseMapPath, false);
+        MonsterConfigs mConfigs;
+        try {
+            mConfigs = MonsterConfigLoader::loadMonsterConfigs("config/monsters.toml");
+        } catch (...) {}
+        world.restoreMonsters(worldDataStore.loadMonsters(worldConfig.worldId), mConfigs);
+        world.restoreGroundItems(worldDataStore.loadGroundItems(worldConfig.worldId));
+    }
 }
 
 void GameLoop::run() {
@@ -37,7 +50,7 @@ void GameLoop::run() {
 
             timeSinceLastSave += MS_PER_FRAME / 1000.0f;
             if (timeSinceLastSave >= SAVE_INTERVAL_SECONDS) {
-                persistOnlinePlayers();
+                persistWorldState();
                 timeSinceLastSave = 0.0f;
             }
 
@@ -50,7 +63,10 @@ void GameLoop::run() {
                 std::this_thread::sleep_for(std::chrono::milliseconds(MS_PER_FRAME - elapsed));
             }
         }
+        persistWorldState();  // Guardado final al salir
     } catch (const std::exception& e) {
+        std::cerr << "[GAMELOOP] Error: " << e.what() << std::endl;
+        persistWorldState();
         isRunning = false;
     }
 }
@@ -196,6 +212,12 @@ void GameLoop::persistOnlinePlayers() {
             playerDataStore.savePlayerData(username.value(), persistData.value());
         }
     }
+}
+
+void GameLoop::persistWorldState() {
+    persistOnlinePlayers();
+    worldDataStore.saveMonsters(worldConfig.worldId, world.getMonstersPersistData());
+    worldDataStore.saveGroundItems(worldConfig.worldId, world.getGroundItemsPersistData());
 }
 
 void GameLoop::stop() { isRunning = false; }

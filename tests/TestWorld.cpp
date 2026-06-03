@@ -18,9 +18,7 @@ static CharacterConfigs getTestConfigs() {
     return CharacterConfigs{base, {{Race::HUMAN, human}}, {{CharacterClass::WARRIOR, warrior}}};
 }
 
-static InventoryConfig getTestInventoryConfig() {
-    return {16, 0, 10000, 5000};
-}
+static InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
 
 static PlayerPersistData makeSpawnData(int x, int y) {
     PlayerPersistData d{};

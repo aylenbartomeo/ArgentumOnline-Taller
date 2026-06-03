@@ -50,6 +50,7 @@ target_sources(argentum_online_server
     src/GameLoop.cpp
     src/auth/AuthManager.cpp
     src/persistence/PlayerDataStore.cpp
+    src/persistence/WorldDataStore.cpp
 
     # Game
     src/model/map/GroundItemLayer.cpp
@@ -129,6 +130,8 @@ target_sources(argentum_online_server
     src/World.h
     src/auth/AuthManager.h
     src/persistence/PlayerDataStore.h
+    src/persistence/WorldDataStore.h
+    src/persistence/WorldPersistData.h
 )
 
 # Include directories

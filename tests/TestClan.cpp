@@ -22,9 +22,7 @@ static CharacterConfigs getTestConfigs() {
     return CharacterConfigs{base, {{Race::HUMAN, human}}, {{CharacterClass::WARRIOR, warrior}}};
 }
 
-static InventoryConfig getTestInventoryConfig() {
-    return {16, 0, 10000, 5000};
-}
+static InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
 
 class ClanSystemTest: public ::testing::Test {
 protected:
@@ -509,7 +507,8 @@ TEST_F(WorldClanTest, World_ProcessClanCommand_FounderCannotLeave) {
 TEST(ClanGameLoopTest, GameLoop_ProcessesClanFoundCommand) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
-    GameLoop loop(gameQueue, monitor, "../config");
+    WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
+    GameLoop loop(gameQueue, monitor, "../config", wConfig);
     // Jugador ingresa
     JoinEvent join;
     join.clientId = 1;
@@ -539,7 +538,8 @@ TEST(ClanGameLoopTest, GameLoop_ProcessesClanFoundCommand) {
 TEST(ClanGameLoopTest, GameLoop_ProcessesClanJoinAndAccept) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
-    GameLoop loop(gameQueue, monitor, "../config");
+    WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
+    GameLoop loop(gameQueue, monitor, "../config", wConfig);
 
     // Dos jugadores ingresan
     auto pushJoin = [&](uint32_t id, const std::string& name) {

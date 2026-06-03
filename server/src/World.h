@@ -21,6 +21,7 @@
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
 #include "persistence/PlayerDataStore.h"
+#include "persistence/WorldPersistData.h"
 
 #include "Map.h"
 #include "queue.h"
@@ -86,7 +87,7 @@ public:
 
     bool removePlayer(uint32_t playerId);
 
-    bool loadMap(const std::string& path);
+    bool loadMap(const std::string& path, bool spawnMonstersAndItems = true);
 
     // Gestión de monstruos y NPCs
     uint32_t addMonster(NPCType type, Position pos, const MonsterConfig& config);
@@ -110,6 +111,13 @@ public:
 
     // Generación del estado actual para ser enviado por red
     SnapshotDTO generateSnapshot() const;
+
+    // Persistencia del mundo
+    std::vector<MonsterPersistData> getMonstersPersistData() const;
+    std::vector<GroundItemPersistData> getGroundItemsPersistData() const;
+    void restoreMonsters(const std::vector<MonsterPersistData>& data,
+                         const MonsterConfigs& configs);
+    void restoreGroundItems(const std::vector<GroundItemPersistData>& data);
 
     // Getters para persistencia
     std::optional<Position> getPlayerPosition(uint32_t dbId) const;
