@@ -15,7 +15,8 @@ GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
         playerDataStore(persistenceDir),
         characterConfigs(
                 CharacterConfigLoader::loadCharacterConfigs(configDir / "characters.toml")),
-        world(1, "Server", itemRegistry, characterConfigs) {
+        inventoryConfig(InventoryConfigLoader::loadInventoryConfig(configDir / "inventory.toml")),
+        world(1, "Server", itemRegistry, characterConfigs, inventoryConfig) {
     world.loadMap("maps/defaultMap.json");
 }
 

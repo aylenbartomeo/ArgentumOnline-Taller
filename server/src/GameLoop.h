@@ -11,6 +11,7 @@
 #include "../../common/include/thread.h"
 #include "config/CharacterConfig.h"
 #include "config/CharacterConfigLoader.h"
+#include "config/InventoryConfigLoader.h"
 #include "dto/CommandDTO.h"
 #include "dto/Snapshot.h"
 #include "model/items/ItemRegistry.h"
@@ -27,6 +28,7 @@ private:
     ItemRegistry itemRegistry;
     PlayerDataStore playerDataStore;
     CharacterConfigs characterConfigs;
+    const InventoryConfig inventoryConfig;
     World world;
 
     // Timer para guardado periódico

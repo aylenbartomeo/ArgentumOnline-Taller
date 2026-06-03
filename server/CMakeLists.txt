@@ -16,6 +16,7 @@ target_sources(argentum_online_server
     src/config/CharacterConfigLoader.cpp
     src/config/ItemConfigLoader.cpp
     src/config/MonsterConfigLoader.cpp
+    src/config/InventoryConfigLoader.cpp
 
     # Formulas
     include/FormulaEngine.cpp
@@ -78,6 +79,8 @@ target_sources(argentum_online_server
     src/config/ItemConfigLoader.h
     src/config/MonsterConfig.h
     src/config/MonsterConfigLoader.h
+    src/config/InventoryConfig.h
+    src/config/InventoryConfigLoader.h
 
     src/model/entities/MonsterFactory.h
     src/model/entities/Player.h

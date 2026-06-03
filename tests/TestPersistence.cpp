@@ -54,6 +54,10 @@ static CharacterConfigs makeTestConfigs() {
     };
 }
 
+static InventoryConfig getTestInventoryConfig() {
+    return {16, 0, 10000, 5000};
+}
+
 // Construye un PlayerPersistData con todos los campos relevantes completados
 static PlayerPersistData makeFullPersistData(uint32_t dbId, int32_t x, int32_t y) {
     PlayerPersistData d{};
@@ -275,12 +279,12 @@ protected:
 // --- getPlayerPersistData ---
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsNulloptForUnknownId) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     EXPECT_FALSE(mundo.getPlayerPersistData(999).has_value());
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsData_AfterAddPlayer) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Arden";
     ASSERT_TRUE(mundo.addPlayer(1, user));
 
@@ -290,7 +294,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsData_AfterAddPlayer) {
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsNullopt_AfterRemovePlayer) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Arden";
     ASSERT_TRUE(mundo.addPlayer(1, user));
     mundo.removePlayer(1);
@@ -299,7 +303,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsNullopt_AfterRemovePlay
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_Position_MatchesCurrentPosition) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Mover";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -315,7 +319,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Position_MatchesCurrentPositio
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_Race_MatchesSavedRace) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Elara";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -328,7 +332,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Race_MatchesSavedRace) {
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_Class_MatchesSavedClass) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Archmage";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -341,7 +345,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Class_MatchesSavedClass) {
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_Level_MatchesSavedLevel) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Veteran";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -354,7 +358,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Level_MatchesSavedLevel) {
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_Gold_MatchesSavedGold) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "RichPlayer";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -367,7 +371,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Gold_MatchesSavedGold) {
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_GhostState_IsPersisted) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "DeadPlayer";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -380,7 +384,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_GhostState_IsPersisted) {
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_MeditatingState_IsPersisted) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Monk";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -395,7 +399,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_MeditatingState_IsPersisted) {
 // --- Round-trip completo (simula disconnect → reconnect) ---
 
 TEST_F(WorldPersistenceTest, RoundTrip_NewPlayer_DefaultsAreConsistent) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Newbie";
     ASSERT_TRUE(mundo.addPlayer(1, user));
 
@@ -408,7 +412,7 @@ TEST_F(WorldPersistenceTest, RoundTrip_NewPlayer_DefaultsAreConsistent) {
 }
 
 TEST_F(WorldPersistenceTest, RoundTrip_Position_IsRestoredAfterReconnect) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Traveler";
 
     // Primera sesión: añadir y mover
@@ -432,7 +436,7 @@ TEST_F(WorldPersistenceTest, RoundTrip_Position_IsRestoredAfterReconnect) {
 }
 
 TEST_F(WorldPersistenceTest, RoundTrip_RaceAndClass_SurviveReconnect) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Elven Mage";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -453,7 +457,7 @@ TEST_F(WorldPersistenceTest, RoundTrip_RaceAndClass_SurviveReconnect) {
 }
 
 TEST_F(WorldPersistenceTest, RoundTrip_Level_SurvivesReconnect) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Veteran";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -474,7 +478,7 @@ TEST_F(WorldPersistenceTest, RoundTrip_Level_SurvivesReconnect) {
 }
 
 // TEST_F(WorldPersistenceTest, RoundTrip_Inventory_SurvivesReconnect) {
-//     World mundo(1, "Tester", registry, configs);
+//     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 //     std::string user = "Collector";
 
 //     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -505,7 +509,7 @@ TEST_F(WorldPersistenceTest, RoundTrip_Level_SurvivesReconnect) {
 // }
 
 TEST_F(WorldPersistenceTest, RoundTrip_MultipleAllRaces_AllClasses) {
-    World mundo(1, "Tester", registry, configs);
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     struct Case {
         uint32_t id;
