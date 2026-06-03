@@ -60,7 +60,7 @@ TEST(CombatManagerTest, PlayerAttackOutOfRange) {
 
     // Equipar un arma con rango 1
     Weapon sword(1, "TestSword", 100, WeaponType::MELEE, 10, 20, 1, 0);
-    attacker.getEquipment().equipWeapon(&sword);
+    attacker.equipWeapon(&sword);
 
     // Target a distancia 5, rango 1
     EXPECT_CALL(target, getPosition()).WillRepeatedly(testing::Return(Position{5, 0}));
@@ -75,7 +75,7 @@ TEST(CombatManagerTest, PlayerPhysicalAttackSuccessful) {
     MockAttackable target;
 
     Weapon sword(1, "TestSword", 100, WeaponType::MELEE, 10, 20, 1, 0);
-    attacker.getEquipment().equipWeapon(&sword);
+    attacker.equipWeapon(&sword);
 
     EXPECT_CALL(target, getPosition()).WillRepeatedly(testing::Return(Position{0, 0}));
     EXPECT_CALL(target, isDead()).WillRepeatedly(testing::Return(false));
@@ -96,7 +96,7 @@ TEST(CombatManagerTest, PlayerMagicAttackInsufficientMana) {
 
     // Arma mÃ¡gica con costo de manÃ¡ 999 (mÃ¡s de lo que tiene el Player)
     Weapon staff(2, "TestStaff", 150, WeaponType::MAGIC, 10, 20, 1, 999);
-    attacker.getEquipment().equipWeapon(&staff);
+    attacker.equipWeapon(&staff);
 
     // No deberÃ­a recibir daÃ±o porque no hay manÃ¡ suficiente
     EXPECT_CALL(target, receiveDamage(testing::_)).Times(0);
@@ -110,7 +110,7 @@ TEST(CombatManagerTest, PlayerMagicAttackSuccessful) {
 
     // Arma mÃ¡gica con costo de manÃ¡ 1 (el Player tiene 15)
     Weapon staff(2, "TestStaff", 150, WeaponType::MAGIC, 10, 20, 1, 1);
-    attacker.getEquipment().equipWeapon(&staff);
+    attacker.equipWeapon(&staff);
 
     EXPECT_CALL(target, getPosition()).WillRepeatedly(testing::Return(Position{0, 0}));
     EXPECT_CALL(target, isDead()).WillRepeatedly(testing::Return(false));

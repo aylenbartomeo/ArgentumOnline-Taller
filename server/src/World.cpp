@@ -89,29 +89,7 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
                                      classConfig, baseConfig, itemRegistry, inventoryConfig, spawnPos);
 
     if (savedData.has_value()) {
-        const PlayerPersistData& d = savedData.value();
-
-        player->restoreHp();
-        player->restoreMana();
-
-        uint16_t maxHp = player->getMaxHp();
-        uint16_t maxMana = player->getMaxMana();
-        if (d.hp < maxHp)
-            player->receiveDamage(maxHp - d.hp);
-        if (d.mana < maxMana)
-            player->consumeMana(maxMana - d.mana);
-
-        uint8_t slots = std::min<uint8_t>(d.inventorySize, 16);
-        for (uint8_t i = 0; i < slots; ++i) {
-            if (d.inventory[i].item_id != 0 && d.inventory[i].amount > 0) {
-                player->addInventoryItem(d.inventory[i].item_id, d.inventory[i].amount);
-            }
-        }
-
-        if (d.stateId == 1)
-            player->handleDeath();
-        else if (d.stateId == 2)
-            player->startMeditating();
+        player->fromPersistData(savedData.value());
     }
 
     this->players[entityId] = std::move(player);
@@ -126,39 +104,7 @@ std::optional<PlayerPersistData> World::getPlayerPersistData(uint32_t dbId) cons
     if (it == players.end())
         return std::nullopt;
 
-    const Player& p = *it->second;
-    PlayerPersistData d{};
-
-    d.dbId = dbId;
-    d.posX = p.getPosition().x;
-    d.posY = p.getPosition().y;
-    d.hp = p.getHp();
-    d.mana = p.getMana();
-    d.level = p.getLevel();
-    d.exp = p.getExp();
-    d.gold = p.getGold();
-
-    // Estado
-    if (p.getState().isGhost())
-        d.stateId = 1;
-    else if (p.getState().isMeditating())
-        d.stateId = 2;
-    else
-        d.stateId = 0;
-
-    // Raza y clase: guarda el raw byte si los tienes como uint8_t/enum
-    d.race = static_cast<uint8_t>(p.getRace());
-    d.characterClass = static_cast<uint8_t>(p.getCharacterClass());
-
-    // Inventario
-    const auto& slots = p.getSlots();
-    d.inventorySize = static_cast<uint8_t>(std::min(slots.size(), size_t(16)));
-    for (uint8_t i = 0; i < d.inventorySize; ++i) {
-        d.inventory[i].item_id = slots[i].item_id;
-        d.inventory[i].amount = slots[i].amount;
-    }
-
-    return d;
+    return it->second->toPersistData();
 }
 
 bool World::removePlayer(uint32_t dbId) {
