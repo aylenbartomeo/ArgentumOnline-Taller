@@ -84,9 +84,9 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
     }
 
     // Un solo make_unique con la firma completa
-    auto player =
-            std::make_unique<Player>(entityId, dbId, username, savedRace, savedClass, raceConfig,
-                                     classConfig, baseConfig, itemRegistry, inventoryConfig, spawnPos);
+    auto player = std::make_unique<Player>(entityId, dbId, username, savedRace, savedClass,
+                                           raceConfig, classConfig, baseConfig, itemRegistry,
+                                           inventoryConfig, spawnPos);
 
     if (savedData.has_value()) {
         player->fromPersistData(savedData.value());
@@ -137,10 +137,15 @@ bool World::removePlayer(uint32_t dbId) {
     return true;
 }
 
-bool World::loadMap(const std::string& path) {
-    if (map.loadSpawnFromJson(path)) {
+bool World::loadMap(const std::string& path, bool spawnMonstersAndItems) {
+    Map::MapLoadOptions options;
+    options.spawnMonsters = spawnMonstersAndItems;
+    options.spawnGroundItems = spawnMonstersAndItems;
+    if (map.loadSpawnFromJson(path, options)) {
         spawnNPCs();
-        spawnMonsters();
+        if (spawnMonstersAndItems) {
+            spawnMonsters();
+        }
         return true;
     }
     return false;
@@ -643,6 +648,59 @@ std::vector<uint32_t> World::getOnlinePlayerDbIds() const {
         ids.push_back(dbId);
     }
     return ids;
+}
+
+std::vector<MonsterPersistData> World::getMonstersPersistData() const {
+    std::vector<MonsterPersistData> data;
+    data.reserve(monsters.size());
+    std::transform(monsters.begin(), monsters.end(), std::back_inserter(data),
+                   [](const auto& pair) { return pair.second->toPersistData(); });
+    return data;
+}
+
+std::vector<GroundItemPersistData> World::getGroundItemsPersistData() const {
+    std::vector<GroundItemPersistData> data;
+    auto items = map.getGroundItemsSnapshot();
+    data.reserve(items.size());
+    std::transform(items.begin(), items.end(), std::back_inserter(data), [](const auto& pair) {
+        GroundItemPersistData d{};
+        d.posX = pair.first.x;
+        d.posY = pair.first.y;
+        d.itemId = pair.second.itemId;
+        d.amount = pair.second.amount;
+        return d;
+    });
+    return data;
+}
+
+void World::restoreMonsters(const std::vector<MonsterPersistData>& data,
+                            const MonsterConfigs& configs) {
+    for (const auto& md: data) {
+        auto type = static_cast<NPCType>(md.type);
+        auto it = configs.find(type);
+        if (it == configs.end()) {
+            continue;
+        }
+
+        uint32_t entityId = md.entityId;
+        Position pos{md.posX, md.posY};
+
+        auto monster = std::make_unique<Monster>(entityId, type, pos, it->second);
+        monster->fromPersistData(md);
+
+        monsters[entityId] = std::move(monster);
+
+        if (entityId >= nextEntityId) {
+            nextEntityId = entityId + 1;
+        }
+    }
+}
+
+void World::restoreGroundItems(const std::vector<GroundItemPersistData>& data) {
+    for (const auto& item: data) {
+        Position pos{item.posX, item.posY};
+        map.placeItem(pos, item.itemId, item.amount);
+    }
 }
 
 std::pair<float, float> World::getInitialPosition() { return map.getInitialPosition(); }

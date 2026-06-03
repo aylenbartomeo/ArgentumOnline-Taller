@@ -63,7 +63,12 @@ public:
     /* Retorna la posición inicial segura para un jugador */
     std::pair<float, float> getInitialPosition();
 
+    struct MapLoadOptions {
+        bool spawnMonsters = true;
+        bool spawnGroundItems = true;
+    };
     bool loadSpawnFromJson(const std::string& path);
+    bool loadSpawnFromJson(const std::string& path, const MapLoadOptions& options);
 
     /* Retorna true si la posicion es de alguna zona segura, false en caso contrario */
     bool isCitizenArea(float pos_x, float pos_y) const;

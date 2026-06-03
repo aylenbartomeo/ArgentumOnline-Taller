@@ -116,3 +116,21 @@ void Monster::handleDeath() {
 bool Monster::canEngageInCombatWith(const Attackable& /*other*/) const {
     return true;
 }  // Monsters can attack anyone
+
+MonsterPersistData Monster::toPersistData() const {
+    MonsterPersistData d{};
+    d.entityId = this->id;
+    d.type = static_cast<uint8_t>(this->type);
+    d.posX = this->pos.x;
+    d.posY = this->pos.y;
+    d.hp = static_cast<int16_t>(this->health);
+    d.maxHp = static_cast<int16_t>(this->max_health);
+    return d;
+}
+
+void Monster::fromPersistData(const MonsterPersistData& data) {
+    this->pos.x = data.posX;
+    this->pos.y = data.posY;
+    this->health = data.hp;
+    this->max_health = data.maxHp;
+}
