@@ -11,6 +11,13 @@ struct MonsterCatalogEntry {
     int srcY;
     int srcW;
     int srcH;
+    bool drawHead;
+    std::string headSheet;
+    int headX;
+    int headY;
+    int headW;
+    int headH;
+    int headOverlap;
 };
 
 struct CitizenCatalogEntry {
@@ -20,6 +27,12 @@ struct CitizenCatalogEntry {
     int srcY;
     int srcW;
     int srcH;
+    std::string headSheet;
+    int headX;
+    int headY;
+    int headW;
+    int headH;
+    int headOverlap;
 };
 
 const std::vector<MonsterCatalogEntry>& getMonsterCatalog();
