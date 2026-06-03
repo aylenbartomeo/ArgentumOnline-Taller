@@ -119,6 +119,22 @@ public:
                          const MonsterConfigs& configs);
     void restoreGroundItems(const std::vector<GroundItemPersistData>& data);
 
+    // Persistencia de clanes
+    void getClansPersistData(std::vector<ClanHeaderPersistData>& headers,
+                             std::vector<std::vector<ClanPlayerPersistData>>& members,
+                             std::vector<std::vector<ClanPlayerPersistData>>& pending,
+                             std::vector<std::vector<ClanPlayerPersistData>>& banned) const;
+    void restoreClans(const std::vector<ClanHeaderPersistData>& headers,
+                      const std::vector<std::vector<ClanPlayerPersistData>>& members,
+                      const std::vector<std::vector<ClanPlayerPersistData>>& pending,
+                      const std::vector<std::vector<ClanPlayerPersistData>>& banned);
+
+    // Persistencia del banco global
+    void getBankPersistData(std::vector<BankAccountHeaderPersistData>& headers,
+                            std::vector<std::vector<BankSlotPersistData>>& slots) const;
+    void restoreBank(const std::vector<BankAccountHeaderPersistData>& headers,
+                     const std::vector<std::vector<BankSlotPersistData>>& slots);
+
     // Getters para persistencia
     std::optional<Position> getPlayerPosition(uint32_t dbId) const;
     std::optional<std::string> getPlayerUsername(uint32_t dbId) const;

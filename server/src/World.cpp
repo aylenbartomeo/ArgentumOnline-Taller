@@ -1,6 +1,7 @@
 #include "World.h"
 
 #include <algorithm>
+#include <cstring>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -960,4 +961,116 @@ Player* World::getPlayerById(uint32_t dbId) {
     if (it == this->players.end())
         return nullptr;
     return it->second.get();
+}
+
+// =============================================================================
+// Persistencia de Clanes y Banco
+// =============================================================================
+
+void World::getClansPersistData(std::vector<ClanHeaderPersistData>& headers,
+                                std::vector<std::vector<ClanPlayerPersistData>>& members,
+                                std::vector<std::vector<ClanPlayerPersistData>>& pending,
+                                std::vector<std::vector<ClanPlayerPersistData>>& banned) const {
+    const auto& allClans = clanRepo.getAllClans();
+    headers.reserve(allClans.size());
+    members.reserve(allClans.size());
+    pending.reserve(allClans.size());
+    banned.reserve(allClans.size());
+
+    for (const auto& [clanId, clan]: allClans) {
+        ClanHeaderPersistData header{};
+        header.clanId = clanId;
+        header.founderDbId = clan.getFounderDbId();
+        std::strncpy(header.name, clan.getName().c_str(), sizeof(header.name) - 1);
+        header.memberCount = clan.getMembers().size();
+        header.pendingCount = clan.getPendingRequests().size();
+        header.bannedCount = clan.getBanned().size();
+        headers.push_back(header);
+
+        std::vector<ClanPlayerPersistData> cMembers;
+        cMembers.reserve(header.memberCount);
+        std::transform(clan.getMembers().begin(), clan.getMembers().end(),
+                       std::back_inserter(cMembers),
+                       [](uint32_t id) { return ClanPlayerPersistData{id}; });
+        members.push_back(cMembers);
+
+        std::vector<ClanPlayerPersistData> cPending;
+        cPending.reserve(header.pendingCount);
+        std::transform(clan.getPendingRequests().begin(), clan.getPendingRequests().end(),
+                       std::back_inserter(cPending),
+                       [](uint32_t id) { return ClanPlayerPersistData{id}; });
+        pending.push_back(cPending);
+
+        std::vector<ClanPlayerPersistData> cBanned;
+        cBanned.reserve(header.bannedCount);
+        std::transform(clan.getBanned().begin(), clan.getBanned().end(),
+                       std::back_inserter(cBanned),
+                       [](uint32_t id) { return ClanPlayerPersistData{id}; });
+        banned.push_back(cBanned);
+    }
+}
+
+void World::restoreClans(const std::vector<ClanHeaderPersistData>& headers,
+                         const std::vector<std::vector<ClanPlayerPersistData>>& members,
+                         const std::vector<std::vector<ClanPlayerPersistData>>& pending,
+                         const std::vector<std::vector<ClanPlayerPersistData>>& banned) {
+    uint32_t maxClanId = 0;
+    for (size_t i = 0; i < headers.size(); ++i) {
+        const auto& header = headers[i];
+        if (header.clanId > maxClanId)
+            maxClanId = header.clanId;
+
+        std::vector<uint32_t> mIds;
+        // cppcheck-suppress useStlAlgorithm
+        for (const auto& m: members[i]) mIds.push_back(m.dbId);
+
+        std::vector<uint32_t> pIds;
+        // cppcheck-suppress useStlAlgorithm
+        for (const auto& p: pending[i]) pIds.push_back(p.dbId);
+
+        std::vector<uint32_t> bIds;
+        // cppcheck-suppress useStlAlgorithm
+        for (const auto& b: banned[i]) bIds.push_back(b.dbId);
+
+        clanRepo.restoreClan(header.clanId, header.name, header.founderDbId, mIds, pIds, bIds);
+    }
+    clanRepo.setNextClanId(maxClanId + 1);
+}
+
+void World::getBankPersistData(std::vector<BankAccountHeaderPersistData>& headers,
+                               std::vector<std::vector<BankSlotPersistData>>& slots) const {
+    const auto& accounts = globalBank.getAllAccounts();
+    for (const auto& [playerId, account]: accounts) {
+        std::vector<BankSlotPersistData> accountSlots;
+        for (const auto& slot: account.slots) {
+            if (!slot.is_empty()) {
+                accountSlots.push_back({slot.item_id, slot.amount, {}});
+            }
+        }
+
+        if (account.gold > 0 || !accountSlots.empty()) {
+            BankAccountHeaderPersistData header{};
+            header.playerDbId = playerId;
+            header.gold = account.gold;
+            header.slotCount = accountSlots.size();
+
+            headers.push_back(header);
+            slots.push_back(accountSlots);
+        }
+    }
+}
+
+void World::restoreBank(const std::vector<BankAccountHeaderPersistData>& headers,
+                        const std::vector<std::vector<BankSlotPersistData>>& slots) {
+    for (size_t i = 0; i < headers.size(); ++i) {
+        const auto& header = headers[i];
+        std::vector<BankSlot> bankSlots;
+        for (const auto& spd: slots[i]) {
+            BankSlot slot;
+            slot.item_id = spd.itemId;
+            slot.amount = spd.amount;
+            bankSlots.push_back(slot);
+        }
+        globalBank.restoreAccount(header.playerDbId, header.gold, bankSlots);
+    }
 }

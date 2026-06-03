@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "Clan.h"
 
@@ -29,6 +30,14 @@ public:
     void removePlayerFromClan(uint32_t playerDbId);
 
     bool isNameTaken(const std::string& name) const;
+
+    // Para persistencia
+    const std::unordered_map<uint32_t, Clan>& getAllClans() const { return clans; }
+    void restoreClan(uint32_t clanId, const std::string& name, uint32_t founderDbId,
+                     const std::vector<uint32_t>& memberDbIds,
+                     const std::vector<uint32_t>& pendingDbIds,
+                     const std::vector<uint32_t>& bannedDbIds);
+    void setNextClanId(uint32_t id) { nextClanId = id; }
 };
 
 #endif

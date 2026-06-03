@@ -2,9 +2,11 @@
 #define WORLD_DATA_STORE_H
 
 #include <cstdint>
-#include <string>
-#include <vector>
 #include <optional>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 #include "WorldPersistData.h"
 
@@ -24,6 +26,24 @@ public:
     void saveGroundItems(uint32_t worldId, const std::vector<GroundItemPersistData>& items);
     std::vector<GroundItemPersistData> loadGroundItems(uint32_t worldId) const;
 
+    // Persistencia de Clanes
+    void saveClans(uint32_t worldId, const std::vector<ClanHeaderPersistData>& headers,
+                   const std::vector<std::vector<ClanPlayerPersistData>>& allMembers,
+                   const std::vector<std::vector<ClanPlayerPersistData>>& allPending,
+                   const std::vector<std::vector<ClanPlayerPersistData>>& allBanned);
+    std::tuple<std::vector<ClanHeaderPersistData>, std::vector<std::vector<ClanPlayerPersistData>>,
+               std::vector<std::vector<ClanPlayerPersistData>>,
+               std::vector<std::vector<ClanPlayerPersistData>>>
+            loadClans(uint32_t worldId) const;
+
+    // Persistencia del banco global
+    void saveBankAccounts(uint32_t worldId,
+                          const std::vector<BankAccountHeaderPersistData>& headers,
+                          const std::vector<std::vector<BankSlotPersistData>>& slots);
+    std::pair<std::vector<BankAccountHeaderPersistData>,
+              std::vector<std::vector<BankSlotPersistData>>>
+            loadBankAccounts(uint32_t worldId) const;
+
     // Ruta de persistencia para PlayerDataStore de un mundo específico
     std::string getWorldDir(uint32_t worldId) const;
 
@@ -33,4 +53,4 @@ private:
     void saveNextId(uint32_t nextId);
 };
 
-#endif // WORLD_DATA_STORE_H
+#endif  // WORLD_DATA_STORE_H

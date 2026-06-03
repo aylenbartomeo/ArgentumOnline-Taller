@@ -18,8 +18,8 @@ struct BankSlot {
 };
 
 class GlobalBank {
-private:
-    static const size_t BANK_SIZE = 40;  // Capacidad fija de la bóveda bancaria
+public:
+    static constexpr size_t BANK_SIZE = 40;  // Capacidad fija de la bóveda bancaria
 
     struct BankAccount {
         uint32_t gold = 0;
@@ -28,6 +28,7 @@ private:
         BankAccount(): gold(0), slots(BANK_SIZE) {}  // Inicializa los 40 slots vacíos
     };
 
+private:
     std::unordered_map<uint32_t, BankAccount> accounts;
 
 public:
@@ -95,5 +96,17 @@ public:
             }
         }
         return 0;
+    }
+
+    // --- PERSISTENCIA ---
+    const std::unordered_map<uint32_t, BankAccount>& getAllAccounts() const { return accounts; }
+
+    void restoreAccount(uint32_t playerId, uint32_t gold,
+                        const std::vector<BankSlot>& slotsToRestore) {
+        auto& account = accounts[playerId];
+        account.gold = gold;
+        for (size_t i = 0; i < std::min(slotsToRestore.size(), BANK_SIZE); ++i) {
+            account.slots[i] = slotsToRestore[i];
+        }
     }
 };

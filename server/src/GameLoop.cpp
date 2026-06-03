@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <variant>
+#include <vector>
 
 #include "../include/ServerEvents.h"
 #include "config/MonsterConfigLoader.h"
@@ -30,6 +31,13 @@ GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
         } catch (...) {}
         world.restoreMonsters(worldDataStore.loadMonsters(worldConfig.worldId), mConfigs);
         world.restoreGroundItems(worldDataStore.loadGroundItems(worldConfig.worldId));
+
+        auto [clanHeaders, clanMembers, clanPending, clanBanned] =
+                worldDataStore.loadClans(worldConfig.worldId);
+        world.restoreClans(clanHeaders, clanMembers, clanPending, clanBanned);
+
+        auto [bankHeaders, bankSlots] = worldDataStore.loadBankAccounts(worldConfig.worldId);
+        world.restoreBank(bankHeaders, bankSlots);
     }
 }
 
@@ -218,6 +226,19 @@ void GameLoop::persistWorldState() {
     persistOnlinePlayers();
     worldDataStore.saveMonsters(worldConfig.worldId, world.getMonstersPersistData());
     worldDataStore.saveGroundItems(worldConfig.worldId, world.getGroundItemsPersistData());
+
+    std::vector<ClanHeaderPersistData> clanHeaders;
+    std::vector<std::vector<ClanPlayerPersistData>> clanMembers;
+    std::vector<std::vector<ClanPlayerPersistData>> clanPending;
+    std::vector<std::vector<ClanPlayerPersistData>> clanBanned;
+    world.getClansPersistData(clanHeaders, clanMembers, clanPending, clanBanned);
+    worldDataStore.saveClans(worldConfig.worldId, clanHeaders, clanMembers, clanPending,
+                             clanBanned);
+
+    std::vector<BankAccountHeaderPersistData> bankHeaders;
+    std::vector<std::vector<BankSlotPersistData>> bankSlots;
+    world.getBankPersistData(bankHeaders, bankSlots);
+    worldDataStore.saveBankAccounts(worldConfig.worldId, bankHeaders, bankSlots);
 }
 
 void GameLoop::stop() { isRunning = false; }

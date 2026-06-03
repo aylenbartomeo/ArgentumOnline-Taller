@@ -59,3 +59,27 @@ void ClanRepository::removePlayerFromClan(uint32_t playerDbId) {
 bool ClanRepository::isNameTaken(const std::string& name) const {
     return nameIndex.count(toLower(name)) > 0;
 }
+
+void ClanRepository::restoreClan(uint32_t clanId, const std::string& name, uint32_t founderDbId,
+                                 const std::vector<uint32_t>& memberDbIds,
+                                 const std::vector<uint32_t>& pendingDbIds,
+                                 const std::vector<uint32_t>& bannedDbIds) {
+    clans.emplace(clanId, Clan(clanId, name, founderDbId));
+    nameIndex[toLower(name)] = clanId;
+
+    Clan& clan = clans.at(clanId);
+
+    // Clan constructor already adds founderDbId to members, but adding it again in a set is fine
+    for (uint32_t id: memberDbIds) {
+        clan.addMember(id);
+        playerClanIndex[id] = clanId;
+    }
+    for (uint32_t id: pendingDbIds) {
+        clan.addPendingRequest(id);
+    }
+    for (uint32_t id: bannedDbIds) {
+        // We use banPlayer instead of adding directly because banned is private
+        // and banPlayer also removes from pending.
+        clan.banPlayer(id);
+    }
+}
