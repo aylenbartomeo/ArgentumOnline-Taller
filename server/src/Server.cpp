@@ -1,9 +1,9 @@
 #include "Server.h"
 
-Server::Server(const char* port):
+Server::Server(const char* port, const WorldConfig& worldConfig):
         gameQueue(),
         monitor(),
-        gameLoop(gameQueue, monitor, "config", "game_data/"),
+        gameLoop(gameQueue, monitor, "config", worldConfig),
         acceptor(port, gameQueue, monitor, auth) {}
 
 void Server::run() {
