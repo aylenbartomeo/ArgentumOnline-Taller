@@ -54,6 +54,7 @@ target_sources(argentum_online_tests
     ../server/src/config/MonsterConfigLoader.cpp
     ../server/src/auth/AuthManager.cpp
     ../server/src/persistence/PlayerDataStore.cpp
+    ../server/src/persistence/WorldDataStore.cpp
     TestPlayerDataStore.cpp
     TestClan.cpp
     ../server/src/model/clan/ClanRepository.cpp
