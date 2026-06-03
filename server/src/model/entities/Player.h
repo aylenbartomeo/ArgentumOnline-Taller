@@ -87,6 +87,7 @@ public:
     StatsComponent& getStats() { return this->stats; }
     const StatsComponent& getStats() const { return this->stats; }
     void addExperience(uint32_t amount) { stats.addExperience(amount); }
+    uint32_t getExp() const { return stats.getExp(); }
     uint16_t getHp() const { return stats.getHp(); }
     uint16_t getMaxHp() const override { return stats.getMaxHp(); }
     uint16_t getMana() const { return stats.getMana(); }
@@ -118,7 +119,7 @@ public:
     std::optional<Slot> inspectSlot(uint8_t slot_index) const {
         return inventory.inspectSlot(slot_index);
     }
-
+    const std::vector<Slot>& getSlots() const { return inventory.getSlots(); }
     uint16_t addInventoryItem(uint32_t item_id, uint16_t amount);
     uint16_t removeInventoryItem(uint8_t slot_index, uint16_t amount);
     std::optional<Slot> inspectInventorySlot(uint8_t slot_index) const;

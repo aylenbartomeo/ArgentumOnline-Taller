@@ -135,7 +135,7 @@ std::optional<PlayerPersistData> World::getPlayerPersistData(uint32_t dbId) cons
     d.hp = p.getHp();
     d.mana = p.getMana();
     d.level = p.getLevel();
-    d.exp = p.getStats().getExp();
+    d.exp = p.getExp();
     d.gold = p.getGold();
 
     // Estado
@@ -151,7 +151,7 @@ std::optional<PlayerPersistData> World::getPlayerPersistData(uint32_t dbId) cons
     d.characterClass = static_cast<uint8_t>(p.getCharacterClass());
 
     // Inventario
-    const auto& slots = p.getInventory().getSlots();
+    const auto& slots = p.getSlots();
     d.inventorySize = static_cast<uint8_t>(std::min(slots.size(), size_t(16)));
     for (uint8_t i = 0; i < d.inventorySize; ++i) {
         d.inventory[i].item_id = slots[i].item_id;
