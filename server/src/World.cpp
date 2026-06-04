@@ -258,7 +258,6 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     if (mapIt == this->dbIdToEntityId.end())
         return;
 
-    // El atacante siempre es un Player (viene de un comando del cliente)
     auto itAttacker = this->players.find(mapIt->second);
     if (itAttacker == this->players.end())
         return;
@@ -271,7 +270,6 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
         targetEntityId = targetMapIt->second;
     }
 
-    // El target puede ser Player o Monster (IDs globalmente únicos)
     Attackable* target = findAttackable(targetEntityId);
     if (!target)
         return;
@@ -307,10 +305,19 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
         return;
     }
 
-    // Notificar a los clanmates del target que está siendo atacado
+    // Variables de bonificación
+    float attackBonus = 1.0f + (countNearbyClanmates(attackerDbId, CLAN_BONUS_RANGE) *
+                                CLAN_ATTACK_BONUS_PER_MEMBER);
+    float defenseBonus = 1.0f;
+
+    // Notificar a los clanmates del target que está siendo atacado y aplicar su defensa
     auto targetPlayerIt = dynamic_cast<Player*>(target);
     if (targetPlayerIt) {
         uint32_t targetDb = targetPlayerIt->getDbId();
+
+        defenseBonus +=
+                countNearbyClanmates(targetDb, CLAN_BONUS_RANGE) * CLAN_DEFENSE_BONUS_PER_MEMBER;
+
         auto clanIdOpt = clanRepo.getClanIdOfPlayer(targetDb);
         if (clanIdOpt) {
             const Clan* clan = clanRepo.getClanById(*clanIdOpt);
@@ -326,7 +333,9 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
         }
     }
 
-    CombatResult res = CombatManager::getInstance().processAttack(attacker, *target);
+    // Ejecutar ataque con bonificaciones calculadas
+    CombatResult res = CombatManager::getInstance().processAttack(attacker, *target, attackBonus,
+                                                                  defenseBonus);
 
     if (!res.attackHappened)
         return;
@@ -356,7 +365,6 @@ void World::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
         }
     }
 }
-
 // --- IA de Monstruos ---
 
 void World::monsterAttack(const Monster& monster, Player& target) {
@@ -370,6 +378,22 @@ void World::monsterAttack(const Monster& monster, Player& target) {
     // Validar linea de visión
     if (!map.hasLineOfSight(monster.getPosition(), target.getPosition())) {
         return;
+    }
+
+    // Notificar a los clanmates del target (Player) que está siendo atacado
+    uint32_t targetDb = target.getDbId();
+    auto clanIdOpt = clanRepo.getClanIdOfPlayer(targetDb);
+    if (clanIdOpt) {
+        const Clan* clan = clanRepo.getClanById(*clanIdOpt);
+        if (clan) {
+            std::string alertMsg = "[Clan] " + target.getName() + " está siendo atacado por " +
+                                   monster.getName() + "!";
+            for (uint32_t memberId: clan->getMembers()) {
+                if (memberId != targetDb) {
+                    outgoingEvents.push_back({memberId, alertMsg});
+                }
+            }
+        }
     }
 
     CombatResult res = CombatManager::getInstance().processAttack(monster, target);
