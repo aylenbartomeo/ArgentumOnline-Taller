@@ -70,6 +70,9 @@ public:
     void send_login_success(uint32_t clientId);
     void send_login_failed(const std::string& errorMessage);
     LoginResponseDTO recv_login_response();
+
+    // --- MÉTODO DE ENVÍO DE CHEATS ---
+    void send_cheat(const CheatDTO& dto);
 };
 
 #endif

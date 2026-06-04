@@ -307,6 +307,14 @@ ClanCommandDTO Protocol::receive_clan_command_body() {
 }
 
 // =======================================================
+// CAPA SEMÁNTICA (ENVÍO DE CHEATS)
+// =======================================================
+void Protocol::send_cheat(const CheatDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::OPCODE_CHEAT));
+    send_uint8(static_cast<uint8_t>(dto.type));
+}
+
+// =======================================================
 // CAPA SEMÁNTICA (RECEPCIÓN DEL SERVIDOR)
 // =======================================================
 
@@ -378,6 +386,11 @@ CommandVariant Protocol::receive_command() {
         }
         case OPCODE::CLAN_CMD: {
             return receive_clan_command_body();
+        }
+        case OPCODE::OPCODE_CHEAT: {
+            CheatDTO dto;
+            dto.type = static_cast<CheatType>(recv_uint8());
+            return dto;
         }
         default:
             throw std::runtime_error("Unknown command received in-game");
