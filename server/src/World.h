@@ -78,6 +78,9 @@ public:
                    const ItemRegistry& itemRegistry, const CharacterConfigs& configs,
                    const InventoryConfig& inventoryConfig);
 
+    // Metodos de cheat para testing
+    void playerCheat(uint32_t dbId, CheatType type);
+
     // Métodos lógicos: Entrar y salir del mundo virtual
     bool addPlayer(uint32_t playerId, std::string& username,
                    const std::optional<PlayerPersistData>& savedData = std::nullopt);

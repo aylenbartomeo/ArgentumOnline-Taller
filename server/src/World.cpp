@@ -8,6 +8,7 @@
 #include <memory>
 #include <utility>
 
+#include "../../common/include/dto/CheatDTO.h"
 #include "config/MonsterConfigLoader.h"
 #include "model/combat/CombatManager.h"
 #include "model/entities/Merchant.h"
@@ -15,6 +16,7 @@
 #include "model/entities/Player.h"
 #include "model/entities/Priest.h"
 #include "model/items/ItemRegistry.h"
+
 
 World::World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry,
              const CharacterConfigs& configs, const InventoryConfig& inventoryConfig):
@@ -28,6 +30,34 @@ World::World(int worldId, const std::string& creatorPlayerName, const ItemRegist
         characterConfigs(configs) {
     map.setDimensions(20, 15);
     map.setSpawnPoint(0, 0);
+}
+
+void World::playerCheat(uint32_t dbId, CheatType type) {
+    auto itMap = this->dbIdToEntityId.find(dbId);
+    if (itMap == this->dbIdToEntityId.end())
+        return;
+
+    auto it = players.find(itMap->second);
+    if (it == players.end())
+        return;
+
+    Player& player = *it->second;
+
+    if (type == CheatType::LEVEL_UP) {
+        uint32_t needed = FormulaEngine::getInstance().calculate_level_up_limit(player.getLevel());
+        player.addExperience(needed);
+
+        outgoingEvents.push_back({dbId, "[CHEAT] ¡Has subido de nivel mágicamente!"});
+    } else if (type == CheatType::DIE) {
+        if (!player.isDead()) {
+            player.handleDeath();
+            this->handlePlayerDeath(dbId);
+
+            outgoingEvents.push_back({dbId, "[CHEAT] Te has suicidado."});
+        } else {
+            outgoingEvents.push_back({dbId, "[CHEAT] Ya estás muerto."});
+        }
+    }
 }
 
 std::string World::getCreatorPlayerName() const { return this->creatorPlayerName; }
