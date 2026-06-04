@@ -38,6 +38,8 @@ void Sender::run() {
                 protocol.send_clan_command(std::get<ClanCommandDTO>(cmd));
             } else if (std::holds_alternative<ResurrectDTO>(cmd)) {
                 protocol.send_resurrect();
+            } else if (std::holds_alternative<CheatDTO>(cmd)) {
+                protocol.send_cheat(std::get<CheatDTO>(cmd));
             }
         }
     } catch (...) {}

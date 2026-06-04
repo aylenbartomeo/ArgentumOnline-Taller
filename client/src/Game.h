@@ -60,6 +60,9 @@ private:
     // buffer.
     void processChatInput(const FrameInput& input);
 
+    // Procesa los inputs relacionados a comandos de trampa (cheats)
+    void processCheats(const FrameInput& input);
+
     // Drena los mensajes de chat entrantes del servidor y los muestra en el MiniChat.
     void drainIncomingChat();
 

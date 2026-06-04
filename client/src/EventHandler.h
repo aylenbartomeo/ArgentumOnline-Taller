@@ -17,6 +17,10 @@ struct FrameInput {
     bool chatInputActive = false;  // el jugador está escribiendo en el chat
     bool chatSubmitted = false;    // presionó Enter con texto
     std::string chatText;          // texto acumulado del input actual
+
+    // --- Cheats ---
+    bool cheatLevelUp = false;
+    bool cheatDie = false;
 };
 
 class EventHandler {
@@ -26,6 +30,9 @@ private:
 
     bool inputActive = false;
     std::string inputBuffer;
+
+    std::unordered_set<SDL_Keycode> justPressedKeys;
+    std::unordered_set<SDL_Scancode> justPressedScancodes;
 
 public:
     EventHandler() = default;

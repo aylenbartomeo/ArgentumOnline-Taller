@@ -11,6 +11,7 @@
 
 #include <SDL2/SDL.h>
 
+#include "common/include/dto/CheatDTO.h"
 #include "common/include/dto/ClientCommands.h"
 #include "common/include/dto/StartMoveDTO.h"
 
@@ -106,9 +107,19 @@ void Game::run() {
         }
         drainIncomingChat();
         processChatInput(input);
+        processCheats(input);
         sendMoveIfDue(input);
         render(input);
         SDL_Delay(16);
+    }
+}
+
+void Game::processCheats(const FrameInput& input) {
+    if (input.cheatLevelUp) {
+        client.sendCommand(CheatDTO{CheatType::LEVEL_UP});
+    }
+    if (input.cheatDie) {
+        client.sendCommand(CheatDTO{CheatType::DIE});
     }
 }
 
