@@ -133,9 +133,14 @@ void Game::drainIncomingChat() {
 void Game::processChatInput(const FrameInput& input) {
     if (!input.chatSubmitted || input.chatText.empty())
         return;
+    std::optional<CommandVariant> cmdOpt = chatParser.parse(input.chatText);
 
-    CommandVariant cmd = chatParser.parse(input.chatText);
-    client.sendCommand(cmd);
+    // Si parse devolvió un valor (has_value), lo mandamos al servidor
+    if (cmdOpt.has_value()) {
+        client.sendCommand(cmdOpt.value());
+    } else {
+        miniChat.pushMessage("[Info] Comando inexistente o mal formateado.");
+    }
 }
 
 void Game::sendMoveIfDue(const FrameInput& input) {
