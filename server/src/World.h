@@ -132,7 +132,6 @@ public:
 
     // Getters para persistencia
     std::optional<Position> getPlayerPosition(uint32_t dbId) const;
-    std::optional<std::string> getPlayerUsername(uint32_t dbId) const;
     std::vector<uint32_t> getOnlinePlayerDbIds() const;
 
     /* Getters y setters */
@@ -169,8 +168,10 @@ public:
     // Zonas seguras (delega al map)
     bool isSafeZone(float x, float y) const;
 
+    // Metodos de IWorldContext
     uint16_t getPlayerLevel(uint32_t dbId) const override;
     uint32_t resolveNickToDbId(const std::string& nick) const override;
+    std::optional<std::string> getPlayerUsername(uint32_t dbId) const override;
 
     // Procesa cualquier comando de clan enviado por un jugador.
     void processClanCommand(uint32_t senderDbId, const ClanCommandDTO& cmd);

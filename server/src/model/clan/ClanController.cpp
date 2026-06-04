@@ -30,7 +30,7 @@ void ClanController::dispatch(uint32_t senderDbId, const ClanCommandDTO& cmd,
             handleLeaveClan(senderDbId, outNotifs);
             break;
         case ClanCommandType::REVIEW:
-            handleReviewClan(senderDbId, outNotifs);
+            handleReviewClan(senderDbId, worldCtx, outNotifs);
             break;
         case ClanCommandType::ACCEPT:
             handleAcceptMember(senderDbId, targetDbId, cmd.arg1, outNotifs);
@@ -204,8 +204,9 @@ void ClanController::handleLeaveClan(uint32_t senderDbId,
     }
 }
 
-void ClanController::handleReviewClan(uint32_t senderDbId,
+void ClanController::handleReviewClan(uint32_t senderDbId, const IWorldContext& worldCtx,
                                       std::vector<ClanNotification>& outNotifs) {
+
     const Clan* clan = service.getClanOfPlayer(senderDbId);
 
     if (!clan) {
@@ -217,23 +218,28 @@ void ClanController::handleReviewClan(uint32_t senderDbId,
         return;
     }
 
-    std::ostringstream ss;
-    ss << "=== Clan: " << clan->getName() << " ===\n";
-    ss << "Miembros (" << clan->getMembers().size() << "/" << CLAN_MAX_MEMBERS << "):\n";
-    for (uint32_t id: clan->getMembers()) {
-        ss << "  - id=" << id;
-        if (id == clan->getFounderDbId())
-            ss << " [Fundador]";
-        ss << "\n";
-    }
-    ss << "Solicitudes pendientes (" << clan->getPendingRequests().size() << "):\n";
-    for (uint32_t id: clan->getPendingRequests()) {
-        ss << "  - id=" << id << "\n";
-    }
-    ss << "Baneados (" << clan->getBanned().size() << "):\n";
-    for (uint32_t id: clan->getBanned()) {
-        ss << "  - id=" << id << "\n";
+    outNotifs.push_back({senderDbId, "=== Info del Clan ==="});
+
+    outNotifs.push_back({senderDbId, "Miembros activos:"});
+
+    for (uint32_t memberDbId: clan->getMembers()) {
+        std::string name = worldCtx.getPlayerUsername(memberDbId).value_or("Desconocido");
+        if (memberDbId == clan->getFounderDbId()) {
+            outNotifs.push_back({senderDbId, " - " + name + " (Líder)"});
+        } else {
+            outNotifs.push_back({senderDbId, " - " + name});
+        }
     }
 
-    outNotifs.push_back({senderDbId, ss.str()});
+    outNotifs.push_back({senderDbId, "Peticiones pendientes:"});
+    const auto& requests = clan->getJoinRequests();
+
+    if (requests.empty()) {
+        outNotifs.push_back({senderDbId, " - (Ninguna)"});
+    } else {
+        for (uint32_t reqDbId: requests) {
+            std::string name = worldCtx.getPlayerUsername(reqDbId).value_or("Desconocido");
+            outNotifs.push_back({senderDbId, " - " + name});
+        }
+    }
 }

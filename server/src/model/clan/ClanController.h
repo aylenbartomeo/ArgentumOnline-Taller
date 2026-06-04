@@ -45,7 +45,8 @@ public:
     void handleKickMember(uint32_t senderDbId, uint32_t targetDbId, const std::string& targetNick,
                           std::vector<ClanNotification>& outNotifs);
     void handleLeaveClan(uint32_t senderDbId, std::vector<ClanNotification>& outNotifs);
-    void handleReviewClan(uint32_t senderDbId, std::vector<ClanNotification>& outNotifs);
+    void handleReviewClan(uint32_t senderDbId, const IWorldContext& worldCtx,
+                          std::vector<ClanNotification>& outNotifs);
 };
 
 #endif
