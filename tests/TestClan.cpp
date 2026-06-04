@@ -24,12 +24,21 @@ static CharacterConfigs getTestConfigs() {
 
 static InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
 
+struct MockWorldContext: public IWorldContext {
+    uint16_t getPlayerLevel(uint32_t) const override { return 10; }
+    uint32_t resolveNickToDbId(const std::string&) const override { return 0; }
+    std::optional<std::string> getPlayerUsername(uint32_t dbId) const override {
+        return "Player_" + std::to_string(dbId);
+    }
+};
+
 class ClanSystemTest: public ::testing::Test {
 protected:
     ClanRepository repo;
     ClanService service;
     ClanController controller;
     std::vector<ClanNotification> notifs;
+    MockWorldContext mockCtx;
 
     ClanSystemTest(): service(repo, 1), controller(service) {}
 
@@ -292,7 +301,7 @@ TEST_F(ClanSystemTest, ReviewClan_ContainsMemberList) {
     accept(1, 2);
 
     notifs.clear();
-    controller.handleReviewClan(1, notifs);
+    controller.handleReviewClan(1, mockCtx, notifs);
     EXPECT_TRUE(hasNotifFor(1, "Alpha"));
     EXPECT_TRUE(hasNotifFor(1, "Fundador"));
 }
@@ -302,7 +311,7 @@ TEST_F(ClanSystemTest, ReviewClan_ShowsPendingRequests) {
     joinRequest(2, "Alpha");
 
     notifs.clear();
-    controller.handleReviewClan(1, notifs);
+    controller.handleReviewClan(1, mockCtx, notifs);
     EXPECT_TRUE(hasNotifFor(1, std::to_string(2)));  // ID de la solicitud pendiente
 }
 
@@ -312,7 +321,7 @@ TEST_F(ClanSystemTest, ReviewClan_OnlyFounderCanReview) {
     accept(1, 2);
 
     notifs.clear();
-    controller.handleReviewClan(2, notifs);
+    controller.handleReviewClan(2, mockCtx, notifs);
     EXPECT_TRUE(hasNotifFor(2, "Solo el fundador"));
 }
 
