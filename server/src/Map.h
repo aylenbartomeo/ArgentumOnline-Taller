@@ -80,6 +80,8 @@ public:
     std::optional<GroundItem> pickUpItem(const Position& pos);
     bool hasItemAt(const Position& pos) const;
     std::vector<std::pair<Position, GroundItem>> getGroundItemsSnapshot() const;
+    std::vector<GroundItemPersistData> getGroundItemsPersistData() const;
+    void restoreGroundItems(const std::vector<GroundItemPersistData>& data);
 
     /* Zonas seguras */
     void addSafeZone(const std::string& name, int x, int y, int w, int h);

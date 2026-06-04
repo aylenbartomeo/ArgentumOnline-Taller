@@ -1,9 +1,22 @@
 #ifndef CLAN_H
 #define CLAN_H
 
+#include <algorithm>
 #include <cstdint>
+#include <cstring>
+#include <iterator>
 #include <string>
 #include <unordered_set>
+#include <vector>
+
+#include "../../persistence/WorldPersistData.h"
+
+struct ClanPersistDataBundle {
+    ClanHeaderPersistData header;
+    std::vector<ClanPlayerPersistData> members;
+    std::vector<ClanPlayerPersistData> pending;
+    std::vector<ClanPlayerPersistData> banned;
+};
 
 static constexpr uint16_t CLAN_MIN_LEVEL_TO_FOUND = 6;
 static constexpr uint16_t CLAN_MAX_MEMBERS = 16;
@@ -48,6 +61,32 @@ public:
     void banPlayer(uint32_t dbId) {
         banned.insert(dbId);
         removePendingRequest(dbId);
+    }
+
+    ClanPersistDataBundle toPersistData() const {
+        ClanPersistDataBundle bundle{};
+        bundle.header.clanId = id;
+        bundle.header.founderDbId = founderDbId;
+        std::strncpy(bundle.header.name, name.c_str(), sizeof(bundle.header.name) - 1);
+        bundle.header.name[sizeof(bundle.header.name) - 1] = '\0';
+        bundle.header.memberCount = members.size();
+        bundle.header.pendingCount = pendingRequests.size();
+        bundle.header.bannedCount = banned.size();
+
+        bundle.members.reserve(members.size());
+        std::transform(members.begin(), members.end(), std::back_inserter(bundle.members),
+                       [](uint32_t memberId) { return ClanPlayerPersistData{memberId}; });
+
+        bundle.pending.reserve(pendingRequests.size());
+        std::transform(pendingRequests.begin(), pendingRequests.end(),
+                       std::back_inserter(bundle.pending),
+                       [](uint32_t pendingId) { return ClanPlayerPersistData{pendingId}; });
+
+        bundle.banned.reserve(banned.size());
+        std::transform(banned.begin(), banned.end(), std::back_inserter(bundle.banned),
+                       [](uint32_t bannedId) { return ClanPlayerPersistData{bannedId}; });
+
+        return bundle;
     }
 };
 

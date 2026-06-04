@@ -536,3 +536,203 @@ TEST_F(WorldPersistenceTest, RoundTrip_MultipleAllRaces_AllClasses) {
         EXPECT_EQ(data->characterClass, static_cast<uint8_t>(c.cls));
     }
 }
+
+// ============================================================================
+// 4. WORLDDATASTORE — Clanes, Banco, Monstruos, Ítems
+// ============================================================================
+
+#include <cstring>
+
+#include "persistence/WorldDataStore.h"
+
+class WorldDataStorePersistenceTest: public ::testing::Test {
+protected:
+    std::string testDir = "test_world_data/";
+
+    void SetUp() override {
+        fs::remove_all(testDir);
+        fs::create_directories(testDir);
+    }
+    void TearDown() override { fs::remove_all(testDir); }
+};
+
+TEST_F(WorldDataStorePersistenceTest, SaveAndLoad_Monsters) {
+    WorldDataStore store(testDir);
+    uint32_t worldId = store.createWorld("TestWorld", "maps/test.json");
+
+    std::vector<MonsterPersistData> monsters;
+    MonsterPersistData m{};
+    m.entityId = 100;
+    m.type = 2;
+    m.posX = 10;
+    m.posY = 20;
+    m.hp = 50;
+    m.maxHp = 100;
+    monsters.push_back(m);
+
+    store.saveMonsters(worldId, monsters);
+
+    auto loaded = store.loadMonsters(worldId);
+    ASSERT_EQ(loaded.size(), 1u);
+    EXPECT_EQ(loaded[0].entityId, 100u);
+    EXPECT_EQ(loaded[0].hp, 50);
+}
+
+TEST_F(WorldDataStorePersistenceTest, SaveAndLoad_GroundItems) {
+    WorldDataStore store(testDir);
+    uint32_t worldId = store.createWorld("TestWorld", "maps/test.json");
+
+    std::vector<GroundItemPersistData> items;
+    GroundItemPersistData i{};
+    i.posX = 5;
+    i.posY = 5;
+    i.itemId = 1001;
+    i.amount = 3;
+    items.push_back(i);
+
+    store.saveGroundItems(worldId, items);
+
+    auto loaded = store.loadGroundItems(worldId);
+    ASSERT_EQ(loaded.size(), 1u);
+    EXPECT_EQ(loaded[0].itemId, 1001u);
+    EXPECT_EQ(loaded[0].amount, 3);
+}
+
+TEST_F(WorldDataStorePersistenceTest, SaveAndLoad_Clans) {
+    WorldDataStore store(testDir);
+    uint32_t worldId = store.createWorld("TestWorld", "maps/test.json");
+
+    std::vector<ClanHeaderPersistData> headers;
+    std::vector<std::vector<ClanPlayerPersistData>> members, pending, banned;
+
+    ClanHeaderPersistData h{};
+    h.clanId = 1;
+    h.founderDbId = 10;
+    std::snprintf(h.name, sizeof(h.name), "LosPibes");
+    h.memberCount = 2;
+    h.pendingCount = 1;
+    h.bannedCount = 1;
+    headers.push_back(h);
+
+    members.push_back({{10}, {20}});
+    pending.push_back({{30}});
+    banned.push_back({{40}});
+
+    store.saveClans(worldId, headers, members, pending, banned);
+
+    auto [lHeaders, lMembers, lPending, lBanned] = store.loadClans(worldId);
+    ASSERT_EQ(lHeaders.size(), 1u);
+    EXPECT_EQ(lHeaders[0].clanId, 1u);
+    EXPECT_STREQ(lHeaders[0].name, "LosPibes");
+    EXPECT_EQ(lHeaders[0].memberCount, 2u);
+
+    ASSERT_EQ(lMembers.size(), 1u);
+    EXPECT_EQ(lMembers[0].size(), 2u);
+    EXPECT_EQ(lMembers[0][0].dbId, 10u);
+    EXPECT_EQ(lMembers[0][1].dbId, 20u);
+
+    ASSERT_EQ(lPending.size(), 1u);
+    EXPECT_EQ(lPending[0][0].dbId, 30u);
+
+    ASSERT_EQ(lBanned.size(), 1u);
+    EXPECT_EQ(lBanned[0][0].dbId, 40u);
+}
+
+TEST_F(WorldDataStorePersistenceTest, SaveAndLoad_BankAccounts) {
+    WorldDataStore store(testDir);
+    uint32_t worldId = store.createWorld("TestWorld", "maps/test.json");
+
+    std::vector<BankAccountHeaderPersistData> headers;
+    std::vector<std::vector<BankSlotPersistData>> slots;
+
+    BankAccountHeaderPersistData h{};
+    h.playerDbId = 99;
+    h.gold = 5000;
+    h.slotCount = 2;
+    headers.push_back(h);
+
+    slots.push_back({{1001, 5, {}}, {2001, 1, {}}});
+
+    store.saveBankAccounts(worldId, headers, slots);
+
+    auto [lHeaders, lSlots] = store.loadBankAccounts(worldId);
+    ASSERT_EQ(lHeaders.size(), 1u);
+    EXPECT_EQ(lHeaders[0].playerDbId, 99u);
+    EXPECT_EQ(lHeaders[0].gold, 5000u);
+
+    ASSERT_EQ(lSlots.size(), 1u);
+    EXPECT_EQ(lSlots[0].size(), 2u);
+    EXPECT_EQ(lSlots[0][0].itemId, 1001u);
+    EXPECT_EQ(lSlots[0][0].amount, 5);
+}
+
+// ============================================================================
+// 5. WORLD — Persistence Integration (Clanes, Bank)
+// ============================================================================
+
+TEST_F(WorldPersistenceTest, World_BankPersistence_RoundTrip) {
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
+
+    // Restaurar manualmente una cuenta bancaria
+    std::vector<BankAccountHeaderPersistData> headers;
+    std::vector<std::vector<BankSlotPersistData>> slots;
+
+    BankAccountHeaderPersistData h{};
+    h.playerDbId = 5;
+    h.gold = 1000;
+    h.slotCount = 1;
+    headers.push_back(h);
+    slots.push_back({{1001, 10, {}}});
+
+    mundo.restoreBank({headers, slots});
+
+    // Ahora leemos la data de vuelta
+    auto bankData = mundo.getBankPersistData();
+    auto outHeaders = bankData.headers;
+    auto outSlots = bankData.slots;
+
+    ASSERT_EQ(outHeaders.size(), 1u);
+    EXPECT_EQ(outHeaders[0].playerDbId, 5u);
+    EXPECT_EQ(outHeaders[0].gold, 1000u);
+    EXPECT_EQ(outHeaders[0].slotCount, 1u);
+
+    ASSERT_EQ(outSlots.size(), 1u);
+    EXPECT_EQ(outSlots[0][0].itemId, 1001u);
+    EXPECT_EQ(outSlots[0][0].amount, 10u);
+}
+
+TEST_F(WorldPersistenceTest, World_ClanPersistence_RoundTrip) {
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
+
+    // Restaurar manualmente un clan
+    std::vector<ClanHeaderPersistData> headers;
+    std::vector<std::vector<ClanPlayerPersistData>> members, pending, banned;
+
+    ClanHeaderPersistData h{};
+    h.clanId = 1;
+    h.founderDbId = 1;
+    std::snprintf(h.name, sizeof(h.name), "Imperio");
+    h.memberCount = 2;
+    h.pendingCount = 0;
+    h.bannedCount = 0;
+    headers.push_back(h);
+    members.push_back({{1}, {2}});
+    pending.push_back({});
+    banned.push_back({});
+
+    mundo.restoreClans({headers, members, pending, banned});
+
+    // Verificamos que areClanmates funcione sin tener a los jugadores logueados
+    // Pero areClanmates chequea también getClanIdOfPlayer internamente
+    EXPECT_TRUE(mundo.areClanmates(1, 2));
+
+    // Y recuperamos para comprobar
+    auto clanData = mundo.getClansPersistData();
+    auto outH = clanData.headers;
+    auto outM = clanData.members;
+
+    ASSERT_EQ(outH.size(), 1u);
+    EXPECT_STREQ(outH[0].name, "Imperio");
+    EXPECT_EQ(outM.size(), 1u);
+    EXPECT_EQ(outM[0].size(), 2u);
+}

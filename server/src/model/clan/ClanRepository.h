@@ -4,8 +4,18 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
+
+#include "../../persistence/WorldPersistData.h"
 
 #include "Clan.h"
+
+struct ClanRepositoryPersistData {
+    std::vector<ClanHeaderPersistData> headers;
+    std::vector<std::vector<ClanPlayerPersistData>> members;
+    std::vector<std::vector<ClanPlayerPersistData>> pending;
+    std::vector<std::vector<ClanPlayerPersistData>> banned;
+};
 
 class ClanRepository {
 private:
@@ -29,6 +39,10 @@ public:
     void removePlayerFromClan(uint32_t playerDbId);
 
     bool isNameTaken(const std::string& name) const;
+
+    // Para persistencia
+    ClanRepositoryPersistData toPersistData() const;
+    void fromPersistData(const ClanRepositoryPersistData& data);
 };
 
 #endif

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <variant>
+#include <vector>
 
 #include "../include/ServerEvents.h"
 #include "config/MonsterConfigLoader.h"
@@ -30,6 +31,13 @@ GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
         } catch (...) {}
         world.restoreMonsters(worldDataStore.loadMonsters(worldConfig.worldId), mConfigs);
         world.restoreGroundItems(worldDataStore.loadGroundItems(worldConfig.worldId));
+
+        auto [clanHeaders, clanMembers, clanPending, clanBanned] =
+                worldDataStore.loadClans(worldConfig.worldId);
+        world.restoreClans({clanHeaders, clanMembers, clanPending, clanBanned});
+
+        auto [bankHeaders, bankSlots] = worldDataStore.loadBankAccounts(worldConfig.worldId);
+        world.restoreBank({bankHeaders, bankSlots});
     }
 }
 
@@ -218,6 +226,13 @@ void GameLoop::persistWorldState() {
     persistOnlinePlayers();
     worldDataStore.saveMonsters(worldConfig.worldId, world.getMonstersPersistData());
     worldDataStore.saveGroundItems(worldConfig.worldId, world.getGroundItemsPersistData());
+
+    auto clanData = world.getClansPersistData();
+    worldDataStore.saveClans(worldConfig.worldId, clanData.headers, clanData.members,
+                             clanData.pending, clanData.banned);
+
+    auto bankData = world.getBankPersistData();
+    worldDataStore.saveBankAccounts(worldConfig.worldId, bankData.headers, bankData.slots);
 }
 
 void GameLoop::stop() { isRunning = false; }

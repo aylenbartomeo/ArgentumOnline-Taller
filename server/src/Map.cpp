@@ -237,6 +237,14 @@ std::vector<std::pair<Position, GroundItem>> Map::getGroundItemsSnapshot() const
     return std::vector<std::pair<Position, GroundItem>>(items.begin(), items.end());
 }
 
+std::vector<GroundItemPersistData> Map::getGroundItemsPersistData() const {
+    return groundItems.toPersistData();
+}
+
+void Map::restoreGroundItems(const std::vector<GroundItemPersistData>& data) {
+    groundItems.fromPersistData(data);
+}
+
 void Map::addSafeZone(const std::string& name, int x, int y, int w, int h) {
     safeZones.addZone(name, x, y, w, h);
 }

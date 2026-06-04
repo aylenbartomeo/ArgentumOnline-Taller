@@ -1,6 +1,7 @@
 #include "World.h"
 
 #include <algorithm>
+#include <cstring>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -94,17 +95,6 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
 
     this->players[entityId] = std::move(player);
     return true;
-}
-
-std::optional<PlayerPersistData> World::getPlayerPersistData(uint32_t dbId) const {
-    auto itMap = dbIdToEntityId.find(dbId);
-    if (itMap == dbIdToEntityId.end())
-        return std::nullopt;
-    auto it = players.find(itMap->second);
-    if (it == players.end())
-        return std::nullopt;
-
-    return it->second->toPersistData();
 }
 
 bool World::removePlayer(uint32_t dbId) {
@@ -650,59 +640,6 @@ std::vector<uint32_t> World::getOnlinePlayerDbIds() const {
     return ids;
 }
 
-std::vector<MonsterPersistData> World::getMonstersPersistData() const {
-    std::vector<MonsterPersistData> data;
-    data.reserve(monsters.size());
-    std::transform(monsters.begin(), monsters.end(), std::back_inserter(data),
-                   [](const auto& pair) { return pair.second->toPersistData(); });
-    return data;
-}
-
-std::vector<GroundItemPersistData> World::getGroundItemsPersistData() const {
-    std::vector<GroundItemPersistData> data;
-    auto items = map.getGroundItemsSnapshot();
-    data.reserve(items.size());
-    std::transform(items.begin(), items.end(), std::back_inserter(data), [](const auto& pair) {
-        GroundItemPersistData d{};
-        d.posX = pair.first.x;
-        d.posY = pair.first.y;
-        d.itemId = pair.second.itemId;
-        d.amount = pair.second.amount;
-        return d;
-    });
-    return data;
-}
-
-void World::restoreMonsters(const std::vector<MonsterPersistData>& data,
-                            const MonsterConfigs& configs) {
-    for (const auto& md: data) {
-        auto type = static_cast<NPCType>(md.type);
-        auto it = configs.find(type);
-        if (it == configs.end()) {
-            continue;
-        }
-
-        uint32_t entityId = md.entityId;
-        Position pos{md.posX, md.posY};
-
-        auto monster = std::make_unique<Monster>(entityId, type, pos, it->second);
-        monster->fromPersistData(md);
-
-        monsters[entityId] = std::move(monster);
-
-        if (entityId >= nextEntityId) {
-            nextEntityId = entityId + 1;
-        }
-    }
-}
-
-void World::restoreGroundItems(const std::vector<GroundItemPersistData>& data) {
-    for (const auto& item: data) {
-        Position pos{item.posX, item.posY};
-        map.placeItem(pos, item.itemId, item.amount);
-    }
-}
-
 std::pair<float, float> World::getInitialPosition() { return map.getInitialPosition(); }
 
 void World::setObstacleAt(int x, int y) { map.setObstacleInGrid(x, y, true); }
@@ -960,4 +897,67 @@ Player* World::getPlayerById(uint32_t dbId) {
     if (it == this->players.end())
         return nullptr;
     return it->second.get();
+}
+
+// =============================================================================
+// Persistencia del Estado del Mundo
+// =============================================================================
+
+ClanRepositoryPersistData World::getClansPersistData() const { return clanRepo.toPersistData(); }
+
+void World::restoreClans(const ClanRepositoryPersistData& data) { clanRepo.fromPersistData(data); }
+
+BankPersistData World::getBankPersistData() const { return globalBank.toPersistData(); }
+
+void World::restoreBank(const BankPersistData& data) { globalBank.fromPersistData(data); }
+
+
+std::vector<MonsterPersistData> World::getMonstersPersistData() const {
+    std::vector<MonsterPersistData> data;
+    data.reserve(monsters.size());
+    std::transform(monsters.begin(), monsters.end(), std::back_inserter(data),
+                   [](const auto& pair) { return pair.second->toPersistData(); });
+    return data;
+}
+
+void World::restoreMonsters(const std::vector<MonsterPersistData>& data,
+                            const MonsterConfigs& configs) {
+    for (const auto& md: data) {
+        auto type = static_cast<NPCType>(md.type);
+        auto it = configs.find(type);
+        if (it == configs.end()) {
+            continue;
+        }
+
+        uint32_t entityId = md.entityId;
+        Position pos{md.posX, md.posY};
+
+        auto monster = std::make_unique<Monster>(entityId, type, pos, it->second);
+        monster->fromPersistData(md);
+
+        monsters[entityId] = std::move(monster);
+
+        if (entityId >= nextEntityId) {
+            nextEntityId = entityId + 1;
+        }
+    }
+}
+
+std::vector<GroundItemPersistData> World::getGroundItemsPersistData() const {
+    return map.getGroundItemsPersistData();
+}
+
+void World::restoreGroundItems(const std::vector<GroundItemPersistData>& data) {
+    map.restoreGroundItems(data);
+}
+
+std::optional<PlayerPersistData> World::getPlayerPersistData(uint32_t dbId) const {
+    auto itMap = dbIdToEntityId.find(dbId);
+    if (itMap == dbIdToEntityId.end())
+        return std::nullopt;
+    auto it = players.find(itMap->second);
+    if (it == players.end())
+        return std::nullopt;
+
+    return it->second->toPersistData();
 }
