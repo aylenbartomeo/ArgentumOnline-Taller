@@ -684,12 +684,12 @@ TEST_F(WorldPersistenceTest, World_BankPersistence_RoundTrip) {
     headers.push_back(h);
     slots.push_back({{1001, 10, {}}});
 
-    mundo.restoreBank(headers, slots);
+    mundo.restoreBank({headers, slots});
 
     // Ahora leemos la data de vuelta
-    std::vector<BankAccountHeaderPersistData> outHeaders;
-    std::vector<std::vector<BankSlotPersistData>> outSlots;
-    mundo.getBankPersistData(outHeaders, outSlots);
+    auto bankData = mundo.getBankPersistData();
+    auto outHeaders = bankData.headers;
+    auto outSlots = bankData.slots;
 
     ASSERT_EQ(outHeaders.size(), 1u);
     EXPECT_EQ(outHeaders[0].playerDbId, 5u);
@@ -720,16 +720,16 @@ TEST_F(WorldPersistenceTest, World_ClanPersistence_RoundTrip) {
     pending.push_back({});
     banned.push_back({});
 
-    mundo.restoreClans(headers, members, pending, banned);
+    mundo.restoreClans({headers, members, pending, banned});
 
     // Verificamos que areClanmates funcione sin tener a los jugadores logueados
     // Pero areClanmates chequea también getClanIdOfPlayer internamente
     EXPECT_TRUE(mundo.areClanmates(1, 2));
 
     // Y recuperamos para comprobar
-    std::vector<ClanHeaderPersistData> outH;
-    std::vector<std::vector<ClanPlayerPersistData>> outM, outP, outB;
-    mundo.getClansPersistData(outH, outM, outP, outB);
+    auto clanData = mundo.getClansPersistData();
+    auto outH = clanData.headers;
+    auto outM = clanData.members;
 
     ASSERT_EQ(outH.size(), 1u);
     EXPECT_STREQ(outH[0].name, "Imperio");

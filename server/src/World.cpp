@@ -97,17 +97,6 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
     return true;
 }
 
-std::optional<PlayerPersistData> World::getPlayerPersistData(uint32_t dbId) const {
-    auto itMap = dbIdToEntityId.find(dbId);
-    if (itMap == dbIdToEntityId.end())
-        return std::nullopt;
-    auto it = players.find(itMap->second);
-    if (it == players.end())
-        return std::nullopt;
-
-    return it->second->toPersistData();
-}
-
 bool World::removePlayer(uint32_t dbId) {
     auto itMap = this->dbIdToEntityId.find(dbId);
     if (itMap == this->dbIdToEntityId.end()) {
@@ -651,59 +640,6 @@ std::vector<uint32_t> World::getOnlinePlayerDbIds() const {
     return ids;
 }
 
-std::vector<MonsterPersistData> World::getMonstersPersistData() const {
-    std::vector<MonsterPersistData> data;
-    data.reserve(monsters.size());
-    std::transform(monsters.begin(), monsters.end(), std::back_inserter(data),
-                   [](const auto& pair) { return pair.second->toPersistData(); });
-    return data;
-}
-
-std::vector<GroundItemPersistData> World::getGroundItemsPersistData() const {
-    std::vector<GroundItemPersistData> data;
-    auto items = map.getGroundItemsSnapshot();
-    data.reserve(items.size());
-    std::transform(items.begin(), items.end(), std::back_inserter(data), [](const auto& pair) {
-        GroundItemPersistData d{};
-        d.posX = pair.first.x;
-        d.posY = pair.first.y;
-        d.itemId = pair.second.itemId;
-        d.amount = pair.second.amount;
-        return d;
-    });
-    return data;
-}
-
-void World::restoreMonsters(const std::vector<MonsterPersistData>& data,
-                            const MonsterConfigs& configs) {
-    for (const auto& md: data) {
-        auto type = static_cast<NPCType>(md.type);
-        auto it = configs.find(type);
-        if (it == configs.end()) {
-            continue;
-        }
-
-        uint32_t entityId = md.entityId;
-        Position pos{md.posX, md.posY};
-
-        auto monster = std::make_unique<Monster>(entityId, type, pos, it->second);
-        monster->fromPersistData(md);
-
-        monsters[entityId] = std::move(monster);
-
-        if (entityId >= nextEntityId) {
-            nextEntityId = entityId + 1;
-        }
-    }
-}
-
-void World::restoreGroundItems(const std::vector<GroundItemPersistData>& data) {
-    for (const auto& item: data) {
-        Position pos{item.posX, item.posY};
-        map.placeItem(pos, item.itemId, item.amount);
-    }
-}
-
 std::pair<float, float> World::getInitialPosition() { return map.getInitialPosition(); }
 
 void World::setObstacleAt(int x, int y) { map.setObstacleInGrid(x, y, true); }
@@ -964,113 +900,64 @@ Player* World::getPlayerById(uint32_t dbId) {
 }
 
 // =============================================================================
-// Persistencia de Clanes y Banco
+// Persistencia del Estado del Mundo
 // =============================================================================
 
-void World::getClansPersistData(std::vector<ClanHeaderPersistData>& headers,
-                                std::vector<std::vector<ClanPlayerPersistData>>& members,
-                                std::vector<std::vector<ClanPlayerPersistData>>& pending,
-                                std::vector<std::vector<ClanPlayerPersistData>>& banned) const {
-    const auto& allClans = clanRepo.getAllClans();
-    headers.reserve(allClans.size());
-    members.reserve(allClans.size());
-    pending.reserve(allClans.size());
-    banned.reserve(allClans.size());
+ClanRepositoryPersistData World::getClansPersistData() const { return clanRepo.toPersistData(); }
 
-    for (const auto& [clanId, clan]: allClans) {
-        ClanHeaderPersistData header{};
-        header.clanId = clanId;
-        header.founderDbId = clan.getFounderDbId();
-        std::strncpy(header.name, clan.getName().c_str(), sizeof(header.name) - 1);
-        header.memberCount = clan.getMembers().size();
-        header.pendingCount = clan.getPendingRequests().size();
-        header.bannedCount = clan.getBanned().size();
-        headers.push_back(header);
+void World::restoreClans(const ClanRepositoryPersistData& data) { clanRepo.fromPersistData(data); }
 
-        std::vector<ClanPlayerPersistData> cMembers;
-        cMembers.reserve(header.memberCount);
-        std::transform(clan.getMembers().begin(), clan.getMembers().end(),
-                       std::back_inserter(cMembers),
-                       [](uint32_t id) { return ClanPlayerPersistData{id}; });
-        members.push_back(cMembers);
+BankPersistData World::getBankPersistData() const { return globalBank.toPersistData(); }
 
-        std::vector<ClanPlayerPersistData> cPending;
-        cPending.reserve(header.pendingCount);
-        std::transform(clan.getPendingRequests().begin(), clan.getPendingRequests().end(),
-                       std::back_inserter(cPending),
-                       [](uint32_t id) { return ClanPlayerPersistData{id}; });
-        pending.push_back(cPending);
+void World::restoreBank(const BankPersistData& data) { globalBank.fromPersistData(data); }
 
-        std::vector<ClanPlayerPersistData> cBanned;
-        cBanned.reserve(header.bannedCount);
-        std::transform(clan.getBanned().begin(), clan.getBanned().end(),
-                       std::back_inserter(cBanned),
-                       [](uint32_t id) { return ClanPlayerPersistData{id}; });
-        banned.push_back(cBanned);
-    }
+
+std::vector<MonsterPersistData> World::getMonstersPersistData() const {
+    std::vector<MonsterPersistData> data;
+    data.reserve(monsters.size());
+    std::transform(monsters.begin(), monsters.end(), std::back_inserter(data),
+                   [](const auto& pair) { return pair.second->toPersistData(); });
+    return data;
 }
 
-void World::restoreClans(const std::vector<ClanHeaderPersistData>& headers,
-                         const std::vector<std::vector<ClanPlayerPersistData>>& members,
-                         const std::vector<std::vector<ClanPlayerPersistData>>& pending,
-                         const std::vector<std::vector<ClanPlayerPersistData>>& banned) {
-    uint32_t maxClanId = 0;
-    for (size_t i = 0; i < headers.size(); ++i) {
-        const auto& header = headers[i];
-        if (header.clanId > maxClanId)
-            maxClanId = header.clanId;
-
-        std::vector<uint32_t> mIds;
-        // cppcheck-suppress useStlAlgorithm
-        for (const auto& m: members[i]) mIds.push_back(m.dbId);
-
-        std::vector<uint32_t> pIds;
-        // cppcheck-suppress useStlAlgorithm
-        for (const auto& p: pending[i]) pIds.push_back(p.dbId);
-
-        std::vector<uint32_t> bIds;
-        // cppcheck-suppress useStlAlgorithm
-        for (const auto& b: banned[i]) bIds.push_back(b.dbId);
-
-        clanRepo.restoreClan(header.clanId, header.name, header.founderDbId, mIds, pIds, bIds);
-    }
-    clanRepo.setNextClanId(maxClanId + 1);
-}
-
-void World::getBankPersistData(std::vector<BankAccountHeaderPersistData>& headers,
-                               std::vector<std::vector<BankSlotPersistData>>& slots) const {
-    const auto& accounts = globalBank.getAllAccounts();
-    for (const auto& [playerId, account]: accounts) {
-        std::vector<BankSlotPersistData> accountSlots;
-        for (const auto& slot: account.slots) {
-            if (!slot.is_empty()) {
-                accountSlots.push_back({slot.item_id, slot.amount, {}});
-            }
+void World::restoreMonsters(const std::vector<MonsterPersistData>& data,
+                            const MonsterConfigs& configs) {
+    for (const auto& md: data) {
+        auto type = static_cast<NPCType>(md.type);
+        auto it = configs.find(type);
+        if (it == configs.end()) {
+            continue;
         }
 
-        if (account.gold > 0 || !accountSlots.empty()) {
-            BankAccountHeaderPersistData header{};
-            header.playerDbId = playerId;
-            header.gold = account.gold;
-            header.slotCount = accountSlots.size();
+        uint32_t entityId = md.entityId;
+        Position pos{md.posX, md.posY};
 
-            headers.push_back(header);
-            slots.push_back(accountSlots);
+        auto monster = std::make_unique<Monster>(entityId, type, pos, it->second);
+        monster->fromPersistData(md);
+
+        monsters[entityId] = std::move(monster);
+
+        if (entityId >= nextEntityId) {
+            nextEntityId = entityId + 1;
         }
     }
 }
 
-void World::restoreBank(const std::vector<BankAccountHeaderPersistData>& headers,
-                        const std::vector<std::vector<BankSlotPersistData>>& slots) {
-    for (size_t i = 0; i < headers.size(); ++i) {
-        const auto& header = headers[i];
-        std::vector<BankSlot> bankSlots;
-        for (const auto& spd: slots[i]) {
-            BankSlot slot;
-            slot.item_id = spd.itemId;
-            slot.amount = spd.amount;
-            bankSlots.push_back(slot);
-        }
-        globalBank.restoreAccount(header.playerDbId, header.gold, bankSlots);
-    }
+std::vector<GroundItemPersistData> World::getGroundItemsPersistData() const {
+    return map.getGroundItemsPersistData();
+}
+
+void World::restoreGroundItems(const std::vector<GroundItemPersistData>& data) {
+    map.restoreGroundItems(data);
+}
+
+std::optional<PlayerPersistData> World::getPlayerPersistData(uint32_t dbId) const {
+    auto itMap = dbIdToEntityId.find(dbId);
+    if (itMap == dbIdToEntityId.end())
+        return std::nullopt;
+    auto it = players.find(itMap->second);
+    if (it == players.end())
+        return std::nullopt;
+
+    return it->second->toPersistData();
 }

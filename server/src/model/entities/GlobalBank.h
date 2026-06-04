@@ -6,6 +6,13 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../../persistence/WorldPersistData.h"
+
+struct BankPersistData {
+    std::vector<BankAccountHeaderPersistData> headers;
+    std::vector<std::vector<BankSlotPersistData>> slots;
+};
+
 struct BankSlot {
     uint32_t item_id{0};
     uint16_t amount{0};
@@ -18,7 +25,7 @@ struct BankSlot {
 };
 
 class GlobalBank {
-public:
+private:
     static constexpr size_t BANK_SIZE = 40;  // Capacidad fija de la bóveda bancaria
 
     struct BankAccount {
@@ -99,14 +106,39 @@ public:
     }
 
     // --- PERSISTENCIA ---
-    const std::unordered_map<uint32_t, BankAccount>& getAllAccounts() const { return accounts; }
+    BankPersistData toPersistData() const {
+        BankPersistData data{};
+        for (const auto& [playerId, account]: accounts) {
+            std::vector<BankSlotPersistData> accountSlots;
+            for (const auto& slot: account.slots) {
+                if (!slot.is_empty()) {
+                    accountSlots.push_back({slot.item_id, slot.amount, {}});
+                }
+            }
 
-    void restoreAccount(uint32_t playerId, uint32_t gold,
-                        const std::vector<BankSlot>& slotsToRestore) {
-        auto& account = accounts[playerId];
-        account.gold = gold;
-        for (size_t i = 0; i < std::min(slotsToRestore.size(), BANK_SIZE); ++i) {
-            account.slots[i] = slotsToRestore[i];
+            if (account.gold > 0 || !accountSlots.empty()) {
+                BankAccountHeaderPersistData header{};
+                header.playerDbId = playerId;
+                header.gold = account.gold;
+                header.slotCount = accountSlots.size();
+
+                data.headers.push_back(header);
+                data.slots.push_back(accountSlots);
+            }
+        }
+        return data;
+    }
+
+    void fromPersistData(const BankPersistData& data) {
+        for (size_t i = 0; i < data.headers.size(); ++i) {
+            const auto& header = data.headers[i];
+            auto& account = accounts[header.playerDbId];
+            account.gold = header.gold;
+            for (size_t j = 0; j < std::min(data.slots[i].size(), BANK_SIZE); ++j) {
+                const auto& spd = data.slots[i][j];
+                account.slots[j].item_id = spd.itemId;
+                account.slots[j].amount = spd.amount;
+            }
         }
     }
 };

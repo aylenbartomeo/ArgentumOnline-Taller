@@ -34,10 +34,10 @@ GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
 
         auto [clanHeaders, clanMembers, clanPending, clanBanned] =
                 worldDataStore.loadClans(worldConfig.worldId);
-        world.restoreClans(clanHeaders, clanMembers, clanPending, clanBanned);
+        world.restoreClans({clanHeaders, clanMembers, clanPending, clanBanned});
 
         auto [bankHeaders, bankSlots] = worldDataStore.loadBankAccounts(worldConfig.worldId);
-        world.restoreBank(bankHeaders, bankSlots);
+        world.restoreBank({bankHeaders, bankSlots});
     }
 }
 
@@ -227,18 +227,12 @@ void GameLoop::persistWorldState() {
     worldDataStore.saveMonsters(worldConfig.worldId, world.getMonstersPersistData());
     worldDataStore.saveGroundItems(worldConfig.worldId, world.getGroundItemsPersistData());
 
-    std::vector<ClanHeaderPersistData> clanHeaders;
-    std::vector<std::vector<ClanPlayerPersistData>> clanMembers;
-    std::vector<std::vector<ClanPlayerPersistData>> clanPending;
-    std::vector<std::vector<ClanPlayerPersistData>> clanBanned;
-    world.getClansPersistData(clanHeaders, clanMembers, clanPending, clanBanned);
-    worldDataStore.saveClans(worldConfig.worldId, clanHeaders, clanMembers, clanPending,
-                             clanBanned);
+    auto clanData = world.getClansPersistData();
+    worldDataStore.saveClans(worldConfig.worldId, clanData.headers, clanData.members,
+                             clanData.pending, clanData.banned);
 
-    std::vector<BankAccountHeaderPersistData> bankHeaders;
-    std::vector<std::vector<BankSlotPersistData>> bankSlots;
-    world.getBankPersistData(bankHeaders, bankSlots);
-    worldDataStore.saveBankAccounts(worldConfig.worldId, bankHeaders, bankSlots);
+    auto bankData = world.getBankPersistData();
+    worldDataStore.saveBankAccounts(worldConfig.worldId, bankData.headers, bankData.slots);
 }
 
 void GameLoop::stop() { isRunning = false; }

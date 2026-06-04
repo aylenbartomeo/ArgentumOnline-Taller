@@ -120,20 +120,12 @@ public:
     void restoreGroundItems(const std::vector<GroundItemPersistData>& data);
 
     // Persistencia de clanes
-    void getClansPersistData(std::vector<ClanHeaderPersistData>& headers,
-                             std::vector<std::vector<ClanPlayerPersistData>>& members,
-                             std::vector<std::vector<ClanPlayerPersistData>>& pending,
-                             std::vector<std::vector<ClanPlayerPersistData>>& banned) const;
-    void restoreClans(const std::vector<ClanHeaderPersistData>& headers,
-                      const std::vector<std::vector<ClanPlayerPersistData>>& members,
-                      const std::vector<std::vector<ClanPlayerPersistData>>& pending,
-                      const std::vector<std::vector<ClanPlayerPersistData>>& banned);
+    ClanRepositoryPersistData getClansPersistData() const;
+    void restoreClans(const ClanRepositoryPersistData& data);
 
     // Persistencia del banco global
-    void getBankPersistData(std::vector<BankAccountHeaderPersistData>& headers,
-                            std::vector<std::vector<BankSlotPersistData>>& slots) const;
-    void restoreBank(const std::vector<BankAccountHeaderPersistData>& headers,
-                     const std::vector<std::vector<BankSlotPersistData>>& slots);
+    BankPersistData getBankPersistData() const;
+    void restoreBank(const BankPersistData& data);
 
     // Getters para persistencia
     std::optional<Position> getPlayerPosition(uint32_t dbId) const;

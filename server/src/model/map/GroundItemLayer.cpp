@@ -1,5 +1,7 @@
 #include "GroundItemLayer.h"
 
+#include <algorithm>
+
 bool GroundItemLayer::placeItem(const Position& pos, uint32_t itemId, uint16_t amount) {
     groundItems[pos] = GroundItem{itemId, amount};
     return true;
@@ -32,3 +34,25 @@ const std::unordered_map<Position, GroundItem, PositionHash>& GroundItemLayer::g
 }
 
 void GroundItemLayer::clear() { groundItems.clear(); }
+
+std::vector<GroundItemPersistData> GroundItemLayer::toPersistData() const {
+    std::vector<GroundItemPersistData> data;
+    data.reserve(groundItems.size());
+    std::transform(groundItems.begin(), groundItems.end(), std::back_inserter(data),
+                   [](const auto& pair) {
+                       GroundItemPersistData d{};
+                       d.posX = pair.first.x;
+                       d.posY = pair.first.y;
+                       d.itemId = pair.second.itemId;
+                       d.amount = pair.second.amount;
+                       return d;
+                   });
+    return data;
+}
+
+void GroundItemLayer::fromPersistData(const std::vector<GroundItemPersistData>& data) {
+    for (const auto& item: data) {
+        Position pos{item.posX, item.posY};
+        placeItem(pos, item.itemId, item.amount);
+    }
+}

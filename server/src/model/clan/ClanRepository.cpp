@@ -60,26 +60,44 @@ bool ClanRepository::isNameTaken(const std::string& name) const {
     return nameIndex.count(toLower(name)) > 0;
 }
 
-void ClanRepository::restoreClan(uint32_t clanId, const std::string& name, uint32_t founderDbId,
-                                 const std::vector<uint32_t>& memberDbIds,
-                                 const std::vector<uint32_t>& pendingDbIds,
-                                 const std::vector<uint32_t>& bannedDbIds) {
-    clans.emplace(clanId, Clan(clanId, name, founderDbId));
-    nameIndex[toLower(name)] = clanId;
+ClanRepositoryPersistData ClanRepository::toPersistData() const {
+    ClanRepositoryPersistData data{};
+    data.headers.reserve(clans.size());
+    data.members.reserve(clans.size());
+    data.pending.reserve(clans.size());
+    data.banned.reserve(clans.size());
+    for (const auto& [clanId, clan]: clans) {
+        auto bundle = clan.toPersistData();
+        data.headers.push_back(bundle.header);
+        data.members.push_back(bundle.members);
+        data.pending.push_back(bundle.pending);
+        data.banned.push_back(bundle.banned);
+    }
+    return data;
+}
 
-    Clan& clan = clans.at(clanId);
+void ClanRepository::fromPersistData(const ClanRepositoryPersistData& data) {
+    uint32_t maxClanId = 0;
+    for (size_t i = 0; i < data.headers.size(); ++i) {
+        const auto& header = data.headers[i];
+        if (header.clanId > maxClanId)
+            maxClanId = header.clanId;
 
-    // Clan constructor already adds founderDbId to members, but adding it again in a set is fine
-    for (uint32_t id: memberDbIds) {
-        clan.addMember(id);
-        playerClanIndex[id] = clanId;
+        clans.emplace(header.clanId, Clan(header.clanId, header.name, header.founderDbId));
+        nameIndex[toLower(header.name)] = header.clanId;
+
+        Clan& clan = clans.at(header.clanId);
+
+        for (const auto& m: data.members[i]) {
+            clan.addMember(m.dbId);
+            playerClanIndex[m.dbId] = header.clanId;
+        }
+        for (const auto& p: data.pending[i]) {
+            clan.addPendingRequest(p.dbId);
+        }
+        for (const auto& b: data.banned[i]) {
+            clan.banPlayer(b.dbId);
+        }
     }
-    for (uint32_t id: pendingDbIds) {
-        clan.addPendingRequest(id);
-    }
-    for (uint32_t id: bannedDbIds) {
-        // We use banPlayer instead of adding directly because banned is private
-        // and banPlayer also removes from pending.
-        clan.banPlayer(id);
-    }
+    nextClanId = maxClanId + 1;
 }
