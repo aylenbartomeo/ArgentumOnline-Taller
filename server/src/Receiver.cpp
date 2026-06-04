@@ -37,7 +37,7 @@ bool Receiver::authenticatePlayer() {
                 }
 
                 this->clientId = targetId;
-                std::cout << "[SERVER] Authenticated player: " << login_data.username
+                std::cout << "[SERVER] Jugador autenticado: " << login_data.username
                           << " (id=" << this->clientId << ")" << std::endl;
 
                 this->protocolo.send_login_success(this->clientId);
@@ -60,7 +60,7 @@ bool Receiver::authenticatePlayer() {
                     this->auth.registerUser(register_data.username, register_data.password);
             if (authResult.has_value()) {
                 this->clientId = authResult.value();
-                std::cout << "[SERVER] New registered player: " << register_data.username
+                std::cout << "[SERVER] Nuevo jugador registrado: " << register_data.username
                           << " (id=" << this->clientId << ")" << std::endl;
 
                 this->protocolo.send_register_success(this->clientId);

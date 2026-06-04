@@ -8,9 +8,9 @@
 
 #include "Server.h"
 
-#define ERROR_MSG "Usage: ./server <port>"
+#define ERROR_MSG "Uso: ./server <puerto>"
 #define EXE_KNOWN_MSG "Error: "
-#define EXE_NKNOWN_MSG "Unknown error occurred in the server."
+#define EXE_NKNOWN_MSG "Ha ocurrido un error desconocido en el servidor."
 #define VALID_ARGS 2
 #define ARGV_PORT 1
 
@@ -25,10 +25,10 @@ int main(int argc, char* argv[]) try {
     WorldDataStore wds("worlds/");
     WorldConfig wConfig;
 
-    std::cout << "\n=== Argentum Online Server ===\n";
-    std::cout << "\nSelect an option:\n";
-    std::cout << "\n  1) New world\n";
-    std::cout << "\n  2) Load world\n";
+    std::cout << "\n=== Servidor Argentum Online ===\n";
+    std::cout << "\nSeleccione una opcion:\n";
+    std::cout << "\n  1) Nuevo mundo\n";
+    std::cout << "\n  2) Cargar mundo\n";
     std::cout << "\n> ";
 
     std::string choice;
@@ -45,20 +45,20 @@ int main(int argc, char* argv[]) try {
                 }
             }
         } catch (const std::filesystem::filesystem_error& e) {
-            std::cerr << "\nError accessing maps/ directory: " << e.what() << "\n";
+            std::cerr << "\nError accediendo al directorio maps/: " << e.what() << "\n";
             return EXIT_FAILURE;
         }
 
         if (availableMaps.empty()) {
-            std::cerr << "\nNo maps found in maps/ directory.\n";
+            std::cerr << "\nNo se encontraron mapas en el directorio maps/.\n";
             return EXIT_FAILURE;
         }
 
-        std::cout << "\nAvailable maps:\n";
+        std::cout << "\nMapas disponibles:\n";
         for (size_t i = 0; i < availableMaps.size(); ++i) {
             std::cout << "\n  " << i + 1 << ") " << availableMaps[i] << "\n";
         }
-        std::cout << "\nSelect map: ";
+        std::cout << "\nSeleccionar mapa: ";
         std::string mapChoice;
         std::getline(std::cin, mapChoice);
 
@@ -66,23 +66,23 @@ int main(int argc, char* argv[]) try {
         try {
             mapIdx = std::stoi(mapChoice) - 1;
         } catch (...) {
-            std::cerr << "\nInvalid choice.\n";
+            std::cerr << "\nOpcion invalida.\n";
             return EXIT_FAILURE;
         }
 
         if (mapIdx < 0 || mapIdx >= static_cast<int>(availableMaps.size())) {
-            std::cerr << "\nInvalid choice.\n";
+            std::cerr << "\nOpcion invalida.\n";
             return EXIT_FAILURE;
         }
 
         std::string mapPath = "maps/" + availableMaps[mapIdx];
 
-        std::cout << "\nEnter world name: ";
+        std::cout << "\nIngresar nombre del mundo: ";
         std::string worldName;
         std::getline(std::cin, worldName);
 
         uint32_t worldId = wds.createWorld(worldName, mapPath);
-        std::cout << "\n[Server] Created world #" << worldId << " '" << worldName << "' from '"
+        std::cout << "\n[Servidor] Mundo #" << worldId << " '" << worldName << "' creado desde '"
                   << mapPath << "'\n";
 
         wConfig.worldId = worldId;
@@ -93,31 +93,30 @@ int main(int argc, char* argv[]) try {
     } else if (choice == "2") {
         auto worlds = wds.listSavedWorlds();
         if (worlds.empty()) {
-            std::cerr << "\nNo saved worlds found.\n";
+            std::cerr << "\nNo se encontraron mundos guardados.\n";
             return EXIT_FAILURE;
         }
-        std::cout << "\nSaved worlds:\n";
+        std::cout << "\nMundos guardados:\n";
         for (size_t i = 0; i < worlds.size(); ++i) {
             std::cout << "\n  " << i + 1 << ") #" << worlds[i].worldId << " - " << worlds[i].name
-                      << " (" << worlds[i].baseMapPath << ")\n";
+                      << "\n";
         }
-        std::cout << "\nSelect world: ";
+        std::cout << "\nSeleccionar mundo: ";
         std::string wChoice;
         std::getline(std::cin, wChoice);
         int idx = 0;
         try {
             idx = std::stoi(wChoice) - 1;
         } catch (...) {
-            std::cerr << "\nInvalid choice.\n";
+            std::cerr << "\nOpcion invalida.\n";
             return EXIT_FAILURE;
         }
         if (idx < 0 || idx >= static_cast<int>(worlds.size())) {
-            std::cerr << "\nInvalid choice.\n";
+            std::cerr << "\nOpcion invalida.\n";
             return EXIT_FAILURE;
         }
         auto selected = worlds[idx];
-        std::cout << "\n[Server] Loaded world #" << selected.worldId << " '" << selected.name
-                  << "'\n";
+        std::cout << "\n[Servidor] Mundo #" << selected.worldId << " '" << selected.name << "'\n";
 
         wConfig.worldId = selected.worldId;
         wConfig.worldName = selected.name;
@@ -125,7 +124,7 @@ int main(int argc, char* argv[]) try {
         wConfig.worldDir = wds.getWorldDir(selected.worldId);
         wConfig.isNewWorld = false;
     } else {
-        std::cerr << "\nInvalid option.\n";
+        std::cerr << "\nOpcion invalida.\n";
         return EXIT_FAILURE;
     }
 

@@ -165,6 +165,10 @@ public:
     };
     std::vector<PendingResurrection> pendingResurrections;
 
+    // IDs de monstruos que murieron en este tick
+    std::vector<uint32_t> deadMonsterIds;
+    void handleMonsterDeath(const Monster& monster, uint32_t killerDbId);
+
     // Zonas seguras (delega al map)
     bool isSafeZone(float x, float y) const;
 
