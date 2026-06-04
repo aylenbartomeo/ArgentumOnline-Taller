@@ -155,7 +155,7 @@ TEST_F(ClanSystemTest, JoinRequest_OK) {
     EXPECT_EQ(joinRequest(2, "Alpha"), ClanOpResult::OK);
 
     notifyJoinRequest(2, "Alpha");
-    EXPECT_TRUE(hasNotifFor(2, "Solicitud enviada"));
+    EXPECT_TRUE(hasNotifFor(2, "Petición de ingreso"));
     EXPECT_TRUE(hasNotifFor(1, "pedido de ingreso"));
 }
 
@@ -163,7 +163,7 @@ TEST_F(ClanSystemTest, JoinRequest_ClanNotFound) {
     EXPECT_EQ(joinRequest(2, "Inexistente"), ClanOpResult::CLAN_NOT_FOUND);
 
     notifyJoinRequest(2, "Inexistente");
-    EXPECT_TRUE(hasNotifFor(2, "No existe"));
+    EXPECT_TRUE(hasNotifFor(2, "no existe"));
 }
 
 TEST_F(ClanSystemTest, JoinRequest_AlreadyInClan) {
@@ -303,7 +303,7 @@ TEST_F(ClanSystemTest, ReviewClan_ContainsMemberList) {
     notifs.clear();
     controller.handleReviewClan(1, mockCtx, notifs);
     EXPECT_TRUE(hasNotifFor(1, "Alpha"));
-    EXPECT_TRUE(hasNotifFor(1, "Fundador"));
+    EXPECT_TRUE(hasNotifFor(1, "Líder"));
 }
 
 TEST_F(ClanSystemTest, ReviewClan_ShowsPendingRequests) {
