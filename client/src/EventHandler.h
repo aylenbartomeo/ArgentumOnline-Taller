@@ -1,6 +1,7 @@
 #ifndef EVENT_HANDLER_H
 #define EVENT_HANDLER_H
 
+#include <string>
 #include <unordered_set>
 
 #include <SDL2/SDL_keycode.h>
@@ -11,12 +12,20 @@ struct FrameInput {
     bool moveSouth = false;
     bool moveEast = false;
     bool moveWest = false;
+
+    // --- Minichat ---
+    bool chatInputActive = false;  // el jugador está escribiendo en el chat
+    bool chatSubmitted = false;    // presionó Enter con texto
+    std::string chatText;          // texto acumulado del input actual
 };
 
 class EventHandler {
 private:
     std::unordered_set<SDL_Keycode> pressedKeys;
     bool quitRequested = false;
+
+    bool inputActive = false;
+    std::string inputBuffer;
 
 public:
     EventHandler() = default;

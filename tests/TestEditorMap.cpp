@@ -80,6 +80,80 @@ TEST(EditorMapTest, LoadJsonWithWrongRowCountThrows) {
     EXPECT_THROW(EditorMap map(json), std::runtime_error);
 }
 
+TEST(EditorMapTest, ExposesSafeZonesParsedFromJson) {
+    std::string json = R"({
+        "tileSize": 32,
+        "tileset": "5108.png",
+        "tilesetCols": 32,
+        "width": 2,
+        "height": 2,
+        "tiles": [[0, 0], [0, 0]],
+        "safeZones": [
+            { "name": "Ullathorpe", "x": 4, "y": 5, "width": 6, "height": 3 }
+        ]
+    })";
+    EditorMap map(json);
+    ASSERT_EQ(map.getSafeZones().size(), 1u);
+    EXPECT_EQ(map.getSafeZones()[0].x, 4);
+    EXPECT_EQ(map.getSafeZones()[0].y, 5);
+    EXPECT_EQ(map.getSafeZones()[0].width, 6);
+    EXPECT_EQ(map.getSafeZones()[0].height, 3);
+}
+
+TEST(EditorMapTest, ParsesCitizensAndMonsters) {
+    std::string json = R"({
+        "tileSize": 32,
+        "tileset": "5108.png",
+        "tilesetCols": 32,
+        "width": 1,
+        "height": 1,
+        "tiles": [[0]],
+        "npcs": [{ "type": "merchant", "x": 5, "y": 6 }],
+        "monsters": [{ "type": "goblin", "x": 7, "y": 8 }]
+    })";
+    EditorMap map(json);
+
+    ASSERT_EQ(map.getCitizens().size(), 1u);
+    EXPECT_EQ(map.getCitizens()[0].type, "merchant");
+    EXPECT_EQ(map.getCitizens()[0].x, 5);
+    EXPECT_EQ(map.getCitizens()[0].y, 6);
+
+    ASSERT_EQ(map.getMonsters().size(), 1u);
+    EXPECT_EQ(map.getMonsters()[0].type, "goblin");
+    EXPECT_EQ(map.getMonsters()[0].x, 7);
+}
+
+TEST(EditorMapTest, RoundTripPreservesCitizensAndMonsters) {
+    std::string json = R"({
+        "tileSize": 32,
+        "tileset": "5108.png",
+        "tilesetCols": 32,
+        "width": 1,
+        "height": 1,
+        "tiles": [[0]],
+        "npcs": [{ "type": "priest", "x": 1, "y": 2 }],
+        "monsters": [{ "type": "skeleton", "x": 3, "y": 4 }]
+    })";
+    EditorMap original(json);
+    EditorMap reloaded(original.toJson());
+    ASSERT_EQ(reloaded.getCitizens().size(), 1u);
+    EXPECT_EQ(reloaded.getCitizens()[0].type, "priest");
+    ASSERT_EQ(reloaded.getMonsters().size(), 1u);
+    EXPECT_EQ(reloaded.getMonsters()[0].type, "skeleton");
+}
+
+TEST(EditorMapTest, AddRemoveEntitiesAtPosition) {
+    EditorMap map(5, 5, 32, "5108.png", 32);
+    map.addCitizen("merchant", 2, 3);
+    map.addMonster("goblin", 2, 3);
+    EXPECT_EQ(map.getCitizens().size(), 1u);
+    EXPECT_EQ(map.getMonsters().size(), 1u);
+
+    map.removeEntitiesAt(2, 3);
+    EXPECT_TRUE(map.getCitizens().empty());
+    EXPECT_TRUE(map.getMonsters().empty());
+}
+
 TEST(EditorMapTest, RetainsSafeZonesAndNPCsOnLoadAndSave) {
     std::string json = R"({
         "tileSize": 16,
@@ -106,6 +180,52 @@ TEST(EditorMapTest, RetainsSafeZonesAndNPCsOnLoadAndSave) {
 
     ASSERT_TRUE(parsedOut.contains("npcs"));
     EXPECT_EQ(parsedOut["npcs"][0]["type"], "merchant");
+}
+
+TEST(EditorMapTest, ToJsonEmitsItemsForRealItemOverlays) {
+    EditorMap map(4, 4, 32, "5108.png", 32);
+    map.setTile(0, 0, 1);
+    map.setTile(1, 2, 5);
+
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+
+    ASSERT_TRUE(out.contains("items"));
+    ASSERT_EQ(out["items"].size(), 1u);
+    EXPECT_EQ(out["items"][0]["id"], 2000);
+    EXPECT_EQ(out["items"][0]["x"], 1);
+    EXPECT_EQ(out["items"][0]["y"], 2);
+    EXPECT_EQ(out["items"][0]["amount"], 1);
+}
+
+TEST(EditorMapTest, ToJsonOmitsItemsWhenOnlySolidOverlayIsPlaced) {
+    EditorMap map(2, 2, 32, "5108.png", 32);
+    map.setTile(0, 0, 1);
+
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+
+    EXPECT_FALSE(out.contains("items"));
+}
+
+TEST(EditorMapTest, ToJsonEmitsObstaclesForSolidOverlays) {
+    EditorMap map(4, 4, 32, "5108.png", 32);
+    map.setTile(0, 0, 1);
+    map.setTile(1, 2, 5);
+
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+
+    ASSERT_TRUE(out.contains("obstacles"));
+    ASSERT_EQ(out["obstacles"].size(), 1u);
+    EXPECT_EQ(out["obstacles"][0]["x"], 0);
+    EXPECT_EQ(out["obstacles"][0]["y"], 0);
+}
+
+TEST(EditorMapTest, ToJsonOmitsObstaclesWhenNoSolidOverlayIsPlaced) {
+    EditorMap map(2, 2, 32, "5108.png", 32);
+    map.setTile(0, 0, 5);
+
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+
+    EXPECT_FALSE(out.contains("obstacles"));
 }
 
 TEST(EditorMapTest, ResizeGrowFillsWithZero) {

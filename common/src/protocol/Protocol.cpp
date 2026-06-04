@@ -73,9 +73,8 @@ uint8_t Protocol::recv_opcode() { return recv_uint8(); }
 void Protocol::send_snapshot(const SnapshotDTO& snap) {
     send_uint8(static_cast<uint8_t>(OPCODE::SNAPSHOT));
 
-    send_uint16(static_cast<uint16_t>(snap.entities.size()));
-
-    for (const auto& entity: snap.entities) {
+    send_uint16(static_cast<uint16_t>(snap.players.size()));
+    for (const auto& entity: snap.players) {
         send_uint32(entity.id);
         send_uint8(static_cast<uint8_t>(entity.type));
         send_uint16(entity.x);
@@ -83,6 +82,25 @@ void Protocol::send_snapshot(const SnapshotDTO& snap) {
         send_uint16(entity.current_hp);
         send_uint16(entity.max_hp);
         send_uint16(entity.sprite_id);
+    }
+
+    send_uint16(static_cast<uint16_t>(snap.monsters.size()));
+    for (const auto& entity: snap.monsters) {
+        send_uint32(entity.id);
+        send_uint8(static_cast<uint8_t>(entity.type));
+        send_uint16(entity.x);
+        send_uint16(entity.y);
+        send_uint16(entity.current_hp);
+        send_uint16(entity.max_hp);
+        send_uint16(entity.sprite_id);
+    }
+
+    send_uint16(static_cast<uint16_t>(snap.groundItems.size()));
+    for (const auto& item: snap.groundItems) {
+        send_uint32(item.itemId);
+        send_uint16(item.amount);
+        send_uint16(item.x);
+        send_uint16(item.y);
     }
 }
 
@@ -144,10 +162,10 @@ LoginResponseDTO Protocol::recv_register_response() {
 
 SnapshotDTO Protocol::receive_snapshot_body() {
     SnapshotDTO snap;
-    uint16_t count = recv_uint16();
-    for (uint16_t i = 0; i < count; ++i) {
-        EntityDTO entity;
 
+    uint16_t players_count = recv_uint16();
+    for (uint16_t i = 0; i < players_count; ++i) {
+        EntityDTO entity;
         entity.id = recv_uint32();
         entity.type = static_cast<EntityType>(recv_uint8());
         entity.x = recv_uint16();
@@ -155,8 +173,30 @@ SnapshotDTO Protocol::receive_snapshot_body() {
         entity.current_hp = recv_uint16();
         entity.max_hp = recv_uint16();
         entity.sprite_id = recv_uint16();
+        snap.players.push_back(entity);
+    }
 
-        snap.entities.push_back(entity);
+    uint16_t monsters_count = recv_uint16();
+    for (uint16_t i = 0; i < monsters_count; ++i) {
+        EntityDTO entity;
+        entity.id = recv_uint32();
+        entity.type = static_cast<EntityType>(recv_uint8());
+        entity.x = recv_uint16();
+        entity.y = recv_uint16();
+        entity.current_hp = recv_uint16();
+        entity.max_hp = recv_uint16();
+        entity.sprite_id = recv_uint16();
+        snap.monsters.push_back(entity);
+    }
+
+    uint16_t items_count = recv_uint16();
+    for (uint16_t i = 0; i < items_count; ++i) {
+        GroundItemDTO item;
+        item.itemId = recv_uint32();
+        item.amount = recv_uint16();
+        item.x = recv_uint16();
+        item.y = recv_uint16();
+        snap.groundItems.push_back(item);
     }
 
     return snap;
@@ -208,6 +248,62 @@ void Protocol::send_grab_item() { send_uint8(static_cast<uint8_t>(OPCODE::GRAB_I
 void Protocol::send_chat(const ChatDTO& dto) {
     send_uint8(static_cast<uint8_t>(OPCODE::CHAT));
     send_string(dto.message);
+}
+
+// =======================================================
+// LOGICA DE CHAT PRIVADO (CLIENTE -> SERVIDOR)
+// =======================================================
+void Protocol::send_private_chat(const PrivateChatDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::PRIVATE_CHAT));
+    send_string(dto.recipientNick);
+    send_string(dto.message);
+}
+
+PrivateChatDTO Protocol::receive_private_chat_body() {
+    PrivateChatDTO dto;
+    dto.recipientNick = recv_string();
+    dto.message = recv_string();
+    return dto;
+}
+
+void Protocol::send_meditate() { send_uint8(static_cast<uint8_t>(OPCODE::MEDITATE)); }
+
+void Protocol::receive_meditate_body() {
+    // No hay payload para meditar
+}
+
+void Protocol::send_resurrect() { send_uint8(static_cast<uint8_t>(OPCODE::RESURRECT)); }
+
+void Protocol::receive_resurrect_body() {
+    // No hay payload para resucitar
+}
+
+void Protocol::send_npc_command(const NpcCommandDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::NPC_CMD));
+    send_uint8(static_cast<uint8_t>(dto.type));
+    send_string(dto.arg);
+}
+
+NpcCommandDTO Protocol::receive_npc_command_body() {
+    NpcCommandDTO dto;
+    dto.type = static_cast<NpcCommandType>(recv_uint8());
+    dto.arg = recv_string();
+    return dto;
+}
+
+void Protocol::send_clan_command(const ClanCommandDTO& dto) {
+    send_uint8(static_cast<uint8_t>(OPCODE::CLAN_CMD));
+    send_uint8(static_cast<uint8_t>(dto.type));
+    send_string(dto.arg1);
+    send_uint32(dto.targetDbId);
+}
+
+ClanCommandDTO Protocol::receive_clan_command_body() {
+    ClanCommandDTO dto;
+    dto.type = static_cast<ClanCommandType>(recv_uint8());
+    dto.arg1 = recv_string();
+    dto.targetDbId = recv_uint32();
+    return dto;
 }
 
 // =======================================================
@@ -265,6 +361,23 @@ CommandVariant Protocol::receive_command() {
             UseItemDTO dto;
             dto.slot = recv_uint8();
             return dto;
+        }
+        case OPCODE::PRIVATE_CHAT: {
+            return receive_private_chat_body();
+        }
+        case OPCODE::MEDITATE: {
+            receive_meditate_body();
+            return MeditateDTO{};
+        }
+        case OPCODE::RESURRECT: {
+            receive_resurrect_body();
+            return ResurrectDTO{};
+        }
+        case OPCODE::NPC_CMD: {
+            return receive_npc_command_body();
+        }
+        case OPCODE::CLAN_CMD: {
+            return receive_clan_command_body();
         }
         default:
             throw std::runtime_error("Unknown command received in-game");

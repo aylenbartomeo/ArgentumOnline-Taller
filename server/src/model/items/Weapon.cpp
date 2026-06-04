@@ -1,27 +1,21 @@
-#include "Weapon.h"
+﻿#include "Weapon.h"
 
 #include <stdexcept>
 
 #include "../components/EquipmentComponent.h"
-#include "model/FormulaEngine.h"
 
-Weapon::Weapon(int id, const std::string& name, int minDamage, int maxDamage, WeaponType type,
+#include "FormulaEngine.h"
+
+Weapon::Weapon(int id, std::string name, int price, WeaponType type, int minDamage, int maxDamage,
                int attackRange, int manaCost):
-        id(id),
+        Item(id, std::move(name), price),
         minDamage(minDamage),
         maxDamage(maxDamage),
-        name(name),
         type(type),
         attackRange(attackRange),
         manaCost(manaCost) {
-    if (id < 0) {
-        throw std::invalid_argument("Weapon id cannot be negative");
-    }
 
-    if (name.empty()) {
-        throw std::invalid_argument("Weapon name cannot be empty");
-    }
-
+    // Validate weapon-specific parameters (name is already validated by Item)
     if (minDamage < 0) {
         throw std::invalid_argument("Weapon minimum damage cannot be negative");
     }
@@ -39,10 +33,15 @@ Weapon::Weapon(int id, const std::string& name, int minDamage, int maxDamage, We
     }
 }
 
-int Weapon::getId() const { return id; }
+bool Weapon::isMagic() const {
+    if (type == WeaponType::MAGIC) {
+        return true;
+    }
+    return false;
+}
+
 int Weapon::getMinDamage() const { return minDamage; }
 int Weapon::getMaxDamage() const { return maxDamage; }
-const std::string& Weapon::getName() const { return name; }
 WeaponType Weapon::getType() const { return type; }
 int Weapon::getAttackRange() const { return attackRange; }
 int Weapon::getManaCost() const { return manaCost; }

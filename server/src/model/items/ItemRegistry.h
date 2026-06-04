@@ -7,6 +7,7 @@
 
 #include "server/src/model/items/Armor.h"
 #include "server/src/model/items/BodyArmor.h"
+#include "server/src/model/items/Consumable.h"
 #include "server/src/model/items/Helmet.h"
 #include "server/src/model/items/Item.h"
 #include "server/src/model/items/Shield.h"
@@ -16,7 +17,8 @@ class ItemRegistry {
 private:
     std::unordered_map<int, std::unique_ptr<Weapon>> weapons;
     std::unordered_map<int, std::unique_ptr<Armor>> armors;
-    // Para futuros consumibles/pociones/genéricos
+    std::unordered_map<int, std::unique_ptr<Consumable>> consumables;
+    // Para futuros ítems genéricos
     std::unordered_map<int, std::unique_ptr<Item>> items;
 
 public:
@@ -40,6 +42,15 @@ public:
 
     // Retorna el ítem casteado de forma segura a Armor.
     const Armor* get_armor(int item_id) const;
+
+    // Retorna el ítem casteado de forma segura a Consumable.
+    const Consumable* get_consumable(int item_id) const;
+
+    // Retorna el catalogo de items
+    const std::unordered_map<int, std::unique_ptr<Item>> getItemCatalog() const;
+
+    // Retorna el catalogo de armas
+    const std::unordered_map<int, std::unique_ptr<Weapon>> getWeaponCatalog() const;
 
     // Determina si un ítem es apilable. Las armas y armaduras no lo son.
     bool isStackable(int item_id) const;

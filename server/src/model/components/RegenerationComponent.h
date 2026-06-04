@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include "../../include/model/FormulaEngine.h"
+#include "../../include/FormulaEngine.h"
 #include "../config/CharacterConfig.h"
 
 #include "StateComponent.h"

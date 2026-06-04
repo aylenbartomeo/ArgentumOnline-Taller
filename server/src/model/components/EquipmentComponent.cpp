@@ -1,11 +1,12 @@
 #include "EquipmentComponent.h"
 
-#include "model/FormulaEngine.h"
 #include "model/items/BodyArmor.h"
 #include "model/items/Helmet.h"
 #include "model/items/Item.h"
 #include "model/items/Shield.h"
 #include "model/items/Weapon.h"
+
+#include "FormulaEngine.h"
 
 EquipmentComponent::EquipmentComponent():
         bodyArmor(nullptr), helmet(nullptr), shield(nullptr), weapon(nullptr) {}

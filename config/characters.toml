@@ -6,7 +6,7 @@
 base_strength = 15
 base_intelligence = 15
 base_agility = 15
-base_constitution = 15
+base_constitution = 50
 starting_level = 1
 starting_experience = 0
 starting_gold = 0

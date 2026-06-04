@@ -24,7 +24,7 @@ public:
     }
 
     void resurrect() {
-        if (!currentState->isGhost()) {
+        if (currentState->isGhost()) {
             currentState = std::make_unique<NormalState>();
         }
     }

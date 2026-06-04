@@ -4,8 +4,9 @@
 
 #include "../components/EquipmentComponent.h"
 
-Helmet::Helmet(const int id, std::string name, const int minDefense, const int maxDefense):
-        Armor(id, std::move(name), minDefense, maxDefense) {}
+Helmet::Helmet(const int id, std::string name, const int minDefense, const int maxDefense,
+               const int price):
+        Armor(id, std::move(name), price, minDefense, maxDefense) {}
 
 int Helmet::getDefense() const { return rollDefense(); }
 

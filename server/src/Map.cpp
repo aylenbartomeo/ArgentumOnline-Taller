@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <fstream>
+#include <optional>
 #include <utility>
 
 #include <nlohmann/json.hpp>
@@ -53,6 +54,10 @@ std::pair<float, float> Map::getInitialPosition() { return this->spawn_point; }
 void Map::setSpawnPoint(float x, float y) { this->spawn_point = {x, y}; }
 
 bool Map::loadSpawnFromJson(const std::string& path) {
+    return loadSpawnFromJson(path, MapLoadOptions{});
+}
+
+bool Map::loadSpawnFromJson(const std::string& path, const MapLoadOptions& options) {
     std::ifstream file(path);
     if (!file) {
         return false;
@@ -69,6 +74,12 @@ bool Map::loadSpawnFromJson(const std::string& path) {
     setDimensions(data["width"].get<int>(), data["height"].get<int>());
     setSpawnPoint(static_cast<float>(data["spawn"]["x"].get<int>()),
                   static_cast<float>(data["spawn"]["y"].get<int>()));
+
+    safeZones.clear();
+    npcs.clear();
+    monsterSpawns.clear();
+    mapElements.clear();
+    groundItems.clear();
 
     if (data.contains("safeZones")) {
         for (const auto& zone: data["safeZones"]) {
@@ -94,8 +105,55 @@ bool Map::loadSpawnFromJson(const std::string& path) {
         }
     }
 
+    if (options.spawnMonsters && data.contains("monsters")) {
+        for (const auto& monster: data["monsters"]) {
+            std::string typeStr = monster["type"].get<std::string>();
+            std::optional<NPCType> type;
+            if (typeStr == "goblin")
+                type = NPCType::GOBLIN;
+            else if (typeStr == "skeleton")
+                type = NPCType::SKELETON;
+            else if (typeStr == "zombie")
+                type = NPCType::ZOMBIE;
+            else if (typeStr == "spider")
+                type = NPCType::SPIDER;
+            else if (typeStr == "orc")
+                type = NPCType::ORC;
+            else if (typeStr == "golem")
+                type = NPCType::GOLEM;
+            if (!type)
+                continue;
+            Position pos{monster["x"].get<int>(), monster["y"].get<int>()};
+            monsterSpawns.push_back({*type, pos});
+        }
+    }
+
+    if (data.contains("obstacles")) {
+        for (const auto& obs: data["obstacles"]) {
+            int x = obs["x"].get<int>();
+            int y = obs["y"].get<int>();
+            MapElement el;
+            el.type = MapElementType::OBSTACLE;
+            el.area = {x, y, 1, 1};
+            mapElements.push_back(el);
+        }
+        generate_collision_grid();
+    }
+
+    if (options.spawnGroundItems && data.contains("items")) {
+        for (const auto& item: data["items"]) {
+            int id = item["id"].get<int>();
+            int x = item["x"].get<int>();
+            int y = item["y"].get<int>();
+            int amount = item.value("amount", 1);
+            placeItem(Position{x, y}, static_cast<uint32_t>(id), static_cast<uint16_t>(amount));
+        }
+    }
+
     return true;
 }
+
+const std::vector<MapMonsterSpawn>& Map::getMonsterSpawns() const { return monsterSpawns; }
 
 int Map::heightLimit() const { return this->height; }
 
@@ -177,6 +235,14 @@ bool Map::hasItemAt(const Position& pos) const { return groundItems.hasItemAt(po
 std::vector<std::pair<Position, GroundItem>> Map::getGroundItemsSnapshot() const {
     const auto& items = groundItems.getAllItems();
     return std::vector<std::pair<Position, GroundItem>>(items.begin(), items.end());
+}
+
+std::vector<GroundItemPersistData> Map::getGroundItemsPersistData() const {
+    return groundItems.toPersistData();
+}
+
+void Map::restoreGroundItems(const std::vector<GroundItemPersistData>& data) {
+    groundItems.fromPersistData(data);
 }
 
 void Map::addSafeZone(const std::string& name, int x, int y, int w, int h) {

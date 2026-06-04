@@ -1,43 +1,23 @@
-#ifndef PRIEST_H_
-#define PRIEST_H_
-
+#pragma once
 #include <memory>
-#include <string>
 #include <unordered_map>
-#include <vector>
 
-#include "../commands/PriestCommands.h"
-#include "server/src/model/entities/Citizen.h"
+#include "../handlers/NpcCommandHandler.h"
+#include "../interfaces/Interactable.h"
 
-class Priest: public Citizen {
+#include "Player.h"
+
+class Priest: public Interactable {
 private:
-    std::unordered_map<std::string, std::unique_ptr<NPCCommand>> commands;
+    uint32_t id;
+    Position pos;
+    std::unordered_map<uint32_t, int> stock;
+    std::unordered_map<NpcCommandType, std::unique_ptr<NpcCommandHandler>> commandHandlers;
 
 public:
-    Priest(uint32_t id, Position pos): Citizen(id, pos, NPCType::PRIEST) {
-        // El sacerdote "se guarda" únicamente lo que sabe responder
-        commands["heal"] = std::make_unique<HealCommand>();
-        commands["resurrect"] = std::make_unique<ResurrectCommand>();
-    }
-
-    // void interact(Interactable& source, const std::string& action,
-    //               const std::vector<std::string>& params) override {
-
-    //     // 1. Verificamos que la fuente sea un Player
-    //     Player* player = dynamic_cast<Player*>(&source);
-    //     if (!player)
-    //         return;
-
-    //     // 2. Validar que la distancia entre el jugador y el sacerdote sea <= 2 baldosas
-    //     if (get_distance_to(player) > 2)
-    //         return;
-
-    //     // 3. Enrutamiento dinámico
-    //     auto it = commands.find(action);
-    //     if (it != commands.end()) {
-    //         it->second->execute(*player, params);
-    //     }
-    // }
+    Priest(uint32_t id, Position pos, const ItemRegistry& registry);
+    Position getPosition() const override { return pos; }
+    uint32_t getId() const override { return id; }
+    InteractionResult beInteractedBy(Player& player) override;
+    InteractionResult handleCommand(Player& player, const NpcCommandDTO& dto) override;
 };
-
-#endif  // PRIEST_H_

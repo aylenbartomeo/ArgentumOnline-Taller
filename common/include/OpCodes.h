@@ -15,6 +15,11 @@ enum class OPCODE : uint8_t {
     DROP_ITEM = 0x07,
     GRAB_ITEM = 0x08,
     CHAT = 0x09,
+    CLAN_CMD = 0x10,
+    PRIVATE_CHAT = 0x11,
+    MEDITATE = 0x12,
+    NPC_CMD = 0x13,
+    RESURRECT = 0x14,
 
     // --- SERVIDOR A CLIENTE ---
     SNAPSHOT = 0x82,

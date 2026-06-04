@@ -200,17 +200,27 @@ TEST(ProtocolTest, ChatSerializationIsSymmetric) {
 // --- TEST PARA EL VIAJE DE VUELTA: SERVIDOR -> CLIENTE (SNAPSHOT)
 // =================================================================
 TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
-    // 1. Armamos un Snapshot simulado (lo que haría el GameLoop)
+    // 1. Armamos un Snapshot simulado
     SnapshotDTO original_snap;
 
     EntityDTO entity1;
     entity1.id = 100;
+    entity1.type = EntityType::PLAYER;
     entity1.x = 15;
     entity1.y = 20;
     entity1.current_hp = 50;
     entity1.max_hp = 100;
 
-    original_snap.entities.push_back(entity1);
+    EntityDTO entity2;
+    entity2.id = 200;
+    entity2.type = EntityType::MONSTER;
+    entity2.x = 30;
+    entity2.y = 40;
+    entity2.current_hp = 10;
+    entity2.max_hp = 20;
+
+    original_snap.players.push_back(entity1);
+    original_snap.monsters.push_back(entity2);
 
     Socket acceptor_skt("8089");
     Socket client_skt("localhost", "8089");
@@ -219,20 +229,23 @@ TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
     Protocol client_protocol(client_skt);
     Protocol server_protocol(server_skt);
 
-    // ACT: El SERVIDOR envía el snapshot
+    // ACT: El SERVIDOR envía
     server_protocol.send_snapshot(original_snap);
 
-    // ACT: El CLIENTE recibe el snapshot
+    // ACT: El CLIENTE recibe
     uint8_t opcode = client_protocol.recv_opcode();
     EXPECT_EQ(opcode, static_cast<uint8_t>(OPCODE::SNAPSHOT));
     SnapshotDTO received_snap = client_protocol.receive_snapshot_body();
 
-    // ASSERT: Validamos que haya llegado la misma cantidad de entidades y con los mismos datos
-    ASSERT_EQ(received_snap.entities.size(), 1);
-    EXPECT_EQ(received_snap.entities[0].id, original_snap.entities[0].id);
-    EXPECT_EQ(received_snap.entities[0].x, original_snap.entities[0].x);
-    EXPECT_EQ(received_snap.entities[0].y, original_snap.entities[0].y);
-    EXPECT_EQ(received_snap.entities[0].current_hp, original_snap.entities[0].current_hp);
+    // ASSERT: Validamos
+    ASSERT_EQ(received_snap.players.size(), 1u);
+    EXPECT_EQ(received_snap.players[0].id, 100);
+    EXPECT_EQ(received_snap.players[0].type, EntityType::PLAYER);
+    EXPECT_EQ(received_snap.players[0].x, 15);
+
+    ASSERT_EQ(received_snap.monsters.size(), 1u);
+    EXPECT_EQ(received_snap.monsters[0].id, 200);
+    EXPECT_EQ(received_snap.monsters[0].type, EntityType::MONSTER);
 }
 
 // --- TESTS PARA LA RESPUESTA DE LOGIN (SERVIDOR -> CLIENTE) ---
