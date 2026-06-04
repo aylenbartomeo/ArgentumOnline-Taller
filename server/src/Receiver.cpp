@@ -21,7 +21,7 @@ bool Receiver::authenticatePlayer() {
         if (std::holds_alternative<LoginDTO>(cmd)) {
             LoginDTO login_data = std::get<LoginDTO>(cmd);
             if (login_data.username.empty()) {
-                this->protocolo.send_login_failed("The username cannot be empty.");
+                this->protocolo.sendLoginFailed("The username cannot be empty.");
                 return false;
             }
 
@@ -31,7 +31,7 @@ bool Receiver::authenticatePlayer() {
                 uint32_t targetId = authResult.value();
 
                 if (this->monitor.isClientConnected(targetId)) {
-                    this->protocolo.send_login_failed(
+                    this->protocolo.sendLoginFailed(
                             "The user is already connected in another session.");
                     return false;
                 }
@@ -40,19 +40,19 @@ bool Receiver::authenticatePlayer() {
                 std::cout << "[SERVER] Jugador autenticado: " << login_data.username
                           << " (id=" << this->clientId << ")" << std::endl;
 
-                this->protocolo.send_login_success(this->clientId);
+                this->protocolo.sendLoginSuccess(this->clientId);
                 this->monitor.addClient(this->clientId, &this->senderQueue);
                 JoinEvent joinEvent{this->clientId, login_data.username};
                 this->gameQueue.push(joinEvent);
                 return true;
             } else {
-                this->protocolo.send_login_failed("Incorrect password or user does not exist.");
+                this->protocolo.sendLoginFailed("Incorrect password or user does not exist.");
                 return false;
             }
         } else if (std::holds_alternative<RegisterDTO>(cmd)) {
             RegisterDTO register_data = std::get<RegisterDTO>(cmd);
             if (register_data.username.empty()) {
-                this->protocolo.send_register_failed("The username cannot be empty.");
+                this->protocolo.sendRegisterFailed("The username cannot be empty.");
                 return false;
             }
 
@@ -63,13 +63,13 @@ bool Receiver::authenticatePlayer() {
                 std::cout << "[SERVER] Nuevo jugador registrado: " << register_data.username
                           << " (id=" << this->clientId << ")" << std::endl;
 
-                this->protocolo.send_register_success(this->clientId);
+                this->protocolo.sendRegisterSuccess(this->clientId);
                 this->monitor.addClient(this->clientId, &this->senderQueue);
                 JoinEvent joinEvent{this->clientId, register_data.username};
                 this->gameQueue.push(joinEvent);
                 return true;
             } else {
-                this->protocolo.send_register_failed("The user already exists.");
+                this->protocolo.sendRegisterFailed("The user already exists.");
                 return false;
             }
         } else {

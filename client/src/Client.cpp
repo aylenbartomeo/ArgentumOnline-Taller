@@ -21,9 +21,9 @@ bool Client::authenticate(const std::string& action, const std::string& username
                           const std::string& password, std::string& errorMessage) {
     if (action == "login") {
         LoginDTO dto(username, password);
-        protocol.send_login(dto);
+        protocol.sendLogin(dto);
 
-        LoginResponseDTO response = protocol.recv_login_response();
+        LoginResponseDTO response = protocol.recvLoginResponse();
         if (response.success) {
             std::cout << "[CLIENT] Login successful. Entering the world...\n";
             this->clientId = response.clientId;
@@ -37,8 +37,8 @@ bool Client::authenticate(const std::string& action, const std::string& username
 
     } else if (action == "register") {
         RegisterDTO dto(username, password);
-        protocol.send_register(dto);
-        LoginResponseDTO response = protocol.recv_register_response();
+        protocol.sendRegister(dto);
+        LoginResponseDTO response = protocol.recvRegisterResponse();
         if (response.success) {
             std::cout << "[CLIENT] Registration successful. Entering the world...\n";
             this->clientId = response.clientId;
