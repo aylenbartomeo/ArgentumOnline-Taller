@@ -20,6 +20,7 @@ target_sources(argentum_online_server
 
     # Formulas
     include/FormulaEngine.cpp
+    include/LootResolver.cpp
 
     # Entities
     src/model/entities/Player.cpp
@@ -121,6 +122,7 @@ target_sources(argentum_online_server
     src/ConnectionMonitor.h
     src/GameLoop.h
     include/FormulaEngine.h
+    include/LootResolver.h
 
     src/Map.h
     src/model/map/GroundItemLayer.h

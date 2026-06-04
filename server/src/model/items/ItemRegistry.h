@@ -1,3 +1,4 @@
+#include <vector>
 #ifndef ITEMREGISTRY_H
 #define ITEMREGISTRY_H
 
@@ -54,6 +55,12 @@ public:
 
     // Determina si un ítem es apilable. Las armas y armaduras no lo son.
     bool isStackable(int item_id) const;
+
+    // Retorna los IDs de las pociones (Vida y Maná)
+    std::vector<int> getPotionIds() const;
+
+    // Retorna los IDs de todos los ítems dropeables (no incluye oro)
+    std::vector<int> getAllDroppableItemIds() const;
 };
 
 #endif  // ITEMREGISTRY_H
