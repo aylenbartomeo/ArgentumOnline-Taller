@@ -87,26 +87,31 @@ void ClanController::handleFoundClan(uint32_t senderDbId, uint16_t senderLevel,
 void ClanController::handleJoinRequest(uint32_t senderDbId, const std::string& clanName,
                                        const IWorldContext& worldCtx,
                                        std::vector<ClanNotification>& outNotifs) {
-    Clan* clan = service.getClanByName(clanName);
+    const Clan* clan = service.getClanByName(clanName);
     if (!clan) {
         outNotifs.push_back({senderDbId, "El clan '" + clanName + "' no existe."});
         return;
     }
 
-    if (clan->getBannedMembers().count(senderDbId) > 0) {
-        outNotifs.push_back(
-                {senderDbId, "Has sido baneado de este clan y no puedes enviar peticiones."});
+    ClanOpResult result = service.joinRequest(senderDbId, clanName);
+
+    if (result == ClanOpResult::PLAYER_BANNED) {
+        outNotifs.push_back({senderDbId, "Has sido baneado de este clan..."});
         return;
     }
-    if (service.getClanOfPlayer(senderDbId) != nullptr) {
+    if (result == ClanOpResult::ALREADY_IN_CLAN) {
         outNotifs.push_back({senderDbId, "Ya perteneces a un clan."});
         return;
     }
+    if (result == ClanOpResult::CLAN_FULL) {
+        outNotifs.push_back({senderDbId, "El clan está lleno."});
+        return;
+    }
 
-    clan->addPendingRequest(senderDbId);
+    if (result != ClanOpResult::OK)
+        return;
 
     std::string senderName = worldCtx.getPlayerUsername(senderDbId).value_or("Desconocido");
-
     outNotifs.push_back({senderDbId, "Petición de ingreso enviada a " + clanName + "."});
     outNotifs.push_back(
             {clan->getFounderDbId(), "Nuevo pedido de ingreso al clan de: " + senderName + "."});

@@ -75,7 +75,7 @@ protected:
     }
     void notifyJoinRequest(uint32_t player, const std::string& clan) {
         notifs.clear();
-        controller.handleJoinRequest(player, clan, notifs);
+        controller.handleJoinRequest(player, clan, mockCtx, notifs);
     }
     void notifyAccept(uint32_t founder, uint32_t target) {
         notifs.clear();
