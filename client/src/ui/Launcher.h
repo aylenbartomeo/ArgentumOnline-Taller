@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 
-#include "Client.h"
+#include "../core/Client.h"
 
 namespace Ui {
 class Form;

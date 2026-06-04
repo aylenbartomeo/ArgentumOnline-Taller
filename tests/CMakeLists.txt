@@ -61,15 +61,15 @@ target_sources(argentum_online_tests
     ../server/src/model/clan/ClanRepository.cpp
     ../server/src/model/clan/ClanService.cpp
     ../server/src/model/clan/ClanController.cpp
-    ../client/src/TileMap.cpp
+    ../client/src/rendering/TileMap.cpp
     TestHealthBar.cpp
-    ../client/src/HealthBar.cpp
+    ../client/src/ui/HealthBar.cpp
     TestViewport.cpp
-    ../client/src/Viewport.cpp
+    ../client/src/rendering/Viewport.cpp
     TestCharacterSprites.cpp
-    ../client/src/CharacterSprites.cpp
+    ../client/src/animation/CharacterSprites.cpp
     TestCharacterAnimator.cpp
-    ../client/src/CharacterAnimator.cpp
+    ../client/src/animation/CharacterAnimator.cpp
     TestEditorMap.cpp
     ../editor/EditorMap.cpp
     TestCamera.cpp

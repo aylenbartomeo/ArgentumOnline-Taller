@@ -1,6 +1,6 @@
 #include "Receiver.h"
 
-#include "Client.h"
+#include "../core/Client.h"
 
 Receiver::Receiver(Protocol& protocol, Client& client): protocol(protocol), client(client) {}
 

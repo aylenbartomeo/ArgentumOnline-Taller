@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "CharacterSprites.h"
+#include "../client/src/animation/CharacterSprites.h"
 
 TEST(CharacterSpritesTest, PlayerUsesBodyWithHead) {
     EntitySprite s = spriteForEntity(EntityType::PLAYER, 0);

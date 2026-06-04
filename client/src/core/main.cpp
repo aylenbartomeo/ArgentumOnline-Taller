@@ -2,9 +2,10 @@
 #include <iostream>
 #include <memory>
 
+#include "../ui/Launcher.h"
+
 #include "Client.h"
 #include "Game.h"
-#include "Launcher.h"
 
 int main(int argc, char* argv[]) try {
     std::unique_ptr<Client> activeClient = nullptr;
