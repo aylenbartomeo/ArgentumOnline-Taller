@@ -3,8 +3,7 @@
 #include "FormulaEngine.h"
 #include "RandomNumberGenerator.h"
 
-NpcLootResult LootResolver::resolveNpcLoot(uint16_t npcMaxLife,
-                                           const std::vector<int>& potionIds,
+NpcLootResult LootResolver::resolveNpcLoot(uint16_t npcMaxLife, const std::vector<int>& potionIds,
                                            const std::vector<int>& allDroppableItemIds) {
     NpcLootResult result;
     RandomNumberGenerator rng;

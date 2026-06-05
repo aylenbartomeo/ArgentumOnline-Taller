@@ -784,7 +784,7 @@ TEST(WorldTest, World_IntegratedSpawner_SpawnsMonsterWhenCooldownElapsed) {
 
     // 2. Sumamos otra actualización que logre rebasar el umbral (2000 + 3500 = 5500ms > 5000ms)
     mundo.update(3500.0f);
-    
+
     // Si el mapa tiene posiciones válidas libres y lee correctamente el toml, el conteo aumenta.
     EXPECT_EQ(mundo.getMonsterCount(), 1u);
 }
@@ -803,7 +803,7 @@ TEST(WorldTest, World_IntegratedSpawner_StopsWhenWorldRejectsSpawn) {
 
     // Disparamos un delta time lo suficientemente alto para gatillar el respawn (6000ms > 5000ms)
     mundo.update(6000.0f);
-    
+
     // Al fallar findValidSpawnPosition debido al mapa obstruido, trySpawnRandomMonster aborta de
     // manera segura, manteniendo el conteo de monstruos vivos en 0.
     EXPECT_EQ(mundo.getMonsterCount(), 0u);
