@@ -21,6 +21,10 @@ target_sources(argentum_online_tests
     TestNPCLayer.cpp
     TestPlayer.cpp
     TestConsumable.cpp
+    TestSpawnSystem.cpp
+    TestEntityManager.cpp
+    TestResurrectionService.cpp
+    TestInteractionService.cpp
     ../server/src/ConnectionMonitor.cpp
     ../server/src/GameLoop.cpp
     ../server/src/model/map/GroundItemLayer.cpp
@@ -35,6 +39,11 @@ target_sources(argentum_online_tests
     ../server/src/model/entities/Merchant.cpp
     ../server/src/model/entities/Priest.cpp
     ../server/src/model/entities/Banker.cpp
+    ../server/src/model/entities/EntityManager.cpp
+    ../server/src/model/systems/SpawnSystem.cpp
+    ../server/src/model/systems/ResurrectionService.cpp
+    ../server/src/model/systems/InteractionService.cpp
+    ../server/src/model/systems/CombatSystem.cpp
     ../server/src/model/entities/MonsterFactory.cpp
     ../server/src/model/components/StatsComponent.cpp
     ../server/src/model/components/InventoryComponent.cpp

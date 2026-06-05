@@ -29,6 +29,11 @@ target_sources(argentum_online_server
     src/model/entities/Merchant.cpp
     src/model/entities/Priest.cpp
     src/model/entities/Banker.cpp
+    src/model/entities/EntityManager.cpp
+    src/model/systems/SpawnSystem.cpp
+    src/model/systems/ResurrectionService.cpp
+    src/model/systems/InteractionService.cpp
+    src/model/systems/CombatSystem.cpp
 
     # Items
     src/model/items/Armor.cpp
@@ -91,6 +96,11 @@ target_sources(argentum_online_server
     src/model/entities/Merchant.h
     src/model/entities/Banker.h
     src/model/entities/GlobalBank.h
+    src/model/entities/EntityManager.h
+    src/model/systems/SpawnSystem.h
+    src/model/systems/ResurrectionService.h
+    src/model/systems/InteractionService.h
+    src/model/systems/CombatSystem.h
     src/model/components/StatsComponent.h
     src/model/components/InventoryComponent.h
     src/model/components/EquipmentComponent.h
