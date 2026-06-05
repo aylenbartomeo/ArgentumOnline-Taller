@@ -17,7 +17,6 @@
 class MiniChat {
 public:
     static constexpr int MAX_HISTORY = 100;
-    static constexpr int LINE_H = 15;
     static constexpr int FONT_SIZE = 12;
     static constexpr int PADDING = 4;
 
@@ -44,17 +43,13 @@ public:
 
 private:
     TTF_Font* font;
-    std::deque<std::string> history;  // historial de mensajes recientes
+    std::deque<std::string> history;
 
     int panelW = 300;
     int panelH = 112;
     int scrollOffset = 0;
     bool visible = true;
     bool isResizing = false;
-
-    // Dibuja una línea de texto con fondo semi-transparente
-    void renderLine(SDL_Renderer* renderer, const std::string& text, int x, int y, int maxW,
-                    SDL_Color color);
 };
 
 #endif  // MINI_CHAT_H

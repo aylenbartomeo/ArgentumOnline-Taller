@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <vector>
 
 MiniChat::MiniChat(const std::string& fontPath): font(nullptr) {
     if (TTF_WasInit() == 0) {
@@ -34,8 +35,7 @@ void MiniChat::update(const FrameInput& input, int windowH) {
         visible = !visible;
     }
 
-    // Forzamos visibilidad si se empieza a escribir
-    if (input.chatInputActive) {
+    if (input.chatInputActive && !visible) {
         visible = true;
     }
 
@@ -49,18 +49,12 @@ void MiniChat::update(const FrameInput& input, int windowH) {
 
     // SCROLL
     if (input.mouseScroll != 0 && isMouseOver(input.mouseX, input.mouseY, windowH)) {
-        scrollOffset += input.mouseScroll * 2;  // Multiplicador de velocidad
+        scrollOffset += input.mouseScroll * 3;
         if (scrollOffset < 0)
             scrollOffset = 0;
-
-        int maxVisibleLines = (panelH - LINE_H - PADDING * 3) / LINE_H;
-        int maxScroll = std::max(0, static_cast<int>(history.size()) - maxVisibleLines);
-        if (scrollOffset > maxScroll)
-            scrollOffset = maxScroll;
     }
 
-    // RESIZE (esquina superior derecha)
-    const int handleSize = 15;
+    const int handleSize = 16;
     SDL_Rect resizeHandle = {panelX + panelW - handleSize, panelY, handleSize, handleSize};
     bool mouseOnHandle =
             (input.mouseX >= resizeHandle.x && input.mouseX <= resizeHandle.x + resizeHandle.w &&
@@ -77,7 +71,7 @@ void MiniChat::update(const FrameInput& input, int windowH) {
         panelW = input.mouseX - panelX;
         panelH = windowH - input.mouseY - PADDING;
 
-        // Limites para que no se rompa la UI
+        // Límites
         if (panelW < 200)
             panelW = 200;
         if (panelW > 800)
@@ -86,12 +80,6 @@ void MiniChat::update(const FrameInput& input, int windowH) {
             panelH = 80;
         if (panelH > 600)
             panelH = 600;
-
-        // Ajustar el scroll por si la ventana se hizo más grande y muestra todo
-        int maxVisibleLines = (panelH - LINE_H - PADDING * 3) / LINE_H;
-        int maxScroll = std::max(0, static_cast<int>(history.size()) - maxVisibleLines);
-        if (scrollOffset > maxScroll)
-            scrollOffset = maxScroll;
     }
 }
 
@@ -103,84 +91,140 @@ bool MiniChat::isMouseOver(int mx, int my, int windowH) const {
     return mx >= px && mx <= px + panelW && my >= py && my <= py + panelH;
 }
 
-void MiniChat::renderLine(SDL_Renderer* renderer, const std::string& text, int x, int y, int maxW,
-                          SDL_Color color) {
-    if (text.empty())
-        return;
-    SDL_Surface* surface = TTF_RenderUTF8_Blended(font, text.c_str(), color);
-    if (!surface)
-        return;
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    if (!texture)
-        return;
-
-    int w, h;
-    SDL_QueryTexture(texture, nullptr, nullptr, &w, &h);
-    if (w > maxW)
-        w = maxW;  // Ajusta visualmente el ancho de texto
-
-    SDL_Rect dst = {x, y, w, h};
-    SDL_RenderCopy(renderer, texture, nullptr, &dst);
-    SDL_DestroyTexture(texture);
-}
-
 void MiniChat::render(SDL_Renderer* renderer, int windowW, int windowH, bool inputActive,
                       const std::string& inputText) {
     (void)windowW;
+    if (!visible)
+        return;
     const int panelX = PADDING;
     const int panelY = windowH - panelH - PADDING;
 
-    // Fondo semi-transparente
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 140);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 160);
     SDL_Rect bg = {panelX, panelY, panelW, panelH};
     SDL_RenderFillRect(renderer, &bg);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 
-    // Botón / Handle para Resize
-    SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255);
-    SDL_Rect handle = {panelX + panelW - 10, panelY + 2, 8, 8};
-    SDL_RenderFillRect(renderer, &handle);
+    SDL_Rect oldClip;
+    SDL_RenderGetClipRect(renderer, &oldClip);
+    SDL_Rect chatClip = {panelX, panelY, panelW, panelH};
+    SDL_RenderSetClipRect(renderer, &chatClip);
 
-    // Calcular renderizado
-    int sepY = panelY + panelH - LINE_H - PADDING * 2;
-    int maxVisibleLines = (panelH - LINE_H - PADDING * 3) / LINE_H;
-    int totalLines = static_cast<int>(history.size());
+    int textAreaW = panelW - PADDING * 3 - 10;
 
-    int startIdx = totalLines - maxVisibleLines - scrollOffset;
-    if (startIdx < 0)
-        startIdx = 0;
-    int endIdx = startIdx + maxVisibleLines;
-    if (endIdx > totalLines)
-        endIdx = totalLines;
+    // Renderizar input
+    std::string inputLine = inputActive ? ("> " + inputText + "_") : "> [Enter/F2]";
+    const SDL_Color inputColor =
+            inputActive ? SDL_Color{255, 220, 50, 255} : SDL_Color{160, 160, 160, 255};
 
-    // Dibujar historial
-    int lineY = panelY + PADDING;
-    int textAreaW = panelW - PADDING * 2;
-    for (int i = startIdx; i < endIdx; ++i) {
+    SDL_Surface* inpSurf =
+            TTF_RenderUTF8_Blended_Wrapped(font, inputLine.c_str(), inputColor, textAreaW);
+    int inpW = 0, inpH = 0;
+    SDL_Texture* inpTex = nullptr;
+    if (inpSurf) {
+        inpW = inpSurf->w;
+        inpH = inpSurf->h;
+        inpTex = SDL_CreateTextureFromSurface(renderer, inpSurf);
+        SDL_FreeSurface(inpSurf);
+    }
+
+    int bottomY = panelY + panelH - inpH - PADDING;
+
+    // Renderizar historial
+    int currentY = bottomY - PADDING;
+    int totalMsgs = history.size();
+    int renderedMsgs = 0;
+
+    int startIdx = totalMsgs - 1 - scrollOffset;
+    if (startIdx >= totalMsgs)
+        startIdx = totalMsgs - 1;
+
+    std::vector<SDL_Rect> destRects;
+    std::vector<SDL_Texture*> textures;
+
+    for (int i = startIdx; i >= 0; --i) {
         const std::string& line = history[i];
+        if (line.empty())
+            continue;
+
         SDL_Color col = {255, 255, 255, 255};
         if (line.rfind("[Daño]", 0) == 0)
             col = {255, 220, 50, 255};
-        if (line.rfind("[Recv]", 0) == 0)
+        else if (line.rfind("[Recv]", 0) == 0)
             col = {255, 100, 100, 255};
-        if (line.rfind("[PM]", 0) == 0)
+        else if (line.rfind("[PM]", 0) == 0)
             col = {80, 220, 255, 255};
-        if (line.rfind("[Clan]", 0) == 0)
+        else if (line.rfind("[Clan]", 0) == 0)
             col = {150, 255, 150, 255};
-        renderLine(renderer, line, panelX + PADDING, lineY, textAreaW, col);
-        lineY += LINE_H;
+
+        SDL_Surface* surf = TTF_RenderUTF8_Blended_Wrapped(font, line.c_str(), col, textAreaW);
+        if (surf) {
+            SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
+            int w = surf->w;
+            int h = surf->h;
+            SDL_FreeSurface(surf);
+
+            currentY -= (h + 2);
+
+            if (tex) {
+                textures.push_back(tex);
+                destRects.push_back({panelX + PADDING, currentY, w, h});
+            }
+            renderedMsgs++;
+
+            if (currentY < panelY + PADDING) {
+                break;
+            }
+        }
+    }
+
+    int maxScroll = std::max(0, totalMsgs - renderedMsgs);
+    if (scrollOffset > maxScroll)
+        scrollOffset = maxScroll;
+
+    for (int i = textures.size() - 1; i >= 0; --i) {
+        SDL_RenderCopy(renderer, textures[i], nullptr, &destRects[i]);
+        SDL_DestroyTexture(textures[i]);
+    }
+
+    int scrollTrackX = panelX + panelW - 10;
+    int scrollTrackY = panelY + PADDING;
+    int scrollTrackH = bottomY - panelY - PADDING * 2;
+
+    SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
+    SDL_Rect trackRect = {scrollTrackX, scrollTrackY, 6, scrollTrackH};
+    SDL_RenderFillRect(renderer, &trackRect);
+
+    if (totalMsgs > 0) {
+        float visibleRatio = std::min(1.0f, (float)renderedMsgs / totalMsgs);
+        int thumbH = std::max(15, (int)(scrollTrackH * visibleRatio));
+
+        float scrollPct = maxScroll > 0 ? (float)scrollOffset / maxScroll : 0.0f;
+        int thumbY = scrollTrackY + (scrollTrackH - thumbH) * (1.0f - scrollPct);
+
+        SDL_SetRenderDrawColor(renderer, 180, 180, 180, 255);
+        SDL_Rect thumbRect = {scrollTrackX, thumbY, 6, thumbH};
+        SDL_RenderFillRect(renderer, &thumbRect);
     }
 
     // Separador
     SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
-    SDL_RenderDrawLine(renderer, panelX, sepY, panelX + panelW, sepY);
+    SDL_RenderDrawLine(renderer, panelX, bottomY, panelX + panelW, bottomY);
 
-    // Input del jugador
-    std::string inputLine = inputActive ? ("> " + inputText + "_") : "> [Enter/F2]";
-    const SDL_Color inputColor =
-            inputActive ? SDL_Color{255, 220, 50, 255} : SDL_Color{160, 160, 160, 255};
-    renderLine(renderer, inputLine, panelX + PADDING, panelY + panelH - LINE_H - PADDING, textAreaW,
-               inputColor);
+    if (inpTex) {
+        SDL_Rect inpDest = {panelX + PADDING, bottomY + PADDING / 2, inpW, inpH};
+        SDL_RenderCopy(renderer, inpTex, nullptr, &inpDest);
+        SDL_DestroyTexture(inpTex);
+    }
+
+    const int handleSize = 16;
+    SDL_SetRenderDrawColor(renderer, 180, 180, 180, 255);
+    SDL_Rect handleRect = {panelX + panelW - handleSize, panelY, handleSize, handleSize};
+    SDL_RenderFillRect(renderer, &handleRect);
+
+    if (SDL_RectEmpty(&oldClip)) {
+        SDL_RenderSetClipRect(renderer, nullptr);
+    } else {
+        SDL_RenderSetClipRect(renderer, &oldClip);
+    }
 }
