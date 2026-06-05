@@ -29,6 +29,7 @@ target_sources(argentum_online_tests
     ../server/src/model/map/CollisionLayer.cpp
     ../server/src/Map.cpp
     ../server/src/World.cpp
+    ../server/src/model/events/EventPublisher.cpp
     ../server/src/model/entities/Player.cpp
     ../server/src/model/entities/Monster.cpp
     ../server/src/model/entities/Merchant.cpp

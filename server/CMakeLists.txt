@@ -60,6 +60,7 @@ target_sources(argentum_online_server
     src/model/map/CollisionLayer.cpp
     src/Map.cpp
     src/World.cpp
+    src/model/events/EventPublisher.cpp
 
     # Clan
     src/model/clan/ClanRepository.cpp
