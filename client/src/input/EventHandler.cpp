@@ -8,39 +8,57 @@ FrameInput EventHandler::pollEvents() {
     int attackX = 0;
     int attackY = 0;
     bool resurrectThisFrame = false;
+    bool toggleChatThisFrame = false;
+    int scrollThisFrame = 0;
+    bool mouseLeftJustPressedThisFrame = false;
+
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             quitRequested = true;
 
+        } else if (event.type == SDL_MOUSEMOTION) {
+            currentMouseX = event.motion.x;
+            currentMouseY = event.motion.y;
+
+        } else if (event.type == SDL_MOUSEWHEEL) {
+            scrollThisFrame = event.wheel.y;
+
+        } else if (event.type == SDL_MOUSEBUTTONDOWN) {
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                mouseLeftHeld = true;
+                mouseLeftJustPressedThisFrame = true;
+                if (!inputActive) {
+                    attackThisFrame = true;
+                    attackX = event.button.x;
+                    attackY = event.button.y;
+                }
+            }
         } else if (event.type == SDL_KEYDOWN) {
             const SDL_Keycode key = event.key.keysym.sym;
+            if (key == SDLK_F2 && event.key.repeat == 0) {
+                toggleChatThisFrame = true;
+            }
 
             if (inputActive) {
                 if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
-                    // El jugador confirmó el mensaje: salir de modo escritura
                     inputActive = false;
                     SDL_StopTextInput();
                 } else if (key == SDLK_BACKSPACE && !inputBuffer.empty()) {
-                    // Borrar último carácter
                     inputBuffer.pop_back();
                 } else if (key == SDLK_ESCAPE) {
-                    // Cancelar sin enviar
                     inputBuffer.clear();
                     inputActive = false;
                     SDL_StopTextInput();
                 }
-                // Mientras se escribe no se procesan movimientos
             } else {
                 if (key == SDLK_ESCAPE) {
                     quitRequested = true;
                 } else if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
-                    // Activar modo escritura
                     inputActive = true;
                     SDL_StartTextInput();
                 } else if (key == SDLK_r) {
-                    if (event.key.repeat == 0) {
+                    if (event.key.repeat == 0)
                         resurrectThisFrame = true;
-                    }
                 }
                 pressedKeys.insert(key);
                 justPressedKeys.insert(key);
@@ -50,13 +68,6 @@ FrameInput EventHandler::pollEvents() {
         } else if (event.type == SDL_KEYUP) {
             pressedKeys.erase(event.key.keysym.sym);
 
-        } else if (event.type == SDL_MOUSEBUTTONDOWN) {
-            if (event.button.button == SDL_BUTTON_LEFT && !inputActive) {
-                attackThisFrame = true;
-                attackX = event.button.x;
-                attackY = event.button.y;
-            }
-
         } else if (event.type == SDL_TEXTINPUT && inputActive) {
             inputBuffer += event.text.text;
         }
@@ -64,6 +75,14 @@ FrameInput EventHandler::pollEvents() {
 
     FrameInput input;
     input.quit = quitRequested;
+
+    // Inyectar datos del ratón / chat
+    input.toggleChat = toggleChatThisFrame;
+    input.mouseScroll = scrollThisFrame;
+    input.mouseX = currentMouseX;
+    input.mouseY = currentMouseY;
+    input.mouseLeftHeld = mouseLeftHeld;
+    input.mouseLeftJustPressed = mouseLeftJustPressedThisFrame;
 
     if (inputActive) {
         // Mientras escribe, bloquear movimiento
