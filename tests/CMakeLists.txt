@@ -37,6 +37,7 @@ target_sources(argentum_online_tests
     TestDeath.cpp
     TestTargeting.cpp
     TestFxAnimator.cpp
+    TestMotion.cpp
     TestEditorMap.cpp
     TestCamera.cpp
     TestPalette.cpp
@@ -52,6 +53,7 @@ target_sources(argentum_online_tests
     ../client/src/animation/CharacterAnimator.cpp
     ../client/src/animation/Death.cpp
     ../client/src/animation/FxAnimator.cpp
+    ../client/src/animation/Motion.cpp
     ../client/src/core/Targeting.cpp
     ../editor/EditorMap.cpp
     ../editor/Camera.cpp

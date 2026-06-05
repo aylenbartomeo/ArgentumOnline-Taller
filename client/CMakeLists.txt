@@ -28,6 +28,7 @@ target_sources(argentum_online_client
     src/animation/CharacterSprites.cpp
     src/animation/Death.cpp
     src/animation/FxAnimator.cpp
+    src/animation/Motion.cpp
 
     # input
     src/input/EventHandler.cpp
@@ -61,6 +62,7 @@ target_sources(argentum_online_client
     src/animation/CharacterSprites.h
     src/animation/Death.h
     src/animation/FxAnimator.h
+    src/animation/Motion.h
 
     # input
     src/input/EventHandler.h
