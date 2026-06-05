@@ -9,8 +9,8 @@ protected:
     static constexpr int SAFE_GOLD = 5000;
     static constexpr int MAX_GOLD = 10000;
 
-    InventoryConfig cfg{SLOTS, MAX_GOLD};
-    InventoryComponent inv{cfg, SAFE_GOLD};
+    InventoryConfig cfg{SLOTS, 0, MAX_GOLD, SAFE_GOLD};
+    InventoryComponent inv{cfg};
 };
 
 // ============================================================================

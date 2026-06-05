@@ -74,9 +74,9 @@ void ChatCommandParser::registerHandlers() {
     };
 }
 
-CommandVariant ChatCommandParser::parse(const std::string& text) const {
+std::optional<CommandVariant> ChatCommandParser::parse(const std::string& text) const {
     if (text.empty()) {
-        return ChatDTO{""};
+        return std::nullopt;
     }
 
     // 1. Mensaje privado: @nick mensaje
@@ -90,6 +90,7 @@ CommandVariant ChatCommandParser::parse(const std::string& text) const {
                 return dto;
             }
         }
+        return std::nullopt;
     }
 
     // 2. ¿Empieza con '/'? -> buscar comando
@@ -102,6 +103,7 @@ CommandVariant ChatCommandParser::parse(const std::string& text) const {
         if (it != handlers.end()) {
             return it->second(args);
         }
+        return std::nullopt;
     }
 
     // 3. Texto libre -> chat general

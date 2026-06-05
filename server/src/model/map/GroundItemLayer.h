@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../../persistence/WorldPersistData.h"
+
 #include "position.h"
 
 // Representa un stack de items en una posición del suelo.
@@ -38,6 +40,9 @@ public:
 
     // Para generar snapshots — Map lo usa internamente
     const std::unordered_map<Position, GroundItem, PositionHash>& getAllItems() const;
+
+    std::vector<GroundItemPersistData> toPersistData() const;
+    void fromPersistData(const std::vector<GroundItemPersistData>& data);
 
     void clear();
 };

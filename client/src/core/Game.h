@@ -8,17 +8,17 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
+#include "../animation/CharacterAnimator.h"
+#include "../input/ChatCommandParser.h"
+#include "../input/EventHandler.h"
+#include "../rendering/TextureManager.h"
+#include "../rendering/TileMap.h"
+#include "../rendering/Viewport.h"
+#include "../ui/MiniChat.h"
+#include "../ui/Window.h"
 #include "common/include/dto/Snapshot.h"
 
-#include "CharacterAnimator.h"
-#include "ChatCommandParser.h"
 #include "Client.h"
-#include "EventHandler.h"
-#include "MiniChat.h"
-#include "TextureManager.h"
-#include "TileMap.h"
-#include "Viewport.h"
-#include "Window.h"
 
 class Game {
 private:
@@ -68,6 +68,9 @@ private:
     // Procesa el input del chat: si se confirmó un mensaje, lo envía al servidor y limpia el
     // buffer.
     void processChatInput(const FrameInput& input);
+
+    // Procesa los inputs relacionados a comandos de trampa (cheats)
+    void processCheats(const FrameInput& input);
 
     // Drena los mensajes de chat entrantes del servidor y los muestra en el MiniChat.
     void drainIncomingChat();

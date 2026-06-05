@@ -54,6 +54,10 @@ std::pair<float, float> Map::getInitialPosition() { return this->spawn_point; }
 void Map::setSpawnPoint(float x, float y) { this->spawn_point = {x, y}; }
 
 bool Map::loadSpawnFromJson(const std::string& path) {
+    return loadSpawnFromJson(path, MapLoadOptions{});
+}
+
+bool Map::loadSpawnFromJson(const std::string& path, const MapLoadOptions& options) {
     std::ifstream file(path);
     if (!file) {
         return false;
@@ -101,7 +105,7 @@ bool Map::loadSpawnFromJson(const std::string& path) {
         }
     }
 
-    if (data.contains("monsters")) {
+    if (options.spawnMonsters && data.contains("monsters")) {
         for (const auto& monster: data["monsters"]) {
             std::string typeStr = monster["type"].get<std::string>();
             std::optional<NPCType> type;
@@ -136,7 +140,7 @@ bool Map::loadSpawnFromJson(const std::string& path) {
         generate_collision_grid();
     }
 
-    if (data.contains("items")) {
+    if (options.spawnGroundItems && data.contains("items")) {
         for (const auto& item: data["items"]) {
             int id = item["id"].get<int>();
             int x = item["x"].get<int>();
@@ -231,6 +235,14 @@ bool Map::hasItemAt(const Position& pos) const { return groundItems.hasItemAt(po
 std::vector<std::pair<Position, GroundItem>> Map::getGroundItemsSnapshot() const {
     const auto& items = groundItems.getAllItems();
     return std::vector<std::pair<Position, GroundItem>>(items.begin(), items.end());
+}
+
+std::vector<GroundItemPersistData> Map::getGroundItemsPersistData() const {
+    return groundItems.toPersistData();
+}
+
+void Map::restoreGroundItems(const std::vector<GroundItemPersistData>& data) {
+    groundItems.fromPersistData(data);
 }
 
 void Map::addSafeZone(const std::string& name, int x, int y, int w, int h) {

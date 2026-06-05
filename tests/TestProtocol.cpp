@@ -21,7 +21,7 @@ TEST(ProtocolTest, LoginSerializationIsSymmetric) {
     Protocol server_protocol(server_skt);
 
     // El cliente envia
-    client_protocol.send_login(original_dto);
+    client_protocol.sendLogin(original_dto);
 
     // El servidor recibe y procesa el OpCode automáticamente
     CommandVariant received_cmd = server_protocol.receive_command();
@@ -47,7 +47,7 @@ TEST(ProtocolTest, StartMoveSerializationIsSymmetric) {
     Protocol server_protocol(server_skt);
 
     // Enviamos usando el struct nuevo
-    client_protocol.send_start_move(original_dto);
+    client_protocol.sendStartMove(original_dto);
 
     CommandVariant received_cmd = server_protocol.receive_command();
 
@@ -71,7 +71,7 @@ TEST(ProtocolTest, DropItemSerializationIsSymmetric) {
     Protocol client_protocol(client_skt);
     Protocol server_protocol(server_skt);
 
-    client_protocol.send_drop_item(original_dto);
+    client_protocol.sendDropItem(original_dto);
 
     CommandVariant received_cmd = server_protocol.receive_command();
 
@@ -92,7 +92,7 @@ TEST(ProtocolTest, StopMoveSerializationIsSymmetric) {
     Protocol server_protocol(server_skt);
 
     // El cliente envía el comando STOP_MOVE y el servidor lee del socket y reconstruye el comando
-    client_protocol.send_stop_move();
+    client_protocol.sendStopMove();
     CommandVariant received_cmd = server_protocol.receive_command();
 
     // Se verifica que lo recibido sea efectivamente un StopMoveDTO
@@ -109,7 +109,7 @@ TEST(ProtocolTest, AttackSerializationIsSymmetric) {
     Protocol server_protocol(server_skt);
 
     uint32_t expected_target = 123456;
-    client_protocol.send_attack(expected_target);
+    client_protocol.sendAttack(expected_target);
 
     CommandVariant received_cmd = server_protocol.receive_command();
 
@@ -130,7 +130,7 @@ TEST(ProtocolTest, EquipItemSerializationIsSymmetric) {
     Protocol client_protocol(client_skt);
     Protocol server_protocol(server_skt);
 
-    client_protocol.send_equip_item(original_dto);
+    client_protocol.sendEquipItem(original_dto);
 
     CommandVariant received_cmd = server_protocol.receive_command();
 
@@ -153,7 +153,7 @@ TEST(ProtocolTest, UseItemSerializationIsSymmetric) {
     Protocol client_protocol(client_skt);
     Protocol server_protocol(server_skt);
 
-    client_protocol.send_use_item(original_dto);
+    client_protocol.sendUseItem(original_dto);
 
     CommandVariant received_cmd = server_protocol.receive_command();
 
@@ -171,7 +171,7 @@ TEST(ProtocolTest, GrabItemSerializationIsSymmetric) {
     Protocol client_protocol(client_skt);
     Protocol server_protocol(server_skt);
 
-    client_protocol.send_grab_item();
+    client_protocol.sendGrabItem();
 
     CommandVariant received_cmd = server_protocol.receive_command();
 
@@ -190,7 +190,7 @@ TEST(ProtocolTest, ChatSerializationIsSymmetric) {
     Protocol client_protocol(client_skt);
     Protocol server_protocol(server_skt);
 
-    client_protocol.send_chat(original_dto);
+    client_protocol.sendChat(original_dto);
 
     CommandVariant received_cmd = server_protocol.receive_command();  // Recepción y parseo
 
@@ -233,12 +233,12 @@ TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
     Protocol server_protocol(server_skt);
 
     // ACT: El SERVIDOR envía
-    server_protocol.send_snapshot(original_snap);
+    server_protocol.sendSnapshot(original_snap);
 
     // ACT: El CLIENTE recibe
     uint8_t opcode = client_protocol.recv_opcode();
     EXPECT_EQ(opcode, static_cast<uint8_t>(OPCODE::SNAPSHOT));
-    SnapshotDTO received_snap = client_protocol.receive_snapshot_body();
+    SnapshotDTO received_snap = client_protocol.receiveSnapshotBody();
 
     // ASSERT: Validamos
     ASSERT_EQ(received_snap.players.size(), 1u);
@@ -263,10 +263,10 @@ TEST(ProtocolTest, LoginResponseSuccessIsSymmetric) {
     uint32_t expected_client_id = 42;
 
     // SERVER envia respuesta de exito
-    server_protocol.send_login_success(expected_client_id);
+    server_protocol.sendLoginSuccess(expected_client_id);
 
     // CLIENT recibe y procesa respuesta
-    LoginResponseDTO response = client_protocol.recv_login_response();
+    LoginResponseDTO response = client_protocol.recvLoginResponse();
 
     // Validamos que la respuesta indique exito y tenga el ID correcto
     EXPECT_TRUE(response.success);
@@ -285,10 +285,10 @@ TEST(ProtocolTest, LoginResponseFailureIsSymmetric) {
     std::string expected_error = "Usuario o contraseña incorrecta";
 
     // SERVER rechaza login y envia un error
-    server_protocol.send_login_failed(expected_error);
+    server_protocol.sendLoginFailed(expected_error);
 
     // CLIENT recibe y procesa la respuesta
-    LoginResponseDTO response = client_protocol.recv_login_response();
+    LoginResponseDTO response = client_protocol.recvLoginResponse();
 
     // Validamos que la respuesta indique fallo y traiga el mensaje correcto
     EXPECT_FALSE(response.success);

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "FxAnimator.h"
+#include "../client/src/animation/FxAnimator.h"
 
 TEST(FxAnimatorTest, FirstFrameAtStart) {
     EXPECT_EQ(fxFrameIndex(0, 60, 5), 0);

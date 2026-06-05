@@ -2,6 +2,7 @@
 #define CHAT_COMMAND_PARSER_H
 
 #include <functional>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -11,8 +12,8 @@ class ChatCommandParser {
 public:
     ChatCommandParser();
 
-    // Parsea el texto del chat y devuelve el comando adecuado
-    CommandVariant parse(const std::string& text) const;
+    // Parsea el texto del chat y devuelve el comando adecuado (o nullopt si es inválido)
+    std::optional<CommandVariant> parse(const std::string& text) const;
 
 private:
     using CommandHandler = std::function<CommandVariant(const std::string& args)>;

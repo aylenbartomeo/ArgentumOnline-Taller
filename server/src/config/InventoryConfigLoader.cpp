@@ -53,5 +53,11 @@ InventoryConfig InventoryConfigLoader::loadInventoryConfig(
     const toml::table config = parseConfigFile(configPath);
     const toml::table& inventoryTable = requiredTable(config, "inventory");
 
-    return InventoryConfig{requiredUInt8(inventoryTable, "max_slots")};
+    uint8_t maxSlots = requiredUInt8(inventoryTable, "max_slots");
+    uint32_t gold = static_cast<uint32_t>(requiredInt(inventoryTable, "gold"));
+    uint32_t maxGold = static_cast<uint32_t>(requiredInt(inventoryTable, "max_gold"));
+    uint32_t initialSafeGold =
+            static_cast<uint32_t>(requiredInt(inventoryTable, "initial_safe_gold"));
+
+    return InventoryConfig{maxSlots, gold, maxGold, initialSafeGold};
 }

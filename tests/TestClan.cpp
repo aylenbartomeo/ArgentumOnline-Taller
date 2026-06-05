@@ -22,12 +22,23 @@ static CharacterConfigs getTestConfigs() {
     return CharacterConfigs{base, {{Race::HUMAN, human}}, {{CharacterClass::WARRIOR, warrior}}};
 }
 
+static InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
+
+struct MockWorldContext: public IWorldContext {
+    uint16_t getPlayerLevel(uint32_t) const override { return 10; }
+    uint32_t resolveNickToDbId(const std::string&) const override { return 0; }
+    std::optional<std::string> getPlayerUsername(uint32_t dbId) const override {
+        return "Player_" + std::to_string(dbId);
+    }
+};
+
 class ClanSystemTest: public ::testing::Test {
 protected:
     ClanRepository repo;
     ClanService service;
     ClanController controller;
     std::vector<ClanNotification> notifs;
+    MockWorldContext mockCtx;
 
     ClanSystemTest(): service(repo, 1), controller(service) {}
 
@@ -64,7 +75,7 @@ protected:
     }
     void notifyJoinRequest(uint32_t player, const std::string& clan) {
         notifs.clear();
-        controller.handleJoinRequest(player, clan, notifs);
+        controller.handleJoinRequest(player, clan, mockCtx, notifs);
     }
     void notifyAccept(uint32_t founder, uint32_t target) {
         notifs.clear();
@@ -144,7 +155,7 @@ TEST_F(ClanSystemTest, JoinRequest_OK) {
     EXPECT_EQ(joinRequest(2, "Alpha"), ClanOpResult::OK);
 
     notifyJoinRequest(2, "Alpha");
-    EXPECT_TRUE(hasNotifFor(2, "Solicitud enviada"));
+    EXPECT_TRUE(hasNotifFor(2, "Petición de ingreso"));
     EXPECT_TRUE(hasNotifFor(1, "pedido de ingreso"));
 }
 
@@ -152,7 +163,7 @@ TEST_F(ClanSystemTest, JoinRequest_ClanNotFound) {
     EXPECT_EQ(joinRequest(2, "Inexistente"), ClanOpResult::CLAN_NOT_FOUND);
 
     notifyJoinRequest(2, "Inexistente");
-    EXPECT_TRUE(hasNotifFor(2, "No existe"));
+    EXPECT_TRUE(hasNotifFor(2, "no existe"));
 }
 
 TEST_F(ClanSystemTest, JoinRequest_AlreadyInClan) {
@@ -290,9 +301,9 @@ TEST_F(ClanSystemTest, ReviewClan_ContainsMemberList) {
     accept(1, 2);
 
     notifs.clear();
-    controller.handleReviewClan(1, notifs);
+    controller.handleReviewClan(1, mockCtx, notifs);
     EXPECT_TRUE(hasNotifFor(1, "Alpha"));
-    EXPECT_TRUE(hasNotifFor(1, "Fundador"));
+    EXPECT_TRUE(hasNotifFor(1, "Líder"));
 }
 
 TEST_F(ClanSystemTest, ReviewClan_ShowsPendingRequests) {
@@ -300,7 +311,7 @@ TEST_F(ClanSystemTest, ReviewClan_ShowsPendingRequests) {
     joinRequest(2, "Alpha");
 
     notifs.clear();
-    controller.handleReviewClan(1, notifs);
+    controller.handleReviewClan(1, mockCtx, notifs);
     EXPECT_TRUE(hasNotifFor(1, std::to_string(2)));  // ID de la solicitud pendiente
 }
 
@@ -310,7 +321,7 @@ TEST_F(ClanSystemTest, ReviewClan_OnlyFounderCanReview) {
     accept(1, 2);
 
     notifs.clear();
-    controller.handleReviewClan(2, notifs);
+    controller.handleReviewClan(2, mockCtx, notifs);
     EXPECT_TRUE(hasNotifFor(2, "Solo el fundador"));
 }
 
@@ -327,7 +338,7 @@ protected:
 
         registry = new ItemRegistry("../config/items.toml");
         CharacterConfigs configs = getTestConfigs();
-        world = new World(1, "Tester", *registry, configs);
+        world = new World(1, "Tester", *registry, configs, getTestInventoryConfig());
 
         // Desactivamos el Fair Play (Modo Arena) y bajamos el nivel de clan a 1 para los tests
         world->setFairPlayRules(false);
@@ -505,7 +516,8 @@ TEST_F(WorldClanTest, World_ProcessClanCommand_FounderCannotLeave) {
 TEST(ClanGameLoopTest, GameLoop_ProcessesClanFoundCommand) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
-    GameLoop loop(gameQueue, monitor, "../config");
+    WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
+    GameLoop loop(gameQueue, monitor, "../config", wConfig);
     // Jugador ingresa
     JoinEvent join;
     join.clientId = 1;
@@ -535,7 +547,8 @@ TEST(ClanGameLoopTest, GameLoop_ProcessesClanFoundCommand) {
 TEST(ClanGameLoopTest, GameLoop_ProcessesClanJoinAndAccept) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
-    GameLoop loop(gameQueue, monitor, "../config");
+    WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
+    GameLoop loop(gameQueue, monitor, "../config", wConfig);
 
     // Dos jugadores ingresan
     auto pushJoin = [&](uint32_t id, const std::string& name) {

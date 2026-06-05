@@ -2,21 +2,43 @@
 
 #include <iostream>
 #include <variant>
+#include <vector>
 
 #include "../include/ServerEvents.h"
+#include "config/MonsterConfigLoader.h"
 #include "dto/ClanCommandDTO.h"
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
-                   const std::filesystem::path& configDir, const std::string& persistenceDir):
+                   const std::filesystem::path& configDir, const WorldConfig& wConfig):
         isRunning(true),
         gameQueue(gameQueue),
         monitor(monitor),
         itemRegistry(configDir / "items.toml"),
-        playerDataStore(persistenceDir),
+        playerDataStore(wConfig.worldDir),
         characterConfigs(
                 CharacterConfigLoader::loadCharacterConfigs(configDir / "characters.toml")),
-        world(1, "Server", itemRegistry, characterConfigs) {
-    world.loadMap("maps/defaultMap.json");
+        inventoryConfig(InventoryConfigLoader::loadInventoryConfig(configDir / "inventory.toml")),
+        worldConfig(wConfig),
+        worldDataStore("worlds/"),
+        world(wConfig.worldId, wConfig.worldName, itemRegistry, characterConfigs, inventoryConfig) {
+    if (worldConfig.isNewWorld) {
+        world.loadMap(worldConfig.baseMapPath, true);
+    } else {
+        world.loadMap(worldConfig.baseMapPath, false);
+        MonsterConfigs mConfigs;
+        try {
+            mConfigs = MonsterConfigLoader::loadMonsterConfigs("config/monsters.toml");
+        } catch (...) {}
+        world.restoreMonsters(worldDataStore.loadMonsters(worldConfig.worldId), mConfigs);
+        world.restoreGroundItems(worldDataStore.loadGroundItems(worldConfig.worldId));
+
+        auto [clanHeaders, clanMembers, clanPending, clanBanned] =
+                worldDataStore.loadClans(worldConfig.worldId);
+        world.restoreClans({clanHeaders, clanMembers, clanPending, clanBanned});
+
+        auto [bankHeaders, bankSlots] = worldDataStore.loadBankAccounts(worldConfig.worldId);
+        world.restoreBank({bankHeaders, bankSlots});
+    }
 }
 
 void GameLoop::run() {
@@ -36,7 +58,7 @@ void GameLoop::run() {
 
             timeSinceLastSave += MS_PER_FRAME / 1000.0f;
             if (timeSinceLastSave >= SAVE_INTERVAL_SECONDS) {
-                persistOnlinePlayers();
+                persistWorldState();
                 timeSinceLastSave = 0.0f;
             }
 
@@ -49,7 +71,10 @@ void GameLoop::run() {
                 std::this_thread::sleep_for(std::chrono::milliseconds(MS_PER_FRAME - elapsed));
             }
         }
+        persistWorldState();  // Guardado final al salir
     } catch (const std::exception& e) {
+        std::cerr << "[GAMELOOP] Error: " << e.what() << std::endl;
+        persistWorldState();
         isRunning = false;
     }
 }
@@ -63,7 +88,7 @@ void GameLoop::processInputs() {
         // 1. CHEQUEO DE JOIN_EVENT
         if (std::holds_alternative<JoinEvent>(event)) {
             JoinEvent joinData = std::get<JoinEvent>(event);
-            std::cout << "[GAMELOOP] Player joined: " << joinData.username << std::endl;
+            std::cout << "[GAMELOOP] Jugador conectado: " << joinData.username << std::endl;
 
             auto savedData = playerDataStore.loadPlayerData(joinData.username);
             std::optional<Position> savedPos = std::nullopt;
@@ -75,7 +100,7 @@ void GameLoop::processInputs() {
             // 2. Un jugador se desconecta
         } else if (std::holds_alternative<DisconnectEvent>(event)) {
             DisconnectEvent discData = std::get<DisconnectEvent>(event);
-            std::cout << "[GAMELOOP] Player " << discData.clientId << " requested disconnect."
+            std::cout << "[GAMELOOP] Jugador " << discData.clientId << " solicitó desconexión."
                       << std::endl;
 
             // Extraer y persistir TODA la data antes de borrar al jugador
@@ -94,8 +119,8 @@ void GameLoop::processInputs() {
 
             if (std::holds_alternative<StartMoveDTO>(pCmd.command)) {
                 StartMoveDTO move_dto = std::get<StartMoveDTO>(pCmd.command);
-                std::cout << "[GAMELOOP] Player " << pCmd.clientId
-                          << " requested move to: " << static_cast<int>(move_dto.direction)
+                std::cout << "[GAMELOOP] Jugador " << pCmd.clientId
+                          << " solicito moverse a: " << static_cast<int>(move_dto.direction)
                           << std::endl;
                 world.moveEntity(pCmd.clientId, move_dto.direction);
 
@@ -114,13 +139,13 @@ void GameLoop::processInputs() {
                 world.playerResurrect(pCmd.clientId);
             } else if (std::holds_alternative<SelectNpcDTO>(pCmd.command)) {
                 SelectNpcDTO selectDto = std::get<SelectNpcDTO>(pCmd.command);
-                std::cout << "[GAMELOOP] Player " << pCmd.clientId
-                          << " clicked NPC: " << selectDto.npcId << std::endl;
+                std::cout << "[GAMELOOP] Jugador " << pCmd.clientId
+                          << " hizo clic en el NPC: " << selectDto.npcId << std::endl;
                 world.playerInteract(pCmd.clientId, selectDto.npcId);
             } else if (std::holds_alternative<NpcCommandDTO>(pCmd.command)) {
                 NpcCommandDTO cmdDto = std::get<NpcCommandDTO>(pCmd.command);
-                std::cout << "[GAMELOOP] Player " << pCmd.clientId
-                          << " executed NPC command type: " << static_cast<int>(cmdDto.type)
+                std::cout << "[GAMELOOP] Jugador " << pCmd.clientId
+                          << " ejecuto comando de NPC tipo: " << static_cast<int>(cmdDto.type)
                           << std::endl;
                 world.playerExecuteNpcCommand(pCmd.clientId, cmdDto);
             } else if (std::holds_alternative<ClanCommandDTO>(pCmd.command)) {
@@ -162,6 +187,8 @@ void GameLoop::processInputs() {
                 ChatDTO toSender;
                 toSender.message = "[PM → " + priv.recipientNick + "] " + priv.message;
                 monitor.sendToClient(pCmd.clientId, toSender);
+            } else if (std::holds_alternative<CheatDTO>(pCmd.command)) {
+                world.playerCheat(pCmd.clientId, std::get<CheatDTO>(pCmd.command).type);
             }
         }
     }
@@ -195,6 +222,19 @@ void GameLoop::persistOnlinePlayers() {
             playerDataStore.savePlayerData(username.value(), persistData.value());
         }
     }
+}
+
+void GameLoop::persistWorldState() {
+    persistOnlinePlayers();
+    worldDataStore.saveMonsters(worldConfig.worldId, world.getMonstersPersistData());
+    worldDataStore.saveGroundItems(worldConfig.worldId, world.getGroundItemsPersistData());
+
+    auto clanData = world.getClansPersistData();
+    worldDataStore.saveClans(worldConfig.worldId, clanData.headers, clanData.members,
+                             clanData.pending, clanData.banned);
+
+    auto bankData = world.getBankPersistData();
+    worldDataStore.saveBankAccounts(worldConfig.worldId, bankData.headers, bankData.slots);
 }
 
 void GameLoop::stop() { isRunning = false; }

@@ -22,6 +22,10 @@ struct FrameInput {
     int attackX = 0;
     int attackY = 0;
     bool resurrectPressed = false;
+
+    // --- Cheats ---
+    bool cheatLevelUp = false;
+    bool cheatDie = false;
 };
 
 class EventHandler {
@@ -31,6 +35,9 @@ private:
 
     bool inputActive = false;
     std::string inputBuffer;
+
+    std::unordered_set<SDL_Keycode> justPressedKeys;
+    std::unordered_set<SDL_Scancode> justPressedScancodes;
 
 public:
     EventHandler() = default;

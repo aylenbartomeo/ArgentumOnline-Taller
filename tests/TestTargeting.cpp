@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "Targeting.h"
+#include "../client/src/core/Targeting.h"
 
 TEST(TargetingTest, ScreenToCellNoOffset) {
     Cell cell = screenToCell(40, 70, 0, 0, 32);

@@ -21,6 +21,7 @@
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
 #include "persistence/PlayerDataStore.h"
+#include "persistence/WorldPersistData.h"
 
 #include "Map.h"
 #include "queue.h"
@@ -37,6 +38,7 @@ private:
     int worldId;
     std::string creatorPlayerName;
     const ItemRegistry& itemRegistry;
+    const InventoryConfig inventoryConfig;
     GlobalBank globalBank;
 
     Map map;
@@ -56,6 +58,11 @@ private:
     bool enforceFairPlay = true;  // Regla de mundo: Modo arena
 
     CharacterConfigs characterConfigs;
+    MonsterConfigs monsterConfigs;
+    // Ciclo de Respawn
+    float respawnCooldownMs;     // Cada cuántos ms intentará spawnear (ej: 5000.0f)
+    float timeSinceLastSpawnMs;  // Acumulador de tiempo transcurrido
+    size_t maxMonsters;          // Cantidad máxima de monstruos permitidos en el mapa
 
     // Busca un Attackable por ID (busca en players y luego en monsters)
     Attackable* findAttackable(uint32_t id);
@@ -73,7 +80,11 @@ private:
 
 public:
     explicit World(int worldId, const std::string& creatorPlayerName,
-                   const ItemRegistry& itemRegistry, const CharacterConfigs& configs);
+                   const ItemRegistry& itemRegistry, const CharacterConfigs& configs,
+                   const InventoryConfig& inventoryConfig);
+
+    // Metodos de cheat para testing
+    void playerCheat(uint32_t dbId, CheatType type);
 
     // Métodos lógicos: Entrar y salir del mundo virtual
     bool addPlayer(uint32_t playerId, std::string& username,
@@ -84,12 +95,15 @@ public:
 
     bool removePlayer(uint32_t playerId);
 
-    bool loadMap(const std::string& path);
+    bool loadMap(const std::string& path, bool spawnMonstersAndItems = true);
 
     // Gestión de monstruos y NPCs
     uint32_t addMonster(NPCType type, Position pos, const MonsterConfig& config);
     void spawnNPCs();
     void spawnMonsters();
+    size_t getMonsterCount() const { return monsters.size(); }
+    bool trySpawnRandomMonster();
+    std::optional<Position> findValidSpawnPosition(int maxAttempts);
 
     /* Metodos de acciones de los personajes en el mundo */
     void moveEntity(uint32_t playerId, Movement movement);
@@ -109,9 +123,23 @@ public:
     // Generación del estado actual para ser enviado por red
     SnapshotDTO generateSnapshot() const;
 
+    // Persistencia del mundo
+    std::vector<MonsterPersistData> getMonstersPersistData() const;
+    std::vector<GroundItemPersistData> getGroundItemsPersistData() const;
+    void restoreMonsters(const std::vector<MonsterPersistData>& data,
+                         const MonsterConfigs& configs);
+    void restoreGroundItems(const std::vector<GroundItemPersistData>& data);
+
+    // Persistencia de clanes
+    ClanRepositoryPersistData getClansPersistData() const;
+    void restoreClans(const ClanRepositoryPersistData& data);
+
+    // Persistencia del banco global
+    BankPersistData getBankPersistData() const;
+    void restoreBank(const BankPersistData& data);
+
     // Getters para persistencia
     std::optional<Position> getPlayerPosition(uint32_t dbId) const;
-    std::optional<std::string> getPlayerUsername(uint32_t dbId) const;
     std::vector<uint32_t> getOnlinePlayerDbIds() const;
 
     /* Getters y setters */
@@ -145,11 +173,17 @@ public:
     };
     std::vector<PendingResurrection> pendingResurrections;
 
+    // IDs de monstruos que murieron en este tick
+    std::vector<uint32_t> deadMonsterIds;
+    void handleMonsterDeath(const Monster& monster, uint32_t killerDbId);
+
     // Zonas seguras (delega al map)
     bool isSafeZone(float x, float y) const;
 
+    // Metodos de IWorldContext
     uint16_t getPlayerLevel(uint32_t dbId) const override;
     uint32_t resolveNickToDbId(const std::string& nick) const override;
+    std::optional<std::string> getPlayerUsername(uint32_t dbId) const override;
 
     // Procesa cualquier comando de clan enviado por un jugador.
     void processClanCommand(uint32_t senderDbId, const ClanCommandDTO& cmd);

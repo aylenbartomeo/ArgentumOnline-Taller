@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "Death.h"
+#include "../client/src/animation/Death.h"
 
 TEST(DeathTest, ZeroHpIsDead) {
     EXPECT_TRUE(isDead(0));

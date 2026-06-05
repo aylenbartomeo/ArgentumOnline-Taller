@@ -33,23 +33,22 @@ private:
     StateComponent state;
     RegenerationComponent regeneration;
     const ItemRegistry* itemRegistry;  // Puntero para permitir nullptr en tests
+
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race, CharacterClass cls,
            const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,
-           const PlayerConfig& playerBase, const ItemRegistry& itemRegistry, const Position& spawn);
+           const PlayerConfig& playerBase, const ItemRegistry& itemRegistry,
+           const InventoryConfig& inventoryConfig, const Position& spawn);
 
     // Constructor de TEST: Permite pasarle un FormulaEngine controlado para manejar la cuestion
     // de valores random (no requiere ItemRegistry)
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race,
            CharacterClass charClass, const RaceConfig& raceConf,
            const CharacterClassConfig& classConf, const PlayerConfig& playerBase,
-           const FormulaEngine& testEngine);
+           const InventoryConfig& inventoryConfig, const FormulaEngine& testEngine);
 
     // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
     void update(float deltaSeconds);
-
-    void startMeditating() { state.startMeditating(); }
-    void stopMeditating() { state.stopMeditating(); }
 
     // Equipa un ítem resolviendo su ID contra el registry
     uint32_t equipItemById(uint32_t itemId);
@@ -64,6 +63,13 @@ public:
     // Calcula la posición resultante de moverse en una dirección,
     // sin modificar la posición actual del jugador.
     Position tryMove(Movement direction) const;
+
+    /* PERSISTENCIA */
+    // Exportar estado actual a la estructura de persistencia
+    PlayerPersistData toPersistData() const;
+
+    // Restaurar estado desde datos persistidos
+    void fromPersistData(const PlayerPersistData& data);
 
     /* GETTERS/SETTERS de atributos que expone */
     uint32_t getId() const { return this->id; }
@@ -80,12 +86,11 @@ public:
     Position getPosition() const override { return this->pos; }
     bool canEngageInCombatWith(const Attackable& other) const override;
     uint16_t getLevel() const override { return stats.getLevel(); }
-
+    int getDefense() const override { return this->equipment.calculateCurrentDefense(); }
     /* Acceso a los componentes */
     // Stats
-    StatsComponent& getStats() { return this->stats; }
-    const StatsComponent& getStats() const { return this->stats; }
     void addExperience(uint32_t amount) { stats.addExperience(amount); }
+    uint32_t getExp() const { return stats.getExp(); }
     uint16_t getHp() const { return stats.getHp(); }
     uint16_t getMaxHp() const override { return stats.getMaxHp(); }
     uint16_t getMana() const { return stats.getMana(); }
@@ -93,17 +98,13 @@ public:
     bool consumeMana(int amount) { return stats.consumeMana(static_cast<uint16_t>(amount)); }
     void restoreHp() { stats.restoreHp(); }
     void restoreMana() { stats.restoreMana(); }
-
     void setHp(uint16_t newHp) { stats.setHp(newHp); }
     void setMana(uint16_t newMana) { stats.setMana(newMana); }
     void applyBoost(BoostType type, uint8_t value, uint32_t durationMs);
-
     Race getRace() const { return stats.getRace(); }
     CharacterClass getCharacterClass() const { return stats.getCharacterClass(); }
 
     // Inventory
-    InventoryComponent& getInventory() { return this->inventory; }
-    const InventoryComponent& getInventory() const { return this->inventory; }
     bool addGold(uint32_t amount) { return inventory.addGold(amount); }
     bool removeGold(uint32_t amount) { return inventory.removeGold(amount); }
     uint32_t getGold() const { return inventory.getGold(); }
@@ -117,7 +118,7 @@ public:
     std::optional<Slot> inspectSlot(uint8_t slot_index) const {
         return inventory.inspectSlot(slot_index);
     }
-
+    const std::vector<Slot>& getSlots() const { return inventory.getSlots(); }
     uint16_t addInventoryItem(uint32_t item_id, uint16_t amount);
     uint16_t removeInventoryItem(uint8_t slot_index, uint16_t amount);
     std::optional<Slot> inspectInventorySlot(uint8_t slot_index) const;
@@ -125,10 +126,13 @@ public:
     uint32_t dropExcessGold();
 
     // Equipment
-    EquipmentComponent& getEquipment() { return this->equipment; }
-    const EquipmentComponent& getEquipment() const { return this->equipment; }
+    uint32_t equipWeapon(const Weapon* weapon) { return equipment.equipWeapon(weapon); }
+    uint32_t equipHelmet(const Helmet* helmet) { return equipment.equipHelmet(helmet); }
+    uint32_t equipShield(const Shield* shield) { return equipment.equipShield(shield); }
+    uint32_t equipBodyArmor(const BodyArmor* bodyArmor) {
+        return equipment.equipBodyArmor(bodyArmor);
+    }
     Weapon* getEquippedWeapon() { return this->equipment.getEquippedWeapon(); }
-    int getDefense() const override { return this->equipment.calculateCurrentDefense(); }
 
     // State
     StateComponent& getState() { return this->state; }
@@ -136,8 +140,11 @@ public:
     bool canAttack() const { return this->state.canAttack(); }
     bool canBeAttacked() const override { return this->state.canBeAttacked(); }
     void handleDeath() override;
-
     void resurrect();
+    void startMeditating() { state.startMeditating(); }
+    void stopMeditating() { state.stopMeditating(); }
+    bool isGhost() const { return state.isGhost(); }
+    bool isMeditating() const { return state.isMeditating(); }
 };
 
 #endif

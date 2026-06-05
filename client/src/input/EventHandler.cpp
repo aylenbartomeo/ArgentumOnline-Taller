@@ -41,9 +41,10 @@ FrameInput EventHandler::pollEvents() {
                     if (event.key.repeat == 0) {
                         resurrectThisFrame = true;
                     }
-                } else {
-                    pressedKeys.insert(key);
                 }
+                pressedKeys.insert(key);
+                justPressedKeys.insert(key);
+                justPressedScancodes.insert(event.key.keysym.scancode);
             }
 
         } else if (event.type == SDL_KEYUP) {
@@ -79,6 +80,11 @@ FrameInput EventHandler::pollEvents() {
             input.chatText = inputBuffer;
             inputBuffer.clear();
         }
+
+        // Cheats: solo se disparan en el frame que se presiona la tecla final
+        bool shiftHeld = (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0;
+        input.cheatLevelUp = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_L);
+        input.cheatDie = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_K);
     }
 
     input.attackPressed = attackThisFrame;
@@ -86,5 +92,7 @@ FrameInput EventHandler::pollEvents() {
     input.attackY = attackY;
     input.resurrectPressed = resurrectThisFrame;
 
+    justPressedKeys.clear();
+    justPressedScancodes.clear();
     return input;
 }

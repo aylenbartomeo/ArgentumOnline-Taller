@@ -48,13 +48,7 @@ struct ItemCommandDTO {
     uint8_t inventorySlot;
 };
 
-enum class Movement : uint8_t {
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT,
-    STOP
-};
+enum class Movement : uint8_t { UP, DOWN, LEFT, RIGHT, STOP };
 
 enum class InteractionStatus {
     UNHANDLED,  // El handler no reconoció el comando (No era para él)

@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include "TileMap.h"
+#include "../client/src/rendering/TileMap.h"
 
 TEST(TileMapTest, ParsesValidMap) {
     std::string json = R"({
@@ -41,6 +41,7 @@ TEST(TileMapTest, ThrowsWhenTilesDoNotMatchDimensions) {
             "tiles": [[0, 1], [2, 3]]
         })";
                 TileMap map(json);
+                (void)map;
             },
             std::runtime_error);
 }

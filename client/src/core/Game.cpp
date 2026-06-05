@@ -11,13 +11,14 @@
 
 #include <SDL2/SDL.h>
 
+#include "../animation/CharacterSprites.h"
+#include "../ui/HealthBar.h"
+#include "common/include/dto/CheatDTO.h"
 #include "common/include/dto/ClientCommands.h"
 #include "common/include/dto/StartMoveDTO.h"
 
-#include "CharacterSprites.h"
-#include "Death.h"
-#include "FxAnimator.h"
-#include "HealthBar.h"
+#include "../animation/Death.h"
+#include "../animation/FxAnimator.h"
 #include "OverlayRegistry.h"
 #include "Targeting.h"
 
@@ -121,9 +122,19 @@ void Game::run() {
         }
         drainIncomingChat();
         processChatInput(input);
+        processCheats(input);
         sendMoveIfDue(input);
         render(input);
         SDL_Delay(16);
+    }
+}
+
+void Game::processCheats(const FrameInput& input) {
+    if (input.cheatLevelUp) {
+        client.sendCommand(CheatDTO{CheatType::LEVEL_UP});
+    }
+    if (input.cheatDie) {
+        client.sendCommand(CheatDTO{CheatType::DIE});
     }
 }
 
@@ -137,9 +148,14 @@ void Game::drainIncomingChat() {
 void Game::processChatInput(const FrameInput& input) {
     if (!input.chatSubmitted || input.chatText.empty())
         return;
+    std::optional<CommandVariant> cmdOpt = chatParser.parse(input.chatText);
 
-    CommandVariant cmd = chatParser.parse(input.chatText);
-    client.sendCommand(cmd);
+    // Si parse devolvió un valor (has_value), lo mandamos al servidor
+    if (cmdOpt.has_value()) {
+        client.sendCommand(cmdOpt.value());
+    } else {
+        miniChat.pushMessage("[Info] Comando inexistente o mal formateado.");
+    }
 }
 
 void Game::sendMoveIfDue(const FrameInput& input) {

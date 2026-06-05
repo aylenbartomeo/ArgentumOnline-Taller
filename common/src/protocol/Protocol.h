@@ -16,17 +16,17 @@ class Protocol {
 private:
     Socket& skt;
 
-    void send_uint8(uint8_t value);
-    void send_uint16(uint16_t value);
-    void send_uint32(uint32_t value);
+    void sendUint8(uint8_t value);
+    void sendUint16(uint16_t value);
+    void sendUint32(uint32_t value);
 
-    void send_string(const std::string& str);
+    void sendString(const std::string& str);
 
-    uint8_t recv_uint8();
-    uint16_t recv_uint16();
-    uint32_t recv_uint32();
+    uint8_t recvUint8();
+    uint16_t recvUint16();
+    uint32_t recvUint32();
 
-    std::string recv_string();
+    std::string recvString();
 
 public:
     explicit Protocol(Socket& skt);
@@ -37,39 +37,42 @@ public:
     uint8_t recv_opcode();
 
     // --- MÉTODOS DE ENVÍO (Cliente -> Servidor) ---
-    void send_register(const RegisterDTO& dto);
-    void send_login(const LoginDTO& loginDTO);
-    void send_start_move(const StartMoveDTO& dto);
-    void send_stop_move();
-    void send_attack(uint32_t targetId);
-    void send_drop_item(const DropItemDTO& dto);
-    void send_equip_item(const EquipItemDTO& dto);
-    void send_use_item(const UseItemDTO& dto);
-    void send_grab_item();
-    void send_chat(const ChatDTO& dto);
-    void send_private_chat(const PrivateChatDTO& dto);
-    void send_meditate();
-    void send_resurrect();
-    void send_npc_command(const NpcCommandDTO& dto);
-    void send_clan_command(const ClanCommandDTO& dto);
+    void sendRegister(const RegisterDTO& dto);
+    void sendLogin(const LoginDTO& loginDTO);
+    void sendStartMove(const StartMoveDTO& dto);
+    void sendStopMove();
+    void sendAttack(uint32_t targetId);
+    void sendDropItem(const DropItemDTO& dto);
+    void sendEquipItem(const EquipItemDTO& dto);
+    void sendUseItem(const UseItemDTO& dto);
+    void sendGrabItem();
+    void sendChat(const ChatDTO& dto);
+    void sendPrivateChat(const PrivateChatDTO& dto);
+    void sendMeditate();
+    void sendResurrect();
+    void sendNpcCommand(const NpcCommandDTO& dto);
+    void sendClanCommand(const ClanCommandDTO& dto);
 
     // --- MÉTODOS DE ENVÍO (Servidor -> Cliente) ---
-    void send_snapshot(const SnapshotDTO& snap);
-    SnapshotDTO receive_snapshot_body();
+    void sendSnapshot(const SnapshotDTO& snap);
+    SnapshotDTO receiveSnapshotBody();
 
-    ChatDTO receive_chat_body();
-    PrivateChatDTO receive_private_chat_body();
-    void receive_meditate_body();
-    void receive_resurrect_body();
-    NpcCommandDTO receive_npc_command_body();
-    ClanCommandDTO receive_clan_command_body();
+    ChatDTO receiveChatBody();
+    PrivateChatDTO receivePrivateChatBody();
+    void receiveMeditateBody();
+    void receiveResurrectBody();
+    NpcCommandDTO receiveNpcCommandBody();
+    ClanCommandDTO receiveClanCommandBody();
 
-    void send_register_success(uint32_t clientId);
-    void send_register_failed(const std::string& errorMessage);
-    LoginResponseDTO recv_register_response();
-    void send_login_success(uint32_t clientId);
-    void send_login_failed(const std::string& errorMessage);
-    LoginResponseDTO recv_login_response();
+    void sendRegisterSuccess(uint32_t clientId);
+    void sendRegisterFailed(const std::string& errorMessage);
+    LoginResponseDTO recvRegisterResponse();
+    void sendLoginSuccess(uint32_t clientId);
+    void sendLoginFailed(const std::string& errorMessage);
+    LoginResponseDTO recvLoginResponse();
+
+    // --- MÉTODO DE ENVÍO DE CHEATS ---
+    void sendCheat(const CheatDTO& dto);
 };
 
 #endif
