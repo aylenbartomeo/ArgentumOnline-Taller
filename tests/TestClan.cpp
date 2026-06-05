@@ -344,11 +344,14 @@ protected:
         world->setFairPlayRules(false);
         world->setClanMinLevel(1);
 
-        // Agregar tres jugadores de prueba
+        // Agregar tres jugadores de prueba fuera de la safe zone
+        PlayerPersistData pdata;
+        pdata.posX = 5;
+        pdata.posY = 5;
         std::string u1 = "Founder", u2 = "Member1", u3 = "Member2";
-        world->addPlayer(1, u1);
-        world->addPlayer(2, u2);
-        world->addPlayer(3, u3);
+        world->addPlayer(1, u1, pdata);
+        world->addPlayer(2, u2, pdata);
+        world->addPlayer(3, u3, pdata);
     }
 
     void TearDown() override {
@@ -402,7 +405,10 @@ TEST_F(WorldClanTest, World_PlayersInDifferentClans_CanAttackEachOther) {
 
     // Agregar cuarto jugador para fundar Beta
     std::string u4 = "OtherFounder";
-    world->addPlayer(4, u4);
+    PlayerPersistData pdata;
+    pdata.posX = 5;
+    pdata.posY = 5;
+    world->addPlayer(4, u4, pdata);
     world->pollEvents();
 
     sendCmd(4, ClanCommandType::FOUND, "Beta");
@@ -422,7 +428,10 @@ TEST_F(WorldClanTest, World_UnderAttack_NotifiesClanmates) {
 
     // Agregar un cuarto jugador sin clan para que ataque al clan
     std::string u4 = "Enemy";
-    world->addPlayer(4, u4);
+    PlayerPersistData pdata;
+    pdata.posX = 5;
+    pdata.posY = 5;
+    world->addPlayer(4, u4, pdata);
     world->pollEvents();
 
     // Enemy (4) ataca a Member1 (2)
@@ -446,7 +455,10 @@ TEST_F(WorldClanTest, World_LoginNotifiesClanmates) {
 
     // Un nuevo jugador se une al clan
     std::string u5 = "Newbie";
-    world->addPlayer(5, u5);  // esto genera notificación si 5 ya estuviera en un clan
+    PlayerPersistData pdata;
+    pdata.posX = 5;
+    pdata.posY = 5;
+    world->addPlayer(5, u5, pdata);  // esto genera notificación si 5 ya estuviera en un clan
     // En este caso 5 no está en un clan aún, así que no hay notificación de clan en login
     auto events = world->pollEvents();
 
