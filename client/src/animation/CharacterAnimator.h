@@ -22,6 +22,8 @@ public:
     void update(int x, int y, uint32_t nowMs);
     Movement getFacing() const;
     int frameColumn(uint32_t nowMs) const;
+    float getVirtualX() const;
+    float getVirtualY() const;
 
 private:
     int lastX = 0;
@@ -29,6 +31,10 @@ private:
     bool hasPrev = false;
     Movement facing = Movement::DOWN;
     uint32_t lastStepMs = 0;
+    float virtX = 0.0f;
+    float virtY = 0.0f;
+    bool hasVirt = false;
+    uint32_t lastUpdateMs = 0;
 };
 
 #endif
