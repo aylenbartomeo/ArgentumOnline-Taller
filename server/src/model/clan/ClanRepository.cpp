@@ -66,7 +66,8 @@ ClanRepositoryPersistData ClanRepository::toPersistData() const {
     data.members.reserve(clans.size());
     data.pending.reserve(clans.size());
     data.banned.reserve(clans.size());
-    for (const auto& [clanId, clan]: clans) {
+    for (const auto& pair: clans) {
+        const auto& clan = pair.second;
         auto bundle = clan.toPersistData();
         data.headers.push_back(bundle.header);
         data.members.push_back(bundle.members);
