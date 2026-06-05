@@ -223,7 +223,10 @@ void Protocol::sendStartMove(const StartMoveDTO& dto) {
     sendUint8(static_cast<uint8_t>(dto.direction));
 }
 
-void Protocol::sendAttack() { sendUint8(static_cast<uint8_t>(OPCODE::ATTACK)); }
+void Protocol::sendAttack(uint32_t targetId) {
+    sendUint8(static_cast<uint8_t>(OPCODE::ATTACK));
+    sendUint32(targetId);
+}
 
 void Protocol::sendDropItem(const DropItemDTO& dto) {
     sendUint8(static_cast<uint8_t>(OPCODE::DROP_ITEM));
@@ -344,7 +347,9 @@ CommandVariant Protocol::receive_command() {
             return StopMoveDTO{};
         }
         case OPCODE::ATTACK: {
-            return AttackDTO{};
+            AttackDTO dto;
+            dto.targetId = recvUint32();
+            return dto;
         }
         case OPCODE::DROP_ITEM: {
             DropItemDTO dto;

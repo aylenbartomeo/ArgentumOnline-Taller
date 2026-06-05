@@ -18,6 +18,11 @@ struct FrameInput {
     bool chatSubmitted = false;    // presionó Enter con texto
     std::string chatText;          // texto acumulado del input actual
 
+    bool attackPressed = false;
+    int attackX = 0;
+    int attackY = 0;
+    bool resurrectPressed = false;
+
     // --- Cheats ---
     bool cheatLevelUp = false;
     bool cheatDie = false;

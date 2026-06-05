@@ -2,6 +2,7 @@
 #define GAME_H
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -33,6 +34,12 @@ private:
     Uint32 lastMoveSentMs;
     std::unordered_map<uint32_t, CharacterAnimator> animators;
 
+    struct ActiveFx {
+        uint32_t targetId;
+        uint32_t startMs;
+    };
+    std::optional<ActiveFx> activeFx;
+
 public:
     explicit Game(Client& client);
     ~Game() = default;
@@ -55,6 +62,8 @@ private:
     void renderEntities(const CameraOffset& camera);
     CameraOffset computeCamera();
     void sendMoveIfDue(const FrameInput& input);
+    void processCombatInput(const FrameInput& input, const CameraOffset& camera);
+    void renderFx(const CameraOffset& camera);
 
     // Procesa el input del chat: si se confirmó un mensaje, lo envía al servidor y limpia el
     // buffer.

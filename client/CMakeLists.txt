@@ -6,6 +6,7 @@ target_sources(argentum_online_client
     src/core/main.cpp
     src/core/Client.cpp
     src/core/Game.cpp
+    src/core/Targeting.cpp
 
     # network
     src/network/Sender.cpp
@@ -25,6 +26,8 @@ target_sources(argentum_online_client
     # animation
     src/animation/CharacterAnimator.cpp
     src/animation/CharacterSprites.cpp
+    src/animation/Death.cpp
+    src/animation/FxAnimator.cpp
 
     # input
     src/input/EventHandler.cpp
@@ -36,6 +39,7 @@ target_sources(argentum_online_client
     # core
     src/core/Client.h
     src/core/Game.h
+    src/core/Targeting.h
 
     # network
     src/network/Sender.h
@@ -55,6 +59,8 @@ target_sources(argentum_online_client
     # animation
     src/animation/CharacterAnimator.h
     src/animation/CharacterSprites.h
+    src/animation/Death.h
+    src/animation/FxAnimator.h
 
     # input
     src/input/EventHandler.h

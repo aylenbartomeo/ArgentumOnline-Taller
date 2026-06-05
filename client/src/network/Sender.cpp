@@ -17,7 +17,7 @@ void Sender::run() {
             } else if (std::holds_alternative<StopMoveDTO>(cmd)) {
                 protocol.sendStopMove();
             } else if (std::holds_alternative<AttackDTO>(cmd)) {
-                protocol.sendAttack();
+                protocol.sendAttack(std::get<AttackDTO>(cmd).targetId);
             } else if (std::holds_alternative<DropItemDTO>(cmd)) {
                 protocol.sendDropItem(std::get<DropItemDTO>(cmd));
             } else if (std::holds_alternative<EquipItemDTO>(cmd)) {

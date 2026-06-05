@@ -41,7 +41,7 @@ public:
     void sendLogin(const LoginDTO& loginDTO);
     void sendStartMove(const StartMoveDTO& dto);
     void sendStopMove();
-    void sendAttack();
+    void sendAttack(uint32_t targetId);
     void sendDropItem(const DropItemDTO& dto);
     void sendEquipItem(const EquipItemDTO& dto);
     void sendUseItem(const UseItemDTO& dto);
