@@ -200,7 +200,11 @@ void GameLoop::updateWorld(float delta_time) {
 void GameLoop::dispatchWorldEvents() {
     auto events = world.pollEvents();
     for (const auto& ev: events) {
-        monitor.sendToClient(ev.targetDbId, ChatDTO{ev.message});
+        if (ev.type == EventType::BROADCAST) {
+            monitor.broadcastChat(ChatDTO{ev.message});
+        } else {
+            monitor.sendToClient(ev.targetDbId, ChatDTO{ev.message});
+        }
     }
 }
 

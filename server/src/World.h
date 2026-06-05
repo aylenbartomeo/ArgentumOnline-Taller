@@ -19,19 +19,13 @@
 #include "model/entities/GlobalBank.h"
 #include "model/entities/Monster.h"
 #include "model/entities/Player.h"
+#include "model/events/EventPublisher.h"
 #include "model/items/ItemRegistry.h"
 #include "persistence/PlayerDataStore.h"
 #include "persistence/WorldPersistData.h"
 
 #include "Map.h"
 #include "queue.h"
-
-// Eventos de mundo (mensajes destinados al cliente); definidos aquí para evitar múltiples
-// definiciones
-struct WorldEvent {
-    uint32_t targetDbId;
-    std::string message;
-};
 
 class World: public IWorldContext {
 private:
@@ -50,7 +44,18 @@ private:
     uint32_t nextEntityId = 1;
     std::unordered_map<uint32_t, uint32_t> dbIdToEntityId;
 
-    std::vector<WorldEvent> outgoingEvents;
+    struct PendingResurrection {
+        uint32_t playerDbId;
+        float remainingTimeMs;
+        Position targetPos;
+    };
+    std::vector<PendingResurrection> pendingResurrections;
+
+    // IDs de monstruos que murieron en este tick
+    std::vector<uint32_t> deadMonsterIds;
+
+
+    EventPublisher eventPublisher;
 
     ClanRepository clanRepo;
     ClanService clanService;
@@ -154,18 +159,8 @@ public:
     void playerMeditate(uint32_t dbId);
     void dropItem(uint32_t dbId, uint8_t slot, uint16_t amount);
     void handlePlayerDeath(uint32_t dbId);
-    void playerResurrect(uint32_t dbId);
-
-    struct PendingResurrection {
-        uint32_t playerDbId;
-        float remainingTimeMs;
-        Position targetPos;
-    };
-    std::vector<PendingResurrection> pendingResurrections;
-
-    // IDs de monstruos que murieron en este tick
-    std::vector<uint32_t> deadMonsterIds;
     void handleMonsterDeath(const Monster& monster, uint32_t killerDbId);
+    void playerResurrect(uint32_t dbId);
 
     // Zonas seguras (delega al map)
     bool isSafeZone(float x, float y) const;
