@@ -68,6 +68,12 @@ target_sources(argentum_online_tests
     ../client/src/CharacterSprites.cpp
     TestCharacterAnimator.cpp
     ../client/src/CharacterAnimator.cpp
+    TestDeath.cpp
+    ../client/src/Death.cpp
+    TestTargeting.cpp
+    ../client/src/Targeting.cpp
+    TestFxAnimator.cpp
+    ../client/src/FxAnimator.cpp
     TestEditorMap.cpp
     ../editor/EditorMap.cpp
     TestCamera.cpp

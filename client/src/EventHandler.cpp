@@ -4,6 +4,10 @@
 
 FrameInput EventHandler::pollEvents() {
     SDL_Event event;
+    bool attackThisFrame = false;
+    int attackX = 0;
+    int attackY = 0;
+    bool resurrectThisFrame = false;
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             quitRequested = true;
@@ -33,6 +37,10 @@ FrameInput EventHandler::pollEvents() {
                     // Activar modo escritura
                     inputActive = true;
                     SDL_StartTextInput();
+                } else if (key == SDLK_r) {
+                    if (event.key.repeat == 0) {
+                        resurrectThisFrame = true;
+                    }
                 } else {
                     pressedKeys.insert(key);
                 }
@@ -40,6 +48,13 @@ FrameInput EventHandler::pollEvents() {
 
         } else if (event.type == SDL_KEYUP) {
             pressedKeys.erase(event.key.keysym.sym);
+
+        } else if (event.type == SDL_MOUSEBUTTONDOWN) {
+            if (event.button.button == SDL_BUTTON_LEFT && !inputActive) {
+                attackThisFrame = true;
+                attackX = event.button.x;
+                attackY = event.button.y;
+            }
 
         } else if (event.type == SDL_TEXTINPUT && inputActive) {
             inputBuffer += event.text.text;
@@ -65,6 +80,11 @@ FrameInput EventHandler::pollEvents() {
             inputBuffer.clear();
         }
     }
+
+    input.attackPressed = attackThisFrame;
+    input.attackX = attackX;
+    input.attackY = attackY;
+    input.resurrectPressed = resurrectThisFrame;
 
     return input;
 }

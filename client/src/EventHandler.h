@@ -17,6 +17,11 @@ struct FrameInput {
     bool chatInputActive = false;  // el jugador está escribiendo en el chat
     bool chatSubmitted = false;    // presionó Enter con texto
     std::string chatText;          // texto acumulado del input actual
+
+    bool attackPressed = false;
+    int attackX = 0;
+    int attackY = 0;
+    bool resurrectPressed = false;
 };
 
 class EventHandler {

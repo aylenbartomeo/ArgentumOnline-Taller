@@ -99,7 +99,7 @@ TEST(ProtocolTest, StopMoveSerializationIsSymmetric) {
     ASSERT_TRUE(std::holds_alternative<StopMoveDTO>(received_cmd));
 }
 
-// --- TEST PARA EL MENSAJE DE ATTACK (DTO Vacío) ---
+// --- TEST PARA EL MENSAJE DE ATTACK (Payload: targetId) ---
 TEST(ProtocolTest, AttackSerializationIsSymmetric) {
     Socket acceptor_skt("8084");
     Socket client_skt("localhost", "8084");
@@ -108,11 +108,14 @@ TEST(ProtocolTest, AttackSerializationIsSymmetric) {
     Protocol client_protocol(client_skt);
     Protocol server_protocol(server_skt);
 
-    client_protocol.send_attack();
+    uint32_t expected_target = 123456;
+    client_protocol.send_attack(expected_target);
 
     CommandVariant received_cmd = server_protocol.receive_command();
 
     ASSERT_TRUE(std::holds_alternative<AttackDTO>(received_cmd));
+    AttackDTO received_dto = std::get<AttackDTO>(received_cmd);
+    EXPECT_EQ(received_dto.targetId, expected_target);
 }
 
 // --- TEST PARA EQUIP ITEM (Payload: 1 byte) ---

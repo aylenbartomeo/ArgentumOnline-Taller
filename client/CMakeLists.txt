@@ -11,6 +11,9 @@ target_sources(argentum_online_client
     src/Viewport.cpp
     src/CharacterSprites.cpp
     src/CharacterAnimator.cpp
+    src/Death.cpp
+    src/FxAnimator.cpp
+    src/Targeting.cpp
     src/Receiver.cpp
     src/Sender.cpp
     src/TextureManager.cpp
@@ -31,6 +34,9 @@ target_sources(argentum_online_client
     src/Viewport.h
     src/CharacterSprites.h
     src/CharacterAnimator.h
+    src/Death.h
+    src/FxAnimator.h
+    src/Targeting.h
     src/Receiver.h
     src/Sender.h
     src/TextureManager.h
