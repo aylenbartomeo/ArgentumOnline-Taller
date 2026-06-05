@@ -9,7 +9,7 @@ target_sources(argentum_online_editor
     SpawnCatalogs.cpp
     Font.cpp
     Editor.cpp
-    ../client/src/TextureManager.cpp
+    ../client/src/rendering/TextureManager.cpp
     PUBLIC
     # .h files
     EditorMap.h

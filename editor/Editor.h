@@ -6,13 +6,14 @@
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
+#include "../client/src/rendering/TextureManager.h"
+
 #include "Camera.h"
 #include "EditorMap.h"
 #include "Font.h"
 #include "OverlayRegistry.h"
 #include "Palette.h"
 #include "SpawnCatalogs.h"
-#include "TextureManager.h"
 #include "Toolbar.h"
 
 class Editor {

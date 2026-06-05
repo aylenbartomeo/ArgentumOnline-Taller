@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "HealthBar.h"
+#include "../client/src/ui/HealthBar.h"
 
 TEST(HealthBarTest, FullHpIsNotVisible) {
     HealthBarLayout layout = computeHealthBar(100, 100, 0, 0, 32);

@@ -4,13 +4,12 @@
 #include <cstdint>
 #include <string>
 
+#include "../network/Receiver.h"
+#include "../network/Sender.h"
 #include "common/include/dto/ClientCommands.h"
 #include "common/include/dto/Snapshot.h"
 #include "common/include/queue.h"
 #include "common/src/protocol/Protocol.h"
-
-#include "Receiver.h"
-#include "Sender.h"
 
 class Client {
 private:

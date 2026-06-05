@@ -26,9 +26,11 @@ CombatResult CombatManager::resolveCombat(const Attackable& attacker, Attackable
 
     res.attackHappened = true;
 
-    // 3. Calcular daño bruto usando la Fuerza
+    // 3. Calcular daño bruto usando la Fuerza y aplicar bonificación de ataque del clan
     uint16_t rawDamage = FormulaEngine::getInstance().calculate_base_damage(
             attacker.getStrength(), params.minDamage, params.maxDamage);
+
+    rawDamage = static_cast<uint16_t>(rawDamage * params.attackBonus);
 
     // 4. Chequear crítico
     const float CRITICAL_PROB = 0.05f;
@@ -43,8 +45,10 @@ CombatResult CombatManager::resolveCombat(const Attackable& attacker, Attackable
         return res;
     }
 
-    // 6. Calcular defensa y daño final
+    // 6. Calcular defensa, aplicar bonificación de defensa del clan y daño final
     int defense = target.getDefense();
+    defense = static_cast<int>(defense * params.defenseBonus);
+
     res.damage = std::max(0, static_cast<int>(rawDamage) - defense);
 
     // 7. Aplicar daño

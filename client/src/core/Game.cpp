@@ -11,12 +11,12 @@
 
 #include <SDL2/SDL.h>
 
+#include "../animation/CharacterSprites.h"
+#include "../ui/HealthBar.h"
 #include "common/include/dto/CheatDTO.h"
 #include "common/include/dto/ClientCommands.h"
 #include "common/include/dto/StartMoveDTO.h"
 
-#include "CharacterSprites.h"
-#include "HealthBar.h"
 #include "OverlayRegistry.h"
 
 namespace {

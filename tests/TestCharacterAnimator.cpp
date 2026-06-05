@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "CharacterAnimator.h"
+#include "../client/src/animation/CharacterAnimator.h"
 
 TEST(CharacterAnimatorTest, DirectionFromDelta) {
     EXPECT_EQ(directionFromDelta(1, 0), Movement::RIGHT);
