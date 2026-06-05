@@ -8,6 +8,7 @@ FrameInput EventHandler::pollEvents() {
     int attackX = 0;
     int attackY = 0;
     bool resurrectThisFrame = false;
+
     bool toggleChatThisFrame = false;
     int scrollThisFrame = 0;
     bool mouseLeftJustPressedThisFrame = false;
@@ -21,20 +22,34 @@ FrameInput EventHandler::pollEvents() {
             currentMouseY = event.motion.y;
 
         } else if (event.type == SDL_MOUSEWHEEL) {
-            scrollThisFrame = event.wheel.y;
+            if (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) {
+                scrollThisFrame -= event.wheel.y;
+            } else {
+                scrollThisFrame += event.wheel.y;
+            }
 
         } else if (event.type == SDL_MOUSEBUTTONDOWN) {
             if (event.button.button == SDL_BUTTON_LEFT) {
+                currentMouseX = event.button.x;
+                currentMouseY = event.button.y;
                 mouseLeftHeld = true;
                 mouseLeftJustPressedThisFrame = true;
+
                 if (!inputActive) {
                     attackThisFrame = true;
                     attackX = event.button.x;
                     attackY = event.button.y;
                 }
             }
+
+        } else if (event.type == SDL_MOUSEBUTTONUP) {
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                mouseLeftHeld = false;
+            }
+
         } else if (event.type == SDL_KEYDOWN) {
             const SDL_Keycode key = event.key.keysym.sym;
+
             if (key == SDLK_F2 && event.key.repeat == 0) {
                 toggleChatThisFrame = true;
             }
@@ -64,10 +79,8 @@ FrameInput EventHandler::pollEvents() {
                 justPressedKeys.insert(key);
                 justPressedScancodes.insert(event.key.keysym.scancode);
             }
-
         } else if (event.type == SDL_KEYUP) {
             pressedKeys.erase(event.key.keysym.sym);
-
         } else if (event.type == SDL_TEXTINPUT && inputActive) {
             inputBuffer += event.text.text;
         }
@@ -76,16 +89,14 @@ FrameInput EventHandler::pollEvents() {
     FrameInput input;
     input.quit = quitRequested;
 
-    // Inyectar datos del ratón / chat
-    input.toggleChat = toggleChatThisFrame;
-    input.mouseScroll = scrollThisFrame;
     input.mouseX = currentMouseX;
     input.mouseY = currentMouseY;
     input.mouseLeftHeld = mouseLeftHeld;
     input.mouseLeftJustPressed = mouseLeftJustPressedThisFrame;
+    input.mouseScroll = scrollThisFrame;
+    input.toggleChat = toggleChatThisFrame;
 
     if (inputActive) {
-        // Mientras escribe, bloquear movimiento
         input.chatInputActive = true;
         input.chatText = inputBuffer;
     } else {
@@ -100,7 +111,6 @@ FrameInput EventHandler::pollEvents() {
             inputBuffer.clear();
         }
 
-        // Cheats: solo se disparan en el frame que se presiona la tecla final
         bool shiftHeld = (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0;
         input.cheatLevelUp = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_L);
         input.cheatDie = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_K);
