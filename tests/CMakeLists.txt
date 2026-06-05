@@ -24,6 +24,10 @@ target_sources(argentum_online_tests
     TestNPCLayer.cpp
     TestPlayer.cpp
     TestConsumable.cpp
+    TestSpawnSystem.cpp
+    TestEntityManager.cpp
+    TestResurrectionService.cpp
+    TestInteractionService.cpp
     TestPlayerDataStore.cpp
     TestClan.cpp
     TestHealthBar.cpp

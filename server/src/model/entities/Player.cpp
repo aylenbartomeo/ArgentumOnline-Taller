@@ -93,16 +93,20 @@ void Player::update(float dtMs) {
 }
 
 bool Player::canEngageInCombatWith(const Attackable& other) const {
+    const Player* otherPlayer = dynamic_cast<const Player*>(&other);
+    if (!otherPlayer) {
+        return true;  // Puede atacar/ser atacado por NPCs o monstruos sin restricciones de nivel
+    }
+
     // Regla 1: newbie no puede atacar ni ser atacado por jugadores
-    if (FormulaEngine::getInstance().is_newbie(this->stats.getLevel())) {
+    if (FormulaEngine::getInstance().is_newbie(this->stats.getLevel()) ||
+        FormulaEngine::getInstance().is_newbie(otherPlayer->stats.getLevel())) {
         return false;
     }
+
     // Regla 2: diferencia de nivel máxima de 10
-    // Aplica solo contra otros jugadores — Monster::canEngageInCombatWith
-    // devuelve true siempre, así que esta validación solo se activa
-    // cuando AMBOS son Players (ambos lados del contrato se evalúan)
     if (!FormulaEngine::getInstance().is_pvp_level_valid(this->stats.getLevel(),
-                                                         other.getLevel())) {
+                                                         otherPlayer->stats.getLevel())) {
         return false;
     }
     return true;
