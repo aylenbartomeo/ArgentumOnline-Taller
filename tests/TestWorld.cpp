@@ -768,3 +768,43 @@ TEST(WorldTest, World_MonsterDropsLootOnDeath_AndCleanup) {
     // Como tiene ~10% de chance, en 500 intentos DEBE dropear algo.
     EXPECT_TRUE(droppedSomething);
 }
+
+// ========================================================================
+// TESTS DE RESPRAWN DE MONSTERS
+// ========================================================================
+
+TEST(WorldTest, World_IntegratedSpawner_SpawnsMonsterWhenCooldownElapsed) {
+    ItemRegistry registry("../config/items.toml");
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
+
+    // 1. Forzamos un update menor al cooldown interno (ej: 2000ms < 5000ms)
+    mundo.update(2000.0f);
+    EXPECT_EQ(mundo.getMonsterCount(), 0u);
+
+    // 2. Sumamos otra actualización que logre rebasar el umbral (2000 + 3500 = 5500ms > 5000ms)
+    mundo.update(3500.0f);
+    
+    // Si el mapa tiene posiciones válidas libres y lee correctamente el toml, el conteo aumenta.
+    EXPECT_EQ(mundo.getMonsterCount(), 1u);
+}
+
+TEST(WorldTest, World_IntegratedSpawner_StopsWhenWorldRejectsSpawn) {
+    ItemRegistry registry("../config/items.toml");
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
+
+    // Bloqueamos físicamente todo el mapa de pruebas llenándolo de paredes/obstáculos
+    for (int x = 0; x < 20; ++x) {
+        for (int y = 0; y < 15; ++y) {
+            mundo.setObstacleAt(x, y);
+        }
+    }
+
+    // Disparamos un delta time lo suficientemente alto para gatillar el respawn (6000ms > 5000ms)
+    mundo.update(6000.0f);
+    
+    // Al fallar findValidSpawnPosition debido al mapa obstruido, trySpawnRandomMonster aborta de
+    // manera segura, manteniendo el conteo de monstruos vivos en 0.
+    EXPECT_EQ(mundo.getMonsterCount(), 0u);
+}

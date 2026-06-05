@@ -21,6 +21,7 @@
 #include "persistence/WorldPersistData.h"
 
 #include "LootResolver.h"
+#include <random>
 
 
 World::World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry,
@@ -32,9 +33,17 @@ World::World(int worldId, const std::string& creatorPlayerName, const ItemRegist
         map(),
         clanService(clanRepo),
         clanController(clanService),
-        characterConfigs(configs) {
+        characterConfigs(configs),
+        respawnCooldownMs(5000.0f),   // 5 segundos de cooldown entre intentos
+        timeSinceLastSpawnMs(0.0f),
+        maxMonsters(100) {
     map.setDimensions(20, 15);
     map.setSpawnPoint(0, 0);
+    try {
+        monsterConfigs = MonsterConfigLoader::loadMonsterConfigs("../config/monsters.toml");
+    } catch (const std::exception& e) {
+        std::cerr << "[ERROR] No se pudo cargar monsters.toml en el inicio: " << e.what() << std::endl;
+    }
 }
 
 void World::playerCheat(uint32_t dbId, CheatType type) {
@@ -186,17 +195,14 @@ void World::spawnNPCs() {
     }
 }
 
+// --- Spawn de monsters --- 
 void World::spawnMonsters() {
-    MonsterConfigs configs;
-    try {
-        configs = MonsterConfigLoader::loadMonsterConfigs("config/monsters.toml");
-    } catch (const std::exception& e) {
-        std::cerr << "No pude cargar configs de monstruos: " << e.what() << std::endl;
-        return;
-    }
-    for (const auto& spawn: map.getMonsterSpawns()) {
-        auto it = configs.find(spawn.type);
-        if (it == configs.end()) {
+    // Si la configuración está vacía porque falló el constructor, salimos
+    if (monsterConfigs.empty()) return;
+
+    for (const auto& spawn : map.getMonsterSpawns()) {
+        auto it = monsterConfigs.find(spawn.type);
+        if (it == monsterConfigs.end()) {
             continue;
         }
         addMonster(spawn.type, spawn.pos, it->second);
@@ -209,6 +215,78 @@ uint32_t World::addMonster(NPCType type, Position pos, const MonsterConfig& conf
     return entityId;
 }
 
+bool World::trySpawnRandomMonster() {
+    if (monsterConfigs.empty()) return false;
+
+    // 1. Buscamos una posición válida de forma segura
+    auto posOpt = findValidSpawnPosition(5);
+    if (!posOpt) return false;
+
+    // 2. SOLUCIÓN AL BUG: Extraemos los tipos disponibles de monstruos reales en el vector
+    std::vector<NPCType> types;
+    types.reserve(monsterConfigs.size());
+    for (const auto& pair : monsterConfigs) {
+        types.push_back(pair.first);
+    }
+
+    // 3. Seleccionar aleatoriamente un tipo disponible de monstruo de forma segura
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<size_t> dist(0, types.size() - 1); // Ahora types.size() es >= 1, no hay underflow
+    NPCType chosen = types[dist(gen)];
+
+    auto it = monsterConfigs.find(chosen);
+    if (it == monsterConfigs.end()) return false;
+
+    // 4. Agregamos el monstruo usando la data que ya reside en RAM
+    addMonster(chosen, *posOpt, it->second);
+    return true;
+}
+
+std::optional<Position> World::findValidSpawnPosition(int maxAttempts) {
+    if (maxAttempts <= 0) return std::nullopt;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> distX(0, map.widthLimit() - 1);
+    std::uniform_int_distribution<int> distY(0, map.heightLimit() - 1);
+
+    const int playerProximity = 20; // tiles
+    const int playerProximitySq = playerProximity * playerProximity;
+
+    for (int attempt = 0; attempt < maxAttempts; ++attempt) {
+        Position candidate{distX(gen), distY(gen)};
+
+        // 1) No en zona segura
+        if (map.isSafeZone(candidate.x, candidate.y))
+            continue;
+
+        // 2) Terreno caminable
+        if (!map.canMoveTo(candidate))
+            continue;
+
+        // 3) No NPC cercano
+        if (map.findNPCNear(candidate, 2).has_value())
+            continue;
+
+        // 4) No Player cercano
+        bool playerNear = false;
+        for (const auto& pr: players) {
+            const Position& pp = pr.second->getPosition();
+            int dx = pp.x - candidate.x;
+            int dy = pp.y - candidate.y;
+            int dsq = dx * dx + dy * dy;
+            if (dsq <= playerProximitySq) { playerNear = true; break; }
+        }
+        if (playerNear)
+            continue;
+
+        // Passed all filters
+        return candidate;
+    }
+
+    return std::nullopt;
+}
 // --- Búsqueda polimórfica de entidades ---
 
 Attackable* World::findAttackable(uint32_t id) {
@@ -609,6 +687,21 @@ void World::update(float delta_time) {
         monsters.erase(deadId);
     }
     deadMonsterIds.clear();
+    timeSinceLastSpawnMs += delta_time;
+
+    if (timeSinceLastSpawnMs >= respawnCooldownMs) {
+        timeSinceLastSpawnMs = 0.0f; // Reiniciamos el reloj
+
+        // Control de población: si ya hay suficientes monstruos, no spawneamos más
+        if (getMonsterCount() >= maxMonsters) {
+            return;
+        }
+
+        // Intentamos meter un monstruo al azar en una posición válida
+        if (trySpawnRandomMonster()) {
+            std::cout << "¡Monstruo spawneado con éxito!" << std::endl;
+        }
+    }
 }
 
 // --- Snapshot ---

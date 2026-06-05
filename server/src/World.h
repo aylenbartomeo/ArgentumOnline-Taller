@@ -58,6 +58,11 @@ private:
     bool enforceFairPlay = true;  // Regla de mundo: Modo arena
 
     CharacterConfigs characterConfigs;
+    MonsterConfigs monsterConfigs;
+    // Ciclo de Respawn
+    float respawnCooldownMs;      // Cada cuántos ms intentará spawnear (ej: 5000.0f)
+    float timeSinceLastSpawnMs;   // Acumulador de tiempo transcurrido
+    size_t maxMonsters;           // Cantidad máxima de monstruos permitidos en el mapa
 
     // Busca un Attackable por ID (busca en players y luego en monsters)
     Attackable* findAttackable(uint32_t id);
@@ -96,7 +101,10 @@ public:
     uint32_t addMonster(NPCType type, Position pos, const MonsterConfig& config);
     void spawnNPCs();
     void spawnMonsters();
-
+    size_t getMonsterCount() const { return monsters.size(); }
+    bool trySpawnRandomMonster();
+    std::optional<Position> findValidSpawnPosition(int maxAttempts);
+     
     /* Metodos de acciones de los personajes en el mundo */
     void moveEntity(uint32_t playerId, Movement movement);
 
