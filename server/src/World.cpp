@@ -1,6 +1,7 @@
 #include "World.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -30,7 +31,11 @@ World::World(int worldId, const std::string& creatorPlayerName, const ItemRegist
     map.setDimensions(20, 15);
     map.setSpawnPoint(0, 0);
     try {
-        MonsterConfigs mc = MonsterConfigLoader::loadMonsterConfigs("../config/monsters.toml");
+        std::string configPath = "config/monsters.toml";
+        if (!std::filesystem::exists(configPath)) {
+            configPath = "../config/monsters.toml";
+        }
+        MonsterConfigs mc = MonsterConfigLoader::loadMonsterConfigs(configPath);
         spawnSystem = SpawnSystem(std::move(mc), 5000.0f, 100);
     } catch (const std::exception& e) {
         std::cerr << "[ERROR] No se pudo cargar monsters.toml en el inicio: " << e.what()
