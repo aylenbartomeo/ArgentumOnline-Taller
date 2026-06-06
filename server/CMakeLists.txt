@@ -16,11 +16,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tomlplusplus)
 
-
-# ==============================================================================
-# 1. DEFINICIÓN DE LA LIBRERÍA DEL SERVIDOR (lib_server)
-# ==============================================================================
-
 add_library(lib_server STATIC)
 
 target_sources(lib_server
@@ -184,12 +179,11 @@ target_link_libraries(lib_server PUBLIC
     nlohmann_json::nlohmann_json
 )
 
-# ==============================================================================
-# 2. DEFINICIÓN DEL EJECUTABLE FINAL (argentum_online_server)
-# ==============================================================================
-
 add_executable(argentum_online_server src/main.cpp)
 
+set_target_properties(argentum_online_server PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
 # El ejecutable solo necesita linkear contra nuestra nueva librería
 target_link_libraries(argentum_online_server PRIVATE lib_server)
 
