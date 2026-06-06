@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "Viewport.h"
+#include "../client/src/rendering/Viewport.h"
 
 TEST(ViewportTest, CentersOnFocusWhenThereIsRoom) {
     CameraOffset offset = computeCameraOffset(1000, 1000, 640, 480, 1920, 1920);

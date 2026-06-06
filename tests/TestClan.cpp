@@ -24,12 +24,21 @@ static CharacterConfigs getTestConfigs() {
 
 static InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
 
+struct MockWorldContext: public IWorldContext {
+    uint16_t getPlayerLevel(uint32_t) const override { return 10; }
+    uint32_t resolveNickToDbId(const std::string&) const override { return 0; }
+    std::optional<std::string> getPlayerUsername(uint32_t dbId) const override {
+        return "Player_" + std::to_string(dbId);
+    }
+};
+
 class ClanSystemTest: public ::testing::Test {
 protected:
     ClanRepository repo;
     ClanService service;
     ClanController controller;
     std::vector<ClanNotification> notifs;
+    MockWorldContext mockCtx;
 
     ClanSystemTest(): service(repo, 1), controller(service) {}
 
@@ -66,7 +75,7 @@ protected:
     }
     void notifyJoinRequest(uint32_t player, const std::string& clan) {
         notifs.clear();
-        controller.handleJoinRequest(player, clan, notifs);
+        controller.handleJoinRequest(player, clan, mockCtx, notifs);
     }
     void notifyAccept(uint32_t founder, uint32_t target) {
         notifs.clear();
@@ -146,7 +155,7 @@ TEST_F(ClanSystemTest, JoinRequest_OK) {
     EXPECT_EQ(joinRequest(2, "Alpha"), ClanOpResult::OK);
 
     notifyJoinRequest(2, "Alpha");
-    EXPECT_TRUE(hasNotifFor(2, "Solicitud enviada"));
+    EXPECT_TRUE(hasNotifFor(2, "Petición de ingreso"));
     EXPECT_TRUE(hasNotifFor(1, "pedido de ingreso"));
 }
 
@@ -154,7 +163,7 @@ TEST_F(ClanSystemTest, JoinRequest_ClanNotFound) {
     EXPECT_EQ(joinRequest(2, "Inexistente"), ClanOpResult::CLAN_NOT_FOUND);
 
     notifyJoinRequest(2, "Inexistente");
-    EXPECT_TRUE(hasNotifFor(2, "No existe"));
+    EXPECT_TRUE(hasNotifFor(2, "no existe"));
 }
 
 TEST_F(ClanSystemTest, JoinRequest_AlreadyInClan) {
@@ -292,9 +301,9 @@ TEST_F(ClanSystemTest, ReviewClan_ContainsMemberList) {
     accept(1, 2);
 
     notifs.clear();
-    controller.handleReviewClan(1, notifs);
+    controller.handleReviewClan(1, mockCtx, notifs);
     EXPECT_TRUE(hasNotifFor(1, "Alpha"));
-    EXPECT_TRUE(hasNotifFor(1, "Fundador"));
+    EXPECT_TRUE(hasNotifFor(1, "Líder"));
 }
 
 TEST_F(ClanSystemTest, ReviewClan_ShowsPendingRequests) {
@@ -302,7 +311,7 @@ TEST_F(ClanSystemTest, ReviewClan_ShowsPendingRequests) {
     joinRequest(2, "Alpha");
 
     notifs.clear();
-    controller.handleReviewClan(1, notifs);
+    controller.handleReviewClan(1, mockCtx, notifs);
     EXPECT_TRUE(hasNotifFor(1, std::to_string(2)));  // ID de la solicitud pendiente
 }
 
@@ -312,7 +321,7 @@ TEST_F(ClanSystemTest, ReviewClan_OnlyFounderCanReview) {
     accept(1, 2);
 
     notifs.clear();
-    controller.handleReviewClan(2, notifs);
+    controller.handleReviewClan(2, mockCtx, notifs);
     EXPECT_TRUE(hasNotifFor(2, "Solo el fundador"));
 }
 
@@ -335,11 +344,14 @@ protected:
         world->setFairPlayRules(false);
         world->setClanMinLevel(1);
 
-        // Agregar tres jugadores de prueba
+        // Agregar tres jugadores de prueba fuera de la safe zone
+        PlayerPersistData pdata;
+        pdata.posX = 5;
+        pdata.posY = 5;
         std::string u1 = "Founder", u2 = "Member1", u3 = "Member2";
-        world->addPlayer(1, u1);
-        world->addPlayer(2, u2);
-        world->addPlayer(3, u3);
+        world->addPlayer(1, u1, pdata);
+        world->addPlayer(2, u2, pdata);
+        world->addPlayer(3, u3, pdata);
     }
 
     void TearDown() override {
@@ -393,7 +405,10 @@ TEST_F(WorldClanTest, World_PlayersInDifferentClans_CanAttackEachOther) {
 
     // Agregar cuarto jugador para fundar Beta
     std::string u4 = "OtherFounder";
-    world->addPlayer(4, u4);
+    PlayerPersistData pdata;
+    pdata.posX = 5;
+    pdata.posY = 5;
+    world->addPlayer(4, u4, pdata);
     world->pollEvents();
 
     sendCmd(4, ClanCommandType::FOUND, "Beta");
@@ -413,7 +428,10 @@ TEST_F(WorldClanTest, World_UnderAttack_NotifiesClanmates) {
 
     // Agregar un cuarto jugador sin clan para que ataque al clan
     std::string u4 = "Enemy";
-    world->addPlayer(4, u4);
+    PlayerPersistData pdata;
+    pdata.posX = 5;
+    pdata.posY = 5;
+    world->addPlayer(4, u4, pdata);
     world->pollEvents();
 
     // Enemy (4) ataca a Member1 (2)
@@ -437,7 +455,10 @@ TEST_F(WorldClanTest, World_LoginNotifiesClanmates) {
 
     // Un nuevo jugador se une al clan
     std::string u5 = "Newbie";
-    world->addPlayer(5, u5);  // esto genera notificación si 5 ya estuviera en un clan
+    PlayerPersistData pdata;
+    pdata.posX = 5;
+    pdata.posY = 5;
+    world->addPlayer(5, u5, pdata);  // esto genera notificación si 5 ya estuviera en un clan
     // En este caso 5 no está en un clan aún, así que no hay notificación de clan en login
     auto events = world->pollEvents();
 

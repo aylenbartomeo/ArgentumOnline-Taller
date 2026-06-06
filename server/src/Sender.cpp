@@ -11,9 +11,9 @@ void Sender::run() {
             ServerMessageVariant msg = senderQueue.pop();
 
             if (std::holds_alternative<SnapshotDTO>(msg)) {
-                protocol.send_snapshot(std::get<SnapshotDTO>(msg));
+                protocol.sendSnapshot(std::get<SnapshotDTO>(msg));
             } else if (std::holds_alternative<ChatDTO>(msg)) {
-                protocol.send_chat(std::get<ChatDTO>(msg));
+                protocol.sendChat(std::get<ChatDTO>(msg));
             }
         }
     } catch (const ClosedQueue& e) {

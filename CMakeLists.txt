@@ -120,15 +120,6 @@ if(ARGENTUM_ONLINE_CLIENT OR ARGENTUM_ONLINE_EDITOR)
     FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
 endif()
 
-if(ARGENTUM_ONLINE_SERVER)
-    include(FetchContent)
-    FetchContent_Declare(
-        tomlplusplus
-        URL https://github.com/marzer/tomlplusplus/archive/refs/tags/v3.4.0.zip
-    )
-    FetchContent_MakeAvailable(tomlplusplus)
-endif()
-
 if(ARGENTUM_ONLINE_CLIENT OR ARGENTUM_ONLINE_TESTS OR ARGENTUM_ONLINE_EDITOR OR ARGENTUM_ONLINE_SERVER)
     include(FetchContent)
     FetchContent_Declare(
@@ -171,20 +162,7 @@ if(ARGENTUM_ONLINE_CLIENT)
 endif()
 
 if(ARGENTUM_ONLINE_SERVER)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
-    add_executable(argentum_online_server)
-
-    # Make them depend on taller_common lib
-    add_dependencies(argentum_online_server lib_common)
-
-    # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(server)
-
-    set_project_warnings(argentum_online_server ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
-
-    # Link the taller_common lib target
-    target_link_libraries(argentum_online_server lib_common nlohmann_json::nlohmann_json)
 endif()
 
 if(ARGENTUM_ONLINE_EDITOR)
@@ -212,50 +190,14 @@ endif()
 # ---------------
 
 if(ARGENTUM_ONLINE_TESTS)
-    # Let's use google test
     include(FetchContent)
     FetchContent_Declare(
         googletest
         URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
     )
-
-    # For Windows: Prevent overriding the parent project's compiler/linker settings
-    # (borrowed from https://google.github.io/googletest/quickstart-cmake.html)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
     include(GoogleTest)
 
-    # target for testing
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
-    add_executable(argentum_online_tests)
-
-    # HEY!! TODO XXX: I'm assuming that the code under testing is in taller_common
-    # Change this if you have to.
-    add_dependencies(argentum_online_tests lib_common)
-
-    # Say where to find the xoz headers
-    # HEY!! TODO XXX: add more subfolders here
-    target_include_directories(argentum_online_tests PUBLIC .)
-
-    # Add the source files to the taller_tests target
-    # HEY!! TODO XXX: add more subfolders here
-    add_subdirectory(tests/)
-
-    # Set the compiler warnings to the tests target (but be a little lesser strict)
-    set_project_warnings(argentum_online_tests ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} TRUE)
-
-    # Say where googletest headers can be found
-    target_include_directories(argentum_online_tests
-        PUBLIC
-        ${gtest_SOURCE_DIR}/include
-        ${gmock_SOURCE_DIR}/include
-        )
-
-    # HEY!! TODO XXX: I'm assuming that the code under testing is in taller_common
-    # Change this if you have to. ---> DONE!!!
-    target_link_libraries(argentum_online_tests
-        lib_common
-        GTest::gtest_main
-        GTest::gmock
-    )
+    add_subdirectory(tests)
 endif()

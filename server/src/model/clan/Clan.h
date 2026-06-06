@@ -40,18 +40,22 @@ public:
         members.insert(founderDbId);
     }
 
+    // -- GETTERS --
     uint32_t getId() const { return id; }
     const std::string& getName() const { return name; }
     uint32_t getFounderDbId() const { return founderDbId; }
+
+    // --- GETTERS DE UNORDERED_SET ---
     const std::unordered_set<uint32_t>& getMembers() const { return members; }
-    const std::unordered_set<uint32_t>& getPendingRequests() const { return pendingRequests; }
-    const std::unordered_set<uint32_t>& getBanned() const { return banned; }
+    const std::unordered_set<uint32_t>& getJoinRequests() const { return pendingRequests; }
+    const std::unordered_set<uint32_t>& getBannedMembers() const { return banned; }
 
     bool isFull() const { return members.size() >= CLAN_MAX_MEMBERS; }
     bool isMember(uint32_t dbId) const { return members.count(dbId) > 0; }
     bool isBanned(uint32_t dbId) const { return banned.count(dbId) > 0; }
     bool hasPendingRequest(uint32_t dbId) const { return pendingRequests.count(dbId) > 0; }
 
+    // --- MÉTODOS DE MANEJO ---
     void addMember(uint32_t dbId) { members.insert(dbId); }
     void removeMember(uint32_t dbId) { members.erase(dbId); }
 
@@ -61,6 +65,7 @@ public:
     void banPlayer(uint32_t dbId) {
         banned.insert(dbId);
         removePendingRequest(dbId);
+        removeMember(dbId);
     }
 
     ClanPersistDataBundle toPersistData() const {

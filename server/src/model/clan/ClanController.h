@@ -35,7 +35,7 @@ public:
     void handleFoundClan(uint32_t senderDbId, uint16_t senderLevel, const std::string& clanName,
                          std::vector<ClanNotification>& outNotifs);
     void handleJoinRequest(uint32_t senderDbId, const std::string& clanName,
-                           std::vector<ClanNotification>& outNotifs);
+                           const IWorldContext& worldCtx, std::vector<ClanNotification>& outNotifs);
     void handleAcceptMember(uint32_t senderDbId, uint32_t targetDbId, const std::string& targetNick,
                             std::vector<ClanNotification>& outNotifs);
     void handleRejectMember(uint32_t senderDbId, uint32_t targetDbId, const std::string& targetNick,
@@ -45,7 +45,8 @@ public:
     void handleKickMember(uint32_t senderDbId, uint32_t targetDbId, const std::string& targetNick,
                           std::vector<ClanNotification>& outNotifs);
     void handleLeaveClan(uint32_t senderDbId, std::vector<ClanNotification>& outNotifs);
-    void handleReviewClan(uint32_t senderDbId, std::vector<ClanNotification>& outNotifs);
+    void handleReviewClan(uint32_t senderDbId, const IWorldContext& worldCtx,
+                          std::vector<ClanNotification>& outNotifs);
 };
 
 #endif

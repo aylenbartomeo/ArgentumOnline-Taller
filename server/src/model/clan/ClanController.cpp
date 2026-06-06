@@ -24,13 +24,13 @@ void ClanController::dispatch(uint32_t senderDbId, const ClanCommandDTO& cmd,
             handleFoundClan(senderDbId, worldCtx.getPlayerLevel(senderDbId), cmd.arg1, outNotifs);
             break;
         case ClanCommandType::JOIN:
-            handleJoinRequest(senderDbId, cmd.arg1, outNotifs);
+            handleJoinRequest(senderDbId, cmd.arg1, worldCtx, outNotifs);
             break;
         case ClanCommandType::LEAVE:
             handleLeaveClan(senderDbId, outNotifs);
             break;
         case ClanCommandType::REVIEW:
-            handleReviewClan(senderDbId, outNotifs);
+            handleReviewClan(senderDbId, worldCtx, outNotifs);
             break;
         case ClanCommandType::ACCEPT:
             handleAcceptMember(senderDbId, targetDbId, cmd.arg1, outNotifs);
@@ -85,25 +85,36 @@ void ClanController::handleFoundClan(uint32_t senderDbId, uint16_t senderLevel,
 }
 
 void ClanController::handleJoinRequest(uint32_t senderDbId, const std::string& clanName,
+                                       const IWorldContext& worldCtx,
                                        std::vector<ClanNotification>& outNotifs) {
+    const Clan* clan = service.getClanByName(clanName);
+    if (!clan) {
+        outNotifs.push_back({senderDbId, "El clan '" + clanName + "' no existe."});
+        return;
+    }
+
     ClanOpResult result = service.joinRequest(senderDbId, clanName);
 
+    if (result == ClanOpResult::PLAYER_BANNED) {
+        outNotifs.push_back({senderDbId, "Has sido baneado de este clan..."});
+        return;
+    }
     if (result == ClanOpResult::ALREADY_IN_CLAN) {
         outNotifs.push_back({senderDbId, "Ya perteneces a un clan."});
-    } else if (result == ClanOpResult::CLAN_NOT_FOUND) {
-        outNotifs.push_back({senderDbId, "No existe un clan llamado '" + clanName + "'."});
-    } else if (result == ClanOpResult::PLAYER_BANNED) {
-        outNotifs.push_back({senderDbId, "Fuiste baneado de este clan. Solicitud rechazada."});
-    } else if (result == ClanOpResult::CLAN_FULL) {
-        outNotifs.push_back({senderDbId, "El clan '" + clanName + "' está lleno."});
-    } else if (result == ClanOpResult::OK) {
-        const Clan* clan = service.getClanByName(clanName);
-        outNotifs.push_back(
-                {senderDbId, "Solicitud enviada al clan '" + clanName + "'. Espera respuesta."});
-        outNotifs.push_back({clan->getFounderDbId(),
-                             "Nuevo pedido de ingreso al clan (ID: " + std::to_string(senderDbId) +
-                                     "). Usa /revisar-clan."});
+        return;
     }
+    if (result == ClanOpResult::CLAN_FULL) {
+        outNotifs.push_back({senderDbId, "El clan está lleno."});
+        return;
+    }
+
+    if (result != ClanOpResult::OK)
+        return;
+
+    std::string senderName = worldCtx.getPlayerUsername(senderDbId).value_or("Desconocido");
+    outNotifs.push_back({senderDbId, "Petición de ingreso enviada a " + clanName + "."});
+    outNotifs.push_back(
+            {clan->getFounderDbId(), "Nuevo pedido de ingreso al clan de: " + senderName + "."});
 }
 
 void ClanController::handleAcceptMember(uint32_t senderDbId, uint32_t targetDbId,
@@ -133,7 +144,6 @@ void ClanController::handleRejectMember(uint32_t senderDbId, uint32_t targetDbId
                                         const std::string& targetNick,
                                         std::vector<ClanNotification>& outNotifs) {
     const Clan* clan = service.getClanOfPlayer(senderDbId);
-    std::string clanName = clan ? clan->getName() : "";
 
     ClanOpResult result = service.rejectMember(senderDbId, targetDbId);
 
@@ -144,8 +154,9 @@ void ClanController::handleRejectMember(uint32_t senderDbId, uint32_t targetDbId
     } else if (result == ClanOpResult::NO_PENDING_REQUEST) {
         outNotifs.push_back({senderDbId, targetNick + " no tiene solicitud pendiente."});
     } else if (result == ClanOpResult::OK) {
-        outNotifs.push_back(
-                {targetDbId, "Tu solicitud para unirte a '" + clanName + "' fue rechazada."});
+        outNotifs.push_back({senderDbId, "Rechazaste la solicitud de " + targetNick + "."});
+        outNotifs.push_back({targetDbId, "Tu petición de ingreso al clan " + clan->getName() +
+                                                 " fue rechazada."});
     }
 }
 
@@ -204,8 +215,9 @@ void ClanController::handleLeaveClan(uint32_t senderDbId,
     }
 }
 
-void ClanController::handleReviewClan(uint32_t senderDbId,
+void ClanController::handleReviewClan(uint32_t senderDbId, const IWorldContext& worldCtx,
                                       std::vector<ClanNotification>& outNotifs) {
+
     const Clan* clan = service.getClanOfPlayer(senderDbId);
 
     if (!clan) {
@@ -217,23 +229,28 @@ void ClanController::handleReviewClan(uint32_t senderDbId,
         return;
     }
 
-    std::ostringstream ss;
-    ss << "=== Clan: " << clan->getName() << " ===\n";
-    ss << "Miembros (" << clan->getMembers().size() << "/" << CLAN_MAX_MEMBERS << "):\n";
-    for (uint32_t id: clan->getMembers()) {
-        ss << "  - id=" << id;
-        if (id == clan->getFounderDbId())
-            ss << " [Fundador]";
-        ss << "\n";
-    }
-    ss << "Solicitudes pendientes (" << clan->getPendingRequests().size() << "):\n";
-    for (uint32_t id: clan->getPendingRequests()) {
-        ss << "  - id=" << id << "\n";
-    }
-    ss << "Baneados (" << clan->getBanned().size() << "):\n";
-    for (uint32_t id: clan->getBanned()) {
-        ss << "  - id=" << id << "\n";
+    outNotifs.push_back({senderDbId, "=== Info del Clan: " + clan->getName() + " ==="});
+
+    outNotifs.push_back({senderDbId, "Miembros activos:"});
+
+    for (uint32_t memberDbId: clan->getMembers()) {
+        std::string name = worldCtx.getPlayerUsername(memberDbId).value_or("Desconocido");
+        if (memberDbId == clan->getFounderDbId()) {
+            outNotifs.push_back({senderDbId, " - " + name + " (Líder)"});
+        } else {
+            outNotifs.push_back({senderDbId, " - " + name});
+        }
     }
 
-    outNotifs.push_back({senderDbId, ss.str()});
+    outNotifs.push_back({senderDbId, "Peticiones pendientes:"});
+    const auto& requests = clan->getJoinRequests();
+
+    if (requests.empty()) {
+        outNotifs.push_back({senderDbId, " - (Ninguna)"});
+    } else {
+        for (uint32_t reqDbId: requests) {
+            std::string name = worldCtx.getPlayerUsername(reqDbId).value_or("Desconocido");
+            outNotifs.push_back({senderDbId, " - " + name});
+        }
+    }
 }

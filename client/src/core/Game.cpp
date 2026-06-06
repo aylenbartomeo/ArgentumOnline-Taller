@@ -11,12 +11,16 @@
 
 #include <SDL2/SDL.h>
 
+#include "../animation/CharacterSprites.h"
+#include "../animation/Death.h"
+#include "../animation/FxAnimator.h"
+#include "../ui/HealthBar.h"
+#include "common/include/dto/CheatDTO.h"
 #include "common/include/dto/ClientCommands.h"
 #include "common/include/dto/StartMoveDTO.h"
 
-#include "CharacterSprites.h"
-#include "HealthBar.h"
 #include "OverlayRegistry.h"
+#include "Targeting.h"
 
 namespace {
 constexpr int TILE_SIZE = 32;
@@ -41,6 +45,18 @@ constexpr int HEAD_DRAW_W = 18;
 constexpr int HEAD_DRAW_H = 20;
 
 constexpr const char* HEALTHBAR_SHEET = "en_barradevida.bmp";
+
+constexpr const char* SKULL_SHEET = "106.png";
+
+constexpr const char* FX_SHEET = "19052.png";
+constexpr int FX_FRAME_W = 64;
+constexpr int FX_FRAME_H = 96;
+constexpr int FX_COLS = 8;
+constexpr int FX_FRAME_COUNT = 7;
+constexpr uint32_t FX_FRAME_DUR_MS = 50;
+constexpr int FX_DRAW_W = TILE_SIZE * 3 / 2;
+constexpr int FX_DRAW_H = FX_DRAW_W * FX_FRAME_H / FX_FRAME_W;
+constexpr int ATTACK_RANGE_TILES = 1;
 
 constexpr const char* GROUND_SHEET = "5108.png";
 constexpr int GROUND_SRC_X = 416;
@@ -104,11 +120,22 @@ void Game::run() {
         if (input.quit) {
             break;
         }
+        miniChat.update(input, WINDOW_WIDTH, WINDOW_HEIGHT);
         drainIncomingChat();
         processChatInput(input);
+        processCheats(input);
         sendMoveIfDue(input);
         render(input);
         SDL_Delay(16);
+    }
+}
+
+void Game::processCheats(const FrameInput& input) {
+    if (input.cheatLevelUp) {
+        client.sendCommand(CheatDTO{CheatType::LEVEL_UP});
+    }
+    if (input.cheatDie) {
+        client.sendCommand(CheatDTO{CheatType::DIE});
     }
 }
 
@@ -122,14 +149,24 @@ void Game::drainIncomingChat() {
 void Game::processChatInput(const FrameInput& input) {
     if (!input.chatSubmitted || input.chatText.empty())
         return;
+    std::optional<CommandVariant> cmdOpt = chatParser.parse(input.chatText);
 
-    CommandVariant cmd = chatParser.parse(input.chatText);
-    client.sendCommand(cmd);
+    // Si parse devolvió un valor (has_value), lo mandamos al servidor
+    if (cmdOpt.has_value()) {
+        client.sendCommand(cmdOpt.value());
+    } else {
+        miniChat.pushMessage("[Info] Comando inexistente o mal formateado.");
+    }
 }
 
 void Game::sendMoveIfDue(const FrameInput& input) {
     if (input.chatInputActive)
         return;
+
+    const EntityDTO* localPlayer = findEntityById(lastSnapshot, client.getClientId());
+    if (localPlayer != nullptr && isDead(localPlayer->current_hp)) {
+        return;
+    }
 
     const Uint32 now = SDL_GetTicks();
     if (now - lastMoveSentMs < MOVE_INTERVAL_MS) {
@@ -152,6 +189,66 @@ void Game::sendMoveIfDue(const FrameInput& input) {
     }
 }
 
+void Game::processCombatInput(const FrameInput& input, const CameraOffset& camera) {
+    if (input.resurrectPressed) {
+        client.sendCommand(ResurrectDTO{});
+    }
+
+    const EntityDTO* localPlayer = findEntityById(lastSnapshot, client.getClientId());
+
+    if (localPlayer != nullptr && isDead(localPlayer->current_hp))
+        return;
+
+    if (!input.attackPressed)
+        return;
+
+    if (miniChat.isMouseOver(input.attackX, input.attackY, WINDOW_HEIGHT))
+        return;
+
+    const Cell cell = screenToCell(input.attackX, input.attackY, camera.x, camera.y, TILE_SIZE);
+    const std::optional<uint32_t> target = pickTargetAt(cell.col, cell.row, lastSnapshot,
+                                                        client.getClientId(), ATTACK_RANGE_TILES);
+    if (target) {
+        client.sendCommand(AttackDTO{*target});
+        activeFx = ActiveFx{*target, SDL_GetTicks()};
+    }
+}
+
+void Game::renderFx(const CameraOffset& camera) {
+    if (!activeFx) {
+        return;
+    }
+    const uint32_t now = SDL_GetTicks();
+    const int frame = fxFrameIndex(now - activeFx->startMs, FX_FRAME_DUR_MS, FX_FRAME_COUNT);
+    if (frame < 0) {
+        activeFx.reset();
+        return;
+    }
+    const EntityDTO* target = findEntityById(lastSnapshot, activeFx->targetId);
+    if (!target) {
+        activeFx.reset();
+        return;
+    }
+    const std::string path = std::string(RESOURCES_DIR) + FX_SHEET;
+    if (!std::ifstream(path).good()) {
+        return;
+    }
+    SDL2pp::Renderer& renderer = window.getRenderer();
+    SDL2pp::Texture& fx = textures.get(path);
+    const FrameRect fr = fxFrameRect(frame, FX_FRAME_W, FX_FRAME_H, FX_COLS);
+    auto ait = animators.find(activeFx->targetId);
+    const int baseX = (ait != animators.end())
+                              ? static_cast<int>(ait->second.getVirtualX() * TILE_SIZE)
+                              : target->x * TILE_SIZE;
+    const int baseY = (ait != animators.end())
+                              ? static_cast<int>(ait->second.getVirtualY() * TILE_SIZE)
+                              : target->y * TILE_SIZE;
+    const int dstX = baseX + TILE_SIZE / 2 - FX_DRAW_W / 2 - camera.x;
+    const int dstY = baseY + TILE_SIZE - FX_DRAW_H - camera.y;
+    const SDL2pp::Rect dst(dstX, dstY, FX_DRAW_W, FX_DRAW_H);
+    renderer.Copy(fx, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst);
+}
+
 void Game::render(const FrameInput& input) {
     SnapshotDTO incoming;
     while (client.tryPopSnapshot(incoming)) {
@@ -163,11 +260,13 @@ void Game::render(const FrameInput& input) {
     renderer.Clear();
 
     const CameraOffset camera = computeCamera();
+    processCombatInput(input, camera);
     renderTerrain(camera);
     renderOverlays(camera);
     renderGroundItems(camera);
     renderCitizens(camera);
     renderEntities(camera);
+    renderFx(camera);
 
     // MiniChat superpuesto
     miniChat.render(renderer.Get(), WINDOW_WIDTH, WINDOW_HEIGHT, input.chatInputActive,
@@ -179,12 +278,17 @@ void Game::render(const FrameInput& input) {
 CameraOffset Game::computeCamera() {
     const uint32_t myId = client.getClientId();
     int focusX = 0, focusY = 0;
-    auto it = std::find_if(lastSnapshot.players.begin(), lastSnapshot.players.end(),
-                           [myId](const EntityDTO& entity) { return entity.id == myId; });
-
-    if (it != lastSnapshot.players.end()) {
-        focusX = it->x * TILE_SIZE + TILE_SIZE / 2;
-        focusY = it->y * TILE_SIZE + TILE_SIZE / 2;
+    auto ait = animators.find(myId);
+    if (ait != animators.end()) {
+        focusX = static_cast<int>(ait->second.getVirtualX() * TILE_SIZE) + TILE_SIZE / 2;
+        focusY = static_cast<int>(ait->second.getVirtualY() * TILE_SIZE) + TILE_SIZE / 2;
+    } else {
+        auto it = std::find_if(lastSnapshot.players.begin(), lastSnapshot.players.end(),
+                               [myId](const EntityDTO& entity) { return entity.id == myId; });
+        if (it != lastSnapshot.players.end()) {
+            focusX = it->x * TILE_SIZE + TILE_SIZE / 2;
+            focusY = it->y * TILE_SIZE + TILE_SIZE / 2;
+        }
     }
 
     return computeCameraOffset(focusX, focusY, WINDOW_WIDTH, WINDOW_HEIGHT,
@@ -292,6 +396,18 @@ void Game::renderEntities(const CameraOffset& camera) {
     const uint32_t now = SDL_GetTicks();
 
     auto drawEntity = [&](const EntityDTO& entity) {
+        CharacterAnimator& anim = animators[entity.id];
+        anim.update(entity.x, entity.y, now);
+        const int px = static_cast<int>(anim.getVirtualX() * TILE_SIZE);
+        const int py = static_cast<int>(anim.getVirtualY() * TILE_SIZE);
+
+        if (isDead(entity.current_hp)) {
+            SDL2pp::Texture& skull = textures.get(std::string(RESOURCES_DIR) + SKULL_SHEET);
+            const FrameRect sf = skullFrameRect();
+            const SDL2pp::Rect skullDst(px - camera.x, py - camera.y, TILE_SIZE, TILE_SIZE);
+            renderer.Copy(skull, SDL2pp::Rect(sf.x, sf.y, sf.w, sf.h), skullDst);
+            return;
+        }
         const EntitySprite sprite = spriteForEntity(entity.type, entity.sprite_id);
         SDL2pp::Texture& body = textures.get(std::string(RESOURCES_DIR) + sprite.bodySheet);
 
@@ -301,8 +417,6 @@ void Game::renderEntities(const CameraOffset& camera) {
         SDL2pp::Rect headSrcRect(sprite.headSrcX, sprite.headSrcY, sprite.headSrcW,
                                  sprite.headSrcH);
         if (entity.type == EntityType::PLAYER) {
-            CharacterAnimator& anim = animators[entity.id];
-            anim.update(entity.x, entity.y, now);
             const Movement facing = anim.getFacing();
             const FrameRect bf = bodyFrameRect(facing, anim.frameColumn(now));
             bodySrc = SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h);
@@ -314,25 +428,24 @@ void Game::renderEntities(const CameraOffset& camera) {
 
         const int bodyDstW = bodyW * TILE_SIZE / CHARACTER_FRAME_W;
         const int bodyDstH = bodyH * CHARACTER_DRAW_H / CHARACTER_FRAME_H;
-        const SDL2pp::Rect dstRect(entity.x * TILE_SIZE + (TILE_SIZE - bodyDstW) / 2 - camera.x,
-                                   entity.y * TILE_SIZE + TILE_SIZE - bodyDstH - camera.y, bodyDstW,
-                                   bodyDstH);
+        const SDL2pp::Rect dstRect(px + (TILE_SIZE - bodyDstW) / 2 - camera.x,
+                                   py + TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH);
         renderer.Copy(body, bodySrc, dstRect);
 
         if (sprite.drawHead) {
             SDL2pp::Texture& headSheet =
                     textures.get(std::string(RESOURCES_DIR) + sprite.headSheet);
-            const int headX = entity.x * TILE_SIZE + TILE_SIZE / 2 - HEAD_DRAW_W / 2 - camera.x;
-            const int headY = entity.y * TILE_SIZE + TILE_SIZE - CHARACTER_DRAW_H +
-                              sprite.headOverlap - HEAD_DRAW_H - camera.y;
+            const int headX = px + TILE_SIZE / 2 - HEAD_DRAW_W / 2 - camera.x;
+            const int headY = py + TILE_SIZE - CHARACTER_DRAW_H + sprite.headOverlap -
+                              HEAD_DRAW_H - camera.y;
             renderer.Copy(headSheet, headSrcRect,
                           SDL2pp::Rect(headX, headY, HEAD_DRAW_W, HEAD_DRAW_H));
         }
 
         if (entity.type == EntityType::PLAYER && entity.id == myId) {
             renderer.SetDrawColor(255, 235, 0, 255);
-            const int cx = entity.x * TILE_SIZE + TILE_SIZE / 2 - MARKER_SHIFT_X - camera.x;
-            const int cy = entity.y * TILE_SIZE + TILE_SIZE - 4 - camera.y;
+            const int cx = px + TILE_SIZE / 2 - MARKER_SHIFT_X - camera.x;
+            const int cy = py + TILE_SIZE - 4 - camera.y;
             for (int t = -1; t <= 1; ++t) {
                 const int rx = TILE_SIZE / 2 - 2 + t;
                 const int ry = TILE_SIZE / 5 + t;
@@ -356,9 +469,12 @@ void Game::renderEntities(const CameraOffset& camera) {
     }
 
     for (auto it = animators.begin(); it != animators.end();) {
-        const bool alive = std::any_of(lastSnapshot.players.begin(), lastSnapshot.players.end(),
-                                       [&](const EntityDTO& p) { return p.id == it->first; });
-        if (alive) {
+        const bool inPlayers = std::any_of(lastSnapshot.players.begin(), lastSnapshot.players.end(),
+                                           [&](const EntityDTO& p) { return p.id == it->first; });
+        const bool inMonsters =
+                std::any_of(lastSnapshot.monsters.begin(), lastSnapshot.monsters.end(),
+                            [&](const EntityDTO& m) { return m.id == it->first; });
+        if (inPlayers || inMonsters) {
             ++it;
         } else {
             it = animators.erase(it);
@@ -367,9 +483,14 @@ void Game::renderEntities(const CameraOffset& camera) {
 
     const SDL2pp::Rect barSrc(0, 0, barSheet.GetWidth(), barSheet.GetHeight());
     auto drawHealthBar = [&](const EntityDTO& entity) {
-        const HealthBarLayout bar =
-                computeHealthBar(entity.current_hp, entity.max_hp, entity.x * TILE_SIZE - camera.x,
-                                 entity.y * TILE_SIZE - camera.y, TILE_SIZE);
+        if (isDead(entity.current_hp)) {
+            return;
+        }
+        CharacterAnimator& anim = animators[entity.id];
+        const int px = static_cast<int>(anim.getVirtualX() * TILE_SIZE);
+        const int py = static_cast<int>(anim.getVirtualY() * TILE_SIZE);
+        const HealthBarLayout bar = computeHealthBar(entity.current_hp, entity.max_hp,
+                                                     px - camera.x, py - camera.y, TILE_SIZE);
         if (!bar.visible) {
             return;
         }

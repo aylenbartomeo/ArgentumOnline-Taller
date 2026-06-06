@@ -2,22 +2,23 @@
 #define GAME_H
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
 #include <SDL2pp/SDL2pp.hh>
 
+#include "../animation/CharacterAnimator.h"
+#include "../input/ChatCommandParser.h"
+#include "../input/EventHandler.h"
+#include "../rendering/TextureManager.h"
+#include "../rendering/TileMap.h"
+#include "../rendering/Viewport.h"
+#include "../ui/MiniChat.h"
+#include "../ui/Window.h"
 #include "common/include/dto/Snapshot.h"
 
-#include "CharacterAnimator.h"
-#include "ChatCommandParser.h"
 #include "Client.h"
-#include "EventHandler.h"
-#include "MiniChat.h"
-#include "TextureManager.h"
-#include "TileMap.h"
-#include "Viewport.h"
-#include "Window.h"
 
 class Game {
 private:
@@ -32,6 +33,12 @@ private:
     SnapshotDTO lastSnapshot;
     Uint32 lastMoveSentMs;
     std::unordered_map<uint32_t, CharacterAnimator> animators;
+
+    struct ActiveFx {
+        uint32_t targetId;
+        uint32_t startMs;
+    };
+    std::optional<ActiveFx> activeFx;
 
 public:
     explicit Game(Client& client);
@@ -55,10 +62,15 @@ private:
     void renderEntities(const CameraOffset& camera);
     CameraOffset computeCamera();
     void sendMoveIfDue(const FrameInput& input);
+    void processCombatInput(const FrameInput& input, const CameraOffset& camera);
+    void renderFx(const CameraOffset& camera);
 
     // Procesa el input del chat: si se confirmó un mensaje, lo envía al servidor y limpia el
     // buffer.
     void processChatInput(const FrameInput& input);
+
+    // Procesa los inputs relacionados a comandos de trampa (cheats)
+    void processCheats(const FrameInput& input);
 
     // Drena los mensajes de chat entrantes del servidor y los muestra en el MiniChat.
     void drainIncomingChat();
