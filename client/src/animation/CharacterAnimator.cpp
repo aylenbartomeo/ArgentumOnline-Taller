@@ -2,6 +2,8 @@
 
 #include <cstdlib>
 
+#include "Motion.h"
+
 namespace {
 constexpr int FRAME_COLS = 6;
 constexpr int CELL_X[FRAME_COLS] = {2, 27, 52, 76, 101, 126};
@@ -16,6 +18,8 @@ constexpr int HEAD_ROW_Y[4] = {13, 77, 141, 205};
 constexpr uint32_t MOVE_TIMEOUT_MS = 200;
 constexpr uint32_t FRAME_MS = 120;
 constexpr int WALK_FRAMES = 4;
+constexpr float MOVE_SPEED = 0.005f;
+constexpr float SNAP_DIST = 2.5f;
 
 int rowForFacing(Movement facing) {
     switch (facing) {
@@ -58,6 +62,18 @@ void CharacterAnimator::update(int x, int y, uint32_t nowMs) {
         facing = directionFromDelta(x - lastX, y - lastY);
         lastStepMs = nowMs;
     }
+    const Vec2 target{static_cast<float>(x), static_cast<float>(y)};
+    if (!hasVirt) {
+        virtX = target.x;
+        virtY = target.y;
+        hasVirt = true;
+    } else {
+        const Vec2 next = stepToward({virtX, virtY}, target, MOVE_SPEED, nowMs - lastUpdateMs,
+                                     SNAP_DIST);
+        virtX = next.x;
+        virtY = next.y;
+    }
+    lastUpdateMs = nowMs;
     lastX = x;
     lastY = y;
     hasPrev = true;
@@ -71,3 +87,7 @@ int CharacterAnimator::frameColumn(uint32_t nowMs) const {
     }
     return 0;
 }
+
+float CharacterAnimator::getVirtualX() const { return virtX; }
+
+float CharacterAnimator::getVirtualY() const { return virtY; }

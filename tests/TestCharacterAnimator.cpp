@@ -60,3 +60,27 @@ TEST(CharacterAnimatorTest, GoesIdleAfterTimeout) {
     anim.update(1, 0, 100);
     EXPECT_EQ(anim.frameColumn(400), 0);
 }
+
+TEST(CharacterAnimatorTest, VirtualStartsAtFirstTarget) {
+    CharacterAnimator anim;
+    anim.update(5, 5, 0);
+    EXPECT_FLOAT_EQ(anim.getVirtualX(), 5.0f);
+    EXPECT_FLOAT_EQ(anim.getVirtualY(), 5.0f);
+}
+
+TEST(CharacterAnimatorTest, VirtualSlidesTowardTarget) {
+    CharacterAnimator anim;
+    anim.update(5, 5, 0);
+    anim.update(6, 5, 100);
+    EXPECT_GT(anim.getVirtualX(), 5.0f);
+    EXPECT_LT(anim.getVirtualX(), 6.0f);
+    EXPECT_FLOAT_EQ(anim.getVirtualY(), 5.0f);
+}
+
+TEST(CharacterAnimatorTest, VirtualSnapsOnFarJump) {
+    CharacterAnimator anim;
+    anim.update(0, 0, 0);
+    anim.update(40, 40, 100);
+    EXPECT_FLOAT_EQ(anim.getVirtualX(), 40.0f);
+    EXPECT_FLOAT_EQ(anim.getVirtualY(), 40.0f);
+}
