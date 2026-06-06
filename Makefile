@@ -32,6 +32,9 @@ run-server:
 run-client:
 	cd build && ./argentum_online_client
 
+run-editor:
+	cd build && ./argentum_online_editor
+
 all: clean run-tests
 
 clean:
