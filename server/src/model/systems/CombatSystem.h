@@ -2,12 +2,13 @@
 #define COMBAT_SYSTEM_H
 
 #include <cstdint>
-#include "model/entities/EntityManager.h"
+
 #include "../../Map.h"
-#include "model/entities/Player.h"
-#include "model/entities/Monster.h"
-#include "model/events/EventPublisher.h"
 #include "model/clan/ClanRepository.h"
+#include "model/entities/EntityManager.h"
+#include "model/entities/Monster.h"
+#include "model/entities/Player.h"
+#include "model/events/EventPublisher.h"
 
 class ICombatEventCallback {
 public:
@@ -30,7 +31,8 @@ private:
     float CLAN_DEFENSE_BONUS_PER_MEMBER = 0.05f;
 
 public:
-    CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, EventPublisher& ep, ICombatEventCallback& cb, bool enforceFairPlay);
+    CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, EventPublisher& ep,
+                 ICombatEventCallback& cb, bool enforceFairPlay);
     void setFairPlayRules(bool enforce) { enforceFairPlay = enforce; }
 
     void playerAttack(uint32_t attackerDbId, uint32_t targetDbId);
@@ -40,4 +42,4 @@ public:
     int countNearbyClanmates(uint32_t dbId, int range) const;
 };
 
-#endif // COMBAT_SYSTEM_H
+#endif  // COMBAT_SYSTEM_H

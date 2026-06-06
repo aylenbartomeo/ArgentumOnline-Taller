@@ -2,17 +2,11 @@
 
 #include "../client/src/animation/Death.h"
 
-TEST(DeathTest, ZeroHpIsDead) {
-    EXPECT_TRUE(isDead(0));
-}
+TEST(DeathTest, ZeroHpIsDead) { EXPECT_TRUE(isDead(0)); }
 
-TEST(DeathTest, PositiveHpIsAlive) {
-    EXPECT_FALSE(isDead(50));
-}
+TEST(DeathTest, PositiveHpIsAlive) { EXPECT_FALSE(isDead(50)); }
 
-TEST(DeathTest, NegativeHpIsDead) {
-    EXPECT_TRUE(isDead(-5));
-}
+TEST(DeathTest, NegativeHpIsDead) { EXPECT_TRUE(isDead(-5)); }
 
 TEST(DeathTest, SkullFrameRectIsRow1Col4) {
     FrameRect rect = skullFrameRect();

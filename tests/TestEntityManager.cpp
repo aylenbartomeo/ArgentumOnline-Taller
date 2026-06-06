@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include "model/entities/EntityManager.h"
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
@@ -8,12 +9,12 @@ static RaceConfig getTestRaceConfig() { return {1.0f, 1.0f, 1.0f}; }
 static CharacterClassConfig getTestClassConfig() { return {1.0f, 1.0f, 1.0f, false}; }
 static InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
 
-std::unique_ptr<Player> createTestPlayer(uint32_t entityId, uint32_t dbId, const std::string& name, const ItemRegistry& reg) {
-    return std::make_unique<Player>(
-        entityId, dbId, name, Race::HUMAN, CharacterClass::WARRIOR, 
-        getTestRaceConfig(), getTestClassConfig(), getTestPlayerConfig(), 
-        reg, getTestInventoryConfig(), Position{0, 0}
-    );
+std::unique_ptr<Player> createTestPlayer(uint32_t entityId, uint32_t dbId, const std::string& name,
+                                         const ItemRegistry& reg) {
+    return std::make_unique<Player>(entityId, dbId, name, Race::HUMAN, CharacterClass::WARRIOR,
+                                    getTestRaceConfig(), getTestClassConfig(),
+                                    getTestPlayerConfig(), reg, getTestInventoryConfig(),
+                                    Position{0, 0});
 }
 
 TEST(EntityManagerTest, HandlesPlayerLifecycle) {
@@ -84,12 +85,12 @@ TEST(EntityManagerTest, GetPlayerUsernameReturnsCorrectName) {
 TEST(EntityManagerTest, GetOnlinePlayerDbIdsReturnsAllActive) {
     EntityManager em;
     ItemRegistry reg("../config/items.toml");
-    
+
     uint32_t e1 = em.allocateEntityId();
     uint32_t e2 = em.allocateEntityId();
     auto p1 = createTestPlayer(e1, 10, "P1", reg);
     auto p2 = createTestPlayer(e2, 20, "P2", reg);
-    
+
     em.registerPlayer(e1, 10, std::move(p1));
     em.registerPlayer(e2, 20, std::move(p2));
 

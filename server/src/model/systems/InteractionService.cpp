@@ -1,6 +1,7 @@
 #include "InteractionService.h"
 
-InteractionResult InteractionService::startInteraction(uint32_t playerEntityId, Player& player, Interactable* npc) {
+InteractionResult InteractionService::startInteraction(uint32_t playerEntityId, Player& player,
+                                                       Interactable* npc) {
     if (player.isDead()) {
         return {InteractionStatus::FAILURE, "No puedes interactuar estando muerto."};
     }
@@ -17,7 +18,8 @@ InteractionResult InteractionService::startInteraction(uint32_t playerEntityId, 
     return npc->beInteractedBy(player);
 }
 
-InteractionResult InteractionService::executeCommand(uint32_t playerEntityId, Player& player, const NpcCommandDTO& dto) {
+InteractionResult InteractionService::executeCommand(uint32_t playerEntityId, Player& player,
+                                                     const NpcCommandDTO& dto) {
     if (player.isDead()) {
         return {InteractionStatus::FAILURE, "No puedes hacer eso siendo un fantasma."};
     }

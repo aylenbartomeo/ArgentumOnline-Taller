@@ -10,6 +10,7 @@
 #include "../../config/MonsterConfig.h"
 #include "../interfaces/Attackable.h"
 #include "../interfaces/Interactable.h"
+
 #include "Monster.h"
 #include "Player.h"
 
@@ -69,4 +70,4 @@ public:
     const auto& getCityNPCs() const { return cityNPCs; }
 };
 
-#endif // ENTITY_MANAGER_H
+#endif  // ENTITY_MANAGER_H

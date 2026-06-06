@@ -68,8 +68,8 @@ void CharacterAnimator::update(int x, int y, uint32_t nowMs) {
         virtY = target.y;
         hasVirt = true;
     } else {
-        const Vec2 next = stepToward({virtX, virtY}, target, MOVE_SPEED, nowMs - lastUpdateMs,
-                                     SNAP_DIST);
+        const Vec2 next =
+                stepToward({virtX, virtY}, target, MOVE_SPEED, nowMs - lastUpdateMs, SNAP_DIST);
         virtX = next.x;
         virtY = next.y;
     }

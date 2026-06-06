@@ -309,14 +309,14 @@ void World::moveMonsterTowards(Monster& monster, const Position& targetPos) {
         candidates.push_back({mPos.x - 1, mPos.y});       // 5. Esquivar izquierda (slide lateral)
     }
 
-    for (const auto& candidate: candidates) {
-        if (candidate != mPos && map.canMoveTo(candidate)) {
-            map.setEntityCollision(mPos.x, mPos.y, false);
-            monster.setPosition(candidate);
-            map.setEntityCollision(candidate.x, candidate.y, true);
-            monster.resetMoveCooldown();
-            return;
-        }
+    auto it = std::find_if(candidates.begin(), candidates.end(),
+                           [&](const Position& c) { return c != mPos && map.canMoveTo(c); });
+
+    if (it != candidates.end()) {
+        map.setEntityCollision(mPos.x, mPos.y, false);
+        monster.setPosition(*it);
+        map.setEntityCollision(it->x, it->y, true);
+        monster.resetMoveCooldown();
     }
 }
 

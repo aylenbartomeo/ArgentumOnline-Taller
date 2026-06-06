@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include "model/systems/ResurrectionService.h"
 
 TEST(ResurrectionServiceTest, RequestFailsIfNotDead) {
@@ -17,14 +18,15 @@ TEST(ResurrectionServiceTest, RequestFailsIfNoPriests) {
 
 TEST(ResurrectionServiceTest, RequestSuccessEnqueuesWithDelay) {
     ResurrectionService svc;
-    std::vector<Position> priests = {Position{20, 10}, Position{12, 10}}; // Distances: 10 and 2 from (10, 10)
-    
+    std::vector<Position> priests = {Position{20, 10},
+                                     Position{12, 10}};  // Distances: 10 and 2 from (10, 10)
+
     auto result = svc.requestResurrection(1, Position{10, 10}, true, priests);
     EXPECT_TRUE(result.success);
-    
+
     // Delay = 2 * 200 = 400ms. 400/1000 = 0 seconds string.
     EXPECT_EQ(result.message, "Resucitando... Por favor espera 0 segundos.");
-    
+
     // Tick 200ms -> should not complete
     auto completed1 = svc.tick(200.0f);
     EXPECT_TRUE(completed1.empty());
