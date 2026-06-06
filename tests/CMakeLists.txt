@@ -1,6 +1,10 @@
 # Target de testing
 add_executable(argentum_online_tests)
 
+set_target_properties(argentum_online_server PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
 target_sources(argentum_online_tests
     PRIVATE
     TestProtocol.cpp
@@ -45,28 +49,10 @@ target_sources(argentum_online_tests
     TestSpawnCatalogs.cpp
     TestPersistence.cpp
     TestEntityCollision.cpp
-
-    # ARMAR UN lib_client
-    ../client/src/rendering/TileMap.cpp
-    ../client/src/ui/HealthBar.cpp
-    ../client/src/rendering/Viewport.cpp
-    ../client/src/animation/CharacterSprites.cpp
-    ../client/src/animation/CharacterAnimator.cpp
-    ../client/src/animation/Death.cpp
-    ../client/src/animation/FxAnimator.cpp
-    ../client/src/animation/Motion.cpp
-    ../client/src/core/Targeting.cpp
-    ../editor/EditorMap.cpp
-    ../editor/Camera.cpp
-    ../editor/Palette.cpp
-    ../editor/Toolbar.cpp
-    ../editor/SpawnCatalogs.cpp
 )
 
 # Solo incluimos directorios ajenos al servidor (los del server ya los provee lib_server por herencia)
 target_include_directories(argentum_online_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/common/utils
-    ${CMAKE_SOURCE_DIR}/client/src
     ${CMAKE_SOURCE_DIR}/editor
     ${CMAKE_BINARY_DIR}/_deps/libbcrypt-src/include
     .
@@ -75,6 +61,8 @@ target_include_directories(argentum_online_tests PRIVATE
 target_link_libraries(argentum_online_tests
     PRIVATE
     lib_server
+    lib_client
+    lib_editor
     lib_common
     GTest::gtest_main
     GTest::gmock
