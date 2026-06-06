@@ -7,6 +7,7 @@
 #include <SDL2/SDL_keycode.h>
 
 struct FrameInput {
+    // --- Movimiento ---
     bool quit = false;
     bool moveNorth = false;
     bool moveSouth = false;
@@ -14,10 +15,17 @@ struct FrameInput {
     bool moveWest = false;
 
     // --- Minichat ---
-    bool chatInputActive = false;  // el jugador está escribiendo en el chat
-    bool chatSubmitted = false;    // presionó Enter con texto
-    std::string chatText;          // texto acumulado del input actual
+    bool chatInputActive = false;
+    bool chatSubmitted = false;
+    std::string chatText;
+    bool toggleChat = false;
+    int mouseScroll = 0;
+    int mouseX = 0;
+    int mouseY = 0;
+    bool mouseLeftHeld = false;
+    bool mouseLeftJustPressed = false;
 
+    // --- Combat ---
     bool attackPressed = false;
     int attackX = 0;
     int attackY = 0;
@@ -38,6 +46,11 @@ private:
 
     std::unordered_set<SDL_Keycode> justPressedKeys;
     std::unordered_set<SDL_Scancode> justPressedScancodes;
+
+    // --- Estado del mouse ---
+    bool mouseLeftHeld = false;
+    int currentMouseX = 0;
+    int currentMouseY = 0;
 
 public:
     EventHandler() = default;

@@ -12,13 +12,13 @@
 #include <SDL2/SDL.h>
 
 #include "../animation/CharacterSprites.h"
+#include "../animation/Death.h"
+#include "../animation/FxAnimator.h"
 #include "../ui/HealthBar.h"
 #include "common/include/dto/CheatDTO.h"
 #include "common/include/dto/ClientCommands.h"
 #include "common/include/dto/StartMoveDTO.h"
 
-#include "../animation/Death.h"
-#include "../animation/FxAnimator.h"
 #include "OverlayRegistry.h"
 #include "Targeting.h"
 
@@ -120,6 +120,7 @@ void Game::run() {
         if (input.quit) {
             break;
         }
+        miniChat.update(input, WINDOW_WIDTH, WINDOW_HEIGHT);
         drainIncomingChat();
         processChatInput(input);
         processCheats(input);
@@ -192,16 +193,21 @@ void Game::processCombatInput(const FrameInput& input, const CameraOffset& camer
     if (input.resurrectPressed) {
         client.sendCommand(ResurrectDTO{});
     }
+
     const EntityDTO* localPlayer = findEntityById(lastSnapshot, client.getClientId());
-    if (localPlayer != nullptr && isDead(localPlayer->current_hp)) {
+
+    if (localPlayer != nullptr && isDead(localPlayer->current_hp))
         return;
-    }
-    if (!input.attackPressed) {
+
+    if (!input.attackPressed)
         return;
-    }
+
+    if (miniChat.isMouseOver(input.attackX, input.attackY, WINDOW_HEIGHT))
+        return;
+
     const Cell cell = screenToCell(input.attackX, input.attackY, camera.x, camera.y, TILE_SIZE);
-    const std::optional<uint32_t> target =
-            pickTargetAt(cell.col, cell.row, lastSnapshot, client.getClientId(), ATTACK_RANGE_TILES);
+    const std::optional<uint32_t> target = pickTargetAt(cell.col, cell.row, lastSnapshot,
+                                                        client.getClientId(), ATTACK_RANGE_TILES);
     if (target) {
         client.sendCommand(AttackDTO{*target});
         activeFx = ActiveFx{*target, SDL_GetTicks()};
