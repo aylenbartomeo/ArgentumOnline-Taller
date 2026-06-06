@@ -51,11 +51,6 @@ add_subdirectory(common/)
 include(cmake/CompilerWarnings.cmake)
 set_project_warnings(lib_common ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
-# Say where the headers will be found required by library target
-# Make this PUBLIC so any dependant linking lib will inherit this
-# location (so our dependants will not have to explicitly request this)
-target_include_directories(lib_common PUBLIC .)
-
 # You need to install some system packages *by hand* before compiling the
 # client/editor code. In xubuntu/ubuntu 24.04 these are:
 #
@@ -132,33 +127,9 @@ endif()
 # Program section
 # ---------------
 if(ARGENTUM_ONLINE_CLIENT)
+    # Buscamos Qt5 acá en la raíz para que esté disponible globalmente
     find_package(Qt5 COMPONENTS Widgets REQUIRED)
-
-    # HEY!!
-    # TODO XXX: Change the name of the executable to the one you like!
-    add_executable(argentum_online_client)
-
-    set_target_properties(argentum_online_client PROPERTIES
-        AUTOUIC ON
-        AUTOMOC ON
-        AUTORCC ON
-    )
-
-    # Make them depend on taller_common lib
-    add_dependencies(argentum_online_client lib_common SDL2pp::SDL2pp)
-
-    # Add source files and enable warnings
-    # HEY!!
-    # TODO XXX: add more subfolders here
     add_subdirectory(client)
-
-    set_project_warnings(argentum_online_client ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
-
-    # add libSDL2pp's headers
-    target_include_directories(argentum_online_client PRIVATE ${libSDL2pp_SOURCE_DIR})
-
-    # Link the taller_common lib target
-    target_link_libraries(argentum_online_client lib_common SDL2pp::SDL2pp SDL2_image::SDL2_image Qt5::Widgets nlohmann_json::nlohmann_json pthread)
 endif()
 
 if(ARGENTUM_ONLINE_SERVER)
@@ -166,23 +137,7 @@ if(ARGENTUM_ONLINE_SERVER)
 endif()
 
 if(ARGENTUM_ONLINE_EDITOR)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
-    add_executable(argentum_online_editor)
-
-    # Make them depend on taller_common lib
-    add_dependencies(argentum_online_editor lib_common SDL2pp::SDL2pp)
-
-    # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(editor)
-
-    set_project_warnings(argentum_online_editor ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
-
-    # add libSDL2pp's headers
-    target_include_directories(argentum_online_editor PRIVATE ${libSDL2pp_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/client/src ${sdl2_ttf_SOURCE_DIR})
-
-    # Link the taller_common lib target
-    target_link_libraries(argentum_online_editor lib_common SDL2pp::SDL2pp SDL2_image::SDL2_image SDL2_ttf nlohmann_json::nlohmann_json pthread)
 endif()
 
 
