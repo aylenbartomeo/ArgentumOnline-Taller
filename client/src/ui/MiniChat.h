@@ -27,7 +27,7 @@ public:
     void pushMessage(const std::string& msg);
 
     // Procesa el input y actualiza el estado interno (resize/scroll/toggle)
-    void update(const FrameInput& input, int windowH);
+    void update(const FrameInput& input, int windowW, int windowH);
 
     // Renderiza el panel en la esquina inferior-izquierda
     void render(SDL_Renderer* renderer, int windowW, int windowH, bool inputActive,

@@ -30,7 +30,7 @@ void MiniChat::pushMessage(const std::string& msg) {
     }
 }
 
-void MiniChat::update(const FrameInput& input, int windowH) {
+void MiniChat::update(const FrameInput& input, int windowW, int windowH) {
     if (input.toggleChat) {
         visible = !visible;
     }
@@ -71,15 +71,18 @@ void MiniChat::update(const FrameInput& input, int windowH) {
         panelW = input.mouseX - panelX;
         panelH = windowH - input.mouseY - PADDING;
 
-        // Límites
         if (panelW < 200)
             panelW = 200;
-        if (panelW > 800)
-            panelW = 800;
         if (panelH < 80)
             panelH = 80;
-        if (panelH > 600)
-            panelH = 600;
+
+        int maxW = windowW - PADDING * 2;
+        int maxH = windowH - PADDING * 2;
+
+        if (panelW > maxW)
+            panelW = maxW;
+        if (panelH > maxH)
+            panelH = maxH;
     }
 }
 

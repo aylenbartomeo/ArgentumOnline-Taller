@@ -120,7 +120,7 @@ void Game::run() {
         if (input.quit) {
             break;
         }
-        miniChat.update(input, WINDOW_HEIGHT);
+        miniChat.update(input, WINDOW_WIDTH, WINDOW_HEIGHT);
         drainIncomingChat();
         processChatInput(input);
         processCheats(input);
