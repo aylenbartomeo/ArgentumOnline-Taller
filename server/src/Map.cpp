@@ -19,6 +19,7 @@ Map::Map(): width(100), height(100), spawn_point({50.0f, 50.0f}) {
     safeZones.addZone("default", 45, 45, 10, 10);
     // Inicializa la grilla por defecto limpia
     collisionLayer.resize(width, height);
+    entityCollisionLayer.resize(width, height);
 }
 
 void Map::setDimensions(int w, int h) {
@@ -26,6 +27,7 @@ void Map::setDimensions(int w, int h) {
     this->height = h;
     // Redimensionamos la matriz de colisiones para que coincida con el nuevo tamaño
     collisionLayer.resize(w, h);
+    entityCollisionLayer.resize(w, h);
 }
 
 void Map::setCitizenArea(int x, int y, int w, int h) {
@@ -271,6 +273,34 @@ bool Map::canMoveTo(const Position& pos) const {
     if (!pos.isWithinBounds(this->width, this->height)) {
         return false;
     }
-    // collisionLayer nos dice si hay obstáculo
-    return !collisionLayer.isSolid(pos.x, pos.y);
+    // collisionLayer nos dice si hay obstáculo estático
+    // entityCollisionLayer nos dice si hay una entidad ocupando
+    return !collisionLayer.isSolid(pos.x, pos.y) && !entityCollisionLayer.isSolid(pos.x, pos.y);
+}
+
+std::optional<Position> Map::findClosestFreePosition(const Position& origin, int maxRadius) const {
+    if (canMoveTo(origin)) {
+        return origin;
+    }
+
+    for (int r = 1; r <= maxRadius; ++r) {
+        for (int dx = -r; dx <= r; ++dx) {
+            for (int dy = -r; dy <= r; ++dy) {
+                // Chequear el contorno del cuadrado de radio r
+                if (std::abs(dx) == r || std::abs(dy) == r) {
+                    Position candidate{origin.x + dx, origin.y + dy};
+                    if (canMoveTo(candidate)) {
+                        return candidate;
+                    }
+                }
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+void Map::setEntityCollision(int x, int y, bool isSolid) {
+    if (x >= 0 && x < width && y >= 0 && y < height) {
+        entityCollisionLayer.setSolid(x, y, isSolid);
+    }
 }

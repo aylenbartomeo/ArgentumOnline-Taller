@@ -36,13 +36,14 @@ struct MapMonsterSpawn {
 class Map {
 private:
     int width, height;
+    CollisionLayer collisionLayer;
+    CollisionLayer entityCollisionLayer;
     std::vector<MapElement> mapElements;
     GroundItemLayer groundItems;
     SafeZoneLayer safeZones;
     NPCLayer npcs;
     std::vector<MapMonsterSpawn> monsterSpawns;
     std::pair<float, float> spawn_point;
-    CollisionLayer collisionLayer;
     // Area initArea(const int x, const int y, const int weight, const int height);
     // void load_from_toml(const std::string& filepath);
     //  Inicializa la matriz de colisiones en base a los mapElements cargados
@@ -59,6 +60,8 @@ public:
     /* Devuelven las dimensiones del mapa */
     int heightLimit() const;
     int widthLimit() const;
+
+    void setEntityCollision(int x, int y, bool isSolid);
 
     /* Retorna la posición inicial segura para un jugador */
     std::pair<float, float> getInitialPosition();
@@ -111,6 +114,8 @@ public:
     // Retorna true si la posición es válida para moverse:
     // está dentro de los límites del mapa Y no hay obstáculo en collision_grid.
     bool canMoveTo(const Position& pos) const;
+
+    std::optional<Position> findClosestFreePosition(const Position& origin, int maxRadius) const;
 };
 
 #endif
