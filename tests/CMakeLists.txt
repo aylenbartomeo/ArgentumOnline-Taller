@@ -44,6 +44,7 @@ target_sources(argentum_online_tests
     TestToolbar.cpp
     TestSpawnCatalogs.cpp
     TestPersistence.cpp
+    TestEntityCollision.cpp
 
     # ARMAR UN lib_client
     ../client/src/rendering/TileMap.cpp

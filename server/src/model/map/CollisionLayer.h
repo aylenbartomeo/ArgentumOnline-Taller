@@ -1,6 +1,7 @@
 #ifndef COLLISION_LAYER_H
 #define COLLISION_LAYER_H
 
+#include <cstdint>
 #include <vector>
 
 #include "position.h"
