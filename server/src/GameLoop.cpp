@@ -215,6 +215,14 @@ void GameLoop::broadcastState() {
     SnapshotDTO snap = world.generateSnapshot();
     // El monitor lo distribuye concurrentemente
     monitor.broadcast(snap);
+
+    // Mandamos el HUD individual a cada jugador
+    for (uint32_t dbId: world.getOnlinePlayerDbIds()) {
+        auto statsOpt = world.getPlayerStatsDTO(dbId);
+        if (statsOpt.has_value()) {
+            monitor.sendToClient(dbId, statsOpt.value());
+        }
+    }
 }
 
 void GameLoop::persistOnlinePlayers() {

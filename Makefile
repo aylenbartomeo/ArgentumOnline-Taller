@@ -7,10 +7,12 @@ compile-debug:
 	cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Debug $(EXTRA_GENERATE)
 	cmake --build build/ $(EXTRA_COMPILE)
 	@# --- Recursos del Servidor ---
+	@mkdir -p auth_data users_data worlds
 	@ln -sfn ../maps build/maps
 	@ln -sfn ../config build/config
 	@ln -sfn ../auth_data build/auth_data
 	@ln -sfn ../users_data build/users_data
+	@ln -sfn ../worlds build/worlds
 	@# --- Recursos del Cliente ---
 	@ln -sfn ../resources build/resources
 run-tests: compile-debug
@@ -26,8 +28,17 @@ valgrind-tests: compile-debug
 	@echo "Chequeo de Valgrind completado. Reporte guardado en: build/valgrind/reporte_tests.log"
 
 PORT ?= 8080
-run-server:
-	cd build && ./argentum_online_server $(PORT)
+WORLD ?= DefaultWorld
+MAP ?= maps/defaultMap.json
+
+prepare-dirs:
+	@mkdir -p auth_data users_data worlds
+
+run-server-create: prepare-dirs
+	cd build && ./argentum_online_server $(PORT) --create "$(WORLD)" --map "$(MAP)"
+
+run-server-load: prepare-dirs
+	cd build && ./argentum_online_server $(PORT) --load "$(WORLD)"
 
 run-client:
 	cd build && ./argentum_online_client
@@ -39,3 +50,14 @@ all: clean run-tests
 
 clean:
 	rm -Rf build/
+
+clean-db-auth:
+	rm -rf auth_data/ users_data/ build/auth_data/ build/users_data/
+	@echo "Base de datos de cuentas y usuarios (auth_data, users_data) limpiada."
+
+clean-db-world:
+	rm -rf worlds/ build/worlds/
+	@echo "Base de datos de mundos (worlds) limpiada."
+
+clean-db: clean-db-auth clean-db-world
+	@echo "Base de datos completa limpiada correctamente."

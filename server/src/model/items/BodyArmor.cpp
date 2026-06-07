@@ -10,6 +10,6 @@ BodyArmor::BodyArmor(const int id, std::string name, const int minDefense, const
 
 int BodyArmor::getDefense() const { return rollDefense(); }
 
-uint32_t BodyArmor::equip_on(EquipmentComponent& equipment) const {
-    return equipment.equipBodyArmor(this);
+void BodyArmor::equip_on(EquipmentComponent& equipment, uint8_t slotIndex) const {
+    equipment.equipBodyArmor(this, slotIndex);
 }

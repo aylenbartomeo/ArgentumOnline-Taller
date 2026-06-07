@@ -1,8 +1,9 @@
 #include <gtest/gtest.h>
-#include "model/systems/InteractionService.h"
-#include "model/interfaces/Interactable.h"
 
-class DummyInteractable : public Interactable {
+#include "model/interfaces/Interactable.h"
+#include "model/systems/InteractionService.h"
+
+class DummyInteractable: public Interactable {
 public:
     InteractionResult beInteractedBy(Player& /*player*/) override {
         return {InteractionStatus::SUCCESS, "Interactuando"};
@@ -15,7 +16,8 @@ public:
 };
 
 // Player requires too many dependencies to mock easily here without TestEntityManager helper.
-// Since InteractionService mainly tests the map, we can rely on integration tests for the full flow.
+// Since InteractionService mainly tests the map, we can rely on integration tests for the full
+// flow.
 TEST(InteractionServiceTest, HasActiveInteractionReturnsFalseInitially) {
     InteractionService svc;
     EXPECT_FALSE(svc.hasActiveInteraction(1));

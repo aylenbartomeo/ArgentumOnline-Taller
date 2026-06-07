@@ -1,12 +1,21 @@
 #include "CombatSystem.h"
-#include "model/combat/CombatManager.h"
+
 #include <string>
 
-CombatSystem::CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, EventPublisher& ep, ICombatEventCallback& cb, bool enforceFairPlay)
-    : map(map), entityManager(em), clanRepo(cr), eventPublisher(ep), callback(cb), enforceFairPlay(enforceFairPlay) {}
+#include "model/combat/CombatManager.h"
+
+CombatSystem::CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, EventPublisher& ep,
+                           ICombatEventCallback& cb, bool enforceFairPlay):
+        map(map),
+        entityManager(em),
+        clanRepo(cr),
+        eventPublisher(ep),
+        callback(cb),
+        enforceFairPlay(enforceFairPlay) {}
 
 bool CombatSystem::areClanmates(uint32_t dbId1, uint32_t dbId2) const {
-    if (dbId1 == dbId2) return true;
+    if (dbId1 == dbId2)
+        return true;
     auto clan1 = clanRepo.getClanIdOfPlayer(dbId1);
     auto clan2 = clanRepo.getClanIdOfPlayer(dbId2);
     return clan1 && clan2 && *clan1 == *clan2;
@@ -14,17 +23,21 @@ bool CombatSystem::areClanmates(uint32_t dbId1, uint32_t dbId2) const {
 
 int CombatSystem::countNearbyClanmates(uint32_t dbId, int range) const {
     auto clanId = clanRepo.getClanIdOfPlayer(dbId);
-    if (!clanId) return 0;
+    if (!clanId)
+        return 0;
 
     const Clan* clan = clanRepo.getClanById(*clanId);
-    if (!clan) return 0;
+    if (!clan)
+        return 0;
 
     auto posOpt = entityManager.getPlayerPosition(dbId);
-    if (!posOpt) return 0;
+    if (!posOpt)
+        return 0;
 
     int count = 0;
-    for (uint32_t memberId : clan->getMembers()) {
-        if (memberId == dbId) continue;
+    for (uint32_t memberId: clan->getMembers()) {
+        if (memberId == dbId)
+            continue;
         auto memberPosOpt = entityManager.getPlayerPosition(memberId);
         if (memberPosOpt && posOpt->chebyshev_distance_to(*memberPosOpt) <= range) {
             count++;
@@ -35,7 +48,8 @@ int CombatSystem::countNearbyClanmates(uint32_t dbId, int range) const {
 
 void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     Player* pAttacker = entityManager.getPlayer(attackerDbId);
-    if (!pAttacker) return;
+    if (!pAttacker)
+        return;
 
     Player& attacker = *pAttacker;
 
@@ -81,7 +95,8 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     }
 
     // Variables de bonificación
-    float attackBonus = 1.0f + (countNearbyClanmates(attackerDbId, CLAN_BONUS_RANGE) * CLAN_ATTACK_BONUS_PER_MEMBER);
+    float attackBonus = 1.0f + (countNearbyClanmates(attackerDbId, CLAN_BONUS_RANGE) *
+                                CLAN_ATTACK_BONUS_PER_MEMBER);
     float defenseBonus = 1.0f;
 
     // Notificar a los clanmates del target que está siendo atacado y aplicar su defensa
@@ -89,7 +104,8 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     if (targetPlayerIt) {
         uint32_t targetDb = targetPlayerIt->getDbId();
 
-        defenseBonus += countNearbyClanmates(targetDb, CLAN_BONUS_RANGE) * CLAN_DEFENSE_BONUS_PER_MEMBER;
+        defenseBonus +=
+                countNearbyClanmates(targetDb, CLAN_BONUS_RANGE) * CLAN_DEFENSE_BONUS_PER_MEMBER;
 
         auto clanIdOpt = clanRepo.getClanIdOfPlayer(targetDb);
         if (clanIdOpt) {
@@ -107,7 +123,8 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     }
 
     // Ejecutar ataque con bonificaciones calculadas
-    CombatResult res = CombatManager::getInstance().processAttack(attacker, *target, attackBonus, defenseBonus);
+    CombatResult res = CombatManager::getInstance().processAttack(attacker, *target, attackBonus,
+                                                                  defenseBonus);
 
     if (!res.attackHappened)
         return;
@@ -115,18 +132,22 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     if (res.evaded) {
         eventPublisher.sendTo(attackerDbId, "¡" + target->getName() + " evadió tu ataque!");
         if (targetPlayerIt) {
-            eventPublisher.sendTo(targetPlayerIt->getDbId(), "¡Evadiste el ataque de " + attacker.getName() + "!");
+            eventPublisher.sendTo(targetPlayerIt->getDbId(),
+                                  "¡Evadiste el ataque de " + attacker.getName() + "!");
         }
     } else {
         std::string critMsg = res.critical ? " ¡GOLPE CRITICO!" : "";
         eventPublisher.sendTo(attackerDbId, "¡Le hiciste " + std::to_string(res.damage) +
-                                            " de dano a " + target->getName() + "!" + critMsg);
+                                                    " de dano a " + target->getName() + "!" +
+                                                    critMsg);
         if (targetPlayerIt) {
-            eventPublisher.sendTo(targetPlayerIt->getDbId(), "¡Recibiste " + std::to_string(res.damage) +
-                                                             " de dano de " + attacker.getName() + "!");
+            eventPublisher.sendTo(targetPlayerIt->getDbId(),
+                                  "¡Recibiste " + std::to_string(res.damage) + " de dano de " +
+                                          attacker.getName() + "!");
 
             if (targetPlayerIt->isDead()) {
-                std::string deathMsg = attacker.getName() + " ha asesinado a " + targetPlayerIt->getName() + "!";
+                std::string deathMsg =
+                        attacker.getName() + " ha asesinado a " + targetPlayerIt->getName() + "!";
                 eventPublisher.broadcast(deathMsg);
                 callback.onPlayerDeath(targetPlayerIt->getDbId());
             }

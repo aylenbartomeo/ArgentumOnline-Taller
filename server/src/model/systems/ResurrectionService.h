@@ -1,9 +1,10 @@
 #ifndef RESURRECTION_SERVICE_H
 #define RESURRECTION_SERVICE_H
 
-#include <vector>
-#include <string>
 #include <cstdint>
+#include <string>
+#include <vector>
+
 #include "position.h"
 
 struct ResurrectResult {
@@ -26,11 +27,10 @@ private:
     std::vector<PendingResurrection> pending;
 
 public:
-    ResurrectResult requestResurrection(uint32_t dbId, const Position& playerPos,
-                                         bool isDead,
-                                         const std::vector<Position>& priestPositions);
+    ResurrectResult requestResurrection(uint32_t dbId, const Position& playerPos, bool isDead,
+                                        const std::vector<Position>& priestPositions);
 
     std::vector<CompletedResurrection> tick(float deltaTimeMs);
 };
 
-#endif // RESURRECTION_SERVICE_H
+#endif  // RESURRECTION_SERVICE_H

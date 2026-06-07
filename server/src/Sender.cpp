@@ -14,6 +14,8 @@ void Sender::run() {
                 protocol.sendSnapshot(std::get<SnapshotDTO>(msg));
             } else if (std::holds_alternative<ChatDTO>(msg)) {
                 protocol.sendChat(std::get<ChatDTO>(msg));
+            } else if (std::holds_alternative<PlayerStatsDTO>(msg)) {
+                protocol.sendPlayerStats(std::get<PlayerStatsDTO>(msg));
             }
         }
     } catch (const ClosedQueue& e) {

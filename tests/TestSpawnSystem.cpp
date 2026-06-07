@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
-#include "model/systems/SpawnSystem.h"
+
 #include "model/entities/EntityManager.h"
+#include "model/systems/SpawnSystem.h"
+
 #include "Map.h"
 
 TEST(SpawnSystemTest, SpawnsMonsterWhenCooldownElapsed) {

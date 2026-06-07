@@ -96,8 +96,15 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
         const PlayerPersistData& d = savedData.value();
 
         Position savedPos{d.posX, d.posY};
-        if (map.canMoveTo(savedPos))
-            spawnPos = savedPos;
+        auto freePos = map.findClosestFreePosition(savedPos, 5);
+        if (freePos) {
+            spawnPos = *freePos;
+        } else {
+            // Fallback si la zona está asquerosamente llena, buscar desde defaultSpawn
+            auto fallbackPos = map.findClosestFreePosition(spawnPos, 10);
+            if (fallbackPos)
+                spawnPos = *fallbackPos;
+        }
 
         baseConfig.startingLevel = d.level;
         baseConfig.startingExperience = d.exp;
@@ -112,6 +119,12 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
             raceConfig = raceIt->second;
         if (classIt != characterConfigs.classes.end())
             classConfig = classIt->second;
+    } else {
+        // Jugador nuevo (o sin persistencia) en spawn default
+        auto freePos = map.findClosestFreePosition(spawnPos, 10);
+        if (freePos) {
+            spawnPos = *freePos;
+        }
     }
 
     auto player = std::make_unique<Player>(entityId, dbId, username, savedRace, savedClass,
@@ -123,6 +136,7 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
     }
 
     entityManager.registerPlayer(entityId, dbId, std::move(player));
+    map.setEntityCollision(spawnPos.x, spawnPos.y, true);
     return true;
 }
 
@@ -147,6 +161,11 @@ bool World::removePlayer(uint32_t dbId) {
         }
     }
 
+    const Player* p = entityManager.getPlayer(dbId);
+    if (p) {
+        map.setEntityCollision(p->getPosition().x, p->getPosition().y, false);
+    }
+
     return entityManager.removePlayer(dbId);
 }
 
@@ -166,13 +185,16 @@ void World::spawnNPCs() {
     for (const auto& spawn: map.getAllNPCs()) {
         uint32_t entityId = entityManager.allocateEntityId();
         if (auto npc = factory.create(entityId, spawn.type, spawn.position)) {
+            map.setEntityCollision(npc->getPosition().x, npc->getPosition().y, true);
             entityManager.addNPC(std::move(npc));
         }
     }
 }
 
 uint32_t World::addMonster(NPCType type, Position pos, const MonsterConfig& config) {
-    return entityManager.addMonster(type, pos, config);
+    uint32_t id = entityManager.addMonster(type, pos, config);
+    map.setEntityCollision(pos.x, pos.y, true);
+    return id;
 }
 
 void World::moveEntity(uint32_t dbId, Movement direction) {
@@ -181,12 +203,15 @@ void World::moveEntity(uint32_t dbId, Movement direction) {
         return;
 
     p->onActionStarted();
+    Position oldPos = p->getPosition();
     Position candidate = p->tryMove(direction);
 
     if (!map.canMoveTo(candidate))
         return;
 
+    map.setEntityCollision(oldPos.x, oldPos.y, false);
     p->setPosition(candidate);
+    map.setEntityCollision(candidate.x, candidate.y, true);
 
     interactionService.endInteraction(entityManager.resolveEntityId(dbId));
 }
@@ -255,20 +280,42 @@ void World::moveMonsterTowards(Monster& monster, const Position& targetPos) {
         return;
 
     Position mPos = monster.getPosition();
-    Position candidate = mPos;
+    int dx = (targetPos.x > mPos.x) ? 1 : ((targetPos.x < mPos.x) ? -1 : 0);
+    int dy = (targetPos.y > mPos.y) ? 1 : ((targetPos.y < mPos.y) ? -1 : 0);
 
-    if (targetPos.x > mPos.x)
-        candidate.x++;
-    else if (targetPos.x < mPos.x)
-        candidate.x--;
+    if (dx == 0 && dy == 0)
+        return;
 
-    if (targetPos.y > mPos.y)
-        candidate.y++;
-    else if (targetPos.y < mPos.y)
-        candidate.y--;
+    std::vector<Position> candidates;
 
-    if (candidate != mPos && map.canMoveTo(candidate)) {
-        monster.setPosition(candidate);
+    if (dx != 0 && dy != 0) {
+        // Movimiento diagonal
+        candidates.push_back({mPos.x + dx, mPos.y + dy});  // 1. Diagonal directo
+        candidates.push_back({mPos.x + dx, mPos.y});       // 2. Solo X
+        candidates.push_back({mPos.x, mPos.y + dy});       // 3. Solo Y
+    } else if (dx != 0) {
+        // Movimiento horizontal
+        candidates.push_back({mPos.x + dx, mPos.y});      // 1. Directo
+        candidates.push_back({mPos.x + dx, mPos.y + 1});  // 2. Diagonal arriba
+        candidates.push_back({mPos.x + dx, mPos.y - 1});  // 3. Diagonal abajo
+        candidates.push_back({mPos.x, mPos.y + 1});       // 4. Esquivar arriba (slide lateral)
+        candidates.push_back({mPos.x, mPos.y - 1});       // 5. Esquivar abajo (slide lateral)
+    } else if (dy != 0) {
+        // Movimiento vertical
+        candidates.push_back({mPos.x, mPos.y + dy});      // 1. Directo
+        candidates.push_back({mPos.x + 1, mPos.y + dy});  // 2. Diagonal derecha
+        candidates.push_back({mPos.x - 1, mPos.y + dy});  // 3. Diagonal izquierda
+        candidates.push_back({mPos.x + 1, mPos.y});       // 4. Esquivar derecha (slide lateral)
+        candidates.push_back({mPos.x - 1, mPos.y});       // 5. Esquivar izquierda (slide lateral)
+    }
+
+    auto it = std::find_if(candidates.begin(), candidates.end(),
+                           [&](const Position& c) { return c != mPos && map.canMoveTo(c); });
+
+    if (it != candidates.end()) {
+        map.setEntityCollision(mPos.x, mPos.y, false);
+        monster.setPosition(*it);
+        map.setEntityCollision(it->x, it->y, true);
         monster.resetMoveCooldown();
     }
 }
@@ -312,13 +359,25 @@ void World::update(float delta_time) {
     for (const auto& res: completedResurrections) {
         Player* player = entityManager.getPlayer(res.playerDbId);
         if (player) {
-            player->setPosition(res.targetPos);
+            map.setEntityCollision(player->getPosition().x, player->getPosition().y, false);
+
+            Position finalPos = res.targetPos;
+            auto freePos = map.findClosestFreePosition(res.targetPos, 5);
+            if (freePos)
+                finalPos = *freePos;
+
+            player->setPosition(finalPos);
+            map.setEntityCollision(finalPos.x, finalPos.y, true);
             player->resurrect();
             eventPublisher.sendTo(res.playerDbId, "¡Has sido resucitado!");
         }
     }
 
     for (uint32_t deadId: deadMonsterIds) {
+        auto it = entityManager.getMonsters().find(deadId);
+        if (it != entityManager.getMonsters().end()) {
+            map.setEntityCollision(it->second->getPosition().x, it->second->getPosition().y, false);
+        }
         entityManager.eraseMonster(deadId);
     }
     deadMonsterIds.clear();
@@ -327,6 +386,7 @@ void World::update(float delta_time) {
             spawnSystem.tick(delta_time, entityManager.getMonsterCount(), map, entityManager);
     for (const auto& req: newSpawns) {
         entityManager.addMonster(req.type, req.pos, *req.config);
+        map.setEntityCollision(req.pos.x, req.pos.y, true);
     }
 }
 
@@ -368,6 +428,13 @@ SnapshotDTO World::generateSnapshot() const {
     return snapshot;
 }
 
+std::optional<PlayerStatsDTO> World::getPlayerStatsDTO(uint32_t dbId) const {
+    const Player* player = entityManager.getPlayer(dbId);
+    if (!player)
+        return std::nullopt;
+
+    return player->getStatsDTO();
+}
 int World::getPlayerCount() const { return static_cast<int>(entityManager.getPlayerCount()); }
 bool World::isEmpty() const { return entityManager.isEmpty(); }
 
@@ -608,6 +675,7 @@ void World::restoreMonsters(const std::vector<MonsterPersistData>& data,
         monster->fromPersistData(md);
 
         entityManager.addMonster(std::move(monster));
+        map.setEntityCollision(pos.x, pos.y, true);
     }
 }
 

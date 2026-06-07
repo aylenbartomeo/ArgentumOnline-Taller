@@ -1,5 +1,7 @@
 #include "EntityManager.h"
 
+#include <algorithm>
+#include <utility>
 uint32_t EntityManager::resolveEntityId(uint32_t dbId) const {
     auto it = dbIdToEntityId.find(dbId);
     if (it != dbIdToEntityId.end()) {
@@ -10,7 +12,8 @@ uint32_t EntityManager::resolveEntityId(uint32_t dbId) const {
 
 Player* EntityManager::getPlayer(uint32_t dbId) {
     uint32_t entityId = resolveEntityId(dbId);
-    if (entityId == 0) return nullptr;
+    if (entityId == 0)
+        return nullptr;
 
     auto it = players.find(entityId);
     if (it != players.end()) {
@@ -21,7 +24,8 @@ Player* EntityManager::getPlayer(uint32_t dbId) {
 
 const Player* EntityManager::getPlayer(uint32_t dbId) const {
     uint32_t entityId = resolveEntityId(dbId);
-    if (entityId == 0) return nullptr;
+    if (entityId == 0)
+        return nullptr;
 
     auto it = players.find(entityId);
     if (it != players.end()) {
@@ -51,9 +55,10 @@ Interactable* EntityManager::findInteractable(uint32_t entityId) {
     return nullptr;
 }
 
-void EntityManager::registerPlayer(uint32_t entityId, uint32_t dbId, std::unique_ptr<Player> player) {
+void EntityManager::registerPlayer(uint32_t entityId, uint32_t dbId,
+                                   std::unique_ptr<Player> player) {
     if (dbIdToEntityId.find(dbId) != dbIdToEntityId.end()) {
-        return; // Ya existe
+        return;  // Ya existe
     }
 
     dbIdToEntityId[dbId] = entityId;
@@ -62,7 +67,8 @@ void EntityManager::registerPlayer(uint32_t entityId, uint32_t dbId, std::unique
 
 bool EntityManager::removePlayer(uint32_t dbId) {
     uint32_t entityId = resolveEntityId(dbId);
-    if (entityId == 0) return false;
+    if (entityId == 0)
+        return false;
 
     players.erase(entityId);
     dbIdToEntityId.erase(dbId);
@@ -76,7 +82,8 @@ uint32_t EntityManager::addMonster(NPCType type, Position pos, const MonsterConf
 }
 
 void EntityManager::addMonster(std::unique_ptr<Monster> monster) {
-    if (!monster) return;
+    if (!monster)
+        return;
     uint32_t id = monster->getId();
     monsters[id] = std::move(monster);
     if (id >= nextEntityId) {
@@ -84,16 +91,15 @@ void EntityManager::addMonster(std::unique_ptr<Monster> monster) {
     }
 }
 
-void EntityManager::eraseMonster(uint32_t entityId) {
-    monsters.erase(entityId);
-}
+void EntityManager::eraseMonster(uint32_t entityId) { monsters.erase(entityId); }
 
 void EntityManager::addNPC(std::unique_ptr<Interactable> npc) {
-    if (!npc) return;
+    if (!npc)
+        return;
     // We expect the interactable to already have an ID or we don't care because cityNPC uses ID
-    // Actually in the original code: 
+    // Actually in the original code:
     // cityNPCs[entityId] = std::make_unique<Merchant>(entityId, pos, itemRegistry);
-    // So the entityId must match the map key. 
+    // So the entityId must match the map key.
     // Usually NPCs are constructed with an ID. We should just map it.
     uint32_t id = npc->getId();
     cityNPCs[id] = std::move(npc);
@@ -102,9 +108,8 @@ void EntityManager::addNPC(std::unique_ptr<Interactable> npc) {
 std::vector<uint32_t> EntityManager::getOnlinePlayerDbIds() const {
     std::vector<uint32_t> dbIds;
     dbIds.reserve(dbIdToEntityId.size());
-    for (const auto& pair : dbIdToEntityId) {
-        dbIds.push_back(pair.first);
-    }
+    std::transform(dbIdToEntityId.begin(), dbIdToEntityId.end(), std::back_inserter(dbIds),
+                   [](const auto& pair) { return pair.first; });
     return dbIds;
 }
 
@@ -133,27 +138,21 @@ uint16_t EntityManager::getPlayerLevel(uint32_t dbId) const {
 }
 
 uint32_t EntityManager::resolveNickToDbId(const std::string& nick) const {
-    for (const auto& pair : players) {
-        if (pair.second->getName() == nick) {
-            // Buscamos el dbId correspondiente
-            for (const auto& mapPair : dbIdToEntityId) {
-                if (mapPair.second == pair.first) {
-                    return mapPair.first;
-                }
-            }
+    auto p_it = std::find_if(players.begin(), players.end(),
+                             [&nick](const auto& pair) { return pair.second->getName() == nick; });
+    if (p_it != players.end()) {
+        auto db_it = std::find_if(
+                dbIdToEntityId.begin(), dbIdToEntityId.end(),
+                [&p_it](const auto& mapPair) { return mapPair.second == p_it->first; });
+        if (db_it != dbIdToEntityId.end()) {
+            return db_it->first;
         }
     }
     return 0;
 }
 
-size_t EntityManager::getPlayerCount() const {
-    return players.size();
-}
+size_t EntityManager::getPlayerCount() const { return players.size(); }
 
-size_t EntityManager::getMonsterCount() const {
-    return monsters.size();
-}
+size_t EntityManager::getMonsterCount() const { return monsters.size(); }
 
-bool EntityManager::isEmpty() const {
-    return players.empty();
-}
+bool EntityManager::isEmpty() const { return players.empty(); }

@@ -237,12 +237,12 @@ void Game::renderFx(const CameraOffset& camera) {
     SDL2pp::Texture& fx = textures.get(path);
     const FrameRect fr = fxFrameRect(frame, FX_FRAME_W, FX_FRAME_H, FX_COLS);
     auto ait = animators.find(activeFx->targetId);
-    const int baseX = (ait != animators.end())
-                              ? static_cast<int>(ait->second.getVirtualX() * TILE_SIZE)
-                              : target->x * TILE_SIZE;
-    const int baseY = (ait != animators.end())
-                              ? static_cast<int>(ait->second.getVirtualY() * TILE_SIZE)
-                              : target->y * TILE_SIZE;
+    const int baseX = (ait != animators.end()) ?
+                              static_cast<int>(ait->second.getVirtualX() * TILE_SIZE) :
+                              target->x * TILE_SIZE;
+    const int baseY = (ait != animators.end()) ?
+                              static_cast<int>(ait->second.getVirtualY() * TILE_SIZE) :
+                              target->y * TILE_SIZE;
     const int dstX = baseX + TILE_SIZE / 2 - FX_DRAW_W / 2 - camera.x;
     const int dstY = baseY + TILE_SIZE - FX_DRAW_H - camera.y;
     const SDL2pp::Rect dst(dstX, dstY, FX_DRAW_W, FX_DRAW_H);
@@ -436,8 +436,8 @@ void Game::renderEntities(const CameraOffset& camera) {
             SDL2pp::Texture& headSheet =
                     textures.get(std::string(RESOURCES_DIR) + sprite.headSheet);
             const int headX = px + TILE_SIZE / 2 - HEAD_DRAW_W / 2 - camera.x;
-            const int headY = py + TILE_SIZE - CHARACTER_DRAW_H + sprite.headOverlap -
-                              HEAD_DRAW_H - camera.y;
+            const int headY =
+                    py + TILE_SIZE - CHARACTER_DRAW_H + sprite.headOverlap - HEAD_DRAW_H - camera.y;
             renderer.Copy(headSheet, headSrcRect,
                           SDL2pp::Rect(headX, headY, HEAD_DRAW_W, HEAD_DRAW_H));
         }

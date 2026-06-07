@@ -104,6 +104,26 @@ void Protocol::sendSnapshot(const SnapshotDTO& snap) {
     }
 }
 
+void Protocol::sendPlayerStats(const PlayerStatsDTO& stats) {
+    sendUint8(static_cast<uint8_t>(OPCODE::STATS_UPDATE));
+
+    sendUint16(stats.currentHp);
+    sendUint16(stats.maxHp);
+    sendUint16(stats.currentMana);
+    sendUint16(stats.maxMana);
+    sendUint32(stats.gold);
+    sendUint32(stats.exp);
+    sendUint16(stats.level);
+
+    sendUint16(static_cast<uint16_t>(stats.inventory.size()));
+    for (const auto& item: stats.inventory) {
+        sendUint8(item.slot);
+        sendUint32(item.itemId);
+        sendUint16(item.amount);
+        sendUint8(item.isEquipped ? 1 : 0);
+    }
+}
+
 void Protocol::sendLoginSuccess(uint32_t clientId) {
     sendUint8(static_cast<uint8_t>(OPCODE::LOGIN_SUCCESS));
     sendUint32(clientId);
@@ -200,6 +220,29 @@ SnapshotDTO Protocol::receiveSnapshotBody() {
     }
 
     return snap;
+}
+
+PlayerStatsDTO Protocol::receivePlayerStatsBody() {
+    PlayerStatsDTO stats;
+    stats.currentHp = recvUint16();
+    stats.maxHp = recvUint16();
+    stats.currentMana = recvUint16();
+    stats.maxMana = recvUint16();
+    stats.gold = recvUint32();
+    stats.exp = recvUint32();
+    stats.level = recvUint16();
+
+    uint16_t items_count = recvUint16();
+    for (uint16_t i = 0; i < items_count; ++i) {
+        InventorySlotDTO item;
+        item.slot = recvUint8();
+        item.itemId = recvUint32();
+        item.amount = recvUint16();
+        item.isEquipped = (recvUint8() == 1);
+        stats.inventory.push_back(item);
+    }
+
+    return stats;
 }
 
 ChatDTO Protocol::receiveChatBody() {

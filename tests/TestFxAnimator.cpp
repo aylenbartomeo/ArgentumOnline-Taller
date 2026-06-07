@@ -2,25 +2,15 @@
 
 #include "../client/src/animation/FxAnimator.h"
 
-TEST(FxAnimatorTest, FirstFrameAtStart) {
-    EXPECT_EQ(fxFrameIndex(0, 60, 5), 0);
-}
+TEST(FxAnimatorTest, FirstFrameAtStart) { EXPECT_EQ(fxFrameIndex(0, 60, 5), 0); }
 
-TEST(FxAnimatorTest, AdvancesWithTime) {
-    EXPECT_EQ(fxFrameIndex(130, 60, 5), 2);
-}
+TEST(FxAnimatorTest, AdvancesWithTime) { EXPECT_EQ(fxFrameIndex(130, 60, 5), 2); }
 
-TEST(FxAnimatorTest, ReturnsNegativeWhenFinished) {
-    EXPECT_EQ(fxFrameIndex(300, 60, 5), -1);
-}
+TEST(FxAnimatorTest, ReturnsNegativeWhenFinished) { EXPECT_EQ(fxFrameIndex(300, 60, 5), -1); }
 
-TEST(FxAnimatorTest, ZeroFrameCountIsFinished) {
-    EXPECT_EQ(fxFrameIndex(0, 60, 0), -1);
-}
+TEST(FxAnimatorTest, ZeroFrameCountIsFinished) { EXPECT_EQ(fxFrameIndex(0, 60, 0), -1); }
 
-TEST(FxAnimatorTest, ZeroDurationIsFinished) {
-    EXPECT_EQ(fxFrameIndex(10, 0, 5), -1);
-}
+TEST(FxAnimatorTest, ZeroDurationIsFinished) { EXPECT_EQ(fxFrameIndex(10, 0, 5), -1); }
 
 TEST(FxAnimatorTest, FrameRectSingleRow) {
     FrameRect rect = fxFrameRect(2, 32, 48, 4);

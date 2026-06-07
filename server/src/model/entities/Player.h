@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "../../../../common/include/dto/CommandDTO.h"
+#include "../../common/include/dto/PlayerStatsDTO.h"
 #include "../../common/utils/types.h"
 #include "../combat/CombatManager.h"
 #include "../components/EquipmentComponent.h"
@@ -50,8 +51,6 @@ public:
     // Llamado por el servidor cada tick - GAMELOOP - (delega en RegenerationComponent)
     void update(float deltaSeconds);
 
-    // Equipa un ítem resolviendo su ID contra el registry
-    uint32_t equipItemById(uint32_t itemId);
 
     // Equipa un ítem directamente desde un slot del inventario.
     // Retorna true si pudo equiparlo, false en caso contrario.
@@ -125,13 +124,14 @@ public:
     std::vector<Slot> dropAllItems();
     uint32_t dropExcessGold();
 
-    // Equipment
-    uint32_t equipWeapon(const Weapon* weapon) { return equipment.equipWeapon(weapon); }
-    uint32_t equipHelmet(const Helmet* helmet) { return equipment.equipHelmet(helmet); }
-    uint32_t equipShield(const Shield* shield) { return equipment.equipShield(shield); }
-    uint32_t equipBodyArmor(const BodyArmor* bodyArmor) {
-        return equipment.equipBodyArmor(bodyArmor);
-    }
+    // Obtener stats del jugador y armar el DTO para el cliente
+    PlayerStatsDTO getStatsDTO() const;
+
+    // Equipment (Usado principalmente en tests)
+    void equipWeapon(const Weapon* weapon) { equipment.equipWeapon(weapon, 255); }
+    void equipHelmet(const Helmet* helmet) { equipment.equipHelmet(helmet, 255); }
+    void equipShield(const Shield* shield) { equipment.equipShield(shield, 255); }
+    void equipBodyArmor(const BodyArmor* bodyArmor) { equipment.equipBodyArmor(bodyArmor, 255); }
     Weapon* getEquippedWeapon() { return this->equipment.getEquippedWeapon(); }
 
     // State

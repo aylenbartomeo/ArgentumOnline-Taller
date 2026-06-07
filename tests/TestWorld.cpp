@@ -109,17 +109,18 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
     EXPECT_TRUE(snapshotInicial.players.empty());
     EXPECT_TRUE(snapshotInicial.monsters.empty());
 
-    // 2. Simulamos el login de dos jugadores (gatilla la creación de Players)
+    // 2. Simulamos el login de dos jugadores
     std::string user1 = "Aoki";
     std::string user2 = "Beren";
 
     ASSERT_TRUE(mundo.addPlayer(100, user1));
-    ASSERT_TRUE(mundo.addPlayer(200, user2));
-
-    // 3. Modificamos la posición de uno para testear que el snapshot arrastre datos vivos
-    // (Simula un comando de movimiento previo al snapshot)
+    // Aoki nace en (0,0) por defecto
     mundo.moveEntity(100, Movement::DOWN);   // y: 0 -> 1
     mundo.moveEntity(100, Movement::RIGHT);  // x: 0 -> 1
+    // Ahora Aoki esta en (1,1)
+
+    // Agregamos a Beren despues, para que nazca en (0,0) sin superponerse ni estorbar
+    ASSERT_TRUE(mundo.addPlayer(200, user2));
 
     // 4. Generamos el Snapshot que se le enviaría al cliente
     SnapshotDTO snapshotActual = mundo.generateSnapshot();
@@ -132,7 +133,7 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
     int spritesEvaluados = 0;
 
     for (const auto& entity: snapshotActual.players) {
-        spritesEvaluados++;  // El primero que salga se lleva el 1, el segundo el 2
+        spritesEvaluados++;
         std::cout << "Entity ID in snapshot: " << entity.id << std::endl;
 
         if (entity.id == 100) {
@@ -142,8 +143,6 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
             EXPECT_EQ(entity.y, 1);
             EXPECT_EQ(entity.current_hp, 15);
             EXPECT_EQ(entity.max_hp, 15);
-
-            // Validamos que su sprite coincida con el orden de salida real en el loop
             EXPECT_EQ(entity.sprite_id, spritesEvaluados);
         } else if (entity.id == 200) {
             encontroPlayer2 = true;
@@ -152,8 +151,6 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
             EXPECT_EQ(entity.y, 0);
             EXPECT_EQ(entity.current_hp, 15);
             EXPECT_EQ(entity.max_hp, 15);
-
-            // Validamos que su sprite coincida con el orden de salida real en el loop
             EXPECT_EQ(entity.sprite_id, spritesEvaluados);
         }
     }
@@ -565,7 +562,7 @@ TEST(WorldTest, World_DropItemSuccess) {
     EXPECT_EQ(snap.groundItems[0].amount, 5);
 }
 
-TEST(WorldTest, World_DropItemNoSpaceOnGround) {
+TEST(WorldTest, World_DropItemDynamicSearchSucceedsWhenCenterFull) {
     ItemRegistry registry("../config/items.toml");
     CharacterConfigs configs = getTestConfigs();
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
@@ -593,12 +590,22 @@ TEST(WorldTest, World_DropItemNoSpaceOnGround) {
     // Intenta tirar
     mundo.dropItem(1, 0, 5);
 
-    auto evs = mundo.pollEvents();
-    bool noSpaceEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
-        return ev.targetDbId == 1 &&
-               ev.message == "No hay suficiente espacio en el suelo para tirar el objeto.";
-    });
-    EXPECT_TRUE(noSpaceEvent);
+    // Como el radio de busqueda se agrando, ahora debe dropearlo en algun lado fuera del 3x3
+    auto snap = mundo.generateSnapshot();
+
+    // Habia 9 items de oro (ID 101), ahora deberia haber 10 items (9 de oro + 1 el nuevo dropeado)
+    ASSERT_EQ(snap.groundItems.size(), 10u);
+
+    // Buscamos que el item que tiramos se haya colocado correctamente
+    bool foundNuevo = false;
+    for (const auto& gItem: snap.groundItems) {
+        if (gItem.itemId == 202u && gItem.amount == 5) {
+            foundNuevo = true;
+            // Verificar que no cayó en el 3x3 original
+            EXPECT_TRUE(gItem.x < 4 || gItem.x > 6 || gItem.y < 4 || gItem.y > 6);
+        }
+    }
+    EXPECT_TRUE(foundNuevo);
 }
 
 TEST(WorldTest, World_PlayerDeathDropsInventoryItems) {
