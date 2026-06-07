@@ -12,6 +12,7 @@
 #include "config/CharacterConfig.h"
 #include "dto/ClientCommands.h"
 #include "dto/CommandDTO.h"
+#include "dto/PlayerStatsDTO.h"
 #include "dto/Snapshot.h"
 #include "model/clan/ClanController.h"
 #include "model/clan/ClanRepository.h"
@@ -107,6 +108,7 @@ public:
 
     // Generación del estado actual para ser enviado por red
     SnapshotDTO generateSnapshot() const;
+    std::optional<PlayerStatsDTO> getPlayerStatsDTO(uint32_t dbId) const;
 
     // Persistencia del mundo
     std::vector<MonsterPersistData> getMonstersPersistData() const;

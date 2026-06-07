@@ -29,7 +29,7 @@ void ConnectionMonitor::broadcast(const SnapshotDTO& snapshot) {
     }
 }
 
-void ConnectionMonitor::sendToClient(uint32_t clientId, const ChatDTO& msg) {
+void ConnectionMonitor::sendToClient(uint32_t clientId, const ServerMessageVariant& msg) {
     std::lock_guard<std::mutex> lock(this->mtx);
     auto it = this->clientQueues.find(clientId);
     if (it != this->clientQueues.end()) {

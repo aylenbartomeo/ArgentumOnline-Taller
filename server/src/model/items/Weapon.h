@@ -32,5 +32,5 @@ public:
     int getManaCost() const;
     uint16_t calculateDamage(uint16_t attackPower) const;
     bool is_wearable() const override { return true; }
-    uint32_t equip_on(EquipmentComponent& equipment) const override;
+    void equip_on(EquipmentComponent& equipment, uint8_t slotIndex) const override;
 };

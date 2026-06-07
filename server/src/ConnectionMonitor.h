@@ -31,7 +31,7 @@ public:
 
     void broadcast(const SnapshotDTO& snapshot);
 
-    void sendToClient(uint32_t clientId, const ChatDTO& msg);
+    void sendToClient(uint32_t clientId, const ServerMessageVariant& msg);
 
     void broadcastChat(const ChatDTO& msg);
 

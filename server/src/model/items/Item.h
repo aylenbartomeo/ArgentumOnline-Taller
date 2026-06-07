@@ -23,8 +23,8 @@ public:
     virtual bool isMagic() const = 0;
     virtual bool is_wearable() const { return false; }
 
-    virtual uint32_t equip_on(EquipmentComponent& equipment) const {
+    virtual void equip_on(EquipmentComponent& equipment, uint8_t slotIndex) const {
         (void)equipment;
-        return 0;
+        (void)slotIndex;
     }
 };

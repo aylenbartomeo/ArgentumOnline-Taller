@@ -7,6 +7,7 @@
 #include "../../include/dto/ClientCommands.h"
 #include "../../include/dto/LoginDTO.h"
 #include "../../include/dto/LoginResponseDTO.h"
+#include "../../include/dto/PlayerStatsDTO.h"
 #include "../../include/dto/RegisterDTO.h"
 #include "../../include/dto/StartMoveDTO.h"
 #include "../socket/socket.h"
@@ -56,6 +57,9 @@ public:
     // --- MÉTODOS DE ENVÍO (Servidor -> Cliente) ---
     void sendSnapshot(const SnapshotDTO& snap);
     SnapshotDTO receiveSnapshotBody();
+
+    void sendPlayerStats(const PlayerStatsDTO& stats);
+    PlayerStatsDTO receivePlayerStatsBody();
 
     ChatDTO receiveChatBody();
     PrivateChatDTO receivePrivateChatBody();

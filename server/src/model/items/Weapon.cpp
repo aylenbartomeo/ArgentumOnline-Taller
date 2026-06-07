@@ -1,6 +1,7 @@
-﻿#include "Weapon.h"
+#include "Weapon.h"
 
 #include <stdexcept>
+#include <utility>
 
 #include "../components/EquipmentComponent.h"
 
@@ -52,6 +53,6 @@ uint16_t Weapon::calculateDamage(uint16_t attackPower) const {
             static_cast<uint16_t>(this->maxDamage));
 }
 
-uint32_t Weapon::equip_on(EquipmentComponent& equipment) const {
-    return equipment.equipWeapon(this);
+void Weapon::equip_on(EquipmentComponent& equipment, uint8_t slotIndex) const {
+    equipment.equipWeapon(this, slotIndex);
 }

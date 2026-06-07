@@ -2,6 +2,7 @@
 #define EQUIPMENT_COMPONENT_H
 
 #include <cstdint>
+#include <optional>
 
 class Item;
 class BodyArmor;
@@ -15,6 +16,11 @@ private:
     const Helmet* helmet;
     const Shield* shield;
     const Weapon* weapon;
+
+    std::optional<uint8_t> bodyArmorSlot;
+    std::optional<uint8_t> helmetSlot;
+    std::optional<uint8_t> shieldSlot;
+    std::optional<uint8_t> weaponSlot;
 
 public:
     EquipmentComponent();
@@ -31,21 +37,26 @@ public:
     // ========================================================================
 
     // Intenta equipar un ítem genérico derivando a la categoría correcta.
-    // Devuelve el ID del ítem que fue reemplazado (para devolverlo al inventario), o 0 si no había
-    // nada.
-    uint32_t equipItem(const Item* item);
+    // Retorna true si fue exitoso
+    bool equipItem(const Item* item, uint8_t slotIndex);
 
-    // Métodos específicos por slot. Devuelven el ID del ítem desequipado (si lo hubiera).
-    uint32_t equipBodyArmor(const BodyArmor* armor);
-    uint32_t equipHelmet(const Helmet* helmet);
-    uint32_t equipShield(const Shield* shield);
-    uint32_t equipWeapon(const Weapon* weapon);
+    // Métodos específicos por slot.
+    void equipBodyArmor(const BodyArmor* armor, uint8_t slotIndex);
+    void equipHelmet(const Helmet* helmet, uint8_t slotIndex);
+    void equipShield(const Shield* shield, uint8_t slotIndex);
+    void equipWeapon(const Weapon* weapon, uint8_t slotIndex);
+
+    // Desequipa si el slot dado está equipado en alguna parte
+    void unequipSlot(uint8_t slotIndex);
+
+    // Verifica si un slot particular del inventario está actualmente equipado
+    bool isSlotEquipped(uint8_t slotIndex) const;
 
     // Métodos para desequipar de forma explícita
-    uint32_t unequip_body_armor();
-    uint32_t unequip_helmet();
-    uint32_t unequip_shield();
-    uint32_t unequip_weapon();
+    void unequip_body_armor();
+    void unequip_helmet();
+    void unequip_shield();
+    void unequip_weapon();
 
     // ========================================================================
     // GETTERS / CONSULTAS (Marcados con 'const' para tus Snapshots y World)

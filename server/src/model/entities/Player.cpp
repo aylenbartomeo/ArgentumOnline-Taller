@@ -47,17 +47,18 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race r
     this->addGold(playerBase.startingGold);
 }
 
-uint32_t Player::equipItemById(uint32_t itemId) {
-    if (!itemRegistry)
-        return 0;
-    const Item* item = itemRegistry->get_item(static_cast<int>(itemId));
-    if (!item || !item->is_wearable())
-        return 0;
-    return equipment.equipItem(item);
-}
+// Eliminado: equipItemById
 
 bool Player::equipFromSlot(uint8_t slotIndex) {
     onActionStarted();
+
+    // 1. Si el slot ya está equipado, el jugador quiere desequiparlo (doble clic)
+    if (equipment.isSlotEquipped(slotIndex)) {
+        equipment.unequipSlot(slotIndex);
+        return true;
+    }
+
+    // 2. Si no estaba equipado, intentamos equiparlo
     auto slotOpt = inventory.inspectSlot(slotIndex);
     if (!slotOpt)
         return false;
@@ -70,16 +71,9 @@ bool Player::equipFromSlot(uint8_t slotIndex) {
     if (!item || !item->is_wearable())
         return false;
 
-    // Equipar y recibir el ID del ítem que fue reemplazado
-    uint32_t replacedId = equipment.equipItem(item);
+    // Equipamos el ítem pero NO lo sacamos del inventario
+    equipment.equipItem(item, slotIndex);
 
-    // Sacar el ítem del inventario (solo consumimos 1, ya que equipamos 1 a la vez)
-    inventory.removeItem(slotIndex, 1);
-
-    // Si había algo equipado antes, devolverlo al inventario
-    if (replacedId != 0) {
-        inventory.addItem(replacedId, 1);
-    }
     return true;
 }
 
@@ -122,6 +116,19 @@ void Player::resurrect() {
     state.resurrect();
 }
 
+PlayerStatsDTO Player::getStatsDTO() const {
+    PlayerStatsDTO dto;
+    dto.currentHp = stats.getHp();
+    dto.maxHp = stats.getMaxHp();
+    dto.currentMana = stats.getMana();
+    dto.maxMana = stats.getMaxMana();
+    dto.gold = inventory.getGold();
+    dto.exp = stats.getExp();
+    dto.level = stats.getLevel();
+    dto.inventory = inventory.getInventoryDTO(equipment);
+    return dto;
+}
+
 uint16_t Player::addInventoryItem(uint32_t item_id, uint16_t amount) {
     bool stackable = true;
     onActionStarted();
@@ -133,14 +140,26 @@ uint16_t Player::addInventoryItem(uint32_t item_id, uint16_t amount) {
 
 uint16_t Player::removeInventoryItem(uint8_t slot_index, uint16_t amount) {
     onActionStarted();
-    return this->inventory.removeItem(slot_index, amount);
+    uint16_t removed = this->inventory.removeItem(slot_index, amount);
+    if (removed > 0) {
+        auto slotOpt = inventory.inspectSlot(slot_index);
+        if (!slotOpt) {
+            equipment.unequipSlot(slot_index);
+        }
+    }
+    return removed;
 }
 
 std::optional<Slot> Player::inspectInventorySlot(uint8_t slot_index) const {
     return this->inventory.inspectSlot(slot_index);
 }
 
-std::vector<Slot> Player::dropAllItems() { return this->inventory.dropAllItems(); }
+std::vector<Slot> Player::dropAllItems() {
+    for (uint8_t i = 0; i < inventory.getSize(); ++i) {
+        equipment.unequipSlot(i);
+    }
+    return this->inventory.dropAllItems();
+}
 
 uint32_t Player::dropExcessGold() { return this->inventory.dropExcessGold(); }
 void Player::onActionStarted() { state.stopMeditating(); }

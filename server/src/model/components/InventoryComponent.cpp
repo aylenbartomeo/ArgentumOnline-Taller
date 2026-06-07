@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "EquipmentComponent.h"
+
 InventoryComponent::InventoryComponent(const InventoryConfig& config):
         slots(config.maxSlots, Slot{0, 0}),
         gold(config.gold),
@@ -131,4 +133,15 @@ uint32_t InventoryComponent::dropExcessGold() {
     uint32_t dropped_amount = gold - safe_gold_limit;
     gold = safe_gold_limit;
     return dropped_amount;
+}
+
+std::vector<InventorySlotDTO> InventoryComponent::getInventoryDTO(
+        const EquipmentComponent& equipment) const {
+    std::vector<InventorySlotDTO> dtos;
+    for (uint8_t i = 0; i < slots.size(); ++i) {
+        if (slots[i].item_id != 0 && slots[i].amount > 0) {
+            dtos.emplace_back(i, slots[i].item_id, slots[i].amount, equipment.isSlotEquipped(i));
+        }
+    }
+    return dtos;
 }

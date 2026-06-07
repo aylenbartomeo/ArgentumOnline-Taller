@@ -428,6 +428,13 @@ SnapshotDTO World::generateSnapshot() const {
     return snapshot;
 }
 
+std::optional<PlayerStatsDTO> World::getPlayerStatsDTO(uint32_t dbId) const {
+    const Player* player = entityManager.getPlayer(dbId);
+    if (!player)
+        return std::nullopt;
+
+    return player->getStatsDTO();
+}
 int World::getPlayerCount() const { return static_cast<int>(entityManager.getPlayerCount()); }
 bool World::isEmpty() const { return entityManager.isEmpty(); }
 
