@@ -562,7 +562,7 @@ TEST(WorldTest, World_DropItemSuccess) {
     EXPECT_EQ(snap.groundItems[0].amount, 5);
 }
 
-TEST(WorldTest, World_DropItemNoSpaceOnGround) {
+TEST(WorldTest, World_DropItemDynamicSearchSucceedsWhenCenterFull) {
     ItemRegistry registry("../config/items.toml");
     CharacterConfigs configs = getTestConfigs();
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
@@ -590,12 +590,22 @@ TEST(WorldTest, World_DropItemNoSpaceOnGround) {
     // Intenta tirar
     mundo.dropItem(1, 0, 5);
 
-    auto evs = mundo.pollEvents();
-    bool noSpaceEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
-        return ev.targetDbId == 1 &&
-               ev.message == "No hay suficiente espacio en el suelo para tirar el objeto.";
-    });
-    EXPECT_TRUE(noSpaceEvent);
+    // Como el radio de busqueda se agrando, ahora debe dropearlo en algun lado fuera del 3x3
+    auto snap = mundo.generateSnapshot();
+
+    // Habia 9 items de oro (ID 101), ahora deberia haber 10 items (9 de oro + 1 el nuevo dropeado)
+    ASSERT_EQ(snap.groundItems.size(), 10u);
+
+    // Buscamos que el item que tiramos se haya colocado correctamente
+    bool foundNuevo = false;
+    for (const auto& gItem: snap.groundItems) {
+        if (gItem.itemId == 202u && gItem.amount == 5) {
+            foundNuevo = true;
+            // Verificar que no cayó en el 3x3 original
+            EXPECT_TRUE(gItem.x < 4 || gItem.x > 6 || gItem.y < 4 || gItem.y > 6);
+        }
+    }
+    EXPECT_TRUE(foundNuevo);
 }
 
 TEST(WorldTest, World_PlayerDeathDropsInventoryItems) {

@@ -213,19 +213,24 @@ std::optional<Position> Map::placeItemNearby(const Position& pos, uint32_t itemI
         return pos;
     }
 
-    // Buscar en las 8 posiciones adyacentes
-    static const int dx[] = {0, 1, 1, 1, 0, -1, -1, -1};
-    static const int dy[] = {-1, -1, 0, 1, 1, 1, 0, -1};
-
-    for (int i = 0; i < 8; ++i) {
-        Position adj{pos.x + dx[i], pos.y + dy[i]};
-        if (adj.isWithinBounds(width, height) && !collisionLayer.isSolid(adj.x, adj.y) &&
-            !groundItems.hasItemAt(adj)) {
-            groundItems.placeItem(adj, itemId, amount);
-            return adj;
+    // Búsqueda en espiral dinámica
+    const int MAX_RADIUS = 50;
+    for (int r = 1; r <= MAX_RADIUS; ++r) {
+        for (int dx = -r; dx <= r; ++dx) {
+            for (int dy = -r; dy <= r; ++dy) {
+                // Chequear solo el contorno del cuadrado de radio r
+                if (std::abs(dx) == r || std::abs(dy) == r) {
+                    Position adj{pos.x + dx, pos.y + dy};
+                    if (adj.isWithinBounds(width, height) &&
+                        !collisionLayer.isSolid(adj.x, adj.y) && !groundItems.hasItemAt(adj)) {
+                        groundItems.placeItem(adj, itemId, amount);
+                        return adj;
+                    }
+                }
+            }
         }
     }
-    return std::nullopt;  // No hay espacio libre
+    return std::nullopt;  // Todo el radio está ocupado
 }
 
 std::optional<GroundItem> Map::pickUpItem(const Position& pos) {
