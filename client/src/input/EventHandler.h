@@ -39,6 +39,7 @@ struct FrameInput {
     // --- Cheats ---
     bool cheatLevelUp = false;
     bool cheatDie = false;
+    bool cheatGiveGold = false;
 };
 
 class EventHandler {

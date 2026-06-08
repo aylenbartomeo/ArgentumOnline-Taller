@@ -60,6 +60,9 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         } else {
             eventPublisher.sendTo(dbId, "[CHEAT] Ya estás muerto.");
         }
+    } else if (type == CheatType::GIVE_GOLD) {
+        player->addGold(1000);
+        eventPublisher.sendTo(dbId, "[CHEAT] +1000 de oro.");
     }
 }
 

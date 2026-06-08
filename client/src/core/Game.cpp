@@ -170,6 +170,9 @@ void Game::processCheats(const FrameInput& input) {
     if (input.cheatDie) {
         client.sendCommand(CheatDTO{CheatType::DIE});
     }
+    if (input.cheatGiveGold) {
+        client.sendCommand(CheatDTO{CheatType::GIVE_GOLD});
+    }
 }
 
 void Game::drainIncomingChat() {
