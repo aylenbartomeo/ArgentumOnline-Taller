@@ -73,6 +73,14 @@ EditorMap::EditorMap(const std::string& jsonText) {
                                                monster.at("y").get<int>()};
                        });
     }
+
+    if (data.contains("items")) {
+        for (const auto& item: data.at("items")) {
+            int x = item.at("x").get<int>();
+            int y = item.at("y").get<int>();
+            overlayAmounts[{x, y}] = item.value("amount", 1);
+        }
+    }
 }
 
 std::string EditorMap::toJson() const {

@@ -304,3 +304,22 @@ TEST(EditorMapTest, PaintOverlayNonStackableStaysAtOne) {
     nlohmann::json out = nlohmann::json::parse(map.toJson());
     EXPECT_EQ(amountOfItemId(out, 2000), 1);
 }
+
+TEST(EditorMapTest, RoundTripPreservesGoldAmount) {
+    int gold = goldOverlayIndex();
+    ASSERT_GE(gold, 0);
+    int goldTile = gold + 1;
+
+    nlohmann::json in;
+    in["tileSize"] = 32;
+    in["tileset"] = "5108.png";
+    in["tilesetCols"] = 32;
+    in["width"] = 2;
+    in["height"] = 2;
+    in["tiles"] = {{0, 0}, {0, goldTile}};
+    in["items"] = {{{"id", 1}, {"x", 1}, {"y", 1}, {"amount", 7}}};
+
+    EditorMap map(in.dump());
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+    EXPECT_EQ(amountOfItemId(out, 1), 7);
+}
