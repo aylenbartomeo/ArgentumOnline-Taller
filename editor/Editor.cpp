@@ -379,7 +379,18 @@ void Editor::renderOverlays() {
                 screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
                 continue;
             }
-            drawOverlay(registry[tileId - 1], screen.x, screen.y, TILE_SCREEN);
+            const OverlayDef& def = registry[tileId - 1];
+            drawOverlay(def, screen.x, screen.y, TILE_SCREEN);
+            if (def.stackable) {
+                int amount = map.overlayAmountAt(col, row);
+                if (amount > 1) {
+                    const std::string text = std::to_string(amount);
+                    const SDL_Color black{0, 0, 0, 255};
+                    const SDL_Color white{255, 255, 255, 255};
+                    font.drawString(text, screen.x + 3, screen.y + 3, black);
+                    font.drawString(text, screen.x + 2, screen.y + 2, white);
+                }
+            }
         }
     }
     renderer.SetClipRect();

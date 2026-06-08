@@ -159,6 +159,11 @@ std::string EditorMap::toJson() const {
 
 int EditorMap::tileAt(int col, int row) const { return tiles.at(row).at(col); }
 
+int EditorMap::overlayAmountAt(int col, int row) const {
+    auto it = overlayAmounts.find({col, row});
+    return (it != overlayAmounts.end()) ? it->second : 1;
+}
+
 void EditorMap::setTile(int col, int row, int tileId) { tiles.at(row).at(col) = tileId; }
 
 void EditorMap::paintOverlay(int col, int row, int overlayIndex) {

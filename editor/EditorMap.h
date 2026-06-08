@@ -54,6 +54,7 @@ public:
     int tileAt(int col, int row) const;
     void setTile(int col, int row, int tileId);
     void paintOverlay(int col, int row, int overlayIndex);
+    int overlayAmountAt(int col, int row) const;
 
     Position getSpawn() const;
     void setSpawn(int col, int row);

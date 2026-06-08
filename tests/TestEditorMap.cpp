@@ -322,3 +322,16 @@ TEST(EditorMapTest, RoundTripPreservesGoldAmount) {
     nlohmann::json out = nlohmann::json::parse(map.toJson());
     EXPECT_EQ(amountOfItemId(out, 1), 7);
 }
+
+TEST(EditorMapTest, OverlayAmountAtReturnsAccumulatedGold) {
+    EditorMap map(4, 4, 32, "5108.png", 32);
+    int gold = goldOverlayIndex();
+    ASSERT_GE(gold, 0);
+
+    map.paintOverlay(1, 1, gold);
+    map.paintOverlay(1, 1, gold);
+    map.paintOverlay(1, 1, gold);
+
+    EXPECT_EQ(map.overlayAmountAt(1, 1), 3);
+    EXPECT_EQ(map.overlayAmountAt(0, 0), 1);
+}
