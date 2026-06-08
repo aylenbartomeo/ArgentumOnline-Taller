@@ -310,6 +310,6 @@ void Map::setEntityCollision(int x, int y, bool isSolid) {
     }
 }
 
-bsool Map::isTileSolid(float x, float y) const {
+bool Map::isTileSolid(float x, float y) const {
     return collisionLayer.isSolid(static_cast<int>(x), static_cast<int>(y));
 }

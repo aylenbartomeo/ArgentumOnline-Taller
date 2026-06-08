@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include "../common/include/dto/Snapshot.h"
+#include "../../../common/include/dto/Snapshot.h"
 
 enum class ProjectileType : uint8_t {
     ARROW,        // Arcos
