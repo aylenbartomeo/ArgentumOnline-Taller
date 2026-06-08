@@ -20,6 +20,7 @@ enum class OPCODE : uint8_t {
     MEDITATE = 0x12,
     NPC_CMD = 0x13,
     RESURRECT = 0x14,
+    OPCODE_CHEAT = 0x15,
 
     // --- SERVIDOR A CLIENTE ---
     SNAPSHOT = 0x82,

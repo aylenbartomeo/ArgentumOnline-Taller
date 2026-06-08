@@ -16,9 +16,18 @@
 #include "dto/Snapshot.h"
 #include "model/items/ItemRegistry.h"
 #include "persistence/PlayerDataStore.h"
+#include "persistence/WorldDataStore.h"
 
 #include "ConnectionMonitor.h"
 #include "World.h"
+
+struct WorldConfig {
+    uint32_t worldId;
+    std::string worldName;
+    std::string baseMapPath;
+    std::string worldDir;
+    bool isNewWorld;
+};
 
 class GameLoop: public Thread {
 private:
@@ -29,6 +38,8 @@ private:
     PlayerDataStore playerDataStore;
     CharacterConfigs characterConfigs;
     const InventoryConfig inventoryConfig;
+    WorldConfig worldConfig;
+    WorldDataStore worldDataStore;
     World world;
 
     // Timer para guardado periódico
@@ -40,11 +51,11 @@ private:
     void updateWorld(float delta_time);
     void broadcastState();
     void persistOnlinePlayers();
+    void persistWorldState();
 
 public:
     GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
-             const std::filesystem::path& configDir,
-             const std::string& persistenceDir = "game_data/");
+             const std::filesystem::path& configDir, const WorldConfig& wConfig);
 
     void run() override;
     void stop() override;

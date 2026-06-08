@@ -13,50 +13,50 @@ Protocol::Protocol(Socket& skt): skt(skt) {}
 // CAPA DE BAJO NIVEL
 // =======================================================
 
-void Protocol::send_uint8(uint8_t value) { skt.sendall(&value, sizeof(uint8_t)); }
+void Protocol::sendUint8(uint8_t value) { skt.sendall(&value, sizeof(uint8_t)); }
 
-void Protocol::send_uint16(uint16_t value) {
+void Protocol::sendUint16(uint16_t value) {
     uint16_t net_value = htons(value);
 
     skt.sendall(reinterpret_cast<const uint8_t*>(&net_value), sizeof(uint16_t));
 }
 
-void Protocol::send_uint32(uint32_t value) {
+void Protocol::sendUint32(uint32_t value) {
     uint32_t net_value = htonl(value);
 
     skt.sendall(reinterpret_cast<const uint8_t*>(&net_value), sizeof(uint32_t));
 }
 
-void Protocol::send_string(const std::string& str) {
+void Protocol::sendString(const std::string& str) {
     uint16_t length = htons(static_cast<uint16_t>(str.size()));
 
     skt.sendall(reinterpret_cast<const uint8_t*>(&length), sizeof(uint16_t));
     skt.sendall(reinterpret_cast<const uint8_t*>(str.data()), str.size());
 }
 
-uint8_t Protocol::recv_uint8() {
+uint8_t Protocol::recvUint8() {
     uint8_t value;
     skt.recvall(&value, sizeof(value));
 
     return value;
 }
 
-uint16_t Protocol::recv_uint16() {
+uint16_t Protocol::recvUint16() {
     uint16_t net_value;
     skt.recvall(&net_value, sizeof(net_value));
 
     return ntohs(net_value);
 }
 
-uint32_t Protocol::recv_uint32() {
+uint32_t Protocol::recvUint32() {
     uint32_t net_value;
     skt.recvall(&net_value, sizeof(net_value));
 
     return ntohl(net_value);
 }
 
-std::string Protocol::recv_string() {
-    uint16_t len = recv_uint16();
+std::string Protocol::recvString() {
+    uint16_t len = recvUint16();
     std::vector<char> buffer(len);
 
     skt.recvall(buffer.data(), len);
@@ -64,147 +64,194 @@ std::string Protocol::recv_string() {
     return std::string(buffer.begin(), buffer.end());
 }
 
-uint8_t Protocol::recv_opcode() { return recv_uint8(); }
+uint8_t Protocol::recv_opcode() { return recvUint8(); }
 
 // =======================================================
 // ACTUALIZACIONES DE ESTADO (SERVIDOR -> CLIENTE)
 // =======================================================
 
-void Protocol::send_snapshot(const SnapshotDTO& snap) {
-    send_uint8(static_cast<uint8_t>(OPCODE::SNAPSHOT));
+void Protocol::sendSnapshot(const SnapshotDTO& snap) {
+    sendUint8(static_cast<uint8_t>(OPCODE::SNAPSHOT));
 
-    send_uint16(static_cast<uint16_t>(snap.players.size()));
+    sendUint16(static_cast<uint16_t>(snap.players.size()));
     for (const auto& entity: snap.players) {
-        send_uint32(entity.id);
-        send_uint8(static_cast<uint8_t>(entity.type));
-        send_uint16(entity.x);
-        send_uint16(entity.y);
-        send_uint16(entity.current_hp);
-        send_uint16(entity.max_hp);
-        send_uint16(entity.sprite_id);
+        sendUint32(entity.id);
+        sendUint8(static_cast<uint8_t>(entity.type));
+        sendUint16(entity.x);
+        sendUint16(entity.y);
+        sendUint16(entity.current_hp);
+        sendUint16(entity.max_hp);
+        sendUint16(entity.sprite_id);
     }
 
-    send_uint16(static_cast<uint16_t>(snap.monsters.size()));
+    sendUint16(static_cast<uint16_t>(snap.monsters.size()));
     for (const auto& entity: snap.monsters) {
-        send_uint32(entity.id);
-        send_uint8(static_cast<uint8_t>(entity.type));
-        send_uint16(entity.x);
-        send_uint16(entity.y);
-        send_uint16(entity.current_hp);
-        send_uint16(entity.max_hp);
-        send_uint16(entity.sprite_id);
+        sendUint32(entity.id);
+        sendUint8(static_cast<uint8_t>(entity.type));
+        sendUint16(entity.x);
+        sendUint16(entity.y);
+        sendUint16(entity.current_hp);
+        sendUint16(entity.max_hp);
+        sendUint16(entity.sprite_id);
     }
 
-    send_uint16(static_cast<uint16_t>(snap.groundItems.size()));
+    sendUint16(static_cast<uint16_t>(snap.groundItems.size()));
     for (const auto& item: snap.groundItems) {
-        send_uint32(item.itemId);
-        send_uint16(item.amount);
-        send_uint16(item.x);
-        send_uint16(item.y);
+        sendUint32(item.itemId);
+        sendUint16(item.amount);
+        sendUint16(item.x);
+        sendUint16(item.y);
     }
 }
 
-void Protocol::send_login_success(uint32_t clientId) {
-    send_uint8(static_cast<uint8_t>(OPCODE::LOGIN_SUCCESS));
-    send_uint32(clientId);
+void Protocol::sendPlayerStats(const PlayerStatsDTO& stats) {
+    sendUint8(static_cast<uint8_t>(OPCODE::STATS_UPDATE));
+
+    sendUint16(stats.currentHp);
+    sendUint16(stats.maxHp);
+    sendUint16(stats.currentMana);
+    sendUint16(stats.maxMana);
+    sendUint32(stats.gold);
+    sendUint32(stats.exp);
+    sendUint16(stats.level);
+    sendUint32(stats.expIntoLevel);
+    sendUint32(stats.expForLevel);
+
+    sendUint16(static_cast<uint16_t>(stats.inventory.size()));
+    for (const auto& item: stats.inventory) {
+        sendUint8(item.slot);
+        sendUint32(item.itemId);
+        sendUint16(item.amount);
+        sendUint8(item.isEquipped ? 1 : 0);
+    }
 }
 
-void Protocol::send_login_failed(const std::string& errorMessage) {
-    send_uint8(static_cast<uint8_t>(OPCODE::LOGIN_FAILED));
-    send_string(errorMessage);
+void Protocol::sendLoginSuccess(uint32_t clientId) {
+    sendUint8(static_cast<uint8_t>(OPCODE::LOGIN_SUCCESS));
+    sendUint32(clientId);
 }
 
-LoginResponseDTO Protocol::recv_login_response() {
-    uint8_t opcode_raw = recv_uint8();
-    OPCODE opcode = static_cast<OPCODE>(opcode_raw);
+void Protocol::sendLoginFailed(const std::string& errorMessage) {
+    sendUint8(static_cast<uint8_t>(OPCODE::LOGIN_FAILED));
+    sendString(errorMessage);
+}
+
+LoginResponseDTO Protocol::recvLoginResponse() {
+    uint8_t opcodeRaw = recvUint8();
+    OPCODE opcode = static_cast<OPCODE>(opcodeRaw);
 
     if (opcode == OPCODE::LOGIN_SUCCESS) {
-        uint32_t clientId = recv_uint32();
+        uint32_t clientId = recvUint32();
         return LoginResponseDTO{true, clientId, ""};
     } else if (opcode == OPCODE::LOGIN_FAILED) {
-        std::string errorMessage = recv_string();
+        std::string errorMessage = recvString();
         return LoginResponseDTO{false, 0, errorMessage};
     } else {
         throw std::runtime_error("Unexpected opcode received when expecting login response");
     }
 }
 
-void Protocol::send_register(const RegisterDTO& dto) {
-    send_uint8(static_cast<uint8_t>(OPCODE::REGISTER));
-    send_string(dto.username);
-    send_string(dto.password);
+void Protocol::sendRegister(const RegisterDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::REGISTER));
+    sendString(dto.username);
+    sendString(dto.password);
 }
 
-void Protocol::send_register_success(uint32_t clientId) {
-    send_uint8(static_cast<uint8_t>(OPCODE::REGISTER_SUCCESS));
-    send_uint32(clientId);
+void Protocol::sendRegisterSuccess(uint32_t clientId) {
+    sendUint8(static_cast<uint8_t>(OPCODE::REGISTER_SUCCESS));
+    sendUint32(clientId);
 }
 
-void Protocol::send_register_failed(const std::string& errorMessage) {
-    send_uint8(static_cast<uint8_t>(OPCODE::REGISTER_FAILED));
-    send_string(errorMessage);
+void Protocol::sendRegisterFailed(const std::string& errorMessage) {
+    sendUint8(static_cast<uint8_t>(OPCODE::REGISTER_FAILED));
+    sendString(errorMessage);
 }
 
-LoginResponseDTO Protocol::recv_register_response() {
-    uint8_t opcode_raw = recv_uint8();
-    OPCODE opcode = static_cast<OPCODE>(opcode_raw);
+LoginResponseDTO Protocol::recvRegisterResponse() {
+    uint8_t opcodeRaw = recvUint8();
+    OPCODE opcode = static_cast<OPCODE>(opcodeRaw);
 
     if (opcode == OPCODE::REGISTER_SUCCESS) {
-        uint32_t clientId = recv_uint32();
+        uint32_t clientId = recvUint32();
         return LoginResponseDTO{true, clientId, ""};
     } else if (opcode == OPCODE::REGISTER_FAILED) {
-        std::string errorMessage = recv_string();
+        std::string errorMessage = recvString();
         return LoginResponseDTO{false, 0, errorMessage};
     } else {
         throw std::runtime_error("Unexpected opcode received when expecting register response");
     }
 }
 
-SnapshotDTO Protocol::receive_snapshot_body() {
+SnapshotDTO Protocol::receiveSnapshotBody() {
     SnapshotDTO snap;
 
-    uint16_t players_count = recv_uint16();
+    uint16_t players_count = recvUint16();
     for (uint16_t i = 0; i < players_count; ++i) {
         EntityDTO entity;
-        entity.id = recv_uint32();
-        entity.type = static_cast<EntityType>(recv_uint8());
-        entity.x = recv_uint16();
-        entity.y = recv_uint16();
-        entity.current_hp = recv_uint16();
-        entity.max_hp = recv_uint16();
-        entity.sprite_id = recv_uint16();
+        entity.id = recvUint32();
+        entity.type = static_cast<EntityType>(recvUint8());
+        entity.x = recvUint16();
+        entity.y = recvUint16();
+        entity.current_hp = recvUint16();
+        entity.max_hp = recvUint16();
+        entity.sprite_id = recvUint16();
         snap.players.push_back(entity);
     }
 
-    uint16_t monsters_count = recv_uint16();
+    uint16_t monsters_count = recvUint16();
     for (uint16_t i = 0; i < monsters_count; ++i) {
         EntityDTO entity;
-        entity.id = recv_uint32();
-        entity.type = static_cast<EntityType>(recv_uint8());
-        entity.x = recv_uint16();
-        entity.y = recv_uint16();
-        entity.current_hp = recv_uint16();
-        entity.max_hp = recv_uint16();
-        entity.sprite_id = recv_uint16();
+        entity.id = recvUint32();
+        entity.type = static_cast<EntityType>(recvUint8());
+        entity.x = recvUint16();
+        entity.y = recvUint16();
+        entity.current_hp = recvUint16();
+        entity.max_hp = recvUint16();
+        entity.sprite_id = recvUint16();
         snap.monsters.push_back(entity);
     }
 
-    uint16_t items_count = recv_uint16();
+    uint16_t items_count = recvUint16();
     for (uint16_t i = 0; i < items_count; ++i) {
         GroundItemDTO item;
-        item.itemId = recv_uint32();
-        item.amount = recv_uint16();
-        item.x = recv_uint16();
-        item.y = recv_uint16();
+        item.itemId = recvUint32();
+        item.amount = recvUint16();
+        item.x = recvUint16();
+        item.y = recvUint16();
         snap.groundItems.push_back(item);
     }
 
     return snap;
 }
 
-ChatDTO Protocol::receive_chat_body() {
+PlayerStatsDTO Protocol::receivePlayerStatsBody() {
+    PlayerStatsDTO stats;
+    stats.currentHp = recvUint16();
+    stats.maxHp = recvUint16();
+    stats.currentMana = recvUint16();
+    stats.maxMana = recvUint16();
+    stats.gold = recvUint32();
+    stats.exp = recvUint32();
+    stats.level = recvUint16();
+    stats.expIntoLevel = recvUint32();
+    stats.expForLevel = recvUint32();
+
+    uint16_t items_count = recvUint16();
+    for (uint16_t i = 0; i < items_count; ++i) {
+        InventorySlotDTO item;
+        item.slot = recvUint8();
+        item.itemId = recvUint32();
+        item.amount = recvUint16();
+        item.isEquipped = (recvUint8() == 1);
+        stats.inventory.push_back(item);
+    }
+
+    return stats;
+}
+
+ChatDTO Protocol::receiveChatBody() {
     ChatDTO chat;
-    chat.message = recv_string();
+    chat.message = recvString();
     return chat;
 }
 
@@ -212,98 +259,109 @@ ChatDTO Protocol::receive_chat_body() {
 // CAPA SEMÁNTICA (ENVÍO DEL CLIENTE)
 // =======================================================
 
-void Protocol::send_login(const LoginDTO& loginDTO) {
-    send_uint8(static_cast<uint8_t>(OPCODE::LOGIN));
-    send_string(loginDTO.username);
-    send_string(loginDTO.password);
+void Protocol::sendLogin(const LoginDTO& loginDTO) {
+    sendUint8(static_cast<uint8_t>(OPCODE::LOGIN));
+    sendString(loginDTO.username);
+    sendString(loginDTO.password);
 }
 
-void Protocol::send_start_move(const StartMoveDTO& dto) {
-    send_uint8(static_cast<uint8_t>(OPCODE::START_MOVE));
-    send_uint8(static_cast<uint8_t>(dto.direction));
+void Protocol::sendStartMove(const StartMoveDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::START_MOVE));
+    sendUint8(static_cast<uint8_t>(dto.direction));
 }
 
-void Protocol::send_attack() { send_uint8(static_cast<uint8_t>(OPCODE::ATTACK)); }
-
-void Protocol::send_drop_item(const DropItemDTO& dto) {
-    send_uint8(static_cast<uint8_t>(OPCODE::DROP_ITEM));
-    send_uint8(dto.slot);
-    send_uint16(dto.amount);
+void Protocol::sendAttack(uint32_t targetId) {
+    sendUint8(static_cast<uint8_t>(OPCODE::ATTACK));
+    sendUint32(targetId);
 }
 
-void Protocol::send_stop_move() { send_uint8(static_cast<uint8_t>(OPCODE::STOP_MOVE)); }
-
-void Protocol::send_equip_item(const EquipItemDTO& dto) {
-    send_uint8(static_cast<uint8_t>(OPCODE::EQUIP_ITEM));
-    send_uint8(dto.slot);
+void Protocol::sendDropItem(const DropItemDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::DROP_ITEM));
+    sendUint8(dto.slot);
+    sendUint16(dto.amount);
 }
 
-void Protocol::send_use_item(const UseItemDTO& dto) {
-    send_uint8(static_cast<uint8_t>(OPCODE::USE_ITEM));
-    send_uint8(dto.slot);
+void Protocol::sendStopMove() { sendUint8(static_cast<uint8_t>(OPCODE::STOP_MOVE)); }
+
+void Protocol::sendEquipItem(const EquipItemDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::EQUIP_ITEM));
+    sendUint8(dto.slot);
 }
 
-void Protocol::send_grab_item() { send_uint8(static_cast<uint8_t>(OPCODE::GRAB_ITEM)); }
+void Protocol::sendUseItem(const UseItemDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::USE_ITEM));
+    sendUint8(dto.slot);
+}
 
-void Protocol::send_chat(const ChatDTO& dto) {
-    send_uint8(static_cast<uint8_t>(OPCODE::CHAT));
-    send_string(dto.message);
+void Protocol::sendGrabItem() { sendUint8(static_cast<uint8_t>(OPCODE::GRAB_ITEM)); }
+
+void Protocol::sendChat(const ChatDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::CHAT));
+    sendString(dto.message);
 }
 
 // =======================================================
 // LOGICA DE CHAT PRIVADO (CLIENTE -> SERVIDOR)
 // =======================================================
-void Protocol::send_private_chat(const PrivateChatDTO& dto) {
-    send_uint8(static_cast<uint8_t>(OPCODE::PRIVATE_CHAT));
-    send_string(dto.recipientNick);
-    send_string(dto.message);
+void Protocol::sendPrivateChat(const PrivateChatDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::PRIVATE_CHAT));
+    sendString(dto.recipientNick);
+    sendString(dto.message);
 }
 
-PrivateChatDTO Protocol::receive_private_chat_body() {
+PrivateChatDTO Protocol::receivePrivateChatBody() {
     PrivateChatDTO dto;
-    dto.recipientNick = recv_string();
-    dto.message = recv_string();
+    dto.recipientNick = recvString();
+    dto.message = recvString();
     return dto;
 }
 
-void Protocol::send_meditate() { send_uint8(static_cast<uint8_t>(OPCODE::MEDITATE)); }
+void Protocol::sendMeditate() { sendUint8(static_cast<uint8_t>(OPCODE::MEDITATE)); }
 
-void Protocol::receive_meditate_body() {
+void Protocol::receiveMeditateBody() {
     // No hay payload para meditar
 }
 
-void Protocol::send_resurrect() { send_uint8(static_cast<uint8_t>(OPCODE::RESURRECT)); }
+void Protocol::sendResurrect() { sendUint8(static_cast<uint8_t>(OPCODE::RESURRECT)); }
 
-void Protocol::receive_resurrect_body() {
+void Protocol::receiveResurrectBody() {
     // No hay payload para resucitar
 }
 
-void Protocol::send_npc_command(const NpcCommandDTO& dto) {
-    send_uint8(static_cast<uint8_t>(OPCODE::NPC_CMD));
-    send_uint8(static_cast<uint8_t>(dto.type));
-    send_string(dto.arg);
+void Protocol::sendNpcCommand(const NpcCommandDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::NPC_CMD));
+    sendUint8(static_cast<uint8_t>(dto.type));
+    sendString(dto.arg);
 }
 
-NpcCommandDTO Protocol::receive_npc_command_body() {
+NpcCommandDTO Protocol::receiveNpcCommandBody() {
     NpcCommandDTO dto;
-    dto.type = static_cast<NpcCommandType>(recv_uint8());
-    dto.arg = recv_string();
+    dto.type = static_cast<NpcCommandType>(recvUint8());
+    dto.arg = recvString();
     return dto;
 }
 
-void Protocol::send_clan_command(const ClanCommandDTO& dto) {
-    send_uint8(static_cast<uint8_t>(OPCODE::CLAN_CMD));
-    send_uint8(static_cast<uint8_t>(dto.type));
-    send_string(dto.arg1);
-    send_uint32(dto.targetDbId);
+void Protocol::sendClanCommand(const ClanCommandDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::CLAN_CMD));
+    sendUint8(static_cast<uint8_t>(dto.type));
+    sendString(dto.arg1);
+    sendUint32(dto.targetDbId);
 }
 
-ClanCommandDTO Protocol::receive_clan_command_body() {
+ClanCommandDTO Protocol::receiveClanCommandBody() {
     ClanCommandDTO dto;
-    dto.type = static_cast<ClanCommandType>(recv_uint8());
-    dto.arg1 = recv_string();
-    dto.targetDbId = recv_uint32();
+    dto.type = static_cast<ClanCommandType>(recvUint8());
+    dto.arg1 = recvString();
+    dto.targetDbId = recvUint32();
     return dto;
+}
+
+// =======================================================
+// CAPA SEMÁNTICA (ENVÍO DE CHEATS)
+// =======================================================
+void Protocol::sendCheat(const CheatDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::OPCODE_CHEAT));
+    sendUint8(static_cast<uint8_t>(dto.type));
 }
 
 // =======================================================
@@ -311,42 +369,44 @@ ClanCommandDTO Protocol::receive_clan_command_body() {
 // =======================================================
 
 CommandVariant Protocol::receive_command() {
-    uint8_t opcode_raw = recv_uint8();
-    OPCODE opcode = static_cast<OPCODE>(opcode_raw);
+    uint8_t opcodeRaw = recvUint8();
+    OPCODE opcode = static_cast<OPCODE>(opcodeRaw);
 
     switch (opcode) {
         case OPCODE::LOGIN: {
             LoginDTO dto;
-            dto.username = recv_string();
-            dto.password = recv_string();
+            dto.username = recvString();
+            dto.password = recvString();
             return dto;
         }
         case OPCODE::REGISTER: {
             RegisterDTO dto;
-            dto.username = recv_string();
-            dto.password = recv_string();
+            dto.username = recvString();
+            dto.password = recvString();
             return dto;
         }
         case OPCODE::START_MOVE: {
             StartMoveDTO dto;
-            dto.direction = static_cast<Movement>(recv_uint8());
+            dto.direction = static_cast<Movement>(recvUint8());
             return dto;
         }
         case OPCODE::STOP_MOVE: {
             return StopMoveDTO{};
         }
         case OPCODE::ATTACK: {
-            return AttackDTO{};
+            AttackDTO dto;
+            dto.targetId = recvUint32();
+            return dto;
         }
         case OPCODE::DROP_ITEM: {
             DropItemDTO dto;
-            dto.slot = recv_uint8();
-            dto.amount = recv_uint16();
+            dto.slot = recvUint8();
+            dto.amount = recvUint16();
             return dto;
         }
         case OPCODE::EQUIP_ITEM: {
             EquipItemDTO dto;
-            dto.slot = recv_uint8();
+            dto.slot = recvUint8();
             return dto;
         }
         case OPCODE::GRAB_ITEM: {
@@ -354,30 +414,35 @@ CommandVariant Protocol::receive_command() {
         }
         case OPCODE::CHAT: {
             ChatDTO dto;
-            dto.message = recv_string();
+            dto.message = recvString();
             return dto;
         }
         case OPCODE::USE_ITEM: {
             UseItemDTO dto;
-            dto.slot = recv_uint8();
+            dto.slot = recvUint8();
             return dto;
         }
         case OPCODE::PRIVATE_CHAT: {
-            return receive_private_chat_body();
+            return receivePrivateChatBody();
         }
         case OPCODE::MEDITATE: {
-            receive_meditate_body();
+            receiveMeditateBody();
             return MeditateDTO{};
         }
         case OPCODE::RESURRECT: {
-            receive_resurrect_body();
+            receiveResurrectBody();
             return ResurrectDTO{};
         }
         case OPCODE::NPC_CMD: {
-            return receive_npc_command_body();
+            return receiveNpcCommandBody();
         }
         case OPCODE::CLAN_CMD: {
-            return receive_clan_command_body();
+            return receiveClanCommandBody();
+        }
+        case OPCODE::OPCODE_CHEAT: {
+            CheatDTO dto;
+            dto.type = static_cast<CheatType>(recvUint8());
+            return dto;
         }
         default:
             throw std::runtime_error("Unknown command received in-game");

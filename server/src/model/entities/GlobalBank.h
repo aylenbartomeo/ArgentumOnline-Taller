@@ -6,6 +6,13 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../../persistence/WorldPersistData.h"
+
+struct BankPersistData {
+    std::vector<BankAccountHeaderPersistData> headers;
+    std::vector<std::vector<BankSlotPersistData>> slots;
+};
+
 struct BankSlot {
     uint32_t item_id{0};
     uint16_t amount{0};
@@ -19,7 +26,7 @@ struct BankSlot {
 
 class GlobalBank {
 private:
-    static const size_t BANK_SIZE = 40;  // Capacidad fija de la bóveda bancaria
+    static constexpr size_t BANK_SIZE = 40;  // Capacidad fija de la bóveda bancaria
 
     struct BankAccount {
         uint32_t gold = 0;
@@ -28,6 +35,7 @@ private:
         BankAccount(): gold(0), slots(BANK_SIZE) {}  // Inicializa los 40 slots vacíos
     };
 
+private:
     std::unordered_map<uint32_t, BankAccount> accounts;
 
 public:
@@ -95,5 +103,42 @@ public:
             }
         }
         return 0;
+    }
+
+    // --- PERSISTENCIA ---
+    BankPersistData toPersistData() const {
+        BankPersistData data{};
+        for (const auto& [playerId, account]: accounts) {
+            std::vector<BankSlotPersistData> accountSlots;
+            for (const auto& slot: account.slots) {
+                if (!slot.is_empty()) {
+                    accountSlots.push_back({slot.item_id, slot.amount, {}});
+                }
+            }
+
+            if (account.gold > 0 || !accountSlots.empty()) {
+                BankAccountHeaderPersistData header{};
+                header.playerDbId = playerId;
+                header.gold = account.gold;
+                header.slotCount = accountSlots.size();
+
+                data.headers.push_back(header);
+                data.slots.push_back(accountSlots);
+            }
+        }
+        return data;
+    }
+
+    void fromPersistData(const BankPersistData& data) {
+        for (size_t i = 0; i < data.headers.size(); ++i) {
+            const auto& header = data.headers[i];
+            auto& account = accounts[header.playerDbId];
+            account.gold = header.gold;
+            for (size_t j = 0; j < std::min(data.slots[i].size(), BANK_SIZE); ++j) {
+                const auto& spd = data.slots[i][j];
+                account.slots[j].item_id = spd.itemId;
+                account.slots[j].amount = spd.amount;
+            }
+        }
     }
 };

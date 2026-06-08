@@ -1,0 +1,103 @@
+#include "Client.h"
+
+#include <iostream>
+#include <string>
+
+#include "common/include/dto/LoginDTO.h"
+#include "common/include/dto/RegisterDTO.h"
+
+Client::Client(const char* hostname, const char* servname):
+        clientId(0),
+        username(""),
+        skt(hostname, servname),
+        protocol(skt),
+        snapshotQueue(),
+        commandQueue(),
+        receiver(protocol, *this),
+        sender(protocol, commandQueue),
+        wasStarted(false) {}
+
+bool Client::authenticate(const std::string& action, const std::string& username,
+                          const std::string& password, std::string& errorMessage) {
+    if (action == "login") {
+        LoginDTO dto(username, password);
+        protocol.sendLogin(dto);
+
+        LoginResponseDTO response = protocol.recvLoginResponse();
+        if (response.success) {
+            std::cout << "[CLIENT] Login successful. Entering the world...\n";
+            this->clientId = response.clientId;
+            this->username = username;
+            return true;
+        } else {
+            std::cerr << "[CLIENT] Login error: " << response.errorMessage << "\n";
+            errorMessage = response.errorMessage;
+            return false;
+        }
+
+    } else if (action == "register") {
+        RegisterDTO dto(username, password);
+        protocol.sendRegister(dto);
+        LoginResponseDTO response = protocol.recvRegisterResponse();
+        if (response.success) {
+            std::cout << "[CLIENT] Registration successful. Entering the world...\n";
+            this->clientId = response.clientId;
+            this->username = username;
+            return true;
+        } else {
+            std::cerr << "[CLIENT] Registration error: " << response.errorMessage << "\n";
+            errorMessage = response.errorMessage;
+            return false;
+        }
+    }
+
+    errorMessage = "Unknown action.";
+    std::cerr << "[CLIENT] Unknown action.\n";
+    return false;
+}
+
+void Client::start() {
+    receiver.start();
+    sender.start();
+    wasStarted = true;
+    std::cout << "[CLIENT] Connected as " << this->username << " (id=" << this->clientId << ")"
+              << std::endl;
+}
+
+void Client::stop() {
+    if (!wasStarted)
+        return;
+    try {
+        skt.shutdown(SHUT_RDWR);
+        skt.close();
+    } catch (...) {}
+    snapshotQueue.close();
+    commandQueue.close();
+    receiver.stop();
+    sender.stop();
+    receiver.join();
+    sender.join();
+    wasStarted = false;
+}
+
+void Client::pushSnapshot(const SnapshotDTO& snap) { this->snapshotQueue.push(snap); }
+
+bool Client::tryPopSnapshot(SnapshotDTO& out) { return this->snapshotQueue.try_pop(out); }
+
+void Client::pushChatMessage(const ChatDTO& chat) { this->chatQueue.push(chat); }
+
+bool Client::tryPopChatMessage(ChatDTO& out) { return this->chatQueue.try_pop(out); }
+
+void Client::pushPlayerStats(const PlayerStatsDTO& stats) { this->statsQueue.push(stats); }
+
+bool Client::tryPopPlayerStats(PlayerStatsDTO& out) { return this->statsQueue.try_pop(out); }
+
+void Client::sendCommand(const CommandVariant& cmd) {
+    try {
+        commandQueue.push(cmd);
+    } catch (...) {}
+}
+
+uint32_t Client::getClientId() const { return clientId; }
+
+Client::~Client() { stop(); }

@@ -13,7 +13,7 @@ public:
 
     int getDefense() const override;
 
-    uint32_t equip_on(EquipmentComponent& equipment) const override;
+    void equip_on(EquipmentComponent& equipment, uint8_t slotIndex) const override;
 };
 
 #endif

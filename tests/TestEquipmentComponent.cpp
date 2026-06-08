@@ -1,4 +1,4 @@
-﻿#include <gtest/gtest.h>
+#include <gtest/gtest.h>
 
 #include "model/components/EquipmentComponent.h"
 #include "model/items/BodyArmor.h"
@@ -43,25 +43,25 @@ TEST_F(EquipmentComponentTest, DefenseIsZeroWithNothingEquipped) {
 // 2. EQUIPAR Y LEER DEFENSA POR SLOT
 // ============================================================================
 TEST_F(EquipmentComponentTest, EquipBodyArmorAndCheckDefense) {
-    eq.equipBodyArmor(&armor);
+    eq.equipBodyArmor(&armor, 0);
     EXPECT_EQ(eq.getBodyArmor(), &armor);
     EXPECT_EQ(eq.calculateCurrentDefense(), 5);
 }
 
 TEST_F(EquipmentComponentTest, EquipHelmetAndCheckDefense) {
-    eq.equipHelmet(&helmet);
+    eq.equipHelmet(&helmet, 1);
     EXPECT_EQ(eq.getHelmet(), &helmet);
     EXPECT_EQ(eq.calculateCurrentDefense(), 6);
 }
 
 TEST_F(EquipmentComponentTest, EquipShieldAndCheckDefense) {
-    eq.equipShield(&shield);
+    eq.equipShield(&shield, 2);
     EXPECT_EQ(eq.getShield(), &shield);
     EXPECT_EQ(eq.calculateCurrentDefense(), 2);
 }
 
 TEST_F(EquipmentComponentTest, EquipWeaponAndCheckPointer) {
-    eq.equipWeapon(&sword);
+    eq.equipWeapon(&sword, 3);
     EXPECT_EQ(eq.getWeapon(), &sword);
 }
 
@@ -69,44 +69,20 @@ TEST_F(EquipmentComponentTest, EquipWeaponAndCheckPointer) {
 // 3. DEFENSA ACUMULADA (varios slots a la vez)
 // ============================================================================
 TEST_F(EquipmentComponentTest, TotalDefenseIsTheSumOfAllSlots) {
-    eq.equipBodyArmor(&armor);  // +5
-    eq.equipHelmet(&helmet);    // +6
-    eq.equipShield(&shield);    // +2
+    eq.equipBodyArmor(&armor, 0);  // +5
+    eq.equipHelmet(&helmet, 1);    // +6
+    eq.equipShield(&shield, 2);    // +2
     // Total esperado: 13
     EXPECT_EQ(eq.calculateCurrentDefense(), 13);
 }
 
 TEST_F(EquipmentComponentTest, DefenseWithOnlyArmorAndHelmet) {
-    eq.equipBodyArmor(&armor);  // +5
-    eq.equipHelmet(&helmet);    // +6
+    eq.equipBodyArmor(&armor, 0);  // +5
+    eq.equipHelmet(&helmet, 1);    // +6
     EXPECT_EQ(eq.calculateCurrentDefense(), 11);
 }
 
-// ============================================================================
-// 4. REEMPLAZO DE ÃTEMS (devuelve el ID del anterior)
-// ============================================================================
-TEST_F(EquipmentComponentTest, ReplacingArmorReturnsOldId) {
-    eq.equipBodyArmor(&armor);
-    uint32_t replaced = eq.equipBodyArmor(&armor2);
-
-    EXPECT_EQ(replaced, static_cast<uint32_t>(armor.getId()));
-    EXPECT_EQ(eq.getBodyArmor(), &armor2);
-    EXPECT_EQ(eq.calculateCurrentDefense(), 20);  // ahora tiene la nueva armadura
-}
-
-TEST_F(EquipmentComponentTest, ReplacingWeaponReturnsOldId) {
-    eq.equipWeapon(&sword);
-    uint32_t replaced = eq.equipWeapon(&bow);
-
-    EXPECT_EQ(replaced, static_cast<uint32_t>(sword.getId()));
-    EXPECT_EQ(eq.getWeapon(), &bow);
-}
-
-TEST_F(EquipmentComponentTest, EquipFirstArmorReturnsZero) {
-    // Si no habÃ­a nada equipado, el ID del reemplazado debe ser 0
-    uint32_t replaced = eq.equipBodyArmor(&armor);
-    EXPECT_EQ(replaced, 0u);
-}
+// Tests de reemplazo eliminados porque el comportamiento cambió
 
 // ============================================================================
 // 5. DESEQUIPAR EXPLÃCITAMENTE
@@ -149,33 +125,33 @@ TEST_F(EquipmentComponentTest, EquipFirstArmorReturnsZero) {
 // ============================================================================
 TEST_F(EquipmentComponentTest, EquipItemDispatchesToCorrectSlot) {
     // BodyArmor se despacha al slot de armadura
-    eq.equipItem(&armor);
+    eq.equipItem(&armor, 0);
     EXPECT_EQ(eq.getBodyArmor(), &armor);
 
     // Helmet al slot de casco
-    eq.equipItem(&helmet);
+    eq.equipItem(&helmet, 1);
     EXPECT_EQ(eq.getHelmet(), &helmet);
 
     // Shield al slot de escudo
-    eq.equipItem(&shield);
+    eq.equipItem(&shield, 2);
     EXPECT_EQ(eq.getShield(), &shield);
 
     // Weapon al slot de arma
-    eq.equipItem(&sword);
+    eq.equipItem(&sword, 3);
     EXPECT_EQ(eq.getWeapon(), &sword);
 }
 
 TEST_F(EquipmentComponentTest, EquipItemWithNullptrDoesNothing) {
-    eq.equipItem(nullptr);
+    eq.equipItem(nullptr, 0);
     EXPECT_EQ(eq.calculateCurrentDefense(), 0);
     EXPECT_EQ(eq.getWeapon(), nullptr);
 }
 
 // ============================================================================
-// 7. ARMAS MÃGICAS (bÃ¡culos con coste de manÃ¡)
+// 7. ARMAS MÃ GICAS (bÃ¡culos con coste de manÃ¡)
 // ============================================================================
 TEST_F(EquipmentComponentTest, MagicWeaponEquipsCorrectly) {
-    eq.equipWeapon(&staff);
+    eq.equipWeapon(&staff, 0);
     EXPECT_EQ(eq.getWeapon(), &staff);
     EXPECT_EQ(eq.getWeapon()->getManaCost(), 5);
     EXPECT_EQ(eq.getWeapon()->getType(), WeaponType::MAGIC);
@@ -189,6 +165,6 @@ TEST_F(EquipmentComponentTest, GetEquippedWeaponReturnsNullWhenEmpty) {
 }
 
 TEST_F(EquipmentComponentTest, GetEquippedWeaponMatchesGetWeapon) {
-    eq.equipWeapon(&bow);
+    eq.equipWeapon(&bow, 0);
     EXPECT_EQ(eq.getEquippedWeapon(), eq.getWeapon());
 }

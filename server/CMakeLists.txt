@@ -1,5 +1,6 @@
 include(FetchContent)
 
+# --- Dependencia 1: bcrypt ---
 FetchContent_Declare(
     libbcrypt
     GIT_REPOSITORY https://github.com/trusch/libbcrypt.git
@@ -7,11 +8,18 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(libbcrypt)
 
-target_sources(argentum_online_server
-    PRIVATE
-    # .cpp files
-    src/main.cpp
+# --- Dependencia 2: tomlplusplus ---
+include(FetchContent)
+FetchContent_Declare(
+    tomlplusplus
+    URL https://github.com/marzer/tomlplusplus/archive/refs/tags/v3.4.0.zip
+)
+FetchContent_MakeAvailable(tomlplusplus)
 
+add_library(lib_server STATIC)
+
+target_sources(lib_server
+    PRIVATE
     # Config
     src/config/CharacterConfigLoader.cpp
     src/config/ItemConfigLoader.cpp
@@ -20,6 +28,7 @@ target_sources(argentum_online_server
 
     # Formulas
     include/FormulaEngine.cpp
+    include/LootResolver.cpp
 
     # Entities
     src/model/entities/Player.cpp
@@ -28,6 +37,11 @@ target_sources(argentum_online_server
     src/model/entities/Merchant.cpp
     src/model/entities/Priest.cpp
     src/model/entities/Banker.cpp
+    src/model/entities/EntityManager.cpp
+    src/model/systems/SpawnSystem.cpp
+    src/model/systems/ResurrectionService.cpp
+    src/model/systems/InteractionService.cpp
+    src/model/systems/CombatSystem.cpp
 
     # Items
     src/model/items/Armor.cpp
@@ -40,7 +54,7 @@ target_sources(argentum_online_server
     src/model/items/WeaponFactory.cpp
     src/model/items/ItemRegistry.cpp 
 
-    # Network
+    # Network & Infrastructure
     src/Acceptor.cpp
     src/ClientHandler.cpp
     src/Receiver.cpp
@@ -50,14 +64,16 @@ target_sources(argentum_online_server
     src/GameLoop.cpp
     src/auth/AuthManager.cpp
     src/persistence/PlayerDataStore.cpp
+    src/persistence/WorldDataStore.cpp
 
-    # Game
+    # Game Core
     src/model/map/GroundItemLayer.cpp
     src/model/map/SafeZoneLayer.cpp
     src/model/map/NPCLayer.cpp
     src/model/map/CollisionLayer.cpp
     src/Map.cpp
     src/World.cpp
+    src/model/events/EventPublisher.cpp
 
     # Clan
     src/model/clan/ClanRepository.cpp
@@ -71,9 +87,8 @@ target_sources(argentum_online_server
     src/model/combat/CombatManager.cpp
     src/model/components/RegenerationComponent.cpp
 
-
     PUBLIC
-    # .h files
+    # Headers para visualización en IDEs y exposición pública
     src/config/CharacterConfig.h
     src/config/CharacterConfigLoader.h
     src/config/ItemConfigLoader.h
@@ -88,6 +103,11 @@ target_sources(argentum_online_server
     src/model/entities/Merchant.h
     src/model/entities/Banker.h
     src/model/entities/GlobalBank.h
+    src/model/entities/EntityManager.h
+    src/model/systems/SpawnSystem.h
+    src/model/systems/ResurrectionService.h
+    src/model/systems/InteractionService.h
+    src/model/systems/CombatSystem.h
     src/model/components/StatsComponent.h
     src/model/components/InventoryComponent.h
     src/model/components/EquipmentComponent.h
@@ -120,6 +140,7 @@ target_sources(argentum_online_server
     src/ConnectionMonitor.h
     src/GameLoop.h
     include/FormulaEngine.h
+    include/LootResolver.h
 
     src/Map.h
     src/model/map/GroundItemLayer.h
@@ -129,22 +150,42 @@ target_sources(argentum_online_server
     src/World.h
     src/auth/AuthManager.h
     src/persistence/PlayerDataStore.h
+    src/persistence/WorldDataStore.h
+    src/persistence/WorldPersistData.h
 )
 
-# Include directories
-target_include_directories(argentum_online_server
-    PRIVATE
-    include
-    src
-    src/model
-    src/model/entities
-    src/model/map
-    src/model/items
-    src/model/components
-    src/model/handlers
-    src/model/clan
+# Definimos las rutas de headers como INTERFACE/PUBLIC para que quien use la lib las herede
+target_include_directories(lib_server PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/model
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/model/entities
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/model/map
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/model/items
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/model/components
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/model/handlers
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/model/clan
     ${CMAKE_SOURCE_DIR}/common/utils
+    PRIVATE
+    ${libbcrypt_SOURCE_DIR}/include
 )
 
-target_link_libraries(argentum_online_server tomlplusplus::tomlplusplus pthread bcrypt)
-target_include_directories(argentum_online_server PRIVATE ${libbcrypt_SOURCE_DIR}/include)
+# Las dependencias ahora se vinculan directamente a la librería
+target_link_libraries(lib_server PUBLIC 
+    lib_common 
+    tomlplusplus::tomlplusplus 
+    pthread 
+    bcrypt
+    nlohmann_json::nlohmann_json
+)
+
+add_executable(argentum_online_server src/main.cpp)
+
+set_target_properties(argentum_online_server PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+# El ejecutable solo necesita linkear contra nuestra nueva librería
+target_link_libraries(argentum_online_server PRIVATE lib_server)
+
+# Aplicar los warnings definidos en la raíz
+set_project_warnings(argentum_online_server ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)

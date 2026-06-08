@@ -1,44 +1,79 @@
 #include "EquipmentComponent.h"
 
-#include "FormulaEngine.h"
 #include "model/items/BodyArmor.h"
 #include "model/items/Helmet.h"
 #include "model/items/Item.h"
 #include "model/items/Shield.h"
 #include "model/items/Weapon.h"
 
+#include "FormulaEngine.h"
+
 EquipmentComponent::EquipmentComponent():
         bodyArmor(nullptr), helmet(nullptr), shield(nullptr), weapon(nullptr) {}
 
-uint32_t EquipmentComponent::equipItem(const Item* item) {
+bool EquipmentComponent::equipItem(const Item* item, uint8_t slotIndex) {
     if (!item)
-        return 0;
-    return item->equip_on(*this);
+        return false;
+    item->equip_on(*this, slotIndex);
+    return true;
 }
 
-uint32_t EquipmentComponent::equipBodyArmor(const BodyArmor* armor) {
-    uint32_t old_id =
-            (this->bodyArmor != nullptr) ? static_cast<uint32_t>(this->bodyArmor->getId()) : 0;
+void EquipmentComponent::equipBodyArmor(const BodyArmor* armor, uint8_t slotIndex) {
     this->bodyArmor = armor;
-    return old_id;
+    this->bodyArmorSlot = slotIndex;
 }
 
-uint32_t EquipmentComponent::equipHelmet(const Helmet* helmet) {
-    uint32_t old_id = (this->helmet != nullptr) ? static_cast<uint32_t>(this->helmet->getId()) : 0;
+void EquipmentComponent::equipHelmet(const Helmet* helmet, uint8_t slotIndex) {
     this->helmet = helmet;
-    return old_id;
+    this->helmetSlot = slotIndex;
 }
 
-uint32_t EquipmentComponent::equipShield(const Shield* shield) {
-    uint32_t old_id = (this->shield != nullptr) ? static_cast<uint32_t>(this->shield->getId()) : 0;
+void EquipmentComponent::equipShield(const Shield* shield, uint8_t slotIndex) {
     this->shield = shield;
-    return old_id;
+    this->shieldSlot = slotIndex;
 }
 
-uint32_t EquipmentComponent::equipWeapon(const Weapon* new_weapon) {
-    uint32_t old_id = (this->weapon != nullptr) ? static_cast<uint32_t>(this->weapon->getId()) : 0;
+void EquipmentComponent::equipWeapon(const Weapon* new_weapon, uint8_t slotIndex) {
     this->weapon = new_weapon;
-    return old_id;
+    this->weaponSlot = slotIndex;
+}
+
+void EquipmentComponent::unequipSlot(uint8_t slotIndex) {
+    if (bodyArmorSlot.has_value() && bodyArmorSlot.value() == slotIndex)
+        unequip_body_armor();
+    if (helmetSlot.has_value() && helmetSlot.value() == slotIndex)
+        unequip_helmet();
+    if (shieldSlot.has_value() && shieldSlot.value() == slotIndex)
+        unequip_shield();
+    if (weaponSlot.has_value() && weaponSlot.value() == slotIndex)
+        unequip_weapon();
+}
+
+bool EquipmentComponent::isSlotEquipped(uint8_t slotIndex) const {
+    return (bodyArmorSlot.has_value() && bodyArmorSlot.value() == slotIndex) ||
+           (helmetSlot.has_value() && helmetSlot.value() == slotIndex) ||
+           (shieldSlot.has_value() && shieldSlot.value() == slotIndex) ||
+           (weaponSlot.has_value() && weaponSlot.value() == slotIndex);
+}
+
+void EquipmentComponent::unequip_body_armor() {
+    this->bodyArmor = nullptr;
+    this->bodyArmorSlot = std::nullopt;
+}
+
+void EquipmentComponent::unequip_helmet() {
+    this->helmet = nullptr;
+    this->helmetSlot = std::nullopt;
+}
+
+void EquipmentComponent::unequip_shield() {
+    this->shield = nullptr;
+    this->shieldSlot = std::nullopt;
+}
+
+void EquipmentComponent::unequip_weapon() {
+    this->weapon = nullptr;
+    this->weaponSlot = std::nullopt;
 }
 
 uint16_t EquipmentComponent::calculateCurrentDefense() const {

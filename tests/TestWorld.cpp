@@ -18,9 +18,7 @@ static CharacterConfigs getTestConfigs() {
     return CharacterConfigs{base, {{Race::HUMAN, human}}, {{CharacterClass::WARRIOR, warrior}}};
 }
 
-static InventoryConfig getTestInventoryConfig() {
-    return {16, 0, 10000, 5000};
-}
+static InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
 
 static PlayerPersistData makeSpawnData(int x, int y) {
     PlayerPersistData d{};
@@ -111,17 +109,18 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
     EXPECT_TRUE(snapshotInicial.players.empty());
     EXPECT_TRUE(snapshotInicial.monsters.empty());
 
-    // 2. Simulamos el login de dos jugadores (gatilla la creación de Players)
+    // 2. Simulamos el login de dos jugadores
     std::string user1 = "Aoki";
     std::string user2 = "Beren";
 
     ASSERT_TRUE(mundo.addPlayer(100, user1));
-    ASSERT_TRUE(mundo.addPlayer(200, user2));
-
-    // 3. Modificamos la posición de uno para testear que el snapshot arrastre datos vivos
-    // (Simula un comando de movimiento previo al snapshot)
+    // Aoki nace en (0,0) por defecto
     mundo.moveEntity(100, Movement::DOWN);   // y: 0 -> 1
     mundo.moveEntity(100, Movement::RIGHT);  // x: 0 -> 1
+    // Ahora Aoki esta en (1,1)
+
+    // Agregamos a Beren despues, para que nazca en (0,0) sin superponerse ni estorbar
+    ASSERT_TRUE(mundo.addPlayer(200, user2));
 
     // 4. Generamos el Snapshot que se le enviaría al cliente
     SnapshotDTO snapshotActual = mundo.generateSnapshot();
@@ -134,7 +133,7 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
     int spritesEvaluados = 0;
 
     for (const auto& entity: snapshotActual.players) {
-        spritesEvaluados++;  // El primero que salga se lleva el 1, el segundo el 2
+        spritesEvaluados++;
         std::cout << "Entity ID in snapshot: " << entity.id << std::endl;
 
         if (entity.id == 100) {
@@ -144,8 +143,6 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
             EXPECT_EQ(entity.y, 1);
             EXPECT_EQ(entity.current_hp, 15);
             EXPECT_EQ(entity.max_hp, 15);
-
-            // Validamos que su sprite coincida con el orden de salida real en el loop
             EXPECT_EQ(entity.sprite_id, spritesEvaluados);
         } else if (entity.id == 200) {
             encontroPlayer2 = true;
@@ -154,8 +151,6 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
             EXPECT_EQ(entity.y, 0);
             EXPECT_EQ(entity.current_hp, 15);
             EXPECT_EQ(entity.max_hp, 15);
-
-            // Validamos que su sprite coincida con el orden de salida real en el loop
             EXPECT_EQ(entity.sprite_id, spritesEvaluados);
         }
     }
@@ -485,7 +480,7 @@ TEST(WorldTest, World_PickUpItemIntoInventory) {
     // TestWorld no expone el Player interno, pero podemos ver los outgoing events
     auto evs = mundo.pollEvents();
     bool pickedUpEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
-        return ev.targetDbId == 1 && ev.message == "Item picked up.";
+        return ev.targetDbId == 1 && ev.message == "Objeto recogido.";
     });
     EXPECT_TRUE(pickedUpEvent);
 }
@@ -503,7 +498,7 @@ TEST(WorldTest, World_PickUpItemNothingToPickUp) {
 
     auto evs = mundo.pollEvents();
     bool nothingHereEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
-        return ev.targetDbId == 1 && ev.message == "There are no items here to pick up.";
+        return ev.targetDbId == 1 && ev.message == "No hay objetos aquí para recoger.";
     });
     EXPECT_TRUE(nothingHereEvent);
 }
@@ -541,8 +536,7 @@ TEST(WorldTest, World_PickUpItemNoSpaceInInventory) {
 
     auto evs = mundo.pollEvents();
     bool fullEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
-        return ev.targetDbId == 1 &&
-               ev.message == "Inventory full. You couldn't pick up everything.";
+        return ev.targetDbId == 1 && ev.message == "Inventario lleno. No pudiste recoger todo.";
     });
     EXPECT_TRUE(fullEvent);
 }
@@ -568,7 +562,7 @@ TEST(WorldTest, World_DropItemSuccess) {
     EXPECT_EQ(snap.groundItems[0].amount, 5);
 }
 
-TEST(WorldTest, World_DropItemNoSpaceOnGround) {
+TEST(WorldTest, World_DropItemDynamicSearchSucceedsWhenCenterFull) {
     ItemRegistry registry("../config/items.toml");
     CharacterConfigs configs = getTestConfigs();
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
@@ -596,12 +590,22 @@ TEST(WorldTest, World_DropItemNoSpaceOnGround) {
     // Intenta tirar
     mundo.dropItem(1, 0, 5);
 
-    auto evs = mundo.pollEvents();
-    bool noSpaceEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
-        return ev.targetDbId == 1 &&
-               ev.message == "Not enough space on the ground to drop the item.";
-    });
-    EXPECT_TRUE(noSpaceEvent);
+    // Como el radio de busqueda se agrando, ahora debe dropearlo en algun lado fuera del 3x3
+    auto snap = mundo.generateSnapshot();
+
+    // Habia 9 items de oro (ID 101), ahora deberia haber 10 items (9 de oro + 1 el nuevo dropeado)
+    ASSERT_EQ(snap.groundItems.size(), 10u);
+
+    // Buscamos que el item que tiramos se haya colocado correctamente
+    bool foundNuevo = false;
+    for (const auto& gItem: snap.groundItems) {
+        if (gItem.itemId == 202u && gItem.amount == 5) {
+            foundNuevo = true;
+            // Verificar que no cayó en el 3x3 original
+            EXPECT_TRUE(gItem.x < 4 || gItem.x > 6 || gItem.y < 4 || gItem.y > 6);
+        }
+    }
+    EXPECT_TRUE(foundNuevo);
 }
 
 TEST(WorldTest, World_PlayerDeathDropsInventoryItems) {
@@ -653,7 +657,7 @@ TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Straight) {
 
     auto evs = mundo.pollEvents();
     bool blockedEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
-        return ev.targetDbId == 1 && ev.message == "There is an obstacle blocking your vision.";
+        return ev.targetDbId == 1 && ev.message == "Hay un obstaculo bloqueando tu vision.";
     });
     EXPECT_TRUE(blockedEvent);
 }
@@ -677,7 +681,97 @@ TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Diagonal) {
 
     auto evs = mundo.pollEvents();
     bool blockedEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
-        return ev.targetDbId == 1 && ev.message == "There is an obstacle blocking your vision.";
+        return ev.targetDbId == 1 && ev.message == "Hay un obstaculo bloqueando tu vision.";
     });
     EXPECT_TRUE(blockedEvent);
+}
+
+TEST(WorldTest, World_PlayerDeathDropsExcessGold) {
+    ItemRegistry registry("../config/items.toml");
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
+
+    std::string p1 = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(5, 5)));
+
+    Player* player = mundo.getPlayerById(1);
+    ASSERT_NE(player, nullptr);
+    player->addGold(10000);  // Supera el safe limit de 5000
+
+    mundo.handlePlayerDeath(1);
+
+    auto snap = mundo.generateSnapshot();
+
+    bool foundGold = false;
+    for (const auto& item: snap.groundItems) {
+        if (item.itemId == 1) {  // GOLD_ITEM_ID
+            EXPECT_EQ(item.amount, 5000);
+            foundGold = true;
+        }
+    }
+    EXPECT_TRUE(foundGold);
+    EXPECT_EQ(player->getGold(), 5000);  // Le quedo el safe limit
+}
+
+TEST(WorldTest, World_PickUpGoldAddsToWallet) {
+    ItemRegistry registry("../config/items.toml");
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
+
+    std::string user = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
+
+    Player* player = mundo.getPlayerById(1);
+    ASSERT_NE(player, nullptr);
+    uint32_t initialGold = player->getGold();
+
+    // Ponemos oro en el piso
+    mundo.placeItemOnGround(Position{5, 5}, 1, 1500);  // 1 = GOLD_ITEM_ID
+
+    mundo.pickUpItem(1);
+
+    EXPECT_EQ(player->getGold(), initialGold + 1500);
+
+    auto evs = mundo.pollEvents();
+    bool pickedUpEvent = std::any_of(evs.begin(), evs.end(), [](const auto& ev) {
+        return ev.targetDbId == 1 && ev.message == "Recogiste 1500 monedas de oro.";
+    });
+    EXPECT_TRUE(pickedUpEvent);
+}
+
+TEST(WorldTest, World_MonsterDropsLootOnDeath_AndCleanup) {
+    ItemRegistry registry("../config/items.toml");
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
+
+    std::string user = "Player1";
+    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
+    mundo.setFairPlayRules(false);
+
+    Player* p = mundo.getPlayerById(1);
+    p->applyBoost(BoostType::STRENGTH, 100, 10000);  // Para matarlo de 1 golpe
+
+    // Equipar un arma para que el combate ocurra
+    Weapon testSword(999, "Espada", 100, WeaponType::MELEE, 50, 100, 2, 0);
+    p->equipWeapon(&testSword);
+
+    bool droppedSomething = false;
+    for (int i = 0; i < 500; i++) {
+        MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, "zone", 0, 0};
+        uint32_t mId = mundo.addMonster(NPCType::GOBLIN, Position{5, 6}, mConfig);
+
+        mundo.playerAttack(1, mId);
+        mundo.update(33.0f);  // Cleanup
+
+        auto snap = mundo.generateSnapshot();
+        EXPECT_TRUE(snap.monsters.empty());  // El monstruo debe desaparecer
+
+        if (!snap.groundItems.empty()) {
+            droppedSomething = true;
+            break;  // Si dropeo algo terminamos temprano
+        }
+    }
+
+    // Como tiene ~10% de chance, en 500 intentos DEBE dropear algo.
+    EXPECT_TRUE(droppedSomething);
 }

@@ -1,4 +1,6 @@
-﻿#include "server/src/model/items/ItemRegistry.h"
+#include "server/src/model/items/ItemRegistry.h"
+
+#include <vector>
 
 #include "server/src/config/ItemConfigLoader.h"
 #include "server/src/model/items/BodyArmor.h"
@@ -78,4 +80,32 @@ bool ItemRegistry::isStackable(int item_id) const {
         return false;
     }
     return true;
+}
+
+std::vector<int> ItemRegistry::getPotionIds() const {
+    std::vector<int> ids;
+    for (const auto& [id, consumable]: consumables) {
+        if (consumable->getConsumableType() == ConsumableType::HEALTH ||
+            consumable->getConsumableType() == ConsumableType::MANA) {
+            ids.push_back(id);
+        }
+    }
+    return ids;
+}
+
+std::vector<int> ItemRegistry::getAllDroppableItemIds() const {
+    std::vector<int> ids;
+
+    for (const auto& [id, w]: weapons) ids.push_back(id);
+    for (const auto& [id, a]: armors) ids.push_back(id);
+    for (const auto& [id, c]: consumables) ids.push_back(id);
+
+    // El oro (ID 1) no se dropea como "item al azar"
+    for (const auto& [id, i]: items) {
+        if (id != 1) {
+            ids.push_back(id);
+        }
+    }
+
+    return ids;
 }

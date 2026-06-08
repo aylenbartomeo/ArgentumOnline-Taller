@@ -1,16 +1,23 @@
 cmake_minimum_required(VERSION 3.24)
 
+set(CMAKE_C_COMPILER gcc)
+set(CMAKE_CXX_COMPILER g++)
+
 if (POLICY CMP0135)
     cmake_policy(SET CMP0135 NEW)
 endif()
 
+# Cumple con la restricción de C++20 del cliente
 if (NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 20)
 endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Seteamos también un estándar de C moderno para las librerías
 if (NOT DEFINED CMAKE_C_STANDARD)
     set(CMAKE_C_STANDARD 11)
 endif()
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(CMAKE_POLICY_VERSION_MINIMUM "3.5")
 set(CMAKE_CXX_EXTENSIONS ON)
@@ -43,11 +50,6 @@ add_subdirectory(common/)
 # set compiler warnings to the targets
 include(cmake/CompilerWarnings.cmake)
 set_project_warnings(lib_common ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
-
-# Say where the headers will be found required by library target
-# Make this PUBLIC so any dependant linking lib will inherit this
-# location (so our dependants will not have to explicitly request this)
-target_include_directories(lib_common PUBLIC .)
 
 # You need to install some system packages *by hand* before compiling the
 # client/editor code. In xubuntu/ubuntu 24.04 these are:
@@ -113,15 +115,6 @@ if(ARGENTUM_ONLINE_CLIENT OR ARGENTUM_ONLINE_EDITOR)
     FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
 endif()
 
-if(ARGENTUM_ONLINE_SERVER)
-    include(FetchContent)
-    FetchContent_Declare(
-        tomlplusplus
-        URL https://github.com/marzer/tomlplusplus/archive/refs/tags/v3.4.0.zip
-    )
-    FetchContent_MakeAvailable(tomlplusplus)
-endif()
-
 if(ARGENTUM_ONLINE_CLIENT OR ARGENTUM_ONLINE_TESTS OR ARGENTUM_ONLINE_EDITOR OR ARGENTUM_ONLINE_SERVER)
     include(FetchContent)
     FetchContent_Declare(
@@ -134,70 +127,17 @@ endif()
 # Program section
 # ---------------
 if(ARGENTUM_ONLINE_CLIENT)
+    # Buscamos Qt5 acá en la raíz para que esté disponible globalmente
     find_package(Qt5 COMPONENTS Widgets REQUIRED)
-
-    # HEY!!
-    # TODO XXX: Change the name of the executable to the one you like!
-    add_executable(argentum_online_client)
-
-    set_target_properties(argentum_online_client PROPERTIES
-        AUTOUIC ON
-        AUTOMOC ON
-        AUTORCC ON
-    )
-
-    # Make them depend on taller_common lib
-    add_dependencies(argentum_online_client lib_common SDL2pp::SDL2pp)
-
-    # Add source files and enable warnings
-    # HEY!!
-    # TODO XXX: add more subfolders here
     add_subdirectory(client)
-
-    set_project_warnings(argentum_online_client ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
-
-    # add libSDL2pp's headers
-    target_include_directories(argentum_online_client PRIVATE ${libSDL2pp_SOURCE_DIR})
-
-    # Link the taller_common lib target
-    target_link_libraries(argentum_online_client lib_common SDL2pp::SDL2pp SDL2_image::SDL2_image Qt5::Widgets nlohmann_json::nlohmann_json pthread)
 endif()
 
 if(ARGENTUM_ONLINE_SERVER)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
-    add_executable(argentum_online_server)
-
-    # Make them depend on taller_common lib
-    add_dependencies(argentum_online_server lib_common)
-
-    # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(server)
-
-    set_project_warnings(argentum_online_server ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
-
-    # Link the taller_common lib target
-    target_link_libraries(argentum_online_server lib_common nlohmann_json::nlohmann_json)
 endif()
 
 if(ARGENTUM_ONLINE_EDITOR)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
-    add_executable(argentum_online_editor)
-
-    # Make them depend on taller_common lib
-    add_dependencies(argentum_online_editor lib_common SDL2pp::SDL2pp)
-
-    # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(editor)
-
-    set_project_warnings(argentum_online_editor ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
-
-    # add libSDL2pp's headers
-    target_include_directories(argentum_online_editor PRIVATE ${libSDL2pp_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/client/src ${sdl2_ttf_SOURCE_DIR})
-
-    # Link the taller_common lib target
-    target_link_libraries(argentum_online_editor lib_common SDL2pp::SDL2pp SDL2_image::SDL2_image SDL2_ttf nlohmann_json::nlohmann_json pthread)
 endif()
 
 
@@ -205,50 +145,14 @@ endif()
 # ---------------
 
 if(ARGENTUM_ONLINE_TESTS)
-    # Let's use google test
     include(FetchContent)
     FetchContent_Declare(
         googletest
         URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
     )
-
-    # For Windows: Prevent overriding the parent project's compiler/linker settings
-    # (borrowed from https://google.github.io/googletest/quickstart-cmake.html)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
     include(GoogleTest)
 
-    # target for testing
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
-    add_executable(argentum_online_tests)
-
-    # HEY!! TODO XXX: I'm assuming that the code under testing is in taller_common
-    # Change this if you have to.
-    add_dependencies(argentum_online_tests lib_common)
-
-    # Say where to find the xoz headers
-    # HEY!! TODO XXX: add more subfolders here
-    target_include_directories(argentum_online_tests PUBLIC .)
-
-    # Add the source files to the taller_tests target
-    # HEY!! TODO XXX: add more subfolders here
-    add_subdirectory(tests/)
-
-    # Set the compiler warnings to the tests target (but be a little lesser strict)
-    set_project_warnings(argentum_online_tests ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} TRUE)
-
-    # Say where googletest headers can be found
-    target_include_directories(argentum_online_tests
-        PUBLIC
-        ${gtest_SOURCE_DIR}/include
-        ${gmock_SOURCE_DIR}/include
-        )
-
-    # HEY!! TODO XXX: I'm assuming that the code under testing is in taller_common
-    # Change this if you have to. ---> DONE!!!
-    target_link_libraries(argentum_online_tests
-        lib_common
-        GTest::gtest_main
-        GTest::gmock
-    )
+    add_subdirectory(tests)
 endif()

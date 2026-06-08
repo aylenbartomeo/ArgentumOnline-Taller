@@ -5,6 +5,7 @@
 #include <string>
 #include <variant>
 
+#include "CheatDTO.h"
 #include "ClanCommandDTO.h"
 #include "LoginDTO.h"
 #include "RegisterDTO.h"
@@ -61,6 +62,6 @@ struct NpcCommandDTO {
 using CommandVariant =
         std::variant<RegisterDTO, LoginDTO, StartMoveDTO, StopMoveDTO, AttackDTO, UseItemDTO,
                      EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO, PrivateChatDTO, SelectNpcDTO,
-                     NpcCommandDTO, ClanCommandDTO, MeditateDTO, ResurrectDTO>;
+                     NpcCommandDTO, ClanCommandDTO, MeditateDTO, ResurrectDTO, CheatDTO>;
 
 #endif  // CLIENT_COMMANDS_H

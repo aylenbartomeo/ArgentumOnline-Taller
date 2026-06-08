@@ -14,6 +14,8 @@ public:
 
     // Traduce un nombre de jugador a su dbId (0 si no está online)
     virtual uint32_t resolveNickToDbId(const std::string& nick) const = 0;
+
+    virtual std::optional<std::string> getPlayerUsername(uint32_t dbId) const = 0;
 };
 
 #endif

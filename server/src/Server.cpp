@@ -1,9 +1,9 @@
 #include "Server.h"
 
-Server::Server(const char* port):
+Server::Server(const char* port, const WorldConfig& worldConfig):
         gameQueue(),
         monitor(),
-        gameLoop(gameQueue, monitor, "config", "game_data/"),
+        gameLoop(gameQueue, monitor, "config", worldConfig),
         acceptor(port, gameQueue, monitor, auth) {}
 
 void Server::run() {
@@ -29,6 +29,10 @@ Server::~Server() {
     }
     acceptor.join();
     gameLoop.stop();
-    gameQueue.close();
+    try {
+        gameQueue.close();
+    } catch (const std::exception& e) {
+        std::cerr << "Error closing game queue: " << e.what() << std::endl;
+    }
     gameLoop.join();
 }

@@ -36,13 +36,14 @@ struct MapMonsterSpawn {
 class Map {
 private:
     int width, height;
+    CollisionLayer collisionLayer;
+    CollisionLayer entityCollisionLayer;
     std::vector<MapElement> mapElements;
     GroundItemLayer groundItems;
     SafeZoneLayer safeZones;
     NPCLayer npcs;
     std::vector<MapMonsterSpawn> monsterSpawns;
     std::pair<float, float> spawn_point;
-    CollisionLayer collisionLayer;
     // Area initArea(const int x, const int y, const int weight, const int height);
     // void load_from_toml(const std::string& filepath);
     //  Inicializa la matriz de colisiones en base a los mapElements cargados
@@ -60,10 +61,17 @@ public:
     int heightLimit() const;
     int widthLimit() const;
 
+    void setEntityCollision(int x, int y, bool isSolid);
+
     /* Retorna la posición inicial segura para un jugador */
     std::pair<float, float> getInitialPosition();
 
+    struct MapLoadOptions {
+        bool spawnMonsters = true;
+        bool spawnGroundItems = true;
+    };
     bool loadSpawnFromJson(const std::string& path);
+    bool loadSpawnFromJson(const std::string& path, const MapLoadOptions& options);
 
     /* Retorna true si la posicion es de alguna zona segura, false en caso contrario */
     bool isCitizenArea(float pos_x, float pos_y) const;
@@ -75,6 +83,8 @@ public:
     std::optional<GroundItem> pickUpItem(const Position& pos);
     bool hasItemAt(const Position& pos) const;
     std::vector<std::pair<Position, GroundItem>> getGroundItemsSnapshot() const;
+    std::vector<GroundItemPersistData> getGroundItemsPersistData() const;
+    void restoreGroundItems(const std::vector<GroundItemPersistData>& data);
 
     /* Zonas seguras */
     void addSafeZone(const std::string& name, int x, int y, int w, int h);
@@ -104,6 +114,8 @@ public:
     // Retorna true si la posición es válida para moverse:
     // está dentro de los límites del mapa Y no hay obstáculo en collision_grid.
     bool canMoveTo(const Position& pos) const;
+
+    std::optional<Position> findClosestFreePosition(const Position& origin, int maxRadius) const;
 };
 
 #endif

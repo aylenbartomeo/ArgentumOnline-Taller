@@ -36,7 +36,7 @@ private:
     void wait_for_exit();
 
 public:
-    explicit Server(const char* port);
+    explicit Server(const char* port, const WorldConfig& worldConfig);
 
     void run();
 

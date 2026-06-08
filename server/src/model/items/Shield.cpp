@@ -10,6 +10,6 @@ Shield::Shield(const int id, std::string name, const int minDefense, const int m
 
 int Shield::getDefense() const { return rollDefense(); }
 
-uint32_t Shield::equip_on(EquipmentComponent& equipment) const {
-    return equipment.equipShield(this);
+void Shield::equip_on(EquipmentComponent& equipment, uint8_t slotIndex) const {
+    equipment.equipShield(this, slotIndex);
 }

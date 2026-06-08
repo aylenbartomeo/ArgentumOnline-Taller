@@ -1,3 +1,10 @@
+# Target de testing
+add_executable(argentum_online_tests)
+
+set_target_properties(argentum_online_server PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
 target_sources(argentum_online_tests
     PRIVATE
     TestProtocol.cpp
@@ -21,86 +28,44 @@ target_sources(argentum_online_tests
     TestNPCLayer.cpp
     TestPlayer.cpp
     TestConsumable.cpp
-    ../server/src/ConnectionMonitor.cpp
-    ../server/src/GameLoop.cpp
-    ../server/src/model/map/GroundItemLayer.cpp
-    ../server/src/model/map/SafeZoneLayer.cpp
-    ../server/src/model/map/NPCLayer.cpp
-    ../server/src/model/map/CollisionLayer.cpp
-    ../server/src/Map.cpp
-    ../server/src/World.cpp
-    ../server/src/model/entities/Player.cpp
-    ../server/src/model/entities/Monster.cpp
-    ../server/src/model/entities/Merchant.cpp
-    ../server/src/model/entities/Priest.cpp
-    ../server/src/model/entities/Banker.cpp
-    ../server/src/model/entities/MonsterFactory.cpp
-    ../server/src/model/components/StatsComponent.cpp
-    ../server/src/model/components/InventoryComponent.cpp
-    ../server/src/model/components/EquipmentComponent.cpp
-    ../server/src/model/components/RegenerationComponent.cpp
-    ../server/src/model/combat/CombatManager.cpp
-    ../server/include/FormulaEngine.cpp
-    ../server/src/model/items/Armor.cpp
-    ../server/src/model/items/Weapon.cpp
-    ../server/src/model/items/BodyArmor.cpp
-    ../server/src/model/items/Helmet.cpp
-    ../server/src/model/items/Shield.cpp
-    ../server/src/model/items/ItemRegistry.cpp
-    ../server/src/model/items/ArmorFactory.cpp
-    ../server/src/model/items/WeaponFactory.cpp
-    ../server/src/model/items/ConsumableFactory.cpp
-    ../server/src/config/ItemConfigLoader.cpp
-    ../server/src/config/MonsterConfigLoader.cpp
-    ../server/src/auth/AuthManager.cpp
-    ../server/src/persistence/PlayerDataStore.cpp
+    TestSpawnSystem.cpp
+    TestEntityManager.cpp
+    TestResurrectionService.cpp
+    TestInteractionService.cpp
     TestPlayerDataStore.cpp
     TestClan.cpp
-    ../server/src/model/clan/ClanRepository.cpp
-    ../server/src/model/clan/ClanService.cpp
-    ../server/src/model/clan/ClanController.cpp
-    ../client/src/TileMap.cpp
     TestHealthBar.cpp
-    ../client/src/HealthBar.cpp
     TestViewport.cpp
-    ../client/src/Viewport.cpp
     TestCharacterSprites.cpp
-    ../client/src/CharacterSprites.cpp
     TestCharacterAnimator.cpp
-    ../client/src/CharacterAnimator.cpp
+    TestDeath.cpp
+    TestTargeting.cpp
+    TestFxAnimator.cpp
+    TestMotion.cpp
+    TestHudLayout.cpp
+    TestItemIcons.cpp
     TestEditorMap.cpp
-    ../editor/EditorMap.cpp
     TestCamera.cpp
-    ../editor/Camera.cpp
     TestPalette.cpp
-    ../editor/Palette.cpp
     TestToolbar.cpp
-    ../editor/Toolbar.cpp
     TestSpawnCatalogs.cpp
-    ../editor/SpawnCatalogs.cpp
     TestPersistence.cpp
-    ../server/src/config/CharacterConfigLoader.cpp
-    ../server/src/config/InventoryConfigLoader.cpp
+    TestEntityCollision.cpp
 )
 
+# Solo incluimos directorios ajenos al servidor (los del server ya los provee lib_server por herencia)
 target_include_directories(argentum_online_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/server/include
-    ${CMAKE_SOURCE_DIR}/server/src
-    ${CMAKE_SOURCE_DIR}/server/src/model
-    ${CMAKE_SOURCE_DIR}/server/src/model/entities
-    ${CMAKE_SOURCE_DIR}/server/src/model/map
-    ${CMAKE_SOURCE_DIR}/server/src/model/items
-    ${CMAKE_SOURCE_DIR}/server/src/model/components
-    ${CMAKE_SOURCE_DIR}/server/src/model/clan
-    ${CMAKE_SOURCE_DIR}/common/utils
-    ${CMAKE_SOURCE_DIR}/client/src
     ${CMAKE_SOURCE_DIR}/editor
     ${CMAKE_BINARY_DIR}/_deps/libbcrypt-src/include
     .
 )
 
 target_link_libraries(argentum_online_tests
-    tomlplusplus::tomlplusplus
-    bcrypt
-    nlohmann_json::nlohmann_json
+    PRIVATE
+    lib_server
+    lib_client
+    lib_editor
+    lib_common
+    GTest::gtest_main
+    GTest::gmock
 )

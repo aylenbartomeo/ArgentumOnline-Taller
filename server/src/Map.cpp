@@ -19,6 +19,7 @@ Map::Map(): width(100), height(100), spawn_point({50.0f, 50.0f}) {
     safeZones.addZone("default", 45, 45, 10, 10);
     // Inicializa la grilla por defecto limpia
     collisionLayer.resize(width, height);
+    entityCollisionLayer.resize(width, height);
 }
 
 void Map::setDimensions(int w, int h) {
@@ -26,6 +27,7 @@ void Map::setDimensions(int w, int h) {
     this->height = h;
     // Redimensionamos la matriz de colisiones para que coincida con el nuevo tamaño
     collisionLayer.resize(w, h);
+    entityCollisionLayer.resize(w, h);
 }
 
 void Map::setCitizenArea(int x, int y, int w, int h) {
@@ -54,6 +56,10 @@ std::pair<float, float> Map::getInitialPosition() { return this->spawn_point; }
 void Map::setSpawnPoint(float x, float y) { this->spawn_point = {x, y}; }
 
 bool Map::loadSpawnFromJson(const std::string& path) {
+    return loadSpawnFromJson(path, MapLoadOptions{});
+}
+
+bool Map::loadSpawnFromJson(const std::string& path, const MapLoadOptions& options) {
     std::ifstream file(path);
     if (!file) {
         return false;
@@ -101,7 +107,7 @@ bool Map::loadSpawnFromJson(const std::string& path) {
         }
     }
 
-    if (data.contains("monsters")) {
+    if (options.spawnMonsters && data.contains("monsters")) {
         for (const auto& monster: data["monsters"]) {
             std::string typeStr = monster["type"].get<std::string>();
             std::optional<NPCType> type;
@@ -136,7 +142,7 @@ bool Map::loadSpawnFromJson(const std::string& path) {
         generate_collision_grid();
     }
 
-    if (data.contains("items")) {
+    if (options.spawnGroundItems && data.contains("items")) {
         for (const auto& item: data["items"]) {
             int id = item["id"].get<int>();
             int x = item["x"].get<int>();
@@ -207,19 +213,24 @@ std::optional<Position> Map::placeItemNearby(const Position& pos, uint32_t itemI
         return pos;
     }
 
-    // Buscar en las 8 posiciones adyacentes
-    static const int dx[] = {0, 1, 1, 1, 0, -1, -1, -1};
-    static const int dy[] = {-1, -1, 0, 1, 1, 1, 0, -1};
-
-    for (int i = 0; i < 8; ++i) {
-        Position adj{pos.x + dx[i], pos.y + dy[i]};
-        if (adj.isWithinBounds(width, height) && !collisionLayer.isSolid(adj.x, adj.y) &&
-            !groundItems.hasItemAt(adj)) {
-            groundItems.placeItem(adj, itemId, amount);
-            return adj;
+    // Búsqueda en espiral dinámica
+    const int MAX_RADIUS = 50;
+    for (int r = 1; r <= MAX_RADIUS; ++r) {
+        for (int dx = -r; dx <= r; ++dx) {
+            for (int dy = -r; dy <= r; ++dy) {
+                // Chequear solo el contorno del cuadrado de radio r
+                if (std::abs(dx) == r || std::abs(dy) == r) {
+                    Position adj{pos.x + dx, pos.y + dy};
+                    if (adj.isWithinBounds(width, height) &&
+                        !collisionLayer.isSolid(adj.x, adj.y) && !groundItems.hasItemAt(adj)) {
+                        groundItems.placeItem(adj, itemId, amount);
+                        return adj;
+                    }
+                }
+            }
         }
     }
-    return std::nullopt;  // No hay espacio libre
+    return std::nullopt;  // Todo el radio está ocupado
 }
 
 std::optional<GroundItem> Map::pickUpItem(const Position& pos) {
@@ -231,6 +242,14 @@ bool Map::hasItemAt(const Position& pos) const { return groundItems.hasItemAt(po
 std::vector<std::pair<Position, GroundItem>> Map::getGroundItemsSnapshot() const {
     const auto& items = groundItems.getAllItems();
     return std::vector<std::pair<Position, GroundItem>>(items.begin(), items.end());
+}
+
+std::vector<GroundItemPersistData> Map::getGroundItemsPersistData() const {
+    return groundItems.toPersistData();
+}
+
+void Map::restoreGroundItems(const std::vector<GroundItemPersistData>& data) {
+    groundItems.fromPersistData(data);
 }
 
 void Map::addSafeZone(const std::string& name, int x, int y, int w, int h) {
@@ -259,6 +278,34 @@ bool Map::canMoveTo(const Position& pos) const {
     if (!pos.isWithinBounds(this->width, this->height)) {
         return false;
     }
-    // collisionLayer nos dice si hay obstáculo
-    return !collisionLayer.isSolid(pos.x, pos.y);
+    // collisionLayer nos dice si hay obstáculo estático
+    // entityCollisionLayer nos dice si hay una entidad ocupando
+    return !collisionLayer.isSolid(pos.x, pos.y) && !entityCollisionLayer.isSolid(pos.x, pos.y);
+}
+
+std::optional<Position> Map::findClosestFreePosition(const Position& origin, int maxRadius) const {
+    if (canMoveTo(origin)) {
+        return origin;
+    }
+
+    for (int r = 1; r <= maxRadius; ++r) {
+        for (int dx = -r; dx <= r; ++dx) {
+            for (int dy = -r; dy <= r; ++dy) {
+                // Chequear el contorno del cuadrado de radio r
+                if (std::abs(dx) == r || std::abs(dy) == r) {
+                    Position candidate{origin.x + dx, origin.y + dy};
+                    if (canMoveTo(candidate)) {
+                        return candidate;
+                    }
+                }
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+void Map::setEntityCollision(int x, int y, bool isSolid) {
+    if (x >= 0 && x < width && y >= 0 && y < height) {
+        entityCollisionLayer.setSolid(x, y, isSolid);
+    }
 }
