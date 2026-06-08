@@ -174,7 +174,7 @@ void Editor::handleLeftClick(int x, int y) {
         if (cell.x >= 0 && cell.x < map.getWidth() && cell.y >= 0 && cell.y < map.getHeight()) {
             switch (toolbar.getActiveTool()) {
                 case Tool::OVERLAY:
-                    map.setTile(cell.x, cell.y, overlayPalette.getSelectedTile() + 1);
+                    map.paintOverlay(cell.x, cell.y, overlayPalette.getSelectedTile());
                     break;
                 case Tool::MONSTER:
                     map.addMonster(getMonsterCatalog()[monsterPalette.getSelectedTile()].type,
