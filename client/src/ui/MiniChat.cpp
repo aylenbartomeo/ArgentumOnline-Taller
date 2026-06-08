@@ -163,16 +163,16 @@ void MiniChat::render(SDL_Renderer* renderer, int windowW, int windowH, bool inp
         SDL_Surface* surf = TTF_RenderUTF8_Blended_Wrapped(font, line.c_str(), col, textAreaW);
         if (surf) {
             SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
-            int w = surf->w;
             int h = surf->h;
-            SDL_FreeSurface(surf);
 
             currentY -= (h + 2);
 
             if (tex) {
+                int w = surf->w;
                 textures.push_back(tex);
                 destRects.push_back({panelX + PADDING, currentY, w, h});
             }
+            SDL_FreeSurface(surf);
             renderedMsgs++;
 
             if (currentY < panelY + PADDING) {
