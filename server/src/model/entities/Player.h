@@ -8,7 +8,6 @@
 #include "../../../../common/include/dto/CommandDTO.h"
 #include "../../common/include/dto/PlayerStatsDTO.h"
 #include "../../common/utils/types.h"
-#include "../combat/CombatManager.h"
 #include "../components/EquipmentComponent.h"
 #include "../components/InventoryComponent.h"
 #include "../components/RegenerationComponent.h"

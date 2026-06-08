@@ -30,8 +30,13 @@ private:
 
     bool checkCollisionWithEntities(const Projectile& p, uint32_t& hitEntityId);
 
+    // Dispatcher: decide si es single-target o AoE
     void onProjectileHit(const Projectile& p, uint32_t hitEntityId);
 
+    // Impacto en un único objetivo (ARROW, MAGIC_ARROW, MISSILE)
+    void applySingleTargetDamage(const Projectile& p, uint32_t hitEntityId);
+
+    // Impacto en área (EXPLOSION)
     void applyAoeDamage(const Projectile& p);
 };
 

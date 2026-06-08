@@ -86,8 +86,10 @@ target_sources(lib_server
     src/model/components/InventoryComponent.cpp
     src/model/components/EquipmentComponent.cpp
     src/model/components/StatsComponent.cpp
-    src/model/combat/CombatManager.cpp
     src/model/components/RegenerationComponent.cpp
+
+    # interfaces
+    src/model/interfaces/CombatStrategies.cpp
 
     PUBLIC
     # Headers para visualización en IDEs y exposición pública
@@ -99,6 +101,8 @@ target_sources(lib_server
     src/config/InventoryConfig.h
     src/config/InventoryConfigLoader.h
 
+    # interfaces
+    src/model/interfaces/CombatStrategies.h
     src/model/entities/MonsterFactory.h
     src/model/entities/Player.h
     src/model/entities/Priest.h
@@ -113,7 +117,6 @@ target_sources(lib_server
     src/model/components/StatsComponent.h
     src/model/components/InventoryComponent.h
     src/model/components/EquipmentComponent.h
-    src/model/combat/CombatManager.h
 
     src/model/handlers/NpcCommandHandler.h
     src/model/handlers/BankDepositHandler.h

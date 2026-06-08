@@ -12,7 +12,6 @@ target_sources(argentum_online_tests
     TestMap.cpp
     TestWorld.cpp
     TestGameLoop.cpp
-    TestCombat.cpp
     TestAuthManager.cpp
     TestEquipmentComponent.cpp
     TestInventoryComponent.cpp

@@ -2,7 +2,12 @@
 
 #include <string>
 
-#include "model/combat/CombatManager.h"
+#include "../entities/Monster.h"
+#include "../entities/Player.h"
+#include "../interfaces/CombatStrategies.h"
+#include "../items/Weapon.h"
+
+#include "FormulaEngine.h"
 
 CombatSystem::CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, EventPublisher& ep,
                            ICombatEventCallback& cb, bool enforceFairPlay):
@@ -70,6 +75,7 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
         return;
     }
 
+    // -- Validar no atacar a un miembro de tu clan ---
     if (areClanmates(attackerDbId, targetDbId)) {
         eventPublisher.sendTo(attackerDbId, "No puedes atacar a un miembro de tu clan.");
         return;
@@ -87,6 +93,7 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
         return;
     }
 
+    // --- Validar fair play ---
     if (enforceFairPlay &&
         (!attacker.canEngageInCombatWith(*target) || !target->canEngageInCombatWith(attacker))) {
         eventPublisher.sendTo(attackerDbId,
@@ -94,7 +101,7 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
         return;
     }
 
-    // Variables de bonificación
+    // --- Calcular bonificaciones ---
     float attackBonus = 1.0f + (countNearbyClanmates(attackerDbId, CLAN_BONUS_RANGE) *
                                 CLAN_ATTACK_BONUS_PER_MEMBER);
     float defenseBonus = 1.0f;
@@ -123,8 +130,7 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     }
 
     // Ejecutar ataque con bonificaciones calculadas
-    CombatResult res = CombatManager::getInstance().processAttack(attacker, *target, attackBonus,
-                                                                  defenseBonus);
+    CombatResult res = processAttack(attacker, *target, attackBonus, defenseBonus);
 
     if (!res.attackHappened)
         return;
@@ -188,7 +194,7 @@ void CombatSystem::monsterAttack(const Monster& monster, Player& target) {
         }
     }
 
-    CombatResult res = CombatManager::getInstance().processAttack(monster, target);
+    CombatResult res = processAttack(monster, target);
 
     if (!res.attackHappened)
         return;
@@ -207,46 +213,152 @@ void CombatSystem::monsterAttack(const Monster& monster, Player& target) {
     }
 }
 
-void CombatSystem::applyProjectileDamage(uint32_t ownerDbId, uint32_t targetEntityId, int minDmg,
-                                         int maxDmg, bool isMagical) {
-    Player* attacker = entityManager.getPlayer(ownerDbId);
-    if (!attacker)
-        return;
 
-    Attackable* target = entityManager.findAttackable(targetEntityId);
-    if (!target || target->isDead())
-        return;
+CombatResult CombatSystem::resolveCombat(const Attackable& attacker, Attackable& target,
+                                         const AttackParams& params) {
+    CombatResult res;
 
-    // Sin chequeo de zona segura del atacante (el proyectil ya cruzó el mapa)
-    // Sí chequeamos la del target para respetar zonas de protección
-    if (map.isSafeZone(target->getPosition().x, target->getPosition().y))
-        return;
-    if (areClanmates(ownerDbId, targetEntityId))
-        return;
+    // 1. Validar distancia (Esto es lo que el proyectil NO usará al impactar)
+    if (attacker.distance_to(target) > params.attackRange) {
+        return res;  // attackHappened = false
+    }
 
-    float attackBonus =
-            1.f + countNearbyClanmates(ownerDbId, CLAN_BONUS_RANGE) * CLAN_ATTACK_BONUS_PER_MEMBER;
-    float defenseBonus = 1.f;
+    // 2. Validar que el target pueda ser atacado
+    if (target.isDead() || !target.canBeAttacked()) {
+        return res;
+    }
 
-    auto* targetPlayer = dynamic_cast<Player*>(target);
-    if (targetPlayer)
-        defenseBonus += countNearbyClanmates(targetPlayer->getDbId(), CLAN_BONUS_RANGE) *
-                        CLAN_DEFENSE_BONUS_PER_MEMBER;
+    // Si pasó los filtros iniciales de inmediatez, aplica el efecto de daño
+    return applyDamageEffect(const_cast<Attackable&>(attacker), target, params);
+}
 
-    CombatResult res = CombatManager::getInstance().processProjectileAttack(
-            *attacker, *target, static_cast<uint16_t>(minDmg), static_cast<uint16_t>(maxDmg),
-            attackBonus, defenseBonus);
+CombatResult CombatSystem::applyDamageEffect(const Attackable& attacker, Attackable& target,
+                                             const AttackParams& params) {
+    CombatResult res;
+    res.attackHappened = true;
 
+    // 1. Calcular daño bruto usando la Fuerza y aplicar bonificación de ataque del clan
+    uint16_t rawDamage = FormulaEngine::getInstance().calculate_base_damage(
+            attacker.getStrength(), params.minDamage, params.maxDamage);
+
+    rawDamage = static_cast<uint16_t>(rawDamage * params.attackBonus);
+
+    // 2. Chequear crítico
+    const float CRITICAL_PROB = 0.05f;
+    res.critical = FormulaEngine::getInstance().is_critical_attack(CRITICAL_PROB);
+    if (res.critical) {
+        rawDamage *= 2;
+    }
+
+    // 3. Chequear esquive (si no fue crítico, no se puede esquivar)
+    if (!res.critical && FormulaEngine::getInstance().is_attack_eluded(target.getAgility())) {
+        res.evaded = true;
+        return res;
+    }
+
+    // 4. Calcular defensa, aplicar bonificación de defensa del clan y daño final
+    int defense = target.getDefense();
+    defense = static_cast<int>(defense * params.defenseBonus);
+
+    res.damage = std::max(0, static_cast<int>(rawDamage) - defense);
+
+    // 5. Aplicar daño físicamente en la entidad objetivo
+    target.receiveDamage(res.damage);
+
+    return res;
+}
+
+
+CombatResult CombatSystem::processAttack(const Monster& attacker, Attackable& target) {
+    AttackParams params{static_cast<uint16_t>(attacker.getAttackMin()),
+                        static_cast<uint16_t>(attacker.getAttackMax()), attacker.get_attack_range(),
+                        0, false};
+
+    CombatResult res = resolveCombat(attacker, target, params);
     if (!res.attackHappened || res.evaded)
-        return;
+        return res;
 
-    eventPublisher.sendTo(ownerDbId, "¡Impacto! " + std::to_string(res.damage) + " de daño a " +
-                                             target->getName() + ".");
+    if (target.isDead()) {
+        target.handleDeath();
+    }
 
-    if (targetPlayer && targetPlayer->isDead())
+    return res;
+}
+
+// --- Player ataca con bonuses de clan ---
+CombatResult CombatSystem::processAttack(Player& attacker, Attackable& target, float attackBonus,
+                                         float defenseBonus) {
+    const Weapon* weapon = attacker.getEquippedWeapon();
+    if (!weapon)
+        return CombatResult{};
+
+    CombatModifiers modifiers{attackBonus, defenseBonus};
+
+    bool attackHappened =
+            weapon->getDelivery()->deliver(attacker, target, modifiers, *weapon, *this);
+
+    CombatResult res;
+    res.attackHappened = attackHappened;
+
+    if (!res.attackHappened)
+        return res;
+
+    if (target.isDead()) {
+        target.handleDeath();
+        uint32_t killXp = FormulaEngine::getInstance().calculate_kill_xp_gain(
+                target.getMaxHp(), attacker.getLevel(), target.getLevel());
+        attacker.addExperience(killXp);
+    }
+
+    return res;
+}
+
+// --- Impacto de proyectil (llamado por ProjectileSystem cuando el proyectil llega) ---
+void CombatSystem::onProjectileHit(Attackable& attacker, Attackable& target, IHitEffect* hitEffect,
+                                   const CombatModifiers& modifiers, const Weapon& weapon) {
+    if (target.isDead() || !target.canBeAttacked()) {
+        return;  // Si el objetivo murió en el viaje del proyectil, se descarta el impacto
+    }
+
+    // Ejecución polimórfica diferida.
+    // Si era un arco         -> MeleeDamageEffect  (daño físico)
+    // Si era un bastón mágico -> MagicDamageEffect (valida/consume maná e impacta daño mágico)
+    if (hitEffect) {
+        hitEffect->apply(attacker, target, modifiers, weapon, *this);
+    }
+
+    Player* playerAttacker = dynamic_cast<Player*>(&attacker);
+    if (playerAttacker) {
+        if (target.isDead()) {
+            target.handleDeath();
+            uint32_t killXp = FormulaEngine::getInstance().calculate_kill_xp_gain(
+                    target.getMaxHp(), playerAttacker->getLevel(), target.getLevel());
+            playerAttacker->addExperience(killXp);
+        }
+    }
+
+    const Monster* mTarget = dynamic_cast<const Monster*>(&target);
+    if (mTarget && mTarget->isDead()) {
+        const Player* pAttacker = dynamic_cast<Player*>(&attacker);
+        if (pAttacker)
+            callback.onMonsterDeath(*mTarget, pAttacker->getDbId());
+    }
+
+    const Player* targetPlayer = dynamic_cast<Player*>(&target);
+    if (targetPlayer && targetPlayer->isDead()) {
         callback.onPlayerDeath(targetPlayer->getDbId());
+    }
+}
 
-    const Monster* mTarget = dynamic_cast<const Monster*>(target);
-    if (mTarget && mTarget->isDead())
-        callback.onMonsterDeath(*mTarget, ownerDbId);
+CombatModifiers CombatSystem::buildModifiers(uint32_t attackerDbId,
+                                             const Attackable* target) const {
+    CombatModifiers m;
+    m.attackBonus = 1.0f + (countNearbyClanmates(attackerDbId, CLAN_BONUS_RANGE) *
+                            CLAN_ATTACK_BONUS_PER_MEMBER);
+    m.defenseBonus = 1.0f;
+    const Player* tp = dynamic_cast<const Player*>(target);
+    if (tp)
+        m.defenseBonus += countNearbyClanmates(tp->getDbId(), CLAN_BONUS_RANGE) *
+                          CLAN_DEFENSE_BONUS_PER_MEMBER;
+    return m;
 }
