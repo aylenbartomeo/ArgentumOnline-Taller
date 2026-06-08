@@ -80,6 +80,8 @@ public:
     // Es el que invocará polimórficamente tu futuro IHitEffect o el ProjectileSystem.
     CombatResult applyDamageEffect(Attackable& attacker, Attackable& target, 
                                    const AttackParams& params);
+    // Podria haber un
+    // CombatResult applyHealEffect(Attackable& attacker, Attackable& target);
 
     void onProjectileHit(Attackable& attacker, Attackable& target, 
                      IHitEffect* hitEffect, const CombatModifiers& modifiers, 
