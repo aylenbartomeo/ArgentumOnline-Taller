@@ -248,9 +248,7 @@ void Player::fromPersistData(const PlayerPersistData& data) {
     // Inventario
     uint8_t slots = std::min<uint8_t>(data.inventorySize, 16);
     for (uint8_t i = 0; i < slots; ++i) {
-        if (data.inventory[i].item_id != 0 && data.inventory[i].amount > 0) {
-            addInventoryItem(data.inventory[i].item_id, data.inventory[i].amount);
-        }
+        inventory.restoreSlot(i, data.inventory[i].item_id, data.inventory[i].amount);
     }
 
     for (uint8_t i = 0; i < slots; ++i) {

@@ -497,6 +497,32 @@ TEST_F(WorldPersistenceTest, RoundTrip_Equipment_SurvivesReconnect) {
     EXPECT_TRUE(after->equippedSlots & (1u << 0));
 }
 
+TEST_F(WorldPersistenceTest, RoundTrip_EquipmentWithGap_SurvivesReconnect) {
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
+    std::string user = "Mage";
+
+    PlayerPersistData seed = makeFullPersistData(1, 0, 0);
+    seed.inventorySize = 3;
+    seed.inventory[0] = {1000, 1};
+    seed.inventory[1] = {0, 0};
+    seed.inventory[2] = {1010, 1};
+    seed.equippedSlots = (1u << 2);
+    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+
+    auto saved = mundo.getPlayerPersistData(1);
+    ASSERT_TRUE(saved.has_value());
+    EXPECT_EQ(saved->inventory[2].item_id, 1010u);
+    EXPECT_TRUE(saved->equippedSlots & (1u << 2));
+
+    mundo.removePlayer(1);
+    ASSERT_TRUE(mundo.addPlayer(1, user, saved.value()));
+
+    auto after = mundo.getPlayerPersistData(1);
+    ASSERT_TRUE(after.has_value());
+    EXPECT_EQ(after->inventory[2].item_id, 1010u);
+    EXPECT_TRUE(after->equippedSlots & (1u << 2));
+}
+
 // TEST_F(WorldPersistenceTest, RoundTrip_Inventory_SurvivesReconnect) {
 //     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 //     std::string user = "Collector";
