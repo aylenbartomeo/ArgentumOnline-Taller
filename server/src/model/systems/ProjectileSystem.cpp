@@ -37,12 +37,16 @@ void ProjectileSystem::update(float dtMs) {
             continue;
         }
 
-        // Colisión con entidades
         uint32_t hitId = 0;
+        if (map.isTileSolid(p.x, p.y)) {
+            p.alive = false;
+            continue;
+        }
+
+        // Colisión con entidades
         if (checkCollisionWithEntities(p, hitId)) {
             onProjectileHit(p, hitId);
             p.alive = false;
-            continue;
         }
     }
 
