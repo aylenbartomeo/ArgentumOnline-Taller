@@ -42,6 +42,7 @@ target_sources(lib_client
     src/animation/Death.cpp
     src/animation/FxAnimator.cpp
     src/animation/Motion.cpp
+    src/animation/ProjectileAnimator.cpp
 
     # input
     src/input/EventHandler.cpp

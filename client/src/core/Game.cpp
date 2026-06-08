@@ -73,6 +73,12 @@ constexpr int DARK_GROUND_SRC_X = 512;
 constexpr int DARK_GROUND_SRC_Y = 480;
 constexpr int GROUND_TILE = 32;
 
+constexpr int PROJ_DRAW_W = 64;
+constexpr int PROJ_DRAW_H = 64;
+constexpr int PROJ_FRAME_COLS = 8;
+constexpr int PROJ_FRAME_SIZE = 64;
+constexpr const char* PROJ_SHEET = "projectiles.png";
+
 const char* citizenSheet(const std::string& type) {
     if (type == "merchant")
         return "1077.png";
@@ -157,7 +163,7 @@ void Game::processEquipInput(const FrameInput& input) {
     float logicalX = 0.0f, logicalY = 0.0f;
     SDL_RenderWindowToLogical(window.getRenderer().Get(), input.equipX, input.equipY, &logicalX,
                               &logicalY);
-    const int slot = hud.slotAtPosition(static_cast<int>(logicalX), static_cast<int>(logicalY));
+    const int slot = hud.slotAtPosition(input.equipX, input.equipY);
     if (slot >= 0) {
         client.sendCommand(EquipItemDTO{static_cast<uint8_t>(slot)});
     }
@@ -169,6 +175,12 @@ void Game::processCheats(const FrameInput& input) {
     }
     if (input.cheatDie) {
         client.sendCommand(CheatDTO{CheatType::DIE});
+    }
+    if (input.cheatGiveBow) {
+        client.sendCommand(CheatDTO{CheatType::GIVE_BOW});
+    }
+    if (input.cheatInfiniteMana) {
+        client.sendCommand(CheatDTO{CheatType::INFINITE_MANA});
     }
     if (input.cheatGiveGold) {
         client.sendCommand(CheatDTO{CheatType::GIVE_GOLD});
@@ -235,6 +247,15 @@ void Game::processCombatInput(const FrameInput& input, const CameraOffset& camer
     if (localPlayer != nullptr && isDead(localPlayer->current_hp))
         return;
 
+    if (input.shootPressed) {
+        float logicalX = 0.f, logicalY = 0.f;
+        SDL_RenderWindowToLogical(window.getRenderer().Get(), input.shootScreenX,
+                                  input.shootScreenY, &logicalX, &logicalY);
+        const Cell cell = screenToCell(static_cast<int>(logicalX), static_cast<int>(logicalY),
+                                       camera.x, camera.y, TILE_SIZE);
+        client.sendCommand(ShootDTO{static_cast<float>(cell.col), static_cast<float>(cell.row)});
+    }
+
     if (!input.attackPressed)
         return;
 
@@ -260,35 +281,114 @@ void Game::renderFx(const CameraOffset& camera) {
     if (!activeFx) {
         return;
     }
+
     const uint32_t now = SDL_GetTicks();
     const int frame = fxFrameIndex(now - activeFx->startMs, FX_FRAME_DUR_MS, FX_FRAME_COUNT);
     if (frame < 0) {
         activeFx.reset();
         return;
     }
-    const EntityDTO* target = findEntityById(lastSnapshot, activeFx->targetId);
-    if (!target) {
-        activeFx.reset();
-        return;
+
+    int baseX = 0;
+    int baseY = 0;
+
+    // --- RAMIFICA LA OBTENCIÓN DE COORDENADAS ---
+    if (activeFx->targetId == 0) {
+        // 1. Caso FX estático (ej: impacto de un proyectil).
+        // Usamos la posición en píxeles que guardamos al momento de su muerte.
+        baseX = activeFx->fixedPixelX;
+        baseY = activeFx->fixedPixelY;
+
+    } else {
+        // 2. Caso FX sobre una entidad viva (ej: meditación o daño a un jugador).
+        const EntityDTO* target = findEntityById(lastSnapshot, activeFx->targetId);
+
+        // Si la entidad murió y desapareció del snapshot mientras el FX seguía activo, lo
+        // cancelamos.
+        if (!target) {
+            activeFx.reset();
+            return;
+        }
+
+        auto ait = animators.find(activeFx->targetId);
+        baseX = (ait != animators.end()) ? static_cast<int>(ait->second.getVirtualX() * TILE_SIZE) :
+                                           target->x * TILE_SIZE;
+        baseY = (ait != animators.end()) ? static_cast<int>(ait->second.getVirtualY() * TILE_SIZE) :
+                                           target->y * TILE_SIZE;
     }
+
     const std::string path = std::string(RESOURCES_DIR) + FX_SHEET;
     if (!std::ifstream(path).good()) {
         return;
     }
+
     SDL2pp::Renderer& renderer = window.getRenderer();
     SDL2pp::Texture& fx = textures.get(path);
     const FrameRect fr = fxFrameRect(frame, FX_FRAME_W, FX_FRAME_H, FX_COLS);
-    auto ait = animators.find(activeFx->targetId);
-    const int baseX = (ait != animators.end()) ?
-                              static_cast<int>(ait->second.getVirtualX() * TILE_SIZE) :
-                              target->x * TILE_SIZE;
-    const int baseY = (ait != animators.end()) ?
-                              static_cast<int>(ait->second.getVirtualY() * TILE_SIZE) :
-                              target->y * TILE_SIZE;
+
     const int dstX = baseX + TILE_SIZE / 2 - FX_DRAW_W / 2 - camera.x;
     const int dstY = baseY + TILE_SIZE - FX_DRAW_H - camera.y;
     const SDL2pp::Rect dst(dstX, dstY, FX_DRAW_W, FX_DRAW_H);
+
     renderer.Copy(fx, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst);
+}
+
+void Game::syncProjectileAnimators(uint32_t nowMs) {
+    // Actualizar o crear animators para proyectiles del snapshot
+    for (const ProjectileDTO& dto: lastSnapshot.projectiles) {
+        projectileAnimators[dto.id].update(dto, nowMs);
+    }
+
+    // Detectar proyectiles que desaparecieron → activar FX de impacto
+    for (auto it = projectileAnimators.begin(); it != projectileAnimators.end();) {
+        const bool stillAlive =
+                std::any_of(lastSnapshot.projectiles.begin(), lastSnapshot.projectiles.end(),
+                            [&](const ProjectileDTO& dto) { return dto.id == it->first; });
+
+        if (!stillAlive) {
+            // Interpolar la última posición del proyectil en el momento de su muerte
+            const int px = static_cast<int>(it->second.getVirtualX() * TILE_SIZE);
+            const int py = static_cast<int>(it->second.getVirtualY() * TILE_SIZE);
+
+            // Setear el FX estático (targetId = 0 indica que no sigue a nadie)
+            activeFx = ActiveFx{0, SDL_GetTicks(), px, py};
+
+            it = projectileAnimators.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void Game::renderProjectiles(const CameraOffset& camera) {
+    const uint32_t now = SDL_GetTicks();
+    SDL2pp::Renderer& renderer = window.getRenderer();
+
+    const std::string path = std::string(RESOURCES_DIR) + PROJ_SHEET;
+    if (!std::ifstream(path).good())
+        return;
+
+    SDL2pp::Texture& sheet = textures.get(path);
+
+    for (auto& [id, anim]: projectileAnimators) {
+        anim.extrapolate(now);
+
+        const int px = static_cast<int>(anim.getVirtualX() * TILE_SIZE) - camera.x;
+        const int py = static_cast<int>(anim.getVirtualY() * TILE_SIZE) - camera.y;
+
+        anim.lastPixelX = px + camera.x;
+        anim.lastPixelY = py + camera.y;
+
+        const SDL2pp::Rect dst(px - PROJ_DRAW_W / 2, py - PROJ_DRAW_H / 2, PROJ_DRAW_W,
+                               PROJ_DRAW_H);
+
+        const int frame = (now / 100) % 64;
+        const int srcX = (frame % PROJ_FRAME_COLS) * PROJ_FRAME_SIZE;
+        const int srcY = (frame / PROJ_FRAME_COLS) * PROJ_FRAME_SIZE;
+
+        renderer.Copy(sheet, SDL2pp::Rect(srcX, srcY, PROJ_FRAME_SIZE, PROJ_FRAME_SIZE), dst, 0.0,
+                      SDL2pp::NullOpt, SDL_FLIP_NONE);
+    }
 }
 
 void Game::render(const FrameInput& input) {
@@ -308,11 +408,15 @@ void Game::render(const FrameInput& input) {
     const CameraOffset camera = computeCamera();
     processCombatInput(input, camera);
 
+    const uint32_t now = SDL_GetTicks();
+    syncProjectileAnimators(now);
+
     renderTerrain(camera);
     renderOverlays(camera);
     renderGroundItems(camera);
     renderCitizens(camera);
     renderEntities(camera);
+    renderProjectiles(camera);
     renderFx(camera);
 
     // MiniChat superpuesto

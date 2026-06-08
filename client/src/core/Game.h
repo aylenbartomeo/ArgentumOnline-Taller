@@ -10,6 +10,7 @@
 #include <SDL_ttf.h>
 
 #include "../animation/CharacterAnimator.h"
+#include "../animation/ProjectileAnimator.h"
 #include "../input/ChatCommandParser.h"
 #include "../input/EventHandler.h"
 #include "../rendering/TextureManager.h"
@@ -38,10 +39,13 @@ private:
     PlayerStatsDTO lastStats;
     Uint32 lastMoveSentMs;
     std::unordered_map<uint32_t, CharacterAnimator> animators;
+    std::unordered_map<uint32_t, ProjectileAnimator> projectileAnimators;
 
     struct ActiveFx {
         uint32_t targetId;
         uint32_t startMs;
+        int fixedPixelX = 0;
+        int fixedPixelY = 0;
     };
     std::optional<ActiveFx> activeFx;
 
@@ -74,6 +78,8 @@ private:
     void processCombatInput(const FrameInput& input, const CameraOffset& camera);
     void processEquipInput(const FrameInput& input);
     void renderFx(const CameraOffset& camera);
+    void syncProjectileAnimators(uint32_t nowMs);
+    void renderProjectiles(const CameraOffset& camera);
 
     // Procesa el input del chat: si se confirmó un mensaje, lo envía al servidor y limpia el
     // buffer.
