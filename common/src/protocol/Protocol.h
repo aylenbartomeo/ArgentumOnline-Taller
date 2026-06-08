@@ -21,6 +21,9 @@ private:
     void sendUint16(uint16_t value);
     void sendUint32(uint32_t value);
 
+    void sendFloat(float value);
+    float recvFloat();
+
     void sendString(const std::string& str);
 
     uint8_t recvUint8();
@@ -77,6 +80,9 @@ public:
 
     // --- MÉTODO DE ENVÍO DE CHEATS ---
     void sendCheat(const CheatDTO& dto);
+
+    // -- Metodos de proyectiles --
+    void sendShoot(const ShootDTO& dto);
 };
 
 #endif
