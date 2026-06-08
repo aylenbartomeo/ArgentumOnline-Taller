@@ -17,6 +17,25 @@ public:
     virtual ~ICombatEventCallback() = default;
 };
 
+struct CombatResult {
+    bool attackHappened = false;
+    bool evaded = false;
+    bool critical = false;
+    int damage = 0;
+};
+
+// Struct intermediario que desacopla la estrategia de combate
+// de la fuente de los parámetros (Weapon para un Player, config para un Monster).
+struct AttackParams {
+    uint16_t minDamage;
+    uint16_t maxDamage;
+    int attackRange;
+    int manaCost;               // 0 para ataques físicos y monstruos
+    bool isMagic;               // true para ataques mágicos (determina la estrategia)
+    float attackBonus = 1.0f;   // multiplicador de ataque por bonus grupal de clan
+    float defenseBonus = 1.0f;  // multiplicador de defensa por bonus grupal de clan
+};
+
 class CombatSystem {
 private:
     Map& map;
@@ -29,6 +48,21 @@ private:
     int CLAN_BONUS_RANGE = 5;
     float CLAN_ATTACK_BONUS_PER_MEMBER = 0.05f;
     float CLAN_DEFENSE_BONUS_PER_MEMBER = 0.05f;
+
+    // Lógica compartida de combate. Retorna el daño final infligido, o -1 si
+    // el ataque no se concretó (fuera de rango, esquivado, target muerto).
+    CombatResult resolveCombat(const Attackable& attacker, Attackable& target,
+                               const AttackParams& params);
+
+    // Player ataca a cualquier entidad (Player o Monster)
+    CombatResult processAttack(Player& attacker, Attackable& target);
+
+    // Monster ataca a cualquier entidad (típicamente un Player)
+    CombatResult processAttack(const Monster& attacker, Attackable& target);
+
+    // Variante con bonuses de clan pre-calculados por World
+    CombatResult processAttack(Player& attacker, Attackable& target, float attackBonus,
+                               float defenseBonus);
 
 public:
     CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, EventPublisher& ep,

@@ -84,7 +84,7 @@ target_sources(lib_server
     src/model/components/InventoryComponent.cpp
     src/model/components/EquipmentComponent.cpp
     src/model/components/StatsComponent.cpp
-    src/model/combat/CombatManager.cpp
+    # src/model/combat/CombatManager.cpp
     src/model/components/RegenerationComponent.cpp
 
     PUBLIC
@@ -111,7 +111,7 @@ target_sources(lib_server
     src/model/components/StatsComponent.h
     src/model/components/InventoryComponent.h
     src/model/components/EquipmentComponent.h
-    src/model/combat/CombatManager.h
+    # src/model/combat/CombatManager.h
 
     src/model/handlers/NpcCommandHandler.h
     src/model/handlers/BankDepositHandler.h
