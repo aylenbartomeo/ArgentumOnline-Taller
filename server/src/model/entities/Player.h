@@ -33,6 +33,7 @@ private:
     StateComponent state;
     RegenerationComponent regeneration;
     const ItemRegistry* itemRegistry;  // Puntero para permitir nullptr en tests
+    bool infiniteMana = false;
 
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race, CharacterClass cls,
@@ -93,7 +94,12 @@ public:
     uint16_t getMaxHp() const override { return stats.getMaxHp(); }
     uint16_t getMana() const { return stats.getMana(); }
     uint16_t getMaxMana() const { return stats.getMaxMana(); }
-    bool consumeMana(int amount) { return stats.consumeMana(static_cast<uint16_t>(amount)); }
+    bool consumeMana(int amount) {
+        if (infiniteMana)
+            return true;
+        return stats.consumeMana(static_cast<uint16_t>(amount));
+    }
+    void toggleInfiniteMana() { infiniteMana = !infiniteMana; }
     uint16_t heal(uint16_t amount) {
         stats.heal(amount);
         return amount;

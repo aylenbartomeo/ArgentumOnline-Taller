@@ -68,6 +68,13 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         }
         eventPublisher.sendTo(
                 dbId, "[CHEAT] Arco simple agregado al inventario. Equipalo con doble click.");
+    } else if (type == CheatType::INFINITE_MANA) {
+        // Setea el maná al máximo actual del jugador
+        player->toggleInfiniteMana();
+        eventPublisher.sendTo(dbId, "[CHEAT] Maná infinito toggled.");
+    } else if (type == CheatType::GIVE_GOLD) {
+        player->addGold(1000);
+        eventPublisher.sendTo(dbId, "[CHEAT] +1.000 de oro agregados.");
     }
 }
 

@@ -166,6 +166,12 @@ void Game::processCheats(const FrameInput& input) {
     if (input.cheatGiveBow) {
         client.sendCommand(CheatDTO{CheatType::GIVE_BOW});
     }
+    if (input.cheatInfiniteMana) {
+        client.sendCommand(CheatDTO{CheatType::INFINITE_MANA});
+    }
+    if (input.cheatGiveGold) {
+        client.sendCommand(CheatDTO{CheatType::GIVE_GOLD});
+    }
 }
 
 void Game::drainIncomingChat() {

@@ -40,6 +40,8 @@ struct FrameInput {
     bool cheatLevelUp = false;
     bool cheatDie = false;
     bool cheatGiveBow = false;
+    bool cheatInfiniteMana = false;
+    bool cheatGiveGold = false;
 
     // --- Shoot ---
     bool shootPressed = false;
