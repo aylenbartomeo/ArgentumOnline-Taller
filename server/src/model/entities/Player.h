@@ -95,6 +95,10 @@ public:
     uint16_t getMana() const { return stats.getMana(); }
     uint16_t getMaxMana() const { return stats.getMaxMana(); }
     bool consumeMana(int amount) { return stats.consumeMana(static_cast<uint16_t>(amount)); }
+    uint16_t heal(uint16_t amount) {
+        stats.heal(amount);
+        return amount;
+    }
     void restoreHp() { stats.restoreHp(); }
     void restoreMana() { stats.restoreMana(); }
     void setHp(uint16_t newHp) { stats.setHp(newHp); }

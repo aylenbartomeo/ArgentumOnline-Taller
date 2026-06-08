@@ -27,7 +27,8 @@ World::World(int worldId, const std::string& creatorPlayerName, const ItemRegist
         clanService(clanRepo),
         clanController(clanService),
         characterConfigs(configs),
-        combatSystem(map, entityManager, clanRepo, eventPublisher, *this, enforceFairPlay) {
+        combatSystem(map, entityManager, clanRepo, eventPublisher, *this, enforceFairPlay),
+        projectileSystem(map, entityManager, combatSystem) {
     map.setDimensions(20, 15);
     map.setSpawnPoint(0, 0);
     try {
@@ -220,6 +221,88 @@ void World::playerAttack(uint32_t attackerId, uint32_t targetDbId) {
     combatSystem.playerAttack(attackerId, targetDbId);
 }
 
+void World::playerShoot(uint32_t shooterDbId, float targetX, float targetY) {
+    Player* shooter = entityManager.getPlayer(shooterDbId);
+    if (!shooter || shooter->isDead())
+        return;
+
+    if (!shooter->canAttack()) {
+        eventPublisher.sendTo(shooterDbId, "Aún no puedes disparar.");
+        return;
+    }
+    if (map.isSafeZone(shooter->getPosition().x, shooter->getPosition().y)) {
+        eventPublisher.sendTo(shooterDbId, "No puedes disparar en una zona segura.");
+        return;
+    }
+
+    const Weapon* weapon = shooter->getEquippedWeapon();
+    if (!weapon || weapon->getType() == WeaponType::MELEE) {
+        eventPublisher.sendTo(shooterDbId, "No tienes un arma de rango equipada.");
+        return;
+    }
+
+    // --- Flauta élfica: curación instantánea en self ---
+    if (weapon->getId() == ITEM_FLAUTA_ELFICA) {
+        if (!shooter->consumeMana(weapon->getManaCost())) {
+            eventPublisher.sendTo(shooterDbId, "No tienes suficiente maná.");
+            return;
+        }
+        shooter->heal(FLAUTA_HEAL_AMOUNT);
+        eventPublisher.sendTo(shooterDbId,
+                              "Te curaste " + std::to_string(FLAUTA_HEAL_AMOUNT) + " HP.");
+        shooter->onActionStarted();
+        return;
+    }
+
+    // --- Armas mágicas: consumir maná ---
+    if (weapon->getType() == WeaponType::MAGIC) {
+        if (!shooter->consumeMana(weapon->getManaCost())) {
+            eventPublisher.sendTo(shooterDbId, "No tienes suficiente maná.");
+            return;
+        }
+    }
+
+    // --- Determinar tipo de proyectil y sprite según item ID ---
+    ProjectileType pType = ProjectileType::ARROW;
+    uint16_t sprite = SPRITE_ARROW;
+    float speed = 12.f;
+    float range = 15.f;
+
+    switch (weapon->getId()) {
+        case ITEM_VARA_FRESNO:
+            pType = ProjectileType::MAGIC_ARROW;
+            sprite = SPRITE_MAGIC_ARROW;
+            speed = 10.f;
+            break;
+        case ITEM_BACULO_NUDOSO:
+            pType = ProjectileType::MISSILE;
+            sprite = SPRITE_MISSILE;
+            speed = 9.f;
+            break;
+        case ITEM_BACULO_ENGARZADO:
+            pType = ProjectileType::EXPLOSION;
+            sprite = SPRITE_EXPLOSION;
+            speed = 8.f;
+            range = 16.f;
+            break;
+        case ITEM_ARCO_COMPUESTO:
+            speed = 14.f;
+            range = 18.f;
+            break;
+        default:
+            break;
+    }
+
+    float sx = static_cast<float>(shooter->getPosition().x);
+    float sy = static_cast<float>(shooter->getPosition().y);
+
+    projectileSystem.spawnProjectile(shooterDbId, sx, sy, targetX, targetY, sprite,
+                                     weapon->getMinDamage(), weapon->getMaxDamage(),
+                                     weapon->isMagic(), pType, speed, range);
+
+    shooter->onActionStarted();
+}
+
 void World::playerInteract(uint32_t dbId, uint32_t targetId) {
     const Player* p = entityManager.getPlayer(dbId);
     if (!p)
@@ -388,6 +471,8 @@ void World::update(float delta_time) {
         entityManager.addMonster(req.type, req.pos, *req.config);
         map.setEntityCollision(req.pos.x, req.pos.y, true);
     }
+
+    projectileSystem.update(delta_time);
 }
 
 std::vector<WorldEvent> World::pollEvents() { return eventPublisher.pollEvents(); }
@@ -424,6 +509,8 @@ SnapshotDTO World::generateSnapshot() const {
         const GroundItem& item = pair.second;
         snapshot.groundItems.push_back(GroundItemDTO(item.itemId, item.amount, pos.x, pos.y));
     }
+
+    snapshot.projectiles = projectileSystem.getProjectileDTOs();
 
     return snapshot;
 }
