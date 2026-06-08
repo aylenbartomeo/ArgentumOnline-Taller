@@ -6,9 +6,8 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
-#include "common/include/dto/PlayerStatsDTO.h"
-
 #include "../rendering/TextureManager.h"
+#include "common/include/dto/PlayerStatsDTO.h"
 
 class HudPanel {
 public:

@@ -29,7 +29,7 @@ struct PlayerPersistData {
         uint32_t item_id;
         uint16_t amount;
     } inventory[16];
-    uint8_t _pad[2];
+    uint16_t equippedSlots;
 };
 #pragma pack(pop)
 static_assert(sizeof(PlayerPersistData) == 128, "PlayerPersistData must be 128 bytes");
