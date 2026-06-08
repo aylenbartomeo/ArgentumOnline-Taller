@@ -40,10 +40,9 @@ void ProjectileSystem::update(float dtMs) {
         // Colisión con entidades
         uint32_t hitId = 0;
         if (checkCollisionWithEntities(p, hitId)) {
-            if (checkCollisionWithEntities(p, hitId)) {
-                onProjectileHit(p, hitId);
-                p.alive = false;
-            }
+            onProjectileHit(p, hitId);
+            p.alive = false;
+            continue;
         }
     }
 
