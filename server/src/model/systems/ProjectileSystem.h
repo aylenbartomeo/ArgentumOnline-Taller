@@ -12,8 +12,12 @@
 class ProjectileSystem {
 public:
     ProjectileSystem(Map& map, EntityManager& em, CombatSystem& cs);
+
     uint32_t spawnProjectile(uint32_t ownerDbId, float startX, float startY, float targetX,
-                             float targetY);
+                             float targetY, uint16_t spriteId, int minDmg, int maxDmg,
+                             bool isMagical, ProjectileType type = ProjectileType::ARROW,
+                             float speed = 12.f, float maxRange = 15.f);
+
     void update(float dtMs);
     std::vector<ProjectileDTO> getProjectileDTOs() const;
 
@@ -23,7 +27,12 @@ private:
     CombatSystem& combatSystem;
     std::vector<Projectile> projectiles;
     uint32_t nextId = 1;
+
     bool checkCollisionWithEntities(const Projectile& p, uint32_t& hitEntityId);
+
+    void onProjectileHit(const Projectile& p, uint32_t hitEntityId);
+
+    void applyAoeDamage(const Projectile& p);
 };
 
 #endif

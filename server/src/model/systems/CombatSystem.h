@@ -40,6 +40,9 @@ public:
 
     bool areClanmates(uint32_t dbId1, uint32_t dbId2) const;
     int countNearbyClanmates(uint32_t dbId, int range) const;
+
+    void applyProjectileDamage(uint32_t ownerDbId, uint32_t targetEntityId, int minDmg, int maxDmg,
+                               bool isMagical);
 };
 
 #endif  // COMBAT_SYSTEM_H

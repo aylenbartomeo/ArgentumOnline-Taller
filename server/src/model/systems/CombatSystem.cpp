@@ -206,3 +206,45 @@ void CombatSystem::monsterAttack(const Monster& monster, Player& target) {
         }
     }
 }
+
+void CombatSystem::applyProjectileDamage(uint32_t ownerDbId, uint32_t targetEntityId, int minDmg,
+                                         int maxDmg, bool isMagical) {
+    Player* attacker = entityManager.getPlayer(ownerDbId);
+    if (!attacker)
+        return;
+
+    Attackable* target = entityManager.findAttackable(targetEntityId);
+    if (!target || target->isDead())
+        return;
+
+    // Sin chequeo de zona segura del atacante (el proyectil ya cruzó el mapa)
+    // Sí chequeamos la del target para respetar zonas de protección
+    if (map.isSafeZone(target->getPosition().x, target->getPosition().y))
+        return;
+    if (areClanmates(ownerDbId, targetEntityId))
+        return;
+
+    float attackBonus =
+            1.f + countNearbyClanmates(ownerDbId, CLAN_BONUS_RANGE) * CLAN_ATTACK_BONUS_PER_MEMBER;
+    float defenseBonus = 1.f;
+
+    auto* targetPlayer = dynamic_cast<Player*>(target);
+    if (targetPlayer)
+        defenseBonus += countNearbyClanmates(targetPlayer->getDbId(), CLAN_BONUS_RANGE) *
+                        CLAN_DEFENSE_BONUS_PER_MEMBER;
+
+    CombatResult res = CombatManager::getInstance().processAttack(*attacker, *target, attackBonus,
+                                                                  defenseBonus);
+    if (!res.attackHappened || res.evaded)
+        return;
+
+    eventPublisher.sendTo(ownerDbId, "¡Impacto! " + std::to_string(res.damage) + " de daño a " +
+                                             target->getName() + ".");
+
+    if (targetPlayer && targetPlayer->isDead())
+        callback.onPlayerDeath(targetPlayer->getDbId());
+
+    const Monster* mTarget = dynamic_cast<const Monster*>(target);
+    if (mTarget && mTarget->isDead())
+        callback.onMonsterDeath(*mTarget, ownerDbId);
+}
