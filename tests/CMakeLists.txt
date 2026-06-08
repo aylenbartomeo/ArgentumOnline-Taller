@@ -35,6 +35,7 @@ target_sources(argentum_online_tests
     TestPlayerDataStore.cpp
     TestClan.cpp
     TestHealthBar.cpp
+    TestGroundItemLabel.cpp
     TestViewport.cpp
     TestCharacterSprites.cpp
     TestCharacterAnimator.cpp
