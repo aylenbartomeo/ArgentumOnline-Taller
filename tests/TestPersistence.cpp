@@ -523,36 +523,29 @@ TEST_F(WorldPersistenceTest, RoundTrip_EquipmentWithGap_SurvivesReconnect) {
     EXPECT_TRUE(after->equippedSlots & (1u << 2));
 }
 
-// TEST_F(WorldPersistenceTest, RoundTrip_Inventory_SurvivesReconnect) {
-//     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
-//     std::string user = "Collector";
+TEST_F(WorldPersistenceTest, RoundTrip_Inventory_SurvivesReconnect) {
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
+    std::string user = "Collector";
 
-//     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
-//     // Items con IDs que deben existir en items.toml; ajustar si es necesario
-//     seed.inventorySize  = 2;
-//     seed.inventory[0]   = {1, 5};
-//     seed.inventory[1]   = {2, 1};
-//     ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+    PlayerPersistData seed = makeFullPersistData(1, 0, 0);
+    seed.inventorySize = 3;
+    seed.inventory[0] = {1000, 1};
+    seed.inventory[1] = {0, 0};
+    seed.inventory[2] = {1010, 2};
+    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
 
-//     auto saved = mundo.getPlayerPersistData(1);
-//     ASSERT_TRUE(saved.has_value());
-//     mundo.removePlayer(1);
+    auto saved = mundo.getPlayerPersistData(1);
+    ASSERT_TRUE(saved.has_value());
+    mundo.removePlayer(1);
+    ASSERT_TRUE(mundo.addPlayer(1, user, saved.value()));
 
-//     ASSERT_TRUE(mundo.addPlayer(1, user, saved.value()));
-
-//     auto after = mundo.getPlayerPersistData(1);
-//     ASSERT_TRUE(after.has_value());
-//     // Verificar que el inventario restaurado contiene los ítems
-//     bool foundItem1 = false;
-//     bool foundItem2 = false;
-//     for (uint8_t i = 0; i < after->inventorySize; ++i) {
-//         if (after->inventory[i].item_id == 1 && after->inventory[i].amount == 5) foundItem1 =
-//         true; if (after->inventory[i].item_id == 2 && after->inventory[i].amount == 1) foundItem2
-//         = true;
-//     }
-//     EXPECT_TRUE(foundItem1);
-//     EXPECT_TRUE(foundItem2);
-// }
+    auto after = mundo.getPlayerPersistData(1);
+    ASSERT_TRUE(after.has_value());
+    EXPECT_EQ(after->inventory[0].item_id, 1000u);
+    EXPECT_EQ(after->inventory[1].item_id, 0u);
+    EXPECT_EQ(after->inventory[2].item_id, 1010u);
+    EXPECT_EQ(after->inventory[2].amount, 2);
+}
 
 TEST_F(WorldPersistenceTest, RoundTrip_MultipleAllRaces_AllClasses) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
