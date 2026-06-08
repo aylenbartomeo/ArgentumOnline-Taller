@@ -27,6 +27,9 @@ target_sources(lib_client
     src/ui/Launcher.cpp
     src/ui/MiniChat.cpp
     src/ui/HealthBar.cpp
+    src/ui/HudLayout.cpp
+    src/ui/ItemIcons.cpp
+    src/ui/HudPanel.cpp
 
     # rendering
     src/rendering/TileMap.cpp
@@ -61,6 +64,9 @@ target_sources(lib_client
     src/ui/Launcher.h
     src/ui/MiniChat.h
     src/ui/HealthBar.h
+    src/ui/HudLayout.h
+    src/ui/ItemIcons.h
+    src/ui/HudPanel.h
 
     # rendering
     src/rendering/TileMap.h

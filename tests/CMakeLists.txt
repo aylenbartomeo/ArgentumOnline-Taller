@@ -42,6 +42,8 @@ target_sources(argentum_online_tests
     TestTargeting.cpp
     TestFxAnimator.cpp
     TestMotion.cpp
+    TestHudLayout.cpp
+    TestItemIcons.cpp
     TestEditorMap.cpp
     TestCamera.cpp
     TestPalette.cpp

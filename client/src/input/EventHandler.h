@@ -31,6 +31,11 @@ struct FrameInput {
     int attackY = 0;
     bool resurrectPressed = false;
 
+    // --- Inventario ---
+    bool equipPressed = false;
+    int equipX = 0;
+    int equipY = 0;
+
     // --- Cheats ---
     bool cheatLevelUp = false;
     bool cheatDie = false;

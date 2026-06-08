@@ -24,8 +24,13 @@
 
 namespace {
 constexpr int TILE_SIZE = 32;
-constexpr int WINDOW_WIDTH = 640;
-constexpr int WINDOW_HEIGHT = 480;
+constexpr int WINDOW_WIDTH = 1024;
+constexpr int WINDOW_HEIGHT = 768;
+constexpr int VIEW_X = 0;
+constexpr int VIEW_Y = 29;
+constexpr int VIEW_W = 757;
+constexpr int VIEW_H = 736;
+constexpr const char* HUD_FONT_PATH = "resources/fonts/DejaVuSans.ttf";
 constexpr Uint32 MOVE_INTERVAL_MS = 200;
 
 constexpr const char* CHAT_FONT_PATH = "resources/fonts/DejaVuSans.ttf";
@@ -107,6 +112,7 @@ Game::Game(Client& client):
         textures(window.getRenderer()),
         map(readWholeFile("maps/defaultMap.json")),
         miniChat(CHAT_FONT_PATH),
+        hud(textures, HUD_FONT_PATH),
         chatParser(),
         lastSnapshot(),
         lastMoveSentMs(0) {
@@ -120,13 +126,27 @@ void Game::run() {
         if (input.quit) {
             break;
         }
-        miniChat.update(input, WINDOW_WIDTH, WINDOW_HEIGHT);
+        miniChat.update(input, VIEW_W, VIEW_H);
         drainIncomingChat();
         processChatInput(input);
         processCheats(input);
+        processEquipInput(input);
         sendMoveIfDue(input);
         render(input);
         SDL_Delay(16);
+    }
+}
+
+void Game::processEquipInput(const FrameInput& input) {
+    if (!input.equipPressed) {
+        return;
+    }
+    float logicalX = 0.0f, logicalY = 0.0f;
+    SDL_RenderWindowToLogical(window.getRenderer().Get(), input.equipX, input.equipY, &logicalX,
+                              &logicalY);
+    const int slot = hud.slotAtPosition(static_cast<int>(logicalX), static_cast<int>(logicalY));
+    if (slot >= 0) {
+        client.sendCommand(EquipItemDTO{static_cast<uint8_t>(slot)});
     }
 }
 
@@ -202,10 +222,16 @@ void Game::processCombatInput(const FrameInput& input, const CameraOffset& camer
     if (!input.attackPressed)
         return;
 
-    if (miniChat.isMouseOver(input.attackX, input.attackY, WINDOW_HEIGHT))
+    float logicalX = 0.0f, logicalY = 0.0f;
+    SDL_RenderWindowToLogical(window.getRenderer().Get(), input.attackX, input.attackY, &logicalX,
+                              &logicalY);
+    const int mouseX = static_cast<int>(logicalX);
+    const int mouseY = static_cast<int>(logicalY);
+
+    if (miniChat.isMouseOver(mouseX, mouseY, WINDOW_HEIGHT))
         return;
 
-    const Cell cell = screenToCell(input.attackX, input.attackY, camera.x, camera.y, TILE_SIZE);
+    const Cell cell = screenToCell(mouseX, mouseY, camera.x, camera.y, TILE_SIZE);
     const std::optional<uint32_t> target = pickTargetAt(cell.col, cell.row, lastSnapshot,
                                                         client.getClientId(), ATTACK_RANGE_TILES);
     if (target) {
@@ -254,6 +280,10 @@ void Game::render(const FrameInput& input) {
     while (client.tryPopSnapshot(incoming)) {
         lastSnapshot = incoming;
     }
+    PlayerStatsDTO incomingStats;
+    while (client.tryPopPlayerStats(incomingStats)) {
+        lastStats = incomingStats;
+    }
 
     SDL2pp::Renderer& renderer = window.getRenderer();
     renderer.SetDrawColor(0, 0, 0, 255);
@@ -261,6 +291,7 @@ void Game::render(const FrameInput& input) {
 
     const CameraOffset camera = computeCamera();
     processCombatInput(input, camera);
+
     renderTerrain(camera);
     renderOverlays(camera);
     renderGroundItems(camera);
@@ -269,9 +300,11 @@ void Game::render(const FrameInput& input) {
     renderFx(camera);
 
     // MiniChat superpuesto
-    miniChat.render(renderer.Get(), WINDOW_WIDTH, WINDOW_HEIGHT, input.chatInputActive,
+    miniChat.render(renderer.Get(), VIEW_X + VIEW_W, VIEW_Y + VIEW_H, input.chatInputActive,
                     input.chatText);
 
+    hud.renderBackground(renderer);
+    hud.render(renderer, lastStats);
     renderer.Present();
 }
 
@@ -291,8 +324,11 @@ CameraOffset Game::computeCamera() {
         }
     }
 
-    return computeCameraOffset(focusX, focusY, WINDOW_WIDTH, WINDOW_HEIGHT,
-                               map.getWidth() * TILE_SIZE, map.getHeight() * TILE_SIZE);
+    CameraOffset cam = computeCameraOffset(focusX, focusY, VIEW_W, VIEW_H,
+                                           map.getWidth() * TILE_SIZE, map.getHeight() * TILE_SIZE);
+    cam.x -= VIEW_X;
+    cam.y -= VIEW_Y;
+    return cam;
 }
 
 void Game::renderTerrain(const CameraOffset& camera) {

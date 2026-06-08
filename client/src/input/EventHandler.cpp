@@ -7,6 +7,9 @@ FrameInput EventHandler::pollEvents() {
     bool attackThisFrame = false;
     int attackX = 0;
     int attackY = 0;
+    bool equipThisFrame = false;
+    int equipX = 0;
+    int equipY = 0;
     bool resurrectThisFrame = false;
 
     bool toggleChatThisFrame = false;
@@ -36,9 +39,15 @@ FrameInput EventHandler::pollEvents() {
                 mouseLeftJustPressedThisFrame = true;
 
                 if (!inputActive) {
-                    attackThisFrame = true;
-                    attackX = event.button.x;
-                    attackY = event.button.y;
+                    if (event.button.clicks == 2) {
+                        equipThisFrame = true;
+                        equipX = event.button.x;
+                        equipY = event.button.y;
+                    } else {
+                        attackThisFrame = true;
+                        attackX = event.button.x;
+                        attackY = event.button.y;
+                    }
                 }
             }
 
@@ -119,6 +128,9 @@ FrameInput EventHandler::pollEvents() {
     input.attackPressed = attackThisFrame;
     input.attackX = attackX;
     input.attackY = attackY;
+    input.equipPressed = equipThisFrame;
+    input.equipX = equipX;
+    input.equipY = equipY;
     input.resurrectPressed = resurrectThisFrame;
 
     justPressedKeys.clear();

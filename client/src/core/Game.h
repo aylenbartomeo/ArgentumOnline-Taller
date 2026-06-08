@@ -14,8 +14,10 @@
 #include "../rendering/TextureManager.h"
 #include "../rendering/TileMap.h"
 #include "../rendering/Viewport.h"
+#include "../ui/HudPanel.h"
 #include "../ui/MiniChat.h"
 #include "../ui/Window.h"
+#include "common/include/dto/PlayerStatsDTO.h"
 #include "common/include/dto/Snapshot.h"
 
 #include "Client.h"
@@ -29,8 +31,10 @@ private:
     TextureManager textures;
     TileMap map;
     MiniChat miniChat;
+    HudPanel hud;
     ChatCommandParser chatParser;
     SnapshotDTO lastSnapshot;
+    PlayerStatsDTO lastStats;
     Uint32 lastMoveSentMs;
     std::unordered_map<uint32_t, CharacterAnimator> animators;
 
@@ -63,6 +67,7 @@ private:
     CameraOffset computeCamera();
     void sendMoveIfDue(const FrameInput& input);
     void processCombatInput(const FrameInput& input, const CameraOffset& camera);
+    void processEquipInput(const FrameInput& input);
     void renderFx(const CameraOffset& camera);
 
     // Procesa el input del chat: si se confirmó un mensaje, lo envía al servidor y limpia el

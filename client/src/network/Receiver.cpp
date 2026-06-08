@@ -14,6 +14,9 @@ void Receiver::run() {
             } else if (opcode == static_cast<uint8_t>(OPCODE::CHAT)) {
                 ChatDTO chat = protocol.receiveChatBody();
                 client.pushChatMessage(chat);
+            } else if (opcode == static_cast<uint8_t>(OPCODE::STATS_UPDATE)) {
+                PlayerStatsDTO stats = protocol.receivePlayerStatsBody();
+                client.pushPlayerStats(stats);
             }
         }
     } catch (...) {}
