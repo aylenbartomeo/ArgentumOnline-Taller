@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "EditorMap.h"
+#include "OverlayRegistry.h"
 
 TEST(EditorMapTest, NewMapIsEmptyWithGivenDimensions) {
     EditorMap map(4, 3, 16, "tilemap_packed.png", 12);
@@ -244,4 +245,18 @@ TEST(EditorMapTest, ResizeShrinkClampsSpawn) {
     map.resize(2, 2);
     EXPECT_LT(map.getSpawn().x, 2);
     EXPECT_LT(map.getSpawn().y, 2);
+}
+
+TEST(OverlayRegistryTest, ContainsStackableGold) {
+    const std::vector<OverlayDef>& reg = getOverlayRegistry();
+    int goldIndex = -1;
+    for (size_t i = 0; i < reg.size(); ++i) {
+        if (reg[i].itemId == 1) {
+            goldIndex = static_cast<int>(i);
+            break;
+        }
+    }
+    ASSERT_GE(goldIndex, 0) << "El registry no tiene el oro (itemId 1)";
+    EXPECT_TRUE(reg[goldIndex].stackable);
+    EXPECT_FALSE(reg[goldIndex].solid);
 }
