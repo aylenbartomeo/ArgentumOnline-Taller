@@ -40,6 +40,8 @@ void Sender::run() {
                 protocol.sendResurrect();
             } else if (std::holds_alternative<CheatDTO>(cmd)) {
                 protocol.sendCheat(std::get<CheatDTO>(cmd));
+            } else if (std::holds_alternative<ShootDTO>(cmd)) {
+                protocol.sendShoot(std::get<ShootDTO>(cmd));
             }
         }
     } catch (...) {}

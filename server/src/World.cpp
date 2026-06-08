@@ -66,11 +66,8 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         if (p) {
             p->addItem(2010, 1);
         }
-        const Weapon* bow = itemRegistry.get_weapon(2010);
-        if (bow) {
-            p->equipWeapon(bow);
-            eventPublisher.sendTo(dbId, "[CHEAT] Arco equipado directamente.");
-        }
+        eventPublisher.sendTo(
+                dbId, "[CHEAT] Arco simple agregado al inventario. Equipalo con doble click.");
     }
 }
 
@@ -240,7 +237,7 @@ void World::playerShoot(uint32_t shooterDbId, float targetX, float targetY) {
         eventPublisher.sendTo(shooterDbId, "Aún no puedes disparar.");
         return;
     }
-    s if (map.isSafeZone(shooter->getPosition().x, shooter->getPosition().y)) {
+    if (map.isSafeZone(shooter->getPosition().x, shooter->getPosition().y)) {
         eventPublisher.sendTo(shooterDbId, "No puedes disparar en una zona segura.");
         return;
     }

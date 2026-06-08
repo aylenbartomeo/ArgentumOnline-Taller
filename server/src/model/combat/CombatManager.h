@@ -33,6 +33,9 @@ public:
         return instance;
     }
 
+    CombatResult processProjectileAttack(Player& attacker, Attackable& target, uint16_t minDmg,
+                                         uint16_t maxDmg, float attackBonus, float defenseBonus);
+
     // Player ataca a cualquier entidad (Player o Monster)
     CombatResult processAttack(Player& attacker, Attackable& target);
 

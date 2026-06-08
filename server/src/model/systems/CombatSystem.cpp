@@ -233,8 +233,10 @@ void CombatSystem::applyProjectileDamage(uint32_t ownerDbId, uint32_t targetEnti
         defenseBonus += countNearbyClanmates(targetPlayer->getDbId(), CLAN_BONUS_RANGE) *
                         CLAN_DEFENSE_BONUS_PER_MEMBER;
 
-    CombatResult res = CombatManager::getInstance().processAttack(*attacker, *target, attackBonus,
-                                                                  defenseBonus);
+    CombatResult res = CombatManager::getInstance().processProjectileAttack(
+            *attacker, *target, static_cast<uint16_t>(minDmg), static_cast<uint16_t>(maxDmg),
+            attackBonus, defenseBonus);
+
     if (!res.attackHappened || res.evaded)
         return;
 

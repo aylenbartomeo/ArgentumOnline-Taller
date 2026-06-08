@@ -150,7 +150,7 @@ void Game::processEquipInput(const FrameInput& input) {
     float logicalX = 0.0f, logicalY = 0.0f;
     SDL_RenderWindowToLogical(window.getRenderer().Get(), input.equipX, input.equipY, &logicalX,
                               &logicalY);
-    const int slot = hud.slotAtPosition(static_cast<int>(logicalX), static_cast<int>(logicalY));
+    const int slot = hud.slotAtPosition(input.equipX, input.equipY);
     if (slot >= 0) {
         client.sendCommand(EquipItemDTO{static_cast<uint8_t>(slot)});
     }

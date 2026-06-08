@@ -71,6 +71,12 @@ bool Player::equipFromSlot(uint8_t slotIndex) {
     if (!item || !item->is_wearable())
         return false;
 
+    // si es un arma y ya hay otra equipada en un slot distinto, desequiparla primero
+    const Weapon* asWeapon = dynamic_cast<const Weapon*>(item);
+    if (asWeapon && equipment.getWeapon() != nullptr) {
+        equipment.unequip_weapon();  // limpia weapon y weaponSlot
+    }
+
     // Equipamos el ítem pero NO lo sacamos del inventario
     equipment.equipItem(item, slotIndex);
 

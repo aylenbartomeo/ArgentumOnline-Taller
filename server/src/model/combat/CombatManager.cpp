@@ -160,3 +160,25 @@ CombatResult CombatManager::processAttack(Player& attacker, Attackable& target, 
 
     return res;
 }
+
+CombatResult CombatManager::processProjectileAttack(Player& attacker, Attackable& target,
+                                                    uint16_t minDmg, uint16_t maxDmg,
+                                                    float attackBonus, float defenseBonus) {
+    AttackParams params{minDmg, maxDmg, 10, 0, false, attackBonus, defenseBonus};
+
+    CombatResult res = resolveCombat(attacker, target, params);
+    if (!res.attackHappened || res.evaded)
+        return res;
+
+    uint32_t xp = FormulaEngine::getInstance().calculate_attack_xp_gain(
+            res.damage, attacker.getLevel(), target.getLevel());
+    attacker.addExperience(xp);
+
+    if (target.isDead()) {
+        target.handleDeath();
+        uint32_t killXp = FormulaEngine::getInstance().calculate_kill_xp_gain(
+                target.getMaxHp(), attacker.getLevel(), target.getLevel());
+        attacker.addExperience(killXp);
+    }
+    return res;
+}
