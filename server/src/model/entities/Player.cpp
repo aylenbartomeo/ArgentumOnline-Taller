@@ -230,6 +230,13 @@ PlayerPersistData Player::toPersistData() const {
         d.inventory[i].amount = slots[i].amount;
     }
 
+    d.equippedSlots = 0;
+    for (uint8_t i = 0; i < d.inventorySize; ++i) {
+        if (equipment.isSlotEquipped(i)) {
+            d.equippedSlots |= (1u << i);
+        }
+    }
+
     return d;
 }
 
@@ -243,6 +250,12 @@ void Player::fromPersistData(const PlayerPersistData& data) {
     for (uint8_t i = 0; i < slots; ++i) {
         if (data.inventory[i].item_id != 0 && data.inventory[i].amount > 0) {
             addInventoryItem(data.inventory[i].item_id, data.inventory[i].amount);
+        }
+    }
+
+    for (uint8_t i = 0; i < slots; ++i) {
+        if ((data.equippedSlots >> i) & 1u) {
+            equipFromSlot(i);
         }
     }
 
