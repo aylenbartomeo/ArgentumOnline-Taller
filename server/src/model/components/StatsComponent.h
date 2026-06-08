@@ -86,6 +86,15 @@ public:
     uint32_t getExp() const { return exp; }
     uint16_t getLevel() const { return level; }
 
+    uint32_t getExpIntoCurrentLevel() const {
+        uint32_t prev = level > 1 ? formulaEngine.calculate_level_up_limit(level - 1) : 0;
+        return exp > prev ? exp - prev : 0;
+    }
+    uint32_t getExpForCurrentLevel() const {
+        uint32_t prev = level > 1 ? formulaEngine.calculate_level_up_limit(level - 1) : 0;
+        return formulaEngine.calculate_level_up_limit(level) - prev;
+    }
+
     // -- Modificadores de atributos --
     void addExperience(uint32_t amount);
     void takeDamage(uint16_t amount);

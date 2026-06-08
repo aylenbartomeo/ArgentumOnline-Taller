@@ -114,6 +114,8 @@ void Protocol::sendPlayerStats(const PlayerStatsDTO& stats) {
     sendUint32(stats.gold);
     sendUint32(stats.exp);
     sendUint16(stats.level);
+    sendUint32(stats.expIntoLevel);
+    sendUint32(stats.expForLevel);
 
     sendUint16(static_cast<uint16_t>(stats.inventory.size()));
     for (const auto& item: stats.inventory) {
@@ -231,6 +233,8 @@ PlayerStatsDTO Protocol::receivePlayerStatsBody() {
     stats.gold = recvUint32();
     stats.exp = recvUint32();
     stats.level = recvUint16();
+    stats.expIntoLevel = recvUint32();
+    stats.expForLevel = recvUint32();
 
     uint16_t items_count = recvUint16();
     for (uint16_t i = 0; i < items_count; ++i) {

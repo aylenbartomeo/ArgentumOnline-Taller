@@ -545,6 +545,21 @@ void World::dropItem(uint32_t dbId, uint8_t slot, uint16_t amount) {
     p->removeInventoryItem(slot, amount);
 }
 
+void World::equipItem(uint32_t dbId, uint8_t slot) {
+    Player* p = entityManager.getPlayer(dbId);
+    if (!p)
+        return;
+
+    if (p->isDead()) {
+        eventPublisher.sendTo(dbId, "No puedes hacer eso siendo un fantasma.");
+        return;
+    }
+
+    if (p->equipFromSlot(slot)) {
+        eventPublisher.sendTo(dbId, "Equipaste el item.");
+    }
+}
+
 void World::handlePlayerDeath(uint32_t dbId) {
     Player* p = entityManager.getPlayer(dbId);
     if (!p)

@@ -125,6 +125,8 @@ PlayerStatsDTO Player::getStatsDTO() const {
     dto.gold = inventory.getGold();
     dto.exp = stats.getExp();
     dto.level = stats.getLevel();
+    dto.expIntoLevel = stats.getExpIntoCurrentLevel();
+    dto.expForLevel = stats.getExpForCurrentLevel();
     dto.inventory = inventory.getInventoryDTO(equipment);
     return dto;
 }

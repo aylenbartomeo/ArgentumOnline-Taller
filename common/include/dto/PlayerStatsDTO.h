@@ -23,6 +23,8 @@ struct PlayerStatsDTO {
     uint32_t gold = 0;
     uint32_t exp = 0;
     uint16_t level = 0;
+    uint32_t expIntoLevel = 0;
+    uint32_t expForLevel = 0;
 
     std::vector<InventorySlotDTO> inventory;
 
