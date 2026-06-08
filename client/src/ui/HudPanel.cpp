@@ -1,6 +1,8 @@
 #include "HudPanel.h"
 
+#include <algorithm>
 #include <stdexcept>
+#include <vector>
 
 #include "common/include/OverlayRegistry.h"
 
@@ -13,12 +15,11 @@ constexpr const char* RESOURCES_DIR = "resources/";
 constexpr const char* BACKGROUND = "resources/ventanaprincipal.png";
 
 const OverlayDef* itemDef(uint32_t itemId) {
-    for (const OverlayDef& d: getOverlayRegistry()) {
-        if (d.itemId != 0 && static_cast<uint32_t>(d.itemId) == itemId) {
-            return &d;
-        }
-    }
-    return nullptr;
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+    auto it = std::find_if(registry.begin(), registry.end(), [itemId](const OverlayDef& d) {
+        return d.itemId != 0 && static_cast<uint32_t>(d.itemId) == itemId;
+    });
+    return it != registry.end() ? &(*it) : nullptr;
 }
 
 constexpr const char* HP_BAR = "resources/en_barradevida.bmp";
@@ -95,7 +96,7 @@ void HudPanel::drawBars(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats)
             {XP_BAR, XP_X, XP_Y, XP_FULL, static_cast<int>(stats.expIntoLevel),
              static_cast<int>(stats.expForLevel)},
     };
-    for (const Bar& b : bars) {
+    for (const Bar& b: bars) {
         const int w = barFillWidth(b.cur, b.max, b.full);
         if (w <= 0) {
             continue;
@@ -121,11 +122,10 @@ void HudPanel::drawText(SDL2pp::Renderer& renderer, const std::string& text, int
 }
 
 void HudPanel::drawItemSprite(SDL2pp::Renderer& renderer, uint32_t itemId, int x, int y, int w,
-                             int h) {
+                              int h) {
     const OverlayDef* def = itemDef(itemId);
     if (def == nullptr) {
-        renderer.Copy(textures.get(iconForItem(itemId)), SDL2pp::NullOpt,
-                      SDL2pp::Rect(x, y, w, h));
+        renderer.Copy(textures.get(iconForItem(itemId)), SDL2pp::NullOpt, SDL2pp::Rect(x, y, w, h));
         return;
     }
     int dw = w;
@@ -143,9 +143,9 @@ void HudPanel::drawItemSprite(SDL2pp::Renderer& renderer, uint32_t itemId, int x
 }
 
 void HudPanel::drawInventory(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats) {
-    for (const InventorySlotDTO& it : stats.inventory) {
-        const SlotRect r = inventorySlotRect(it.slot, INV_COLS, INV_CELL, INV_GAP, INV_ORIGIN_X,
-                                             INV_ORIGIN_Y);
+    for (const InventorySlotDTO& it: stats.inventory) {
+        const SlotRect r =
+                inventorySlotRect(it.slot, INV_COLS, INV_CELL, INV_GAP, INV_ORIGIN_X, INV_ORIGIN_Y);
         drawItemSprite(renderer, it.itemId, r.x, r.y, r.w, r.h);
         if (it.amount > 1) {
             drawText(renderer, std::to_string(it.amount), r.x, r.y + r.h - FONT_SIZE);
@@ -155,15 +155,15 @@ void HudPanel::drawInventory(SDL2pp::Renderer& renderer, const PlayerStatsDTO& s
 
 void HudPanel::drawEquipment(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats) {
     int row = 0;
-    for (const InventorySlotDTO& it : stats.inventory) {
+    for (const InventorySlotDTO& it: stats.inventory) {
         if (!it.isEquipped) {
             continue;
         }
         const int y = EQUIP_LIST_Y + row * EQUIP_ROW_H;
         drawItemSprite(renderer, it.itemId, EQUIP_LIST_X, y, EQUIP_ICON, EQUIP_ICON);
         const OverlayDef* def = itemDef(it.itemId);
-        drawText(renderer, def != nullptr ? def->name : "Equipado",
-                 EQUIP_LIST_X + EQUIP_ICON + 5, y + 1);
+        drawText(renderer, def != nullptr ? def->name : "Equipado", EQUIP_LIST_X + EQUIP_ICON + 5,
+                 y + 1);
         row++;
     }
 }
@@ -174,8 +174,8 @@ void HudPanel::render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats) {
     drawEquipment(renderer, stats);
     drawText(renderer, "Nivel " + std::to_string(stats.level), LEVEL_X, LEVEL_Y);
     drawText(renderer, "Oro " + std::to_string(stats.gold), GOLD_X, GOLD_Y);
-    drawText(renderer, "Exp " + std::to_string(stats.expIntoLevel) + "/" +
-                               std::to_string(stats.expForLevel),
+    drawText(renderer,
+             "Exp " + std::to_string(stats.expIntoLevel) + "/" + std::to_string(stats.expForLevel),
              LEVEL_X, LEVEL_Y + 18);
 
     drawText(renderer, std::to_string(stats.currentHp) + "/" + std::to_string(stats.maxHp),

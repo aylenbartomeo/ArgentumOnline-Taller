@@ -182,7 +182,7 @@ public:
     // Obtener una referencia al Player según su ID de base de datos
     Player* getPlayerById(uint32_t dbId);
 
-    ~World() = default;
+    ~World() override = default;
 };
 
 #endif
