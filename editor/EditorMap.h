@@ -2,7 +2,9 @@
 #define EDITOR_MAP_H
 
 #include <cstdint>
+#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <nlohmann/json.hpp>
@@ -41,6 +43,7 @@ private:
     std::vector<EditorSafeZone> safeZones;
     std::vector<CitizenSpawn> citizens;
     std::vector<MonsterSpawn> monsters;
+    std::map<std::pair<int, int>, int> overlayAmounts;
 
 public:
     EditorMap(int width, int height, int tileSize, const std::string& tileset, int tilesetCols);
@@ -50,6 +53,7 @@ public:
 
     int tileAt(int col, int row) const;
     void setTile(int col, int row, int tileId);
+    void paintOverlay(int col, int row, int overlayIndex);
 
     Position getSpawn() const;
     void setSpawn(int col, int row);

@@ -260,3 +260,47 @@ TEST(OverlayRegistryTest, ContainsStackableGold) {
     EXPECT_TRUE(reg[goldIndex].stackable);
     EXPECT_FALSE(reg[goldIndex].solid);
 }
+
+static int goldOverlayIndex() {
+    const std::vector<OverlayDef>& reg = getOverlayRegistry();
+    for (size_t i = 0; i < reg.size(); ++i) {
+        if (reg[i].itemId == 1) {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+
+static int amountOfItemId(const nlohmann::json& out, int id) {
+    if (!out.contains("items")) {
+        return -1;
+    }
+    for (const auto& it: out["items"]) {
+        if (it["id"] == id) {
+            return it["amount"].get<int>();
+        }
+    }
+    return -1;
+}
+
+TEST(EditorMapTest, PaintOverlayAccumulatesGoldAmount) {
+    EditorMap map(4, 4, 32, "5108.png", 32);
+    int gold = goldOverlayIndex();
+    ASSERT_GE(gold, 0);
+
+    map.paintOverlay(1, 1, gold);
+    map.paintOverlay(1, 1, gold);
+    map.paintOverlay(1, 1, gold);
+
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+    EXPECT_EQ(amountOfItemId(out, 1), 3);
+}
+
+TEST(EditorMapTest, PaintOverlayNonStackableStaysAtOne) {
+    EditorMap map(4, 4, 32, "5108.png", 32);
+    map.paintOverlay(2, 2, 4);
+    map.paintOverlay(2, 2, 4);
+
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+    EXPECT_EQ(amountOfItemId(out, 2000), 1);
+}
