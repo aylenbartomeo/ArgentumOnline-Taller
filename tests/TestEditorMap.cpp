@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <stdexcept>
 #include <string>
 
@@ -275,12 +276,10 @@ static int amountOfItemId(const nlohmann::json& out, int id) {
     if (!out.contains("items")) {
         return -1;
     }
-    for (const auto& it: out["items"]) {
-        if (it["id"] == id) {
-            return it["amount"].get<int>();
-        }
-    }
-    return -1;
+    const auto& items = out["items"];
+    auto it = std::find_if(items.begin(), items.end(),
+                           [id](const nlohmann::json& item) { return item["id"] == id; });
+    return (it != items.end()) ? (*it)["amount"].get<int>() : -1;
 }
 
 TEST(EditorMapTest, PaintOverlayAccumulatesGoldAmount) {

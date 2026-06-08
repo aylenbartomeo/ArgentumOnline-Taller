@@ -138,7 +138,8 @@ std::string EditorMap::toJson() const {
             if (def.itemId != 0) {
                 auto amtIt = overlayAmounts.find({col, row});
                 int amount = (amtIt != overlayAmounts.end()) ? amtIt->second : 1;
-                itemsJson.push_back({{"id", def.itemId}, {"x", col}, {"y", row}, {"amount", amount}});
+                itemsJson.push_back(
+                        {{"id", def.itemId}, {"x", col}, {"y", row}, {"amount", amount}});
             }
             if (def.solid) {
                 obstaclesJson.push_back({{"x", col}, {"y", row}});
