@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include <SDL2pp/SDL2pp.hh>
+#include <SDL_ttf.h>
 
 #include "../animation/CharacterAnimator.h"
 #include "../input/ChatCommandParser.h"
@@ -44,23 +45,27 @@ private:
     };
     std::optional<ActiveFx> activeFx;
 
+    TTF_Font* worldFont = nullptr;
+
 public:
     explicit Game(Client& client);
-    ~Game() = default;
+    ~Game();
 
     void run();
 
     Game(const Game&) = delete;
     Game& operator=(const Game&) = delete;
 
-    Game(Game&&) = default;
-    Game& operator=(Game&&) = default;
+    Game(Game&&) = delete;
+    Game& operator=(Game&&) = delete;
 
 private:
     void render(const FrameInput& input);
     void renderTerrain(const CameraOffset& camera);
     void renderOverlays(const CameraOffset& camera);
     void renderGroundItems(const CameraOffset& camera);
+    void drawGroundAmount(SDL2pp::Renderer& renderer, const std::string& text, int tileX, int tileY,
+                          const CameraOffset& camera);
     void renderCitizens(const CameraOffset& camera);
     bool cellInSafeZone(int col, int row) const;
     void renderEntities(const CameraOffset& camera);

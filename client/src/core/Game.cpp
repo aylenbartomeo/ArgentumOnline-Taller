@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <iostream>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
@@ -10,10 +11,12 @@
 #include <vector>
 
 #include <SDL2/SDL.h>
+#include <SDL_ttf.h>
 
 #include "../animation/CharacterSprites.h"
 #include "../animation/Death.h"
 #include "../animation/FxAnimator.h"
+#include "../ui/GroundItemLabel.h"
 #include "../ui/HealthBar.h"
 #include "common/include/dto/CheatDTO.h"
 #include "common/include/dto/ClientCommands.h"
@@ -118,6 +121,16 @@ Game::Game(Client& client):
         lastMoveSentMs(0) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
     window.getRenderer().SetLogicalSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    worldFont = TTF_OpenFont(HUD_FONT_PATH, 12);
+    if (worldFont == nullptr) {
+        std::cerr << "No pude abrir la fuente del texto del mundo: " << TTF_GetError() << std::endl;
+    }
+}
+
+Game::~Game() {
+    if (worldFont != nullptr) {
+        TTF_CloseFont(worldFont);
+    }
 }
 
 void Game::run() {
@@ -367,8 +380,40 @@ void Game::renderGroundItems(const CameraOffset& camera) {
             const int dstY = item.y * TILE_SIZE + TILE_SIZE - dstH - camera.y;
 
             renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
+
+            if (auto label = groundAmountLabel(item.amount)) {
+                drawGroundAmount(renderer, *label, item.x, item.y, camera);
+            }
         }
     }
+}
+
+void Game::drawGroundAmount(SDL2pp::Renderer& renderer, const std::string& text, int tileX,
+                            int tileY, const CameraOffset& camera) {
+    if (worldFont == nullptr) {
+        return;
+    }
+    const SDL_Color white{255, 255, 255, 255};
+    SDL_Surface* surf = TTF_RenderUTF8_Blended(worldFont, text.c_str(), white);
+    if (surf == nullptr) {
+        return;
+    }
+    SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer.Get(), surf);
+    const int w = surf->w;
+    const int h = surf->h;
+    SDL_FreeSurface(surf);
+    if (tex == nullptr) {
+        return;
+    }
+    const int x = tileX * TILE_SIZE + TILE_SIZE / 2 - w / 2 - camera.x;
+    const int y = tileY * TILE_SIZE + TILE_SIZE - h - camera.y;
+    SDL_SetTextureColorMod(tex, 0, 0, 0);
+    SDL_Rect shadow{x + 1, y + 1, w, h};
+    SDL_RenderCopy(renderer.Get(), tex, nullptr, &shadow);
+    SDL_SetTextureColorMod(tex, 255, 255, 255);
+    SDL_Rect dst{x, y, w, h};
+    SDL_RenderCopy(renderer.Get(), tex, nullptr, &dst);
+    SDL_DestroyTexture(tex);
 }
 
 void Game::renderCitizens(const CameraOffset& camera) {
