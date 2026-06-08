@@ -1,10 +1,9 @@
 #include "Weapon.h"
-
 #include <stdexcept>
 #include <utility>
 
+#include "../interfaces/CombatStrategies.h"
 #include "../components/EquipmentComponent.h"
-
 #include "FormulaEngine.h"
 
 Weapon::Weapon(int id, std::string name, int price, WeaponType type, int minDamage, int maxDamage,
@@ -32,13 +31,26 @@ Weapon::Weapon(int id, std::string name, int price, WeaponType type, int minDama
     if (manaCost < 0) {
         throw std::invalid_argument("Weapon mana cost cannot be negative");
     }
-}
-
-bool Weapon::isMagic() const {
-    if (type == WeaponType::MAGIC) {
-        return true;
+    
+    // --- INYECCIÓN AUTOMÁTICA SEGÚN EL TIPO (COMPATIBILIDAD) ---
+    if (type == WeaponType::MELEE) {
+        deliveryStrategy = std::make_unique<InstantMeleeDelivery>();
+        hitEffectStrategy = std::make_unique<MeleeDamageEffect>();
+    } 
+    else if (type == WeaponType::MAGIC) {
+        // ¡BASTONES MÁGICOS! Disparan proyectil y consumen maná
+        deliveryStrategy = std::make_unique<ProjectileDelivery>();
+        hitEffectStrategy = std::make_unique<MagicDamageEffect>();
     }
-    return false;
+    else if (type == WeaponType::RANGED) {
+        // ¡ARCOS! Flechas infinitas (no consumen recurso), generan daño físico mediante proyectil
+        deliveryStrategy = std::make_unique<ProjectileDelivery>();
+        hitEffectStrategy = std::make_unique<MeleeDamageEffect>();
+    }
+    // else if (type == WeaponType::SUPPORT_MAGIC) {
+    //     deliveryStrategy = std::make_unique<ProjectileDelivery>(); // Dispara un rayo/proyectil sanador
+    //     hitEffectStrategy = std::make_unique<MagicHealEffect>();   // Que cura al impactar
+    // }
 }
 
 int Weapon::getMinDamage() const { return minDamage; }
@@ -47,12 +59,15 @@ WeaponType Weapon::getType() const { return type; }
 int Weapon::getAttackRange() const { return attackRange; }
 int Weapon::getManaCost() const { return manaCost; }
 
-uint16_t Weapon::calculateDamage(uint16_t attackPower) const {
-    return FormulaEngine::getInstance().calculate_base_damage(
-            attackPower, static_cast<uint16_t>(this->minDamage),
-            static_cast<uint16_t>(this->maxDamage));
-}
-
 void Weapon::equip_on(EquipmentComponent& equipment, uint8_t slotIndex) const {
     equipment.equipWeapon(this, slotIndex);
 }
+
+bool Weapon::isMagic() const { 
+    if (type == WeaponType::MAGIC) {
+        return true;
+    }
+    return false;
+}
+
+Weapon::~Weapon() = default;

@@ -10,6 +10,10 @@
 #include "model/entities/Player.h"
 #include "model/events/EventPublisher.h"
 
+struct CombatModifiers; 
+class IHitEffect;
+class Weapon;
+
 class ICombatEventCallback {
 public:
     virtual void onMonsterDeath(const Monster& monster, uint32_t killerDbId) = 0;
@@ -54,9 +58,6 @@ private:
     CombatResult resolveCombat(const Attackable& attacker, Attackable& target,
                                const AttackParams& params);
 
-    // Player ataca a cualquier entidad (Player o Monster)
-    CombatResult processAttack(Player& attacker, Attackable& target);
-
     // Monster ataca a cualquier entidad (típicamente un Player)
     CombatResult processAttack(const Monster& attacker, Attackable& target);
 
@@ -74,6 +75,15 @@ public:
 
     bool areClanmates(uint32_t dbId1, uint32_t dbId2) const;
     int countNearbyClanmates(uint32_t dbId, int range) const;
+
+    // Este método se encarga estrictamente de calcular el daño final y aplicarlo.
+    // Es el que invocará polimórficamente tu futuro IHitEffect o el ProjectileSystem.
+    CombatResult applyDamageEffect(Attackable& attacker, Attackable& target, 
+                                   const AttackParams& params);
+
+    void onProjectileHit(Attackable& attacker, Attackable& target, 
+                     IHitEffect* hitEffect, const CombatModifiers& modifiers, 
+                     const Weapon& weapon);
 };
 
-#endif  // COMBAT_SYSTEM_H
+#endif
