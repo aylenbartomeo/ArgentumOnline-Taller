@@ -70,8 +70,10 @@ constexpr int DARK_GROUND_SRC_X = 512;
 constexpr int DARK_GROUND_SRC_Y = 480;
 constexpr int GROUND_TILE = 32;
 
-constexpr int PROJ_DRAW_W = 24;
-constexpr int PROJ_DRAW_H = 8;
+constexpr int PROJ_DRAW_W = 64;
+constexpr int PROJ_DRAW_H = 64;
+constexpr int PROJ_FRAME_COLS = 8;
+constexpr int PROJ_FRAME_SIZE = 64;
 constexpr const char* PROJ_SHEET = "projectiles.png";
 
 const char* citizenSheet(const std::string& type) {
@@ -160,6 +162,9 @@ void Game::processCheats(const FrameInput& input) {
     }
     if (input.cheatDie) {
         client.sendCommand(CheatDTO{CheatType::DIE});
+    }
+    if (input.cheatGiveBow) {
+        client.sendCommand(CheatDTO{CheatType::GIVE_BOW});
     }
 }
 
@@ -352,21 +357,18 @@ void Game::renderProjectiles(const CameraOffset& camera) {
         const int px = static_cast<int>(anim.getVirtualX() * TILE_SIZE) - camera.x;
         const int py = static_cast<int>(anim.getVirtualY() * TILE_SIZE) - camera.y;
 
-        // Guardar última posición en píxeles (para FX al morir)
         anim.lastPixelX = px + camera.x;
         anim.lastPixelY = py + camera.y;
 
         const SDL2pp::Rect dst(px - PROJ_DRAW_W / 2, py - PROJ_DRAW_H / 2, PROJ_DRAW_W,
                                PROJ_DRAW_H);
 
-        // Ángulo de rotación en grados
-        const double angle = std::atan2(anim.getVelY(), anim.getVelX()) * 180.0 / M_PI;
+        const int frame = (now / 100) % 64;
+        const int srcX = (frame % PROJ_FRAME_COLS) * PROJ_FRAME_SIZE;
+        const int srcY = (frame / PROJ_FRAME_COLS) * PROJ_FRAME_SIZE;
 
-        renderer.Copy(sheet,
-                      SDL2pp::Rect(0, 0, PROJ_DRAW_W, PROJ_DRAW_H),  // src: ajustar por spriteId
-                      dst, angle,
-                      SDL2pp::NullOpt,  // centro de rotación = centro del rect
-                      SDL_FLIP_NONE);
+        renderer.Copy(sheet, SDL2pp::Rect(srcX, srcY, PROJ_FRAME_SIZE, PROJ_FRAME_SIZE), dst, 0.0,
+                      SDL2pp::NullOpt, SDL_FLIP_NONE);
     }
 }
 

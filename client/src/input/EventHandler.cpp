@@ -128,6 +128,7 @@ FrameInput EventHandler::pollEvents() {
         bool shiftHeld = (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0;
         input.cheatLevelUp = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_L);
         input.cheatDie = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_K);
+        input.cheatGiveBow = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_B);
     }
 
     input.attackPressed = attackThisFrame;
