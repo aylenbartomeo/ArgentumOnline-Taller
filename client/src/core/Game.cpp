@@ -79,6 +79,17 @@ constexpr int PROJ_FRAME_COLS = 8;
 constexpr int PROJ_FRAME_SIZE = 64;
 constexpr const char* PROJ_SHEET = "projectiles.png";
 
+constexpr const char* ARROW_SHEET = "2046.png";
+constexpr int ARROW_FRAME_COLS = 2;
+constexpr int ARROW_FRAME_ROWS = 1;
+constexpr int ARROW_FRAME_W = 32;
+constexpr int ARROW_FRAME_H = 32;
+constexpr int ARROW_SRC_Y = 224;
+constexpr int ARROW_SRC_X0 = 32;
+constexpr int ARROW_DRAW_W = 48;
+constexpr int ARROW_DRAW_H = 48;
+constexpr uint16_t ARROW_SPRITE_ID = 200;
+
 const char* citizenSheet(const std::string& type) {
     if (type == "merchant")
         return "1077.png";
@@ -381,11 +392,11 @@ void Game::renderProjectiles(const CameraOffset& camera) {
     const uint32_t now = SDL_GetTicks();
     SDL2pp::Renderer& renderer = window.getRenderer();
 
-    const std::string path = std::string(RESOURCES_DIR) + PROJ_SHEET;
-    if (!std::ifstream(path).good())
+    const std::string defaultPath = std::string(RESOURCES_DIR) + PROJ_SHEET;
+    if (!std::ifstream(defaultPath).good())
         return;
 
-    SDL2pp::Texture& sheet = textures.get(path);
+    SDL2pp::Texture& defaultSheet = textures.get(defaultPath);
 
     for (auto& [id, anim]: projectileAnimators) {
         anim.extrapolate(now);
@@ -395,16 +406,36 @@ void Game::renderProjectiles(const CameraOffset& camera) {
 
         anim.lastPixelX = px + camera.x;
         anim.lastPixelY = py + camera.y;
+        printf("[PROJ] id=%u spriteId=%u\n", id, anim.getSpriteId());
+        if (anim.getSpriteId() == ARROW_SPRITE_ID) {
+            const std::string arrowPath = std::string(RESOURCES_DIR) + ARROW_SHEET;
+            if (!std::ifstream(arrowPath).good())
+                continue;
 
-        const SDL2pp::Rect dst(px - PROJ_DRAW_W / 2, py - PROJ_DRAW_H / 2, PROJ_DRAW_W,
-                               PROJ_DRAW_H);
+            SDL2pp::Texture& arrowSheet = textures.get(arrowPath);
 
-        const int frame = (now / 100) % 64;
-        const int srcX = (frame % PROJ_FRAME_COLS) * PROJ_FRAME_SIZE;
-        const int srcY = (frame / PROJ_FRAME_COLS) * PROJ_FRAME_SIZE;
+            const int frame = (now / 80) % ARROW_FRAME_COLS;
+            const int srcX = ARROW_SRC_X0 + frame * ARROW_FRAME_W;
+            const int srcY = ARROW_SRC_Y;
 
-        renderer.Copy(sheet, SDL2pp::Rect(srcX, srcY, PROJ_FRAME_SIZE, PROJ_FRAME_SIZE), dst, 0.0,
-                      SDL2pp::NullOpt, SDL_FLIP_NONE);
+            const SDL2pp::Rect dst(px - ARROW_DRAW_W / 2, py - ARROW_DRAW_H / 2, ARROW_DRAW_W,
+                                   ARROW_DRAW_H);
+
+            // Rotar la flecha según dirección de vuelo
+            const float angle = std::atan2(anim.getVelY(), anim.getVelX()) * 180.0f / M_PI;
+            renderer.Copy(arrowSheet, SDL2pp::Rect(srcX, srcY, ARROW_FRAME_W, ARROW_FRAME_H), dst,
+                          angle, SDL2pp::NullOpt, SDL_FLIP_NONE);
+        } else {
+            // Comportamiento original: fuego
+            const int frame = (now / 100) % 64;
+            const int srcX = (frame % PROJ_FRAME_COLS) * PROJ_FRAME_SIZE;
+            const int srcY = (frame / PROJ_FRAME_COLS) * PROJ_FRAME_SIZE;
+            const SDL2pp::Rect dst(px - PROJ_DRAW_W / 2, py - PROJ_DRAW_H / 2, PROJ_DRAW_W,
+                                   PROJ_DRAW_H);
+
+            renderer.Copy(defaultSheet, SDL2pp::Rect(srcX, srcY, PROJ_FRAME_SIZE, PROJ_FRAME_SIZE),
+                          dst, 0.0, SDL2pp::NullOpt, SDL_FLIP_NONE);
+        }
     }
 }
 

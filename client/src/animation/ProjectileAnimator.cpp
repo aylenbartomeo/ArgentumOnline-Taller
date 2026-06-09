@@ -8,6 +8,7 @@ void ProjectileAnimator::update(const ProjectileDTO& dto, uint32_t nowMs) {
     velX = dto.velX / 1000.f;
     velY = dto.velY / 1000.f;
     lastUpdateMs = nowMs;
+    spriteId = dto.spriteId;
     initialized = true;
 }
 
