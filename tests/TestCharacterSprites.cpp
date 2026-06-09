@@ -26,16 +26,16 @@ TEST(CharacterSpritesTest, PlayerAndNpcUseDifferentBodies) {
                  spriteForEntity(EntityType::NPC, 0).bodySheet);
 }
 
-TEST(CharacterSpritesTest, MonsterGoblinUses1800) {
+TEST(CharacterSpritesTest, MonsterGoblinUses4015) {
     EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOBLIN), 0)
                          .bodySheet,
-                 "1800.png");
+                 "4015.png");
 }
 
-TEST(CharacterSpritesTest, MonsterOrcUses1875) {
+TEST(CharacterSpritesTest, MonsterOrcUses4017) {
     EXPECT_STREQ(
             spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ORC), 0).bodySheet,
-            "1875.png");
+            "4017.png");
 }
 
 TEST(CharacterSpritesTest, MonsterZombieUses1892) {
@@ -44,29 +44,25 @@ TEST(CharacterSpritesTest, MonsterZombieUses1892) {
                  "1892.png");
 }
 
-TEST(CharacterSpritesTest, MonsterSpiderUses1052) {
+TEST(CharacterSpritesTest, MonsterSpiderUses4151) {
     EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SPIDER), 0)
                          .bodySheet,
-                 "1052.png");
+                 "4151.png");
 }
 
-TEST(CharacterSpritesTest, MonsterGolemUses1140) {
+TEST(CharacterSpritesTest, MonsterGolemUses4091) {
     EXPECT_STREQ(
             spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOLEM), 0).bodySheet,
-            "1140.png");
+            "4091.png");
 }
 
-TEST(CharacterSpritesTest, MonsterSkeletonUses152Png) {
+TEST(CharacterSpritesTest, MonsterSkeletonUses4079) {
     EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SKELETON), 0)
                          .bodySheet,
-                 "152.png");
+                 "4079.png");
 }
 
-TEST(CharacterSpritesTest, HumanoidMonstersDrawHead) {
-    EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOBLIN), 0)
-                        .drawHead);
-    EXPECT_TRUE(
-            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ORC), 0).drawHead);
+TEST(CharacterSpritesTest, ZombieDrawsHead) {
     EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0)
                         .drawHead);
 }
@@ -78,15 +74,13 @@ TEST(CharacterSpritesTest, BeastMonstersHaveNoHead) {
             spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOLEM), 0).drawHead);
     EXPECT_FALSE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SKELETON), 0)
                          .drawHead);
+    EXPECT_FALSE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOBLIN), 0)
+                         .drawHead);
+    EXPECT_FALSE(
+            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ORC), 0).drawHead);
 }
 
-TEST(CharacterSpritesTest, GreenMonstersUseGreenHeadSheets) {
-    EXPECT_STREQ(
-            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ORC), 0).headSheet,
-            "430.png");
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOBLIN), 0)
-                         .headSheet,
-                 "422.png");
+TEST(CharacterSpritesTest, ZombieUsesHeadSheet) {
     EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0)
                          .headSheet,
                  "420.png");
@@ -100,8 +94,9 @@ TEST(CharacterSpritesTest, MonsterHeadUsesDownRow) {
     EXPECT_EQ(s.headSrcH, 15);
 }
 
-TEST(CharacterSpritesTest, HumanoidBodyUsesStandardCrop) {
-    EntitySprite s = spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOBLIN), 0);
+TEST(CharacterSpritesTest, ZombieBodyUsesStandardCrop) {
+    EntitySprite s = spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0);
+    EXPECT_FALSE(s.customGrid);
     EXPECT_EQ(s.bodySrcX, 2);
     EXPECT_EQ(s.bodySrcY, 4);
     EXPECT_EQ(s.bodySrcW, 24);
@@ -111,22 +106,91 @@ TEST(CharacterSpritesTest, HumanoidBodyUsesStandardCrop) {
 TEST(CharacterSpritesTest, BeastsUseFullFigureBody) {
     EXPECT_EQ(
             spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOLEM), 0).bodySrcH,
-            30);
+            72);
     EXPECT_EQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SKELETON), 0)
                       .bodySrcH,
-              38);
-    EXPECT_NE(
-            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SPIDER), 0).bodySrcH,
-            44);
+              48);
 }
 
-TEST(CharacterSpritesTest, BeastBodyStaysWithinDownRow) {
+TEST(CharacterSpritesTest, SpiderUsesFiveColumnCustomGrid) {
     EntitySprite s = spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SPIDER), 0);
-    EXPECT_LT(s.bodySrcY + s.bodySrcH, 48);
+    EXPECT_TRUE(s.customGrid);
+    EXPECT_EQ(s.bodyCols, 5);
 }
 
 TEST(CharacterSpritesTest, PlayerHeadUsesFirstColumn) {
     EntitySprite s = spriteForEntity(EntityType::PLAYER, 0);
     EXPECT_EQ(s.headSrcX, 6);
     EXPECT_EQ(s.headSrcY, 13);
+}
+
+TEST(CharacterSpritesTest, BodyFrameRectForColZeroDownIsOrigin) {
+    EntitySprite s{};
+    s.bodySrcX = 10;
+    s.bodySrcY = 20;
+    s.bodySrcW = 22;
+    s.bodySrcH = 48;
+    s.bodyStrideX = 24;
+    s.bodyStrideY = 51;
+    s.bodyCols = 6;
+    FrameRect r = bodyFrameRectFor(s, Movement::DOWN, 0);
+    EXPECT_EQ(r.x, 10);
+    EXPECT_EQ(r.y, 20);
+    EXPECT_EQ(r.w, 22);
+    EXPECT_EQ(r.h, 48);
+}
+
+TEST(CharacterSpritesTest, BodyFrameRectForColAddsStrideX) {
+    EntitySprite s{};
+    s.bodySrcX = 10;
+    s.bodySrcY = 20;
+    s.bodySrcW = 22;
+    s.bodySrcH = 48;
+    s.bodyStrideX = 24;
+    s.bodyStrideY = 51;
+    s.bodyCols = 6;
+    FrameRect r = bodyFrameRectFor(s, Movement::DOWN, 2);
+    EXPECT_EQ(r.x, 58);
+    EXPECT_EQ(r.y, 20);
+}
+
+TEST(CharacterSpritesTest, BodyFrameRectForRightUsesRowThree) {
+    EntitySprite s{};
+    s.bodySrcX = 10;
+    s.bodySrcY = 20;
+    s.bodySrcW = 22;
+    s.bodySrcH = 48;
+    s.bodyStrideX = 24;
+    s.bodyStrideY = 51;
+    s.bodyCols = 6;
+    FrameRect r = bodyFrameRectFor(s, Movement::RIGHT, 0);
+    EXPECT_EQ(r.y, 173);
+}
+
+TEST(CharacterSpritesTest, BodyFrameRectForClampsCol) {
+    EntitySprite s{};
+    s.bodySrcX = 10;
+    s.bodySrcY = 20;
+    s.bodySrcW = 22;
+    s.bodySrcH = 48;
+    s.bodyStrideX = 24;
+    s.bodyStrideY = 51;
+    s.bodyCols = 5;
+    FrameRect r = bodyFrameRectFor(s, Movement::DOWN, 99);
+    EXPECT_EQ(r.x, 106);
+}
+
+TEST(CharacterSpritesTest, NewMonstersUseCustomGrid) {
+    EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOBLIN), 0)
+                        .customGrid);
+    EXPECT_TRUE(
+            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ORC), 0).customGrid);
+    EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOLEM), 0)
+                        .customGrid);
+    EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SKELETON), 0)
+                        .customGrid);
+    EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SPIDER), 0)
+                        .customGrid);
+    EXPECT_FALSE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0)
+                         .customGrid);
 }

@@ -5,6 +5,8 @@
 
 #include "common/include/dto/Snapshot.h"
 
+#include "CharacterAnimator.h"
+
 struct EntitySprite {
     const char* bodySheet;
     bool drawHead;
@@ -19,8 +21,14 @@ struct EntitySprite {
     int bodySrcW;
     int bodySrcH;
     int bodyScale = 100;
+    bool customGrid = false;
+    int bodyStrideX = 0;
+    int bodyStrideY = 0;
+    int bodyCols = 1;
 };
 
 EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t entityId = 0);
+
+FrameRect bodyFrameRectFor(const EntitySprite& sprite, Movement facing, int col);
 
 #endif
