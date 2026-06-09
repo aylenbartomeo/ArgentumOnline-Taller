@@ -16,6 +16,7 @@ Movement directionFromDelta(int dx, int dy);
 
 FrameRect bodyFrameRect(Movement facing, int frameCol);
 FrameRect headFrameRect(Movement facing);
+int rowForFacing(Movement facing);
 
 class CharacterAnimator {
 public:
