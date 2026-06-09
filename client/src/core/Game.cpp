@@ -66,6 +66,17 @@ constexpr int FX_DRAW_W = TILE_SIZE * 3 / 2;
 constexpr int FX_DRAW_H = FX_DRAW_W * FX_FRAME_H / FX_FRAME_W;
 constexpr int ATTACK_RANGE_TILES = 1;
 
+// SWORD
+constexpr const char* SWORD_FX_SHEET = "2101.png";
+constexpr int SWORD_FRAME_W = 32;
+constexpr int SWORD_FRAME_H = 32;
+constexpr int SWORD_FRAME_COLS = 5;
+constexpr int SWORD_FRAME_COUNT = 21;
+constexpr uint32_t SWORD_FRAME_DUR_MS = 40;
+constexpr int SWORD_DRAW_W = TILE_SIZE * 2;
+constexpr int SWORD_DRAW_H = TILE_SIZE * 2;
+constexpr uint32_t SWORD_WEAPON_ID = 2000;
+
 constexpr const char* GROUND_SHEET = "5108.png";
 constexpr int GROUND_SRC_X = 416;
 constexpr int GROUND_SRC_Y = 384;
@@ -79,6 +90,7 @@ constexpr int PROJ_FRAME_COLS = 8;
 constexpr int PROJ_FRAME_SIZE = 64;
 constexpr const char* PROJ_SHEET = "projectiles.png";
 
+// ARROW
 constexpr const char* ARROW_SHEET = "2046.png";
 constexpr int ARROW_FRAME_COLS = 2;
 constexpr int ARROW_FRAME_ROWS = 1;
@@ -265,6 +277,13 @@ void Game::sendMoveIfDue(const FrameInput& input) {
     }
 }
 
+static bool hasSwordEquipped(const PlayerStatsDTO& stats) {
+    return std::any_of(stats.inventory.begin(), stats.inventory.end(),
+                       [](const InventorySlotDTO& slot) {
+                           return slot.isEquipped && slot.itemId == SWORD_WEAPON_ID;
+                       });
+}
+
 void Game::processCombatInput(const FrameInput& input, const CameraOffset& camera) {
     if (input.resurrectPressed) {
         client.sendCommand(ResurrectDTO{});
@@ -301,7 +320,7 @@ void Game::processCombatInput(const FrameInput& input, const CameraOffset& camer
                                                         client.getClientId(), ATTACK_RANGE_TILES);
     if (target) {
         client.sendCommand(AttackDTO{*target});
-        activeFx = ActiveFx{*target, SDL_GetTicks()};
+        activeFx = ActiveFx{*target, SDL_GetTicks(), 0, 0, hasSwordEquipped(lastStats)};
     }
 }
 
@@ -311,7 +330,9 @@ void Game::renderFx(const CameraOffset& camera) {
     }
 
     const uint32_t now = SDL_GetTicks();
-    const int frame = fxFrameIndex(now - activeFx->startMs, FX_FRAME_DUR_MS, FX_FRAME_COUNT);
+    const uint32_t dur = activeFx->isSword ? SWORD_FRAME_DUR_MS : FX_FRAME_DUR_MS;
+    const int count = activeFx->isSword ? SWORD_FRAME_COUNT : FX_FRAME_COUNT;
+    const int frame = fxFrameIndex(now - activeFx->startMs, dur, count);
     if (frame < 0) {
         activeFx.reset();
         return;
@@ -345,20 +366,29 @@ void Game::renderFx(const CameraOffset& camera) {
                                            target->y * TILE_SIZE;
     }
 
-    const std::string path = std::string(RESOURCES_DIR) + FX_SHEET;
-    if (!std::ifstream(path).good()) {
-        return;
+    if (activeFx->isSword) {
+        const std::string swordPath = std::string(RESOURCES_DIR) + SWORD_FX_SHEET;
+        if (!std::ifstream(swordPath).good())
+            return;
+        SDL2pp::Renderer& renderer = window.getRenderer();
+        SDL2pp::Texture& swordTex = textures.get(swordPath);
+        const FrameRect fr = fxFrameRect(frame, SWORD_FRAME_W, SWORD_FRAME_H, SWORD_FRAME_COLS);
+        const int dstX = baseX + TILE_SIZE / 2 - SWORD_DRAW_W / 2 - camera.x;
+        const int dstY = baseY + TILE_SIZE - SWORD_DRAW_H - camera.y;
+        const SDL2pp::Rect dst(dstX, dstY, SWORD_DRAW_W, SWORD_DRAW_H);
+        renderer.Copy(swordTex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst);
+    } else {
+        const std::string path = std::string(RESOURCES_DIR) + FX_SHEET;
+        if (!std::ifstream(path).good())
+            return;
+        SDL2pp::Renderer& renderer = window.getRenderer();
+        SDL2pp::Texture& fx = textures.get(path);
+        const FrameRect fr = fxFrameRect(frame, FX_FRAME_W, FX_FRAME_H, FX_COLS);
+        const int dstX = baseX + TILE_SIZE / 2 - FX_DRAW_W / 2 - camera.x;
+        const int dstY = baseY + TILE_SIZE - FX_DRAW_H - camera.y;
+        const SDL2pp::Rect dst(dstX, dstY, FX_DRAW_W, FX_DRAW_H);
+        renderer.Copy(fx, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst);
     }
-
-    SDL2pp::Renderer& renderer = window.getRenderer();
-    SDL2pp::Texture& fx = textures.get(path);
-    const FrameRect fr = fxFrameRect(frame, FX_FRAME_W, FX_FRAME_H, FX_COLS);
-
-    const int dstX = baseX + TILE_SIZE / 2 - FX_DRAW_W / 2 - camera.x;
-    const int dstY = baseY + TILE_SIZE - FX_DRAW_H - camera.y;
-    const SDL2pp::Rect dst(dstX, dstY, FX_DRAW_W, FX_DRAW_H);
-
-    renderer.Copy(fx, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst);
 }
 
 void Game::syncProjectileAnimators(uint32_t nowMs) {

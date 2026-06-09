@@ -48,6 +48,7 @@ private:
         uint32_t startMs;
         int fixedPixelX = 0;
         int fixedPixelY = 0;
+        bool isSword = false;
     };
     std::optional<ActiveFx> activeFx;
 
