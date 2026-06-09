@@ -24,8 +24,8 @@ EntitySprite spriteForEntity(EntityType type, uint16_t spriteId) {
                     return EntitySprite{"1140.png", false, 0, "420.png", 6,  13,
                                         13,         15,    3, 16,        21, 30};
                 case 1238:
-                    return EntitySprite{"152.png", false, 0, "420.png", 6,  13,
-                                        13,        15,    4, 4,         22, 38};
+                    return EntitySprite{"152.png", false, 0, "420.png", 6,  13, 13,
+                                        15,        4,     4, 22,        38, 140};
                 default:
                     return EntitySprite{"1200.png", false, 0, "420.png", 6,  13,
                                         13,         15,    2, 4,         24, 44};

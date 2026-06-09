@@ -18,6 +18,7 @@ struct EntitySprite {
     int bodySrcY;
     int bodySrcW;
     int bodySrcH;
+    int bodyScale = 100;
 };
 
 EntitySprite spriteForEntity(EntityType type, uint16_t spriteId);

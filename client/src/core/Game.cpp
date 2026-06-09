@@ -614,8 +614,8 @@ void Game::renderEntities(const CameraOffset& camera) {
             headSrcRect = SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h);
         }
 
-        const int bodyDstW = bodyW * TILE_SIZE / CHARACTER_FRAME_W;
-        const int bodyDstH = bodyH * CHARACTER_DRAW_H / CHARACTER_FRAME_H;
+        const int bodyDstW = bodyW * TILE_SIZE / CHARACTER_FRAME_W * sprite.bodyScale / 100;
+        const int bodyDstH = bodyH * CHARACTER_DRAW_H / CHARACTER_FRAME_H * sprite.bodyScale / 100;
         const SDL2pp::Rect dstRect(px + (TILE_SIZE - bodyDstW) / 2 - camera.x,
                                    py + TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH);
         renderer.Copy(body, bodySrc, dstRect);
