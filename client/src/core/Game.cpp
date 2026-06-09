@@ -481,9 +481,13 @@ void Game::renderGroundItems(const CameraOffset& camera) {
             const OverlayDef& def = *it;
             SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + def.tilesheet);
             const SDL2pp::Rect srcRect(def.srcX, def.srcY, def.srcW, def.srcH);
-            const int dstW = TILE_SIZE;
-            const int dstH = (def.srcH * TILE_SIZE) / def.srcW;
-            const int dstX = item.x * TILE_SIZE - camera.x;
+            int dstW = def.srcW;
+            int dstH = def.srcH;
+            if (dstW > TILE_SIZE) {
+                dstH = def.srcH * TILE_SIZE / def.srcW;
+                dstW = TILE_SIZE;
+            }
+            const int dstX = item.x * TILE_SIZE + (TILE_SIZE - dstW) / 2 - camera.x;
             const int dstY = item.y * TILE_SIZE + TILE_SIZE - dstH - camera.y;
 
             renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
@@ -606,25 +610,25 @@ void Game::renderEntities(const CameraOffset& camera) {
                                  sprite.headSrcH);
 
         const Movement facing = anim.getFacing();
-        if (static_cast<EntityAction>(entity.action) == EntityAction::WALKING) {
-            const FrameRect bf = bodyFrameRect(facing, anim.frameColumn(now));
-            bodySrc = SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h);
-            bodyW = bf.w;
-            bodyH = bf.h;
-            const FrameRect hf = headFrameRect(facing);
-            headSrcRect = SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h);
-        } else {
-            // Idle frame (frame 0 de la caminata)
-            const FrameRect bf = bodyFrameRect(facing, 0);
-            bodySrc = SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h);
-            bodyW = bf.w;
-            bodyH = bf.h;
+        const int frameCol = (static_cast<EntityAction>(entity.action) == EntityAction::WALKING) ?
+                                     anim.frameColumn(now) :
+                                     0;
+        const FrameRect bf = sprite.customGrid ? bodyFrameRectFor(sprite, facing, frameCol) :
+                                                 bodyFrameRect(facing, frameCol);
+        bodySrc = SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h);
+        bodyW = bf.w;
+        bodyH = bf.h;
+        if (sprite.drawHead) {
             const FrameRect hf = headFrameRect(facing);
             headSrcRect = SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h);
         }
 
-        const int bodyDstW = bodyW * TILE_SIZE / CHARACTER_FRAME_W * sprite.bodyScale / 100;
-        const int bodyDstH = bodyH * CHARACTER_DRAW_H / CHARACTER_FRAME_H * sprite.bodyScale / 100;
+        const int bodyDstW = sprite.customGrid ?
+                                     bodyW * sprite.bodyScale / 100 :
+                                     bodyW * TILE_SIZE / CHARACTER_FRAME_W * sprite.bodyScale / 100;
+        const int bodyDstH = sprite.customGrid ? bodyH * sprite.bodyScale / 100 :
+                                                 bodyH * CHARACTER_DRAW_H / CHARACTER_FRAME_H *
+                                                         sprite.bodyScale / 100;
         const SDL2pp::Rect dstRect(px + (TILE_SIZE - bodyDstW) / 2 - camera.x,
                                    py + TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH);
         renderer.Copy(body, bodySrc, dstRect);
