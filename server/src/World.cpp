@@ -190,6 +190,11 @@ bool World::loadMap(const std::string& path, bool spawnMonstersAndItems) {
     options.spawnGroundItems = spawnMonstersAndItems;
     if (map.loadSpawnFromJson(path, options)) {
         spawnNPCs();
+        if (spawnMonstersAndItems) {
+            for (const auto& req: spawnSystem.getInitialSpawns(map)) {
+                addMonster(req.type, req.pos, *req.config);
+            }
+        }
         return true;
     }
     return false;
