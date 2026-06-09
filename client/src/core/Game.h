@@ -18,6 +18,7 @@
 #include "../rendering/TileMap.h"
 #include "../rendering/Viewport.h"
 #include "../ui/HudPanel.h"
+#include "../ui/ManualPanel.h"
 #include "../ui/MiniChat.h"
 #include "../ui/Window.h"
 #include "common/include/dto/PlayerStatsDTO.h"
@@ -35,6 +36,7 @@ private:
     TileMap map;
     MiniChat miniChat;
     HudPanel hud;
+    ManualPanel manualPanel;
     ChatCommandParser chatParser;
     SnapshotDTO lastSnapshot;
     PlayerStatsDTO lastStats;
@@ -80,6 +82,7 @@ private:
     void sendMoveIfDue(const FrameInput& input);
     void processCombatInput(const FrameInput& input, const CameraOffset& camera);
     void processEquipInput(const FrameInput& input);
+    void processUiInput(const FrameInput& input);
     void renderFx(const CameraOffset& camera);
     void syncProjectileAnimators(uint32_t nowMs);
     void renderProjectiles(const CameraOffset& camera);
