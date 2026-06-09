@@ -6,6 +6,13 @@ un mismo servidor y comparten el mundo en tiempo real. El proyecto incluye el
 cliente gráfico (SDL2 con launcher en Qt5), el servidor de juego y un editor de
 mapas.
 
+## Integrantes
+
+- Aylén Bartomeo — 111738
+- Franco Bustos — 110759
+- Alexander Coronado — 111256
+- Bruno Pezman — 110457
+
 ## Estructura del proyecto
 
 ```
