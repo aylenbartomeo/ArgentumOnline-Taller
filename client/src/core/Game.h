@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 
+#include <SDL2/SDL_mixer.h>
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
@@ -40,12 +41,14 @@ private:
     Uint32 lastMoveSentMs;
     std::unordered_map<uint32_t, CharacterAnimator> animators;
     std::unordered_map<uint32_t, ProjectileAnimator> projectileAnimators;
+    Mix_Music* bgMusic = nullptr;
 
     struct ActiveFx {
         uint32_t targetId;
         uint32_t startMs;
         int fixedPixelX = 0;
         int fixedPixelY = 0;
+        bool isSword = false;
     };
     std::optional<ActiveFx> activeFx;
 
