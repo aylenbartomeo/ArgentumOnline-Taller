@@ -20,6 +20,6 @@ struct EntitySprite {
     int bodySrcH;
 };
 
-EntitySprite spriteForEntity(EntityType type, uint16_t spriteId);
+EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t entityId = 0);
 
 #endif

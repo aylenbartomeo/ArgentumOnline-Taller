@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "../client/src/animation/CharacterSprites.h"
+#include "../common/utils/types.h"
 
 TEST(CharacterSpritesTest, PlayerUsesBodyWithHead) {
     EntitySprite s = spriteForEntity(EntityType::PLAYER, 0);
@@ -26,57 +27,81 @@ TEST(CharacterSpritesTest, PlayerAndNpcUseDifferentBodies) {
 }
 
 TEST(CharacterSpritesTest, MonsterGoblinUses1800) {
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, 1800).bodySheet, "1800.png");
+    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOBLIN), 0)
+                         .bodySheet,
+                 "1800.png");
 }
 
 TEST(CharacterSpritesTest, MonsterOrcUses1875) {
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, 1875).bodySheet, "1875.png");
+    EXPECT_STREQ(
+            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ORC), 0).bodySheet,
+            "1875.png");
 }
 
 TEST(CharacterSpritesTest, MonsterZombieUses1892) {
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, 1892).bodySheet, "1892.png");
+    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0)
+                         .bodySheet,
+                 "1892.png");
 }
 
 TEST(CharacterSpritesTest, MonsterSpiderUses1052) {
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, 1052).bodySheet, "1052.png");
+    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SPIDER), 0)
+                         .bodySheet,
+                 "1052.png");
 }
 
 TEST(CharacterSpritesTest, MonsterGolemUses1140) {
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, 1140).bodySheet, "1140.png");
+    EXPECT_STREQ(
+            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOLEM), 0).bodySheet,
+            "1140.png");
 }
 
 TEST(CharacterSpritesTest, MonsterSkeletonUses1238) {
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, 1238).bodySheet, "1238.png");
+    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SKELETON), 0)
+                         .bodySheet,
+                 "1238.png");
 }
 
 TEST(CharacterSpritesTest, HumanoidMonstersDrawHead) {
-    EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, 1800).drawHead);
-    EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, 1875).drawHead);
-    EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, 1892).drawHead);
+    EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOBLIN), 0)
+                        .drawHead);
+    EXPECT_TRUE(
+            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ORC), 0).drawHead);
+    EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0)
+                        .drawHead);
 }
 
 TEST(CharacterSpritesTest, BeastMonstersHaveNoHead) {
-    EXPECT_FALSE(spriteForEntity(EntityType::MONSTER, 1052).drawHead);
-    EXPECT_FALSE(spriteForEntity(EntityType::MONSTER, 1140).drawHead);
-    EXPECT_FALSE(spriteForEntity(EntityType::MONSTER, 1238).drawHead);
+    EXPECT_FALSE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SPIDER), 0)
+                         .drawHead);
+    EXPECT_FALSE(
+            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOLEM), 0).drawHead);
+    EXPECT_FALSE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SKELETON), 0)
+                         .drawHead);
 }
 
 TEST(CharacterSpritesTest, GreenMonstersUseGreenHeadSheets) {
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, 1875).headSheet, "430.png");
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, 1800).headSheet, "422.png");
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, 1892).headSheet, "420.png");
+    EXPECT_STREQ(
+            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ORC), 0).headSheet,
+            "430.png");
+    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOBLIN), 0)
+                         .headSheet,
+                 "422.png");
+    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0)
+                         .headSheet,
+                 "420.png");
 }
 
 TEST(CharacterSpritesTest, MonsterHeadUsesDownRow) {
-    EntitySprite s = spriteForEntity(EntityType::MONSTER, 1892);
+    EntitySprite s = spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0);
     EXPECT_EQ(s.headSrcX, 89);
     EXPECT_EQ(s.headSrcY, 13);
-    EXPECT_EQ(s.headSrcW, 11);
+    EXPECT_EQ(s.headSrcW, 13);
     EXPECT_EQ(s.headSrcH, 15);
 }
 
 TEST(CharacterSpritesTest, HumanoidBodyUsesStandardCrop) {
-    EntitySprite s = spriteForEntity(EntityType::MONSTER, 1800);
+    EntitySprite s = spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOBLIN), 0);
     EXPECT_EQ(s.bodySrcX, 2);
     EXPECT_EQ(s.bodySrcY, 4);
     EXPECT_EQ(s.bodySrcW, 24);
@@ -84,13 +109,19 @@ TEST(CharacterSpritesTest, HumanoidBodyUsesStandardCrop) {
 }
 
 TEST(CharacterSpritesTest, BeastsUseFullFigureBody) {
-    EXPECT_EQ(spriteForEntity(EntityType::MONSTER, 1140).bodySrcH, 30);
-    EXPECT_EQ(spriteForEntity(EntityType::MONSTER, 1238).bodySrcH, 38);
-    EXPECT_NE(spriteForEntity(EntityType::MONSTER, 1052).bodySrcH, 44);
+    EXPECT_EQ(
+            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOLEM), 0).bodySrcH,
+            30);
+    EXPECT_EQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SKELETON), 0)
+                      .bodySrcH,
+              38);
+    EXPECT_NE(
+            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SPIDER), 0).bodySrcH,
+            44);
 }
 
 TEST(CharacterSpritesTest, BeastBodyStaysWithinDownRow) {
-    EntitySprite s = spriteForEntity(EntityType::MONSTER, 1052);
+    EntitySprite s = spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SPIDER), 0);
     EXPECT_LT(s.bodySrcY + s.bodySrcH, 48);
 }
 

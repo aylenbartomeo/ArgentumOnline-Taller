@@ -444,7 +444,7 @@ void Game::renderEntities(const CameraOffset& camera) {
             renderer.Copy(skull, SDL2pp::Rect(sf.x, sf.y, sf.w, sf.h), skullDst);
             return;
         }
-        const EntitySprite sprite = spriteForEntity(entity.type, entity.sprite_id);
+        const EntitySprite sprite = spriteForEntity(entity.type, entity.entityTypeId, entity.id);
         SDL2pp::Texture& body = textures.get(std::string(RESOURCES_DIR) + sprite.bodySheet);
 
         int bodyW = sprite.bodySrcW;
@@ -452,9 +452,18 @@ void Game::renderEntities(const CameraOffset& camera) {
         SDL2pp::Rect bodySrc(sprite.bodySrcX, sprite.bodySrcY, bodyW, bodyH);
         SDL2pp::Rect headSrcRect(sprite.headSrcX, sprite.headSrcY, sprite.headSrcW,
                                  sprite.headSrcH);
-        if (entity.type == EntityType::PLAYER) {
-            const Movement facing = anim.getFacing();
+
+        const Movement facing = anim.getFacing();
+        if (static_cast<EntityAction>(entity.action) == EntityAction::WALKING) {
             const FrameRect bf = bodyFrameRect(facing, anim.frameColumn(now));
+            bodySrc = SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h);
+            bodyW = bf.w;
+            bodyH = bf.h;
+            const FrameRect hf = headFrameRect(facing);
+            headSrcRect = SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h);
+        } else {
+            // Idle frame (frame 0 de la caminata)
+            const FrameRect bf = bodyFrameRect(facing, 0);
             bodySrc = SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h);
             bodyW = bf.w;
             bodyH = bf.h;
