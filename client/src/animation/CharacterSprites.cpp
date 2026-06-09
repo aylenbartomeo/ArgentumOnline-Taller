@@ -36,8 +36,18 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         .bodyStrideY = 69,
                                         .bodyCols = 6};
                 case NPCType::ZOMBIE:
-                    return EntitySprite{"1892.png", true, 9, "420.png", 89, 13,
-                                        13,         15,   2, 4,         24, 44};
+                    return EntitySprite{.bodySheet = "4044.png",
+                                        .drawHead = false,
+                                        .headSheet = "420.png",
+                                        .bodySrcX = 5,
+                                        .bodySrcY = 2,
+                                        .bodySrcW = 20,
+                                        .bodySrcH = 44,
+                                        .bodyScale = 130,
+                                        .customGrid = true,
+                                        .bodyStrideX = 23,
+                                        .bodyStrideY = 47,
+                                        .bodyCols = 8};
                 case NPCType::SPIDER:
                     return EntitySprite{.bodySheet = "4151.png",
                                         .drawHead = false,

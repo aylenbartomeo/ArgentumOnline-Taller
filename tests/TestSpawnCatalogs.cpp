@@ -17,7 +17,7 @@ TEST(SpawnCatalogsTest, MonsterCatalogReferencesExpectedSheets) {
     };
     EXPECT_EQ(find("goblin"), "4015.png");
     EXPECT_EQ(find("orc"), "4017.png");
-    EXPECT_EQ(find("zombie"), "1892.png");
+    EXPECT_EQ(find("zombie"), "4044.png");
     EXPECT_EQ(find("spider"), "4151.png");
     EXPECT_EQ(find("golem"), "4091.png");
     EXPECT_EQ(find("skeleton"), "4079.png");

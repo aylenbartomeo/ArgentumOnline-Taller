@@ -38,10 +38,10 @@ TEST(CharacterSpritesTest, MonsterOrcUses4017) {
             "4017.png");
 }
 
-TEST(CharacterSpritesTest, MonsterZombieUses1892) {
+TEST(CharacterSpritesTest, MonsterZombieUses4044) {
     EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0)
                          .bodySheet,
-                 "1892.png");
+                 "4044.png");
 }
 
 TEST(CharacterSpritesTest, MonsterSpiderUses4151) {
@@ -62,9 +62,9 @@ TEST(CharacterSpritesTest, MonsterSkeletonUses4079) {
                  "4079.png");
 }
 
-TEST(CharacterSpritesTest, ZombieDrawsHead) {
-    EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0)
-                        .drawHead);
+TEST(CharacterSpritesTest, ZombieHasNoHead) {
+    EXPECT_FALSE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0)
+                         .drawHead);
 }
 
 TEST(CharacterSpritesTest, BeastMonstersHaveNoHead) {
@@ -86,21 +86,16 @@ TEST(CharacterSpritesTest, ZombieUsesHeadSheet) {
                  "420.png");
 }
 
-TEST(CharacterSpritesTest, MonsterHeadUsesDownRow) {
+TEST(CharacterSpritesTest, ZombieGridUsesMeasuredStrides) {
     EntitySprite s = spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0);
-    EXPECT_EQ(s.headSrcX, 89);
-    EXPECT_EQ(s.headSrcY, 13);
-    EXPECT_EQ(s.headSrcW, 13);
-    EXPECT_EQ(s.headSrcH, 15);
+    EXPECT_EQ(s.bodyStrideX, 23);
+    EXPECT_EQ(s.bodyStrideY, 47);
 }
 
-TEST(CharacterSpritesTest, ZombieBodyUsesStandardCrop) {
+TEST(CharacterSpritesTest, ZombieUsesCustomGrid) {
     EntitySprite s = spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0);
-    EXPECT_FALSE(s.customGrid);
-    EXPECT_EQ(s.bodySrcX, 2);
-    EXPECT_EQ(s.bodySrcY, 4);
-    EXPECT_EQ(s.bodySrcW, 24);
-    EXPECT_EQ(s.bodySrcH, 44);
+    EXPECT_TRUE(s.customGrid);
+    EXPECT_EQ(s.bodyCols, 8);
 }
 
 TEST(CharacterSpritesTest, BeastsUseFullFigureBody) {
@@ -191,6 +186,6 @@ TEST(CharacterSpritesTest, NewMonstersUseCustomGrid) {
                         .customGrid);
     EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SPIDER), 0)
                         .customGrid);
-    EXPECT_FALSE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0)
-                         .customGrid);
+    EXPECT_TRUE(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0)
+                        .customGrid);
 }
