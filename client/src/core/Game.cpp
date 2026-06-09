@@ -189,7 +189,7 @@ void Game::run() {
         if (input.quit) {
             break;
         }
-        miniChat.update(input, VIEW_W, VIEW_H);
+        miniChat.update(input, VIEW_X + VIEW_W, VIEW_Y + VIEW_H);
         manualPanel.update(input, WINDOW_WIDTH, WINDOW_HEIGHT);
         drainIncomingChat();
         processChatInput(input);
