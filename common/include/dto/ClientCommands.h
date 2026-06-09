@@ -51,6 +51,11 @@ struct SelectNpcDTO {
     uint32_t npcId;
 };
 
+struct ShootDTO {
+    float targetX;
+    float targetY;
+};
+
 enum NpcCommandType { RESPAWN, HEAL, BUY, SELL, DEPOSIT, WITHDRAW, LIST };
 
 struct NpcCommandDTO {
@@ -62,6 +67,6 @@ struct NpcCommandDTO {
 using CommandVariant =
         std::variant<RegisterDTO, LoginDTO, StartMoveDTO, StopMoveDTO, AttackDTO, UseItemDTO,
                      EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO, PrivateChatDTO, SelectNpcDTO,
-                     NpcCommandDTO, ClanCommandDTO, MeditateDTO, ResurrectDTO, CheatDTO>;
+                     NpcCommandDTO, ClanCommandDTO, MeditateDTO, ResurrectDTO, CheatDTO, ShootDTO>;
 
 #endif  // CLIENT_COMMANDS_H

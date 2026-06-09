@@ -20,7 +20,7 @@ TEST(SpawnCatalogsTest, MonsterCatalogReferencesExpectedSheets) {
     EXPECT_EQ(find("zombie"), "1892.png");
     EXPECT_EQ(find("spider"), "1052.png");
     EXPECT_EQ(find("golem"), "1140.png");
-    EXPECT_EQ(find("skeleton"), "1238.png");
+    EXPECT_EQ(find("skeleton"), "152.png");
 }
 
 TEST(SpawnCatalogsTest, CitizenCatalogHasMerchantBankerPriest) {

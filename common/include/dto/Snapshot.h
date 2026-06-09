@@ -73,10 +73,20 @@ struct GroundItemDTO {
             itemId(itemId), amount(amount), x(x), y(y) {}
 };
 
+struct ProjectileDTO {
+    uint32_t id = 0;
+    float x = 0.f;
+    float y = 0.f;
+    float velX = 0.f;
+    float velY = 0.f;
+    uint16_t spriteId = 0;
+};
+
 struct SnapshotDTO {
     std::vector<EntityDTO> players;
     std::vector<EntityDTO> monsters;
     std::vector<GroundItemDTO> groundItems;
+    std::vector<ProjectileDTO> projectiles;
 
     SnapshotDTO() = default;
 };

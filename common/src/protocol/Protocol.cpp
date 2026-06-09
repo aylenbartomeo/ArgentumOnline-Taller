@@ -64,6 +64,24 @@ std::string Protocol::recvString() {
     return std::string(buffer.begin(), buffer.end());
 }
 
+void Protocol::sendFloat(float value) {
+    uint32_t net_value;
+    std::memcpy(&net_value, &value, sizeof(float));
+    net_value = htonl(net_value);
+
+    skt.sendall(reinterpret_cast<const uint8_t*>(&net_value), sizeof(uint32_t));
+}
+
+float Protocol::recvFloat() {
+    uint32_t net_value;
+    skt.recvall(&net_value, sizeof(net_value));
+    net_value = ntohl(net_value);
+
+    float value;
+    std::memcpy(&value, &net_value, sizeof(float));
+    return value;
+}
+
 uint8_t Protocol::recv_opcode() { return recvUint8(); }
 
 // =======================================================
@@ -111,6 +129,16 @@ void Protocol::sendSnapshot(const SnapshotDTO& snap) {
         sendUint16(item.amount);
         sendUint16(item.x);
         sendUint16(item.y);
+    }
+
+    sendUint16(static_cast<uint16_t>(snap.projectiles.size()));
+    for (const auto& proj: snap.projectiles) {
+        sendUint32(proj.id);
+        sendFloat(proj.x);
+        sendFloat(proj.y);
+        sendFloat(proj.velX);
+        sendFloat(proj.velY);
+        sendUint16(proj.spriteId);
     }
 }
 
@@ -239,6 +267,18 @@ SnapshotDTO Protocol::receiveSnapshotBody() {
         item.x = recvUint16();
         item.y = recvUint16();
         snap.groundItems.push_back(item);
+    }
+
+    uint16_t projectiles_count = recvUint16();
+    for (uint16_t i = 0; i < projectiles_count; ++i) {
+        ProjectileDTO proj;
+        proj.id = recvUint32();
+        proj.x = recvFloat();
+        proj.y = recvFloat();
+        proj.velX = recvFloat();
+        proj.velY = recvFloat();
+        proj.spriteId = recvUint16();
+        snap.projectiles.push_back(proj);
     }
 
     return snap;
@@ -385,6 +425,16 @@ void Protocol::sendCheat(const CheatDTO& dto) {
 }
 
 // =======================================================
+// CAPA SEMÁNTICA (ENVIO DE SHOT)
+// =======================================================
+
+void Protocol::sendShoot(const ShootDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::SHOOT));
+    sendFloat(dto.targetX);
+    sendFloat(dto.targetY);
+}
+
+// =======================================================
 // CAPA SEMÁNTICA (RECEPCIÓN DEL SERVIDOR)
 // =======================================================
 
@@ -462,6 +512,12 @@ CommandVariant Protocol::receive_command() {
         case OPCODE::OPCODE_CHEAT: {
             CheatDTO dto;
             dto.type = static_cast<CheatType>(recvUint8());
+            return dto;
+        }
+        case OPCODE::SHOOT: {
+            ShootDTO dto;
+            dto.targetX = recvFloat();
+            dto.targetY = recvFloat();
             return dto;
         }
         default:

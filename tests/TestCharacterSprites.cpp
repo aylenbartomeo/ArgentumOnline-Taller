@@ -56,10 +56,10 @@ TEST(CharacterSpritesTest, MonsterGolemUses1140) {
             "1140.png");
 }
 
-TEST(CharacterSpritesTest, MonsterSkeletonUses1238) {
+TEST(CharacterSpritesTest, MonsterSkeletonUses152Png) {
     EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SKELETON), 0)
                          .bodySheet,
-                 "1238.png");
+                 "152.png");
 }
 
 TEST(CharacterSpritesTest, HumanoidMonstersDrawHead) {

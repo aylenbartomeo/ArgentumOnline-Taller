@@ -7,7 +7,7 @@ const std::vector<MonsterCatalogEntry>& getMonsterCatalog() {
             {"zombie", "1892.png", 2, 4, 24, 44, true, "420.png", 89, 13, 11, 15, 6},
             {"spider", "1052.png", 4, 5, 19, 39, false, "420.png", 6, 13, 13, 15, 0},
             {"golem", "1140.png", 3, 16, 21, 30, false, "420.png", 6, 13, 13, 15, 0},
-            {"skeleton", "1238.png", 2, 6, 23, 38, false, "420.png", 6, 13, 13, 15, 0},
+            {"skeleton", "152.png", 4, 4, 22, 38, false, "420.png", 6, 13, 13, 15, 0},
     };
     return catalog;
 }

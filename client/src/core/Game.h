@@ -7,8 +7,10 @@
 #include <unordered_map>
 
 #include <SDL2pp/SDL2pp.hh>
+#include <SDL_ttf.h>
 
 #include "../animation/CharacterAnimator.h"
+#include "../animation/ProjectileAnimator.h"
 #include "../input/ChatCommandParser.h"
 #include "../input/EventHandler.h"
 #include "../rendering/TextureManager.h"
@@ -37,30 +39,37 @@ private:
     PlayerStatsDTO lastStats;
     Uint32 lastMoveSentMs;
     std::unordered_map<uint32_t, CharacterAnimator> animators;
+    std::unordered_map<uint32_t, ProjectileAnimator> projectileAnimators;
 
     struct ActiveFx {
         uint32_t targetId;
         uint32_t startMs;
+        int fixedPixelX = 0;
+        int fixedPixelY = 0;
     };
     std::optional<ActiveFx> activeFx;
 
+    TTF_Font* worldFont = nullptr;
+
 public:
     explicit Game(Client& client);
-    ~Game() = default;
+    ~Game();
 
     void run();
 
     Game(const Game&) = delete;
     Game& operator=(const Game&) = delete;
 
-    Game(Game&&) = default;
-    Game& operator=(Game&&) = default;
+    Game(Game&&) = delete;
+    Game& operator=(Game&&) = delete;
 
 private:
     void render(const FrameInput& input);
     void renderTerrain(const CameraOffset& camera);
     void renderOverlays(const CameraOffset& camera);
     void renderGroundItems(const CameraOffset& camera);
+    void drawGroundAmount(SDL2pp::Renderer& renderer, const std::string& text, int tileX, int tileY,
+                          const CameraOffset& camera);
     void renderCitizens(const CameraOffset& camera);
     bool cellInSafeZone(int col, int row) const;
     void renderEntities(const CameraOffset& camera);
@@ -69,6 +78,8 @@ private:
     void processCombatInput(const FrameInput& input, const CameraOffset& camera);
     void processEquipInput(const FrameInput& input);
     void renderFx(const CameraOffset& camera);
+    void syncProjectileAnimators(uint32_t nowMs);
+    void renderProjectiles(const CameraOffset& camera);
 
     // Procesa el input del chat: si se confirmó un mensaje, lo envía al servidor y limpia el
     // buffer.
