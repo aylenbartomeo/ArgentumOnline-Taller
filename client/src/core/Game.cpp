@@ -114,7 +114,7 @@ std::string readWholeFile(const std::string& path) {
 }  // namespace
 
 Game::Game(Client& client):
-        sdl(SDL_INIT_VIDEO),
+        sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
         window("Argentum Online - Client", WINDOW_WIDTH, WINDOW_HEIGHT),
         events(),
         client(client),
@@ -131,12 +131,28 @@ Game::Game(Client& client):
     if (worldFont == nullptr) {
         std::cerr << "No pude abrir la fuente del texto del mundo: " << TTF_GetError() << std::endl;
     }
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        std::cerr << "[AUDIO] Mix_OpenAudio error: " << Mix_GetError() << std::endl;
+    } else {
+        bgMusic = Mix_LoadMUS("resources/audio/music/game_theme.mp3");
+        if (!bgMusic) {
+            std::cerr << "[AUDIO] No se pudo cargar la música: " << Mix_GetError() << std::endl;
+        } else {
+            Mix_PlayMusic(bgMusic, -1);
+            Mix_VolumeMusic(64);
+        }
+    }
 }
 
 Game::~Game() {
     if (worldFont != nullptr) {
         TTF_CloseFont(worldFont);
     }
+    if (bgMusic != nullptr) {
+        Mix_HaltMusic();
+        Mix_FreeMusic(bgMusic);
+    }
+    Mix_CloseAudio();
 }
 
 void Game::run() {
