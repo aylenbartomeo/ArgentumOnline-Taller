@@ -153,6 +153,7 @@ Game::~Game() {
         Mix_FreeMusic(bgMusic);
     }
     Mix_CloseAudio();
+    Mix_Quit();
 }
 
 void Game::run() {
