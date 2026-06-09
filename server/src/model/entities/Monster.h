@@ -4,6 +4,7 @@
 #include <string>
 #include <utility>
 
+#include "../../common/include/dto/Snapshot.h"
 #include "../../persistence/WorldPersistData.h"
 #include "../interfaces/Attackable.h"
 #include "../utils/position.h"
@@ -33,6 +34,8 @@ private:
     float time_since_last_attack;
     float time_since_last_move;
     uint32_t current_target_id = 0;
+    uint8_t currentAction = 0;
+    float actionTimerMs = 0.0f;
 
 public:
     Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config);
@@ -72,8 +75,12 @@ public:
     uint16_t getLevel() const override;
     uint16_t getHp() const { return health; }
     uint16_t getMaxHp() const override;
-    uint16_t getSpriteId() const;
     int getDefense() const override;
+
+    EntityDTO toEntityDTO() const;
+    void setAction(uint8_t action, float durationMs);
+    uint8_t getCurrentAction() const { return currentAction; }
+    NPCType getType() const { return type; }
 
     void handleDeath() override;
     bool canEngageInCombatWith(const Attackable& other) const override;

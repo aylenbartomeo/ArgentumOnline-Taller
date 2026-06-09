@@ -129,6 +129,8 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     if (!res.attackHappened)
         return;
 
+    attacker.setAction(static_cast<uint8_t>(EntityAction::ATTACKING), 400.0f);
+
     if (res.evaded) {
         eventPublisher.sendTo(attackerDbId, "¡" + target->getName() + " evadió tu ataque!");
         if (targetPlayerIt) {

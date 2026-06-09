@@ -81,7 +81,12 @@ void Protocol::sendSnapshot(const SnapshotDTO& snap) {
         sendUint16(entity.y);
         sendUint16(entity.current_hp);
         sendUint16(entity.max_hp);
-        sendUint16(entity.sprite_id);
+        sendUint8(entity.entityTypeId);
+        sendUint8(entity.action);
+        sendUint16(entity.weaponItemId);
+        sendUint16(entity.helmetItemId);
+        sendUint16(entity.shieldItemId);
+        sendUint16(entity.bodyArmorItemId);
     }
 
     sendUint16(static_cast<uint16_t>(snap.monsters.size()));
@@ -92,7 +97,12 @@ void Protocol::sendSnapshot(const SnapshotDTO& snap) {
         sendUint16(entity.y);
         sendUint16(entity.current_hp);
         sendUint16(entity.max_hp);
-        sendUint16(entity.sprite_id);
+        sendUint8(entity.entityTypeId);
+        sendUint8(entity.action);
+        sendUint16(entity.weaponItemId);
+        sendUint16(entity.helmetItemId);
+        sendUint16(entity.shieldItemId);
+        sendUint16(entity.bodyArmorItemId);
     }
 
     sendUint16(static_cast<uint16_t>(snap.groundItems.size()));
@@ -194,7 +204,12 @@ SnapshotDTO Protocol::receiveSnapshotBody() {
         entity.y = recvUint16();
         entity.current_hp = recvUint16();
         entity.max_hp = recvUint16();
-        entity.sprite_id = recvUint16();
+        entity.entityTypeId = recvUint8();
+        entity.action = recvUint8();
+        entity.weaponItemId = recvUint16();
+        entity.helmetItemId = recvUint16();
+        entity.shieldItemId = recvUint16();
+        entity.bodyArmorItemId = recvUint16();
         snap.players.push_back(entity);
     }
 
@@ -207,7 +222,12 @@ SnapshotDTO Protocol::receiveSnapshotBody() {
         entity.y = recvUint16();
         entity.current_hp = recvUint16();
         entity.max_hp = recvUint16();
-        entity.sprite_id = recvUint16();
+        entity.entityTypeId = recvUint8();
+        entity.action = recvUint8();
+        entity.weaponItemId = recvUint16();
+        entity.helmetItemId = recvUint16();
+        entity.shieldItemId = recvUint16();
+        entity.bodyArmorItemId = recvUint16();
         snap.monsters.push_back(entity);
     }
 

@@ -80,7 +80,16 @@ bool Player::equipFromSlot(uint8_t slotIndex) {
 void Player::update(float dtMs) {
     if (this->isDead()) {
         stats.clearBoosts();  // Regla AO: al morir se pierden los elixires
+        currentAction = 0;
+        actionTimerMs = 0.0f;
         return;
+    }
+    if (actionTimerMs > 0.0f) {
+        actionTimerMs -= dtMs;
+        if (actionTimerMs <= 0.0f) {
+            currentAction = 0;
+            actionTimerMs = 0.0f;
+        }
     }
     stats.updateTicks(dtMs);
     regeneration.tick(dtMs / 1000.0f);  // tick espera segundos, dtMs viene en ms
@@ -129,6 +138,35 @@ PlayerStatsDTO Player::getStatsDTO() const {
     dto.expForLevel = stats.getExpForCurrentLevel();
     dto.inventory = inventory.getInventoryDTO(equipment);
     return dto;
+}
+
+EntityDTO Player::toEntityDTO() const {
+    EntityDTO dto;
+    dto.id = dbId;
+    dto.type = EntityType::PLAYER;
+    dto.x = pos.x;
+    dto.y = pos.y;
+    dto.current_hp = stats.getHp();
+    dto.max_hp = stats.getMaxHp();
+    dto.entityTypeId = static_cast<uint8_t>(stats.getRace());
+    dto.action = currentAction;
+
+    // Equipamiento visual
+    const Weapon* w = equipment.getWeapon();
+    dto.weaponItemId = w ? static_cast<uint16_t>(w->getId()) : 0;
+    const Helmet* h = equipment.getHelmet();
+    dto.helmetItemId = h ? static_cast<uint16_t>(h->getId()) : 0;
+    const Shield* s = equipment.getShield();
+    dto.shieldItemId = s ? static_cast<uint16_t>(s->getId()) : 0;
+    const BodyArmor* a = equipment.getBodyArmor();
+    dto.bodyArmorItemId = a ? static_cast<uint16_t>(a->getId()) : 0;
+
+    return dto;
+}
+
+void Player::setAction(uint8_t action, float durationMs) {
+    currentAction = action;
+    actionTimerMs = durationMs;
 }
 
 uint16_t Player::addInventoryItem(uint32_t item_id, uint16_t amount) {

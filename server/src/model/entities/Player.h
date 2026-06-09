@@ -7,6 +7,7 @@
 
 #include "../../../../common/include/dto/CommandDTO.h"
 #include "../../common/include/dto/PlayerStatsDTO.h"
+#include "../../common/include/dto/Snapshot.h"
 #include "../../common/utils/types.h"
 #include "../combat/CombatManager.h"
 #include "../components/EquipmentComponent.h"
@@ -34,6 +35,8 @@ private:
     StateComponent state;
     RegenerationComponent regeneration;
     const ItemRegistry* itemRegistry;  // Puntero para permitir nullptr en tests
+    uint8_t currentAction = 0;
+    float actionTimerMs = 0.0f;
 
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race, CharacterClass cls,
@@ -126,6 +129,13 @@ public:
 
     // Obtener stats del jugador y armar el DTO para el cliente
     PlayerStatsDTO getStatsDTO() const;
+
+    // Arma el EntityDTO para el snapshot (encapsula toda la info visual)
+    EntityDTO toEntityDTO() const;
+
+    // Acción visual transitoria
+    void setAction(uint8_t action, float durationMs);
+    uint8_t getCurrentAction() const { return currentAction; }
 
     // Equipment (Usado principalmente en tests)
     void equipWeapon(const Weapon* weapon) { equipment.equipWeapon(weapon, 255); }

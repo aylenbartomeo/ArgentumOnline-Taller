@@ -130,10 +130,8 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
 
     bool encontroPlayer1 = false;
     bool encontroPlayer2 = false;
-    int spritesEvaluados = 0;
 
     for (const auto& entity: snapshotActual.players) {
-        spritesEvaluados++;
         std::cout << "Entity ID in snapshot: " << entity.id << std::endl;
 
         if (entity.id == 100) {
@@ -143,7 +141,6 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
             EXPECT_EQ(entity.y, 1);
             EXPECT_EQ(entity.current_hp, 15);
             EXPECT_EQ(entity.max_hp, 15);
-            EXPECT_EQ(entity.sprite_id, spritesEvaluados);
         } else if (entity.id == 200) {
             encontroPlayer2 = true;
             EXPECT_EQ(entity.type, EntityType::PLAYER);
@@ -151,7 +148,6 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
             EXPECT_EQ(entity.y, 0);
             EXPECT_EQ(entity.current_hp, 15);
             EXPECT_EQ(entity.max_hp, 15);
-            EXPECT_EQ(entity.sprite_id, spritesEvaluados);
         }
     }
 

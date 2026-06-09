@@ -212,6 +212,7 @@ void World::moveEntity(uint32_t dbId, Movement direction) {
     map.setEntityCollision(oldPos.x, oldPos.y, false);
     p->setPosition(candidate);
     map.setEntityCollision(candidate.x, candidate.y, true);
+    p->setAction(static_cast<uint8_t>(EntityAction::WALKING), 200.0f);
 
     interactionService.endInteraction(entityManager.resolveEntityId(dbId));
 }
@@ -290,23 +291,23 @@ void World::moveMonsterTowards(Monster& monster, const Position& targetPos) {
 
     if (dx != 0 && dy != 0) {
         // Movimiento diagonal
-        candidates.push_back({mPos.x + dx, mPos.y + dy});  // 1. Diagonal directo
-        candidates.push_back({mPos.x + dx, mPos.y});       // 2. Solo X
-        candidates.push_back({mPos.x, mPos.y + dy});       // 3. Solo Y
+        candidates.push_back({mPos.x + dx, mPos.y + dy});
+        candidates.push_back({mPos.x + dx, mPos.y});
+        candidates.push_back({mPos.x, mPos.y + dy});
     } else if (dx != 0) {
         // Movimiento horizontal
-        candidates.push_back({mPos.x + dx, mPos.y});      // 1. Directo
-        candidates.push_back({mPos.x + dx, mPos.y + 1});  // 2. Diagonal arriba
-        candidates.push_back({mPos.x + dx, mPos.y - 1});  // 3. Diagonal abajo
-        candidates.push_back({mPos.x, mPos.y + 1});       // 4. Esquivar arriba (slide lateral)
-        candidates.push_back({mPos.x, mPos.y - 1});       // 5. Esquivar abajo (slide lateral)
+        candidates.push_back({mPos.x + dx, mPos.y});
+        candidates.push_back({mPos.x + dx, mPos.y + 1});
+        candidates.push_back({mPos.x + dx, mPos.y - 1});
+        candidates.push_back({mPos.x, mPos.y + 1});
+        candidates.push_back({mPos.x, mPos.y - 1});
     } else if (dy != 0) {
         // Movimiento vertical
-        candidates.push_back({mPos.x, mPos.y + dy});      // 1. Directo
-        candidates.push_back({mPos.x + 1, mPos.y + dy});  // 2. Diagonal derecha
-        candidates.push_back({mPos.x - 1, mPos.y + dy});  // 3. Diagonal izquierda
-        candidates.push_back({mPos.x + 1, mPos.y});       // 4. Esquivar derecha (slide lateral)
-        candidates.push_back({mPos.x - 1, mPos.y});       // 5. Esquivar izquierda (slide lateral)
+        candidates.push_back({mPos.x, mPos.y + dy});
+        candidates.push_back({mPos.x + 1, mPos.y + dy});
+        candidates.push_back({mPos.x - 1, mPos.y + dy});
+        candidates.push_back({mPos.x + 1, mPos.y});
+        candidates.push_back({mPos.x - 1, mPos.y});
     }
 
     auto it = std::find_if(candidates.begin(), candidates.end(),
@@ -317,6 +318,7 @@ void World::moveMonsterTowards(Monster& monster, const Position& targetPos) {
         monster.setPosition(*it);
         map.setEntityCollision(it->x, it->y, true);
         monster.resetMoveCooldown();
+        monster.setAction(static_cast<uint8_t>(EntityAction::WALKING), 200.0f);
     }
 }
 
@@ -349,6 +351,7 @@ void World::update(float delta_time) {
             if (monster->canAttack()) {
                 combatSystem.monsterAttack(*monster, *target);
                 monster->resetAttackCooldown();
+                monster->setAction(static_cast<uint8_t>(EntityAction::ATTACKING), 400.0f);
             }
         } else {
             moveMonsterTowards(*monster, target->getPosition());
@@ -395,28 +398,11 @@ std::vector<WorldEvent> World::pollEvents() { return eventPublisher.pollEvents()
 SnapshotDTO World::generateSnapshot() const {
     SnapshotDTO snapshot;
     for (const auto& pair: entityManager.getMonsters()) {
-        uint32_t id = pair.first;
-        const Monster* monster = pair.second.get();
-        snapshot.monsters.emplace_back(id, EntityType::MONSTER, monster->getPosition().x,
-                                       monster->getPosition().y, monster->getHp(),
-                                       monster->getMaxHp(), monster->getSpriteId());
+        snapshot.monsters.push_back(pair.second->toEntityDTO());
     }
 
-    uint16_t spriteId = 1;
     for (const auto& pair: entityManager.getPlayers()) {
-        const Player& player = *(pair.second);
-        Position pos = player.getPosition();
-
-        EntityDTO entityData;
-        entityData.id = player.getDbId();
-        entityData.type = EntityType::PLAYER;
-        entityData.x = pos.x;
-        entityData.y = pos.y;
-        entityData.current_hp = player.getHp();
-        entityData.max_hp = player.getMaxHp();
-        entityData.sprite_id = spriteId;
-        spriteId++;
-        snapshot.players.push_back(entityData);
+        snapshot.players.push_back(pair.second->toEntityDTO());
     }
 
     for (const auto& pair: map.getGroundItemsSnapshot()) {
@@ -488,6 +474,8 @@ void World::pickUpItem(uint32_t dbId) {
         eventPublisher.sendTo(dbId, "No hay objetos aquí para recoger.");
         return;
     }
+
+    p->setAction(static_cast<uint8_t>(EntityAction::GRABBING), 500.0f);
 
     if (itemOpt->itemId == GOLD_ITEM_ID) {
         p->addGold(itemOpt->amount);
