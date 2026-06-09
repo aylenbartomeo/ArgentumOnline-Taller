@@ -454,7 +454,7 @@ void Game::renderProjectiles(const CameraOffset& camera) {
 
         anim.lastPixelX = px + camera.x;
         anim.lastPixelY = py + camera.y;
-        printf("[PROJ] id=%u spriteId=%u\n", id, anim.getSpriteId());
+        //printf("[PROJ] id=%u spriteId=%u\n", id, anim.getSpriteId());
         if (anim.getSpriteId() == ARROW_SPRITE_ID) {
             const std::string arrowPath = std::string(RESOURCES_DIR) + ARROW_SHEET;
             if (!std::ifstream(arrowPath).good())
