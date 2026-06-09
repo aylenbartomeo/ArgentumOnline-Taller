@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <optional>
@@ -145,6 +146,7 @@ Game::Game(Client& client):
         map(readWholeFile("maps/defaultMap.json")),
         miniChat(CHAT_FONT_PATH),
         hud(textures, HUD_FONT_PATH),
+        manualPanel(HUD_FONT_PATH),
         chatParser(),
         lastSnapshot(),
         lastMoveSentMs(0) {
@@ -165,6 +167,8 @@ Game::Game(Client& client):
             Mix_VolumeMusic(64);
         }
     }
+
+    manualPanel.loadManual("../MANUAL_JUGADOR.md");
 }
 
 Game::~Game() {
@@ -186,10 +190,12 @@ void Game::run() {
             break;
         }
         miniChat.update(input, VIEW_W, VIEW_H);
+        manualPanel.update(input, WINDOW_WIDTH, WINDOW_HEIGHT);
         drainIncomingChat();
         processChatInput(input);
         processCheats(input);
         processEquipInput(input);
+        processUiInput(input);
         sendMoveIfDue(input);
         render(input);
         SDL_Delay(16);
@@ -206,6 +212,18 @@ void Game::processEquipInput(const FrameInput& input) {
     const int slot = hud.slotAtPosition(input.equipX, input.equipY);
     if (slot >= 0) {
         client.sendCommand(EquipItemDTO{static_cast<uint8_t>(slot)});
+    }
+}
+
+void Game::processUiInput(const FrameInput& input) {
+    if (!input.mouseLeftJustPressed) {
+        return;
+    }
+    float logicalX = 0.0f, logicalY = 0.0f;
+    SDL_RenderWindowToLogical(window.getRenderer().Get(), input.mouseX, input.mouseY, &logicalX,
+                              &logicalY);
+    if (hud.isManualButtonClicked(static_cast<int>(logicalX), static_cast<int>(logicalY))) {
+        manualPanel.toggle();
     }
 }
 
@@ -503,6 +521,8 @@ void Game::render(const FrameInput& input) {
 
     hud.renderBackground(renderer);
     hud.render(renderer, lastStats);
+    manualPanel.render(renderer.Get(), WINDOW_WIDTH, WINDOW_HEIGHT);
+
     renderer.Present();
 }
 

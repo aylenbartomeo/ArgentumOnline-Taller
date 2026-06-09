@@ -75,6 +75,17 @@ int HudPanel::slotAtPosition(int x, int y) const {
     return row * INV_COLS + col;
 }
 
+bool HudPanel::isManualButtonClicked(int x, int y) const {
+    // Coordenadas aproximadas del botón "MANUAL" en ventanaprincipal.png
+    constexpr int MANUAL_BTN_X = 815;
+    constexpr int MANUAL_BTN_Y = 10;
+    constexpr int MANUAL_BTN_W = 100;
+    constexpr int MANUAL_BTN_H = 25;
+
+    return (x >= MANUAL_BTN_X && x <= MANUAL_BTN_X + MANUAL_BTN_W && y >= MANUAL_BTN_Y &&
+            y <= MANUAL_BTN_Y + MANUAL_BTN_H);
+}
+
 void HudPanel::renderBackground(SDL2pp::Renderer& renderer) {
     SDL2pp::Texture& bg = textures.get(BACKGROUND);
     bg.SetBlendMode(SDL_BLENDMODE_BLEND);
