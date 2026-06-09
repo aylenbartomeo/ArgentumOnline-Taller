@@ -6,7 +6,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <SDL2/SDL_mixer.h>
+#include <SDL_mixer.h>
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
