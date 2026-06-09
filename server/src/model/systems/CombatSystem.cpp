@@ -51,6 +51,49 @@ int CombatSystem::countNearbyClanmates(uint32_t dbId, int range) const {
     return count;
 }
 
+void CombatSystem::notifyCombatResult(const Attackable& attacker, const Attackable& target,
+                                      const CombatResult& res) {
+    if (!res.attackHappened || res.isPending)
+        return;
+
+    const Player* pAttacker = dynamic_cast<const Player*>(&attacker);
+    if (!pAttacker)
+        return;
+
+    uint32_t attackerDbId = pAttacker->getDbId();
+    const Player* pTarget = dynamic_cast<const Player*>(&target);
+
+    if (res.evaded) {
+        eventPublisher.sendTo(attackerDbId, "¡" + target.getName() + " evadió tu ataque!");
+        if (pTarget) {
+            eventPublisher.sendTo(pTarget->getDbId(),
+                                  "¡Evadiste el ataque de " + attacker.getName() + "!");
+        }
+    } else {
+        std::string critMsg = res.critical ? " ¡GOLPE CRITICO!" : "";
+        eventPublisher.sendTo(attackerDbId, "¡Le hiciste " + std::to_string(res.damage) +
+                                                    " de dano a " + target.getName() + "!" +
+                                                    critMsg);
+        if (pTarget) {
+            eventPublisher.sendTo(pTarget->getDbId(), "¡Recibiste " + std::to_string(res.damage) +
+                                                              " de dano de " + attacker.getName() +
+                                                              "!");
+
+            if (pTarget->isDead()) {
+                std::string deathMsg =
+                        attacker.getName() + " ha asesinado a " + pTarget->getName() + "!";
+                eventPublisher.broadcast(deathMsg);
+                callback.onPlayerDeath(pTarget->getDbId());
+            }
+        }
+
+        const Monster* mTarget = dynamic_cast<const Monster*>(&target);
+        if (mTarget && mTarget->isDead()) {
+            callback.onMonsterDeath(*mTarget, attackerDbId);
+        }
+    }
+}
+
 void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     Player* pAttacker = entityManager.getPlayer(attackerDbId);
     if (!pAttacker)
@@ -137,35 +180,7 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
 
     attacker.setAction(static_cast<uint8_t>(EntityAction::ATTACKING), 400.0f);
 
-    if (res.evaded) {
-        eventPublisher.sendTo(attackerDbId, "¡" + target->getName() + " evadió tu ataque!");
-        if (targetPlayerIt) {
-            eventPublisher.sendTo(targetPlayerIt->getDbId(),
-                                  "¡Evadiste el ataque de " + attacker.getName() + "!");
-        }
-    } else {
-        std::string critMsg = res.critical ? " ¡GOLPE CRITICO!" : "";
-        eventPublisher.sendTo(attackerDbId, "¡Le hiciste " + std::to_string(res.damage) +
-                                                    " de dano a " + target->getName() + "!" +
-                                                    critMsg);
-        if (targetPlayerIt) {
-            eventPublisher.sendTo(targetPlayerIt->getDbId(),
-                                  "¡Recibiste " + std::to_string(res.damage) + " de dano de " +
-                                          attacker.getName() + "!");
-
-            if (targetPlayerIt->isDead()) {
-                std::string deathMsg =
-                        attacker.getName() + " ha asesinado a " + targetPlayerIt->getName() + "!";
-                eventPublisher.broadcast(deathMsg);
-                callback.onPlayerDeath(targetPlayerIt->getDbId());
-            }
-        }
-
-        const Monster* mTarget = dynamic_cast<const Monster*>(target);
-        if (mTarget && mTarget->isDead()) {
-            callback.onMonsterDeath(*mTarget, attackerDbId);
-        }
-    }
+    notifyCombatResult(attacker, *target, res);
 }
 
 void CombatSystem::monsterAttack(const Monster& monster, Player& target) {
@@ -296,13 +311,9 @@ CombatResult CombatSystem::processAttack(Player& attacker, Attackable& target, f
 
     CombatModifiers modifiers{attackBonus, defenseBonus};
 
-    bool attackHappened =
-            weapon->getDelivery()->deliver(attacker, target, modifiers, *weapon, *this);
+    CombatResult res = weapon->getDelivery()->deliver(attacker, target, modifiers, *weapon, *this);
 
-    CombatResult res;
-    res.attackHappened = attackHappened;
-
-    if (!res.attackHappened)
+    if (!res.attackHappened || res.isPending)
         return res;
 
     if (target.isDead()) {
@@ -322,11 +333,12 @@ void CombatSystem::onProjectileHit(Attackable& attacker, Attackable& target, IHi
         return;  // Si el objetivo murió en el viaje del proyectil, se descarta el impacto
     }
 
+    CombatResult res;
     // Ejecución polimórfica diferida.
     // Si era un arco         -> MeleeDamageEffect  (daño físico)
     // Si era un bastón mágico -> MagicDamageEffect (valida/consume maná e impacta daño mágico)
     if (hitEffect) {
-        hitEffect->apply(attacker, target, modifiers, weapon, *this);
+        res = hitEffect->apply(attacker, target, modifiers, weapon, *this);
     }
 
     Player* playerAttacker = dynamic_cast<Player*>(&attacker);
@@ -339,17 +351,7 @@ void CombatSystem::onProjectileHit(Attackable& attacker, Attackable& target, IHi
         }
     }
 
-    const Monster* mTarget = dynamic_cast<const Monster*>(&target);
-    if (mTarget && mTarget->isDead()) {
-        const Player* pAttacker = dynamic_cast<Player*>(&attacker);
-        if (pAttacker)
-            callback.onMonsterDeath(*mTarget, pAttacker->getDbId());
-    }
-
-    const Player* targetPlayer = dynamic_cast<Player*>(&target);
-    if (targetPlayer && targetPlayer->isDead()) {
-        callback.onPlayerDeath(targetPlayer->getDbId());
-    }
+    notifyCombatResult(attacker, target, res);
 }
 
 CombatModifiers CombatSystem::buildModifiers(uint32_t attackerDbId,

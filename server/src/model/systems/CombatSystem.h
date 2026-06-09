@@ -27,6 +27,7 @@ struct CombatResult {
     bool evaded = false;
     bool critical = false;
     int damage = 0;
+    bool isPending = false;
 };
 
 struct AttackParams {
@@ -54,6 +55,9 @@ private:
 
     CombatResult resolveCombat(const Attackable& attacker, Attackable& target,
                                const AttackParams& params);
+
+    void notifyCombatResult(const Attackable& attacker, const Attackable& target,
+                            const CombatResult& res);
 
     CombatResult processAttack(const Monster& attacker, Attackable& target);
 
