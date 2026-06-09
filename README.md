@@ -169,7 +169,8 @@ Comportamiento que funciona de fondo, sin que el jugador apriete botones.
   en la carpeta `game_data/`.
 - **Reconexión:** para comprobar la persistencia, cerrá el cliente y volvé a
   ingresar con login (Paso 5). El personaje aparece exactamente en la misma
-  baldosa donde lo dejaste al desconectarte.
+  baldosa donde lo dejaste, persistiendo también así todo su progreso y estado al momento de desconectarse.
+- **Progreso por cuenta, por mundo:** note que cada jugador tendrá su propio progreso asociado a su cuenta POR CADA MUNDO en el que haya jugado, es decir un mismo usuario puede tener varios progresos (estados) en distintos mundos, cada uno persistido por separado.
 
 ---
 
