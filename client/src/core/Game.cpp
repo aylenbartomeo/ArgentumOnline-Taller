@@ -144,6 +144,8 @@ constexpr uint32_t NUDOSO_IMPACT_DUR_MS = 40;
 constexpr int NUDOSO_IMPACT_DRAW = TILE_SIZE * 3;
 
 // --- VARA DE FRESNO ---
+constexpr uint32_t VARA_FRESNO_WEAPON_ID = 2020;
+
 constexpr uint16_t VARA_SPRITE_ID = 201;
 constexpr const char* FRESNO_IMPACT_SHEET = "3490.png";
 constexpr int FRESNO_IMPACT_FRAME_W = 128;
@@ -152,6 +154,16 @@ constexpr int FRESNO_IMPACT_COLS = 4;
 constexpr int FRESNO_IMPACT_FRAMES = 28;
 constexpr uint32_t FRESNO_IMPACT_DUR_MS = 35;
 constexpr int FRESNO_IMPACT_DRAW = TILE_SIZE * 3;
+
+// --- FLAUTA ELFICA: CURACION ---
+constexpr uint32_t FLAUTA_WEAPON_ID = 2021;
+constexpr const char* FLAUTA_HEAL_SHEET = "3456.png";
+constexpr int FLAUTA_HEAL_FRAME_W = 32;
+constexpr int FLAUTA_HEAL_FRAME_H = 32;
+constexpr int FLAUTA_HEAL_COLS = 5;
+constexpr int FLAUTA_HEAL_FRAMES = 5;
+constexpr uint32_t FLAUTA_HEAL_DUR_MS = 60;
+constexpr int FLAUTA_HEAL_DRAW = TILE_SIZE * 2;
 
 const char* citizenSheet(const std::string& type) {
     if (type == "merchant")
@@ -345,6 +357,20 @@ void Game::sendMoveIfDue(const FrameInput& input) {
     }
 }
 
+static bool hasVaraFresnoEquipped(const PlayerStatsDTO& stats) {
+    return std::any_of(stats.inventory.begin(), stats.inventory.end(),
+                       [](const InventorySlotDTO& slot) {
+                           return slot.isEquipped && slot.itemId == VARA_FRESNO_WEAPON_ID;
+                       });
+}
+
+static bool hasFlautaEquipped(const PlayerStatsDTO& stats) {
+    return std::any_of(stats.inventory.begin(), stats.inventory.end(),
+                       [](const InventorySlotDTO& slot) {
+                           return slot.isEquipped && slot.itemId == FLAUTA_WEAPON_ID;
+                       });
+}
+
 static bool hasSwordEquipped(const PlayerStatsDTO& stats) {
     return std::any_of(stats.inventory.begin(), stats.inventory.end(),
                        [](const InventorySlotDTO& slot) {
@@ -369,7 +395,11 @@ void Game::processCombatInput(const FrameInput& input, const CameraOffset& camer
     if (localPlayer != nullptr && isDead(localPlayer->current_hp))
         return;
 
-    if (input.shootPressed) {
+    if (input.shootPressed && hasFlautaEquipped(lastStats)) {
+        activeFx = ActiveFx{client.getClientId(), SDL_GetTicks(), 0, 0, FxType::FLAUTA_HEAL};
+        client.sendCommand(ShootDTO{static_cast<float>(0), static_cast<float>(0)});
+
+    } else if (input.shootPressed) {
         float logicalX = 0.f, logicalY = 0.f;
         SDL_RenderWindowToLogical(window.getRenderer().Get(), input.shootScreenX,
                                   input.shootScreenY, &logicalX, &logicalY);
@@ -395,7 +425,12 @@ void Game::processCombatInput(const FrameInput& input, const CameraOffset& camer
                                                         client.getClientId(), ATTACK_RANGE_TILES);
     if (target) {
         client.sendCommand(AttackDTO{*target});
-        const FxType fxType = hasSwordEquipped(lastStats) ? FxType::SWORD : FxType::DEFAULT;
+        FxType fxType = FxType::DEFAULT;
+        if (hasFlautaEquipped(lastStats)) {
+            fxType = FxType::FLAUTA_HEAL;
+        } else if (hasSwordEquipped(lastStats)) {
+            fxType = FxType::SWORD;
+        }
         activeFx = ActiveFx{*target, SDL_GetTicks(), 0, 0, fxType};
     }
 }
@@ -425,6 +460,10 @@ void Game::renderFx(const CameraOffset& camera) {
         case FxType::FRESNO_IMPACT:
             dur = FRESNO_IMPACT_DUR_MS;
             count = FRESNO_IMPACT_FRAMES;
+            break;
+        case FxType::FLAUTA_HEAL:
+            dur = FLAUTA_HEAL_DUR_MS;
+            count = FLAUTA_HEAL_FRAMES;
             break;
         default:
             dur = FX_FRAME_DUR_MS;
@@ -512,6 +551,19 @@ void Game::renderFx(const CameraOffset& camera) {
 
         renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
                       SDL2pp::Rect(dstX, dstY, FRESNO_IMPACT_DRAW, FRESNO_IMPACT_DRAW));
+    } else if (activeFx->type == FxType::FLAUTA_HEAL) {
+        const std::string p = std::string(RESOURCES_DIR) + FLAUTA_HEAL_SHEET;
+        if (!std::ifstream(p).good())
+            return;
+        SDL2pp::Texture& tex = textures.get(p);
+        const FrameRect fr =
+                fxFrameRect(frame, FLAUTA_HEAL_FRAME_W, FLAUTA_HEAL_FRAME_H, FLAUTA_HEAL_COLS);
+
+        const int dstX = baseX + TILE_SIZE / 2 - FLAUTA_HEAL_DRAW / 2 - camera.x;
+        const int dstY = baseY + TILE_SIZE / 2 - FLAUTA_HEAL_DRAW / 2 - camera.y;
+
+        renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
+                      SDL2pp::Rect(dstX, dstY, FLAUTA_HEAL_DRAW, FLAUTA_HEAL_DRAW));
     } else {
         const std::string p = std::string(RESOURCES_DIR) + FX_SHEET;
         if (!std::ifstream(p).good())
@@ -581,7 +633,7 @@ void Game::renderProjectiles(const CameraOffset& camera) {
         anim.lastPixelY = py + camera.y;
 
         // BORRAR!
-        printf("[PROJ] id=%u spriteId=%u\n", id, anim.getSpriteId());
+        // printf("[PROJ] id=%u spriteId=%u\n", id, anim.getSpriteId());
         if (anim.getSpriteId() == ARROW_SPRITE_ID || anim.getSpriteId() == VARA_SPRITE_ID) {
             const std::string arrowPath = std::string(RESOURCES_DIR) + ARROW_SHEET;
             if (!std::ifstream(arrowPath).good())
