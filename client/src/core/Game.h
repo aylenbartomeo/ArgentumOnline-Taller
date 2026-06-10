@@ -45,7 +45,7 @@ private:
     std::unordered_map<uint32_t, ProjectileAnimator> projectileAnimators;
     Mix_Music* bgMusic = nullptr;
 
-    enum class FxType { DEFAULT, SWORD, EXPLOSION, SKULL_IMPACT, NUDOSO_IMPACT };
+    enum class FxType { DEFAULT, SWORD, EXPLOSION, SKULL_IMPACT, NUDOSO_IMPACT, FRESNO_IMPACT };
 
     struct ActiveFx {
         uint32_t targetId;

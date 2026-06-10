@@ -126,22 +126,32 @@ constexpr uint32_t STAFF_WEAPON_ID = 203;
 
 // --- BACULO NUDOSO: PROYECTIL (Trayectoria) ---
 constexpr const char* NUDOSO_PROJ_SHEET = "3483.png";
-constexpr int NUDOSO_PROJ_FRAME_W = 102;  // Tamaño corregido a 204px
-constexpr int NUDOSO_PROJ_FRAME_H = 102;  // Tamaño corregido a 204px
+constexpr int NUDOSO_PROJ_FRAME_W = 102;
+constexpr int NUDOSO_PROJ_FRAME_H = 102;
 constexpr int NUDOSO_PROJ_COLS = 5;
-constexpr int NUDOSO_PROJ_FRAMES = 19;       // Bucle exacto sin fotogramas vacíos
-constexpr uint32_t NUDOSO_PROJ_DUR_MS = 60;  // Velocidad de la trayectoria
+constexpr int NUDOSO_PROJ_FRAMES = 19;
+constexpr uint32_t NUDOSO_PROJ_DUR_MS = 60;
 constexpr int NUDOSO_PROJ_DRAW = TILE_SIZE * 2;
 constexpr uint16_t NUDOSO_SPRITE_ID = 202;
 
 // --- BACULO NUDOSO: IMPACTO (Explosión) ---
 constexpr const char* NUDOSO_IMPACT_SHEET = "3534.png";
-constexpr int NUDOSO_IMPACT_FRAME_W = 204;  // Tamaño corregido a 204px
-constexpr int NUDOSO_IMPACT_FRAME_H = 204;  // Tamaño corregido a 204px
+constexpr int NUDOSO_IMPACT_FRAME_W = 204;
+constexpr int NUDOSO_IMPACT_FRAME_H = 204;
 constexpr int NUDOSO_IMPACT_COLS = 5;
-constexpr int NUDOSO_IMPACT_FRAMES = 25;       // Recorre los 25 fotogramas (5x5)
-constexpr uint32_t NUDOSO_IMPACT_DUR_MS = 40;  // Velocidad de la explosión
+constexpr int NUDOSO_IMPACT_FRAMES = 25;
+constexpr uint32_t NUDOSO_IMPACT_DUR_MS = 40;
 constexpr int NUDOSO_IMPACT_DRAW = TILE_SIZE * 3;
+
+// --- VARA DE FRESNO ---
+constexpr uint16_t VARA_SPRITE_ID = 201;
+constexpr const char* FRESNO_IMPACT_SHEET = "3490.png";
+constexpr int FRESNO_IMPACT_FRAME_W = 128;
+constexpr int FRESNO_IMPACT_FRAME_H = 128;
+constexpr int FRESNO_IMPACT_COLS = 4;
+constexpr int FRESNO_IMPACT_FRAMES = 28;
+constexpr uint32_t FRESNO_IMPACT_DUR_MS = 35;
+constexpr int FRESNO_IMPACT_DRAW = TILE_SIZE * 3;
 
 const char* citizenSheet(const std::string& type) {
     if (type == "merchant")
@@ -412,6 +422,10 @@ void Game::renderFx(const CameraOffset& camera) {
             dur = NUDOSO_IMPACT_DUR_MS;
             count = NUDOSO_IMPACT_FRAMES;
             break;
+        case FxType::FRESNO_IMPACT:
+            dur = FRESNO_IMPACT_DUR_MS;
+            count = FRESNO_IMPACT_FRAMES;
+            break;
         default:
             dur = FX_FRAME_DUR_MS;
             count = FX_FRAME_COUNT;
@@ -485,6 +499,19 @@ void Game::renderFx(const CameraOffset& camera) {
 
         renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
                       SDL2pp::Rect(dstX, dstY, NUDOSO_IMPACT_DRAW, NUDOSO_IMPACT_DRAW));
+    } else if (activeFx->type == FxType::FRESNO_IMPACT) {
+        const std::string p = std::string(RESOURCES_DIR) + FRESNO_IMPACT_SHEET;
+        if (!std::ifstream(p).good())
+            return;
+        SDL2pp::Texture& tex = textures.get(p);
+        const FrameRect fr = fxFrameRect(frame, FRESNO_IMPACT_FRAME_W, FRESNO_IMPACT_FRAME_H,
+                                         FRESNO_IMPACT_COLS);
+
+        const int dstX = baseX + TILE_SIZE / 2 - FRESNO_IMPACT_DRAW / 2 - camera.x;
+        const int dstY = baseY + TILE_SIZE / 2 - FRESNO_IMPACT_DRAW / 2 - camera.y;
+
+        renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
+                      SDL2pp::Rect(dstX, dstY, FRESNO_IMPACT_DRAW, FRESNO_IMPACT_DRAW));
     } else {
         const std::string p = std::string(RESOURCES_DIR) + FX_SHEET;
         if (!std::ifstream(p).good())
@@ -521,6 +548,8 @@ void Game::syncProjectileAnimators(uint32_t nowMs) {
                 impactType = FxType::EXPLOSION;
             } else if (it->second.getSpriteId() == NUDOSO_SPRITE_ID) {
                 impactType = FxType::NUDOSO_IMPACT;
+            } else if (it->second.getSpriteId() == VARA_SPRITE_ID) {
+                impactType = FxType::FRESNO_IMPACT;
             }
 
             activeFx = ActiveFx{0, SDL_GetTicks(), px, py, impactType};
@@ -553,7 +582,7 @@ void Game::renderProjectiles(const CameraOffset& camera) {
 
         // BORRAR!
         printf("[PROJ] id=%u spriteId=%u\n", id, anim.getSpriteId());
-        if (anim.getSpriteId() == ARROW_SPRITE_ID) {
+        if (anim.getSpriteId() == ARROW_SPRITE_ID || anim.getSpriteId() == VARA_SPRITE_ID) {
             const std::string arrowPath = std::string(RESOURCES_DIR) + ARROW_SHEET;
             if (!std::ifstream(arrowPath).good())
                 continue;
