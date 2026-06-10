@@ -16,22 +16,24 @@ void RegenerationComponent::tick(float secondsElapsed) {
         return;
 
     // Recuperacion pasiva de vida: Vida = FRazaRecuperacion * segundos
-    const uint16_t hpRecovered =
-            formulaEngine.calculate_passive_recovery(raceRecoveryFactor, secondsElapsed);
-
-    if (hpRecovered > 0) {
+    accumulatedHpRecovery += formulaEngine.calculate_passive_recovery(raceRecoveryFactor, secondsElapsed);
+    if (accumulatedHpRecovery >= 1.0f) {
+        const uint16_t hpRecovered = static_cast<uint16_t>(accumulatedHpRecovery);
         stats.heal(hpRecovered);
+        accumulatedHpRecovery -= static_cast<float>(hpRecovered);
     }
 
     // Recuperacion de mana: Mana = FClaseMeditacion * Inteligencia * segundos
     if (!canUseMagic)
         return;
     if (state.isMeditating()) {
-        const uint16_t manaRecovered = formulaEngine.calculate_meditation_recovery(
+        accumulatedManaRecovery += formulaEngine.calculate_meditation_recovery(
                 classMeditationFactor, stats.getIntelligence(), secondsElapsed);
 
-        if (manaRecovered > 0) {
+        if (accumulatedManaRecovery >= 1.0f) {
+            const uint16_t manaRecovered = static_cast<uint16_t>(accumulatedManaRecovery);
             stats.recoverMana(manaRecovered);
+            accumulatedManaRecovery -= static_cast<float>(manaRecovered);
         }
 
         // El jugador sale de meditación automáticamente cuando llega al tope.
@@ -41,11 +43,12 @@ void RegenerationComponent::tick(float secondsElapsed) {
 
     } else {
         // Fuera de meditación: recuperación pasiva de maná. Mana = FRazaRecuperacion * segundos
-        const uint16_t manaRecovered =
-                formulaEngine.calculate_passive_recovery(raceRecoveryFactor, secondsElapsed);
+        accumulatedManaRecovery += formulaEngine.calculate_passive_recovery(raceRecoveryFactor, secondsElapsed);
 
-        if (manaRecovered > 0) {
+        if (accumulatedManaRecovery >= 1.0f) {
+            const uint16_t manaRecovered = static_cast<uint16_t>(accumulatedManaRecovery);
             stats.recoverMana(manaRecovered);
+            accumulatedManaRecovery -= static_cast<float>(manaRecovered);
         }
     }
 }

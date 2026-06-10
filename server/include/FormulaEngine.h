@@ -65,11 +65,11 @@ public:
     bool is_critical_attack(float critical_probability) const;
 
     // Calcula recuperación pasiva: FRecuperacionRaza * SegundosTranscurridos
-    uint16_t calculate_passive_recovery(float race_recovery_factor, float seconds_elapsed) const;
+    float calculate_passive_recovery(float race_recovery_factor, float seconds_elapsed) const;
 
     // Calcula recuperación por meditación: FMeditacionClase * Inteligencia * SegundosTranscurridos
-    uint16_t calculate_meditation_recovery(float class_meditation_factor, uint16_t intelligence,
-                                           float seconds_elapsed) const;
+    float calculate_meditation_recovery(float class_meditation_factor, uint16_t intelligence,
+                                        float seconds_elapsed) const;
 
     // Calcula XP ganada por matar a un NPC: VidaMaxVictima * max(0, 10 - DiferenciaNiveles)
     uint32_t calculate_kill_xp_gain(uint16_t victim_max_life, uint16_t attacker_level,
