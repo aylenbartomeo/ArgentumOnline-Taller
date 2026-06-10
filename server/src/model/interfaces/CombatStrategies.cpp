@@ -49,7 +49,6 @@ CombatResult MeleeDamageEffect::apply(Player& attacker, Attackable& target,
                                       const CombatModifiers& modifiers, const Weapon& weapon,
                                       CombatSystem& combatSystem) {
 
-    // Encapsulamos los parámetros que solían viajar en AttackParams
     AttackParams params{static_cast<uint16_t>(weapon.getMinDamage()),
                         static_cast<uint16_t>(weapon.getMaxDamage()),
                         weapon.getAttackRange(),
@@ -58,7 +57,6 @@ CombatResult MeleeDamageEffect::apply(Player& attacker, Attackable& target,
                         modifiers.attackBonus,
                         modifiers.defenseBonus};
 
-    // Reutilizamos el método público aislado que creamos en la Fase 1
     return combatSystem.applyDamageEffect(attacker, target, params);
 }
 
@@ -92,10 +90,9 @@ CombatResult MagicHealEffect::apply(Player& attacker, Attackable& target,
         return CombatResult{false};
     }
 
-    // La curación mágica solo aplica a jugadores por diseño
     Player* playerTarget = dynamic_cast<Player*>(&target);
     if (!playerTarget) {
-        return CombatResult{false};  // O podríamos permitir que ocurra pero sin efecto
+        return CombatResult{false};
     }
 
     return combatSystem.applyHealEffect(*playerTarget);

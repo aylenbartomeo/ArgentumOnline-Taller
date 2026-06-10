@@ -67,10 +67,6 @@ CombatModifiers ClanBonusCalculator::buildModifiers(uint32_t attackerDbId, const
         // Notify clan
         Player* attacker = entityManager.getPlayer(attackerDbId);
         std::string attackerName = attacker ? attacker->getName() : "Alguien";
-        // Also avoid notifying the attacker if they are somehow in the same clan (though areClanmates check should prevent this)
-        // Wait, if the attacker is in the clan, they shouldn't be notified of their own attack. notifyClanOfAttack doesn't know the attackerDbId.
-        // Let's pass attackerDbId to notifyClanOfAttack? Or we just filter out the attacker inside buildModifiers?
-        // Actually, areClanmates is called BEFORE buildModifiers, so they are guaranteed NOT to be in the same clan! So notifyClanOfAttack works perfectly.
         notifyClanOfAttack(targetDb, attackerName);
     }
     return m;
