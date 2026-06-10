@@ -6,8 +6,8 @@
 #include <string>
 #include <unordered_map>
 
-#include <SDL_mixer.h>
 #include <SDL2pp/SDL2pp.hh>
+#include <SDL_mixer.h>
 #include <SDL_ttf.h>
 
 #include "../animation/CharacterAnimator.h"
@@ -45,12 +45,14 @@ private:
     std::unordered_map<uint32_t, ProjectileAnimator> projectileAnimators;
     Mix_Music* bgMusic = nullptr;
 
+    enum class FxType { DEFAULT, SWORD, EXPLOSION, SKULL_IMPACT };
+
     struct ActiveFx {
         uint32_t targetId;
         uint32_t startMs;
         int fixedPixelX = 0;
         int fixedPixelY = 0;
-        bool isSword = false;
+        FxType type = FxType::DEFAULT;
     };
     std::optional<ActiveFx> activeFx;
 

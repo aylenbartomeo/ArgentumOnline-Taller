@@ -103,6 +103,27 @@ constexpr int ARROW_DRAW_W = 48;
 constexpr int ARROW_DRAW_H = 48;
 constexpr uint16_t ARROW_SPRITE_ID = 200;
 
+// MAGIC PROJECTILE - fireball
+constexpr const char* STAFF_PROJ_SHEET = "3492.png";
+constexpr int STAFF_PROJ_FRAME_W = 128;
+constexpr int STAFF_PROJ_FRAME_H = 128;
+constexpr int STAFF_PROJ_COLS = 4;
+constexpr int STAFF_PROJ_FRAMES = 16;
+constexpr uint32_t STAFF_PROJ_DUR_MS = 60;
+constexpr int STAFF_PROJ_DRAW = TILE_SIZE * 2;
+constexpr uint16_t STAFF_SPRITE_ID = 203;
+
+// EXPLOSION FX - impacto
+constexpr const char* EXPL_SHEET = "3471.png";
+constexpr int EXPL_FRAME_W = 204;
+constexpr int EXPL_FRAME_H = 204;
+constexpr int EXPL_COLS = 5;
+constexpr int EXPL_FRAMES = 22;
+constexpr uint32_t EXPL_DUR_MS = 55;
+constexpr int EXPL_DRAW = TILE_SIZE * 4;
+
+constexpr uint32_t STAFF_WEAPON_ID = 203;
+
 const char* citizenSheet(const std::string& type) {
     if (type == "merchant")
         return "1077.png";
@@ -302,6 +323,13 @@ static bool hasSwordEquipped(const PlayerStatsDTO& stats) {
                        });
 }
 
+static bool hasStaffEquipped(const PlayerStatsDTO& stats) {
+    return std::any_of(stats.inventory.begin(), stats.inventory.end(),
+                       [](const InventorySlotDTO& slot) {
+                           return slot.isEquipped && slot.itemId == STAFF_WEAPON_ID;
+                       });
+}
+
 void Game::processCombatInput(const FrameInput& input, const CameraOffset& camera) {
     if (input.resurrectPressed) {
         client.sendCommand(ResurrectDTO{});
@@ -338,7 +366,8 @@ void Game::processCombatInput(const FrameInput& input, const CameraOffset& camer
                                                         client.getClientId(), ATTACK_RANGE_TILES);
     if (target) {
         client.sendCommand(AttackDTO{*target});
-        activeFx = ActiveFx{*target, SDL_GetTicks(), 0, 0, hasSwordEquipped(lastStats)};
+        const FxType fxType = hasSwordEquipped(lastStats) ? FxType::SWORD : FxType::DEFAULT;
+        activeFx = ActiveFx{*target, SDL_GetTicks(), 0, 0, fxType};
     }
 }
 
@@ -348,8 +377,23 @@ void Game::renderFx(const CameraOffset& camera) {
     }
 
     const uint32_t now = SDL_GetTicks();
-    const uint32_t dur = activeFx->isSword ? SWORD_FRAME_DUR_MS : FX_FRAME_DUR_MS;
-    const int count = activeFx->isSword ? SWORD_FRAME_COUNT : FX_FRAME_COUNT;
+
+    uint32_t dur;
+    int count;
+    switch (activeFx->type) {
+        case FxType::SWORD:
+            dur = SWORD_FRAME_DUR_MS;
+            count = SWORD_FRAME_COUNT;
+            break;
+        case FxType::EXPLOSION:
+            dur = EXPL_DUR_MS;
+            count = EXPL_FRAMES;
+            break;
+        default:
+            dur = FX_FRAME_DUR_MS;
+            count = FX_FRAME_COUNT;
+            break;
+    }
     const int frame = fxFrameIndex(now - activeFx->startMs, dur, count);
     if (frame < 0) {
         activeFx.reset();
@@ -384,28 +428,37 @@ void Game::renderFx(const CameraOffset& camera) {
                                            target->y * TILE_SIZE;
     }
 
-    if (activeFx->isSword) {
-        const std::string swordPath = std::string(RESOURCES_DIR) + SWORD_FX_SHEET;
-        if (!std::ifstream(swordPath).good())
+    SDL2pp::Renderer& renderer = window.getRenderer();
+    if (activeFx->type == FxType::SWORD) {
+        const std::string p = std::string(RESOURCES_DIR) + SWORD_FX_SHEET;
+        if (!std::ifstream(p).good())
             return;
-        SDL2pp::Renderer& renderer = window.getRenderer();
-        SDL2pp::Texture& swordTex = textures.get(swordPath);
+        SDL2pp::Texture& tex = textures.get(p);
         const FrameRect fr = fxFrameRect(frame, SWORD_FRAME_W, SWORD_FRAME_H, SWORD_FRAME_COLS);
         const int dstX = baseX + TILE_SIZE / 2 - SWORD_DRAW_W / 2 - camera.x;
         const int dstY = baseY + TILE_SIZE - SWORD_DRAW_H - camera.y;
-        const SDL2pp::Rect dst(dstX, dstY, SWORD_DRAW_W, SWORD_DRAW_H);
-        renderer.Copy(swordTex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst);
-    } else {
-        const std::string path = std::string(RESOURCES_DIR) + FX_SHEET;
-        if (!std::ifstream(path).good())
+        renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
+                      SDL2pp::Rect(dstX, dstY, SWORD_DRAW_W, SWORD_DRAW_H));
+    } else if (activeFx->type == FxType::EXPLOSION) {
+        const std::string p = std::string(RESOURCES_DIR) + EXPL_SHEET;
+        if (!std::ifstream(p).good())
             return;
-        SDL2pp::Renderer& renderer = window.getRenderer();
-        SDL2pp::Texture& fx = textures.get(path);
+        SDL2pp::Texture& tex = textures.get(p);
+        const FrameRect fr = fxFrameRect(frame, EXPL_FRAME_W, EXPL_FRAME_H, EXPL_COLS);
+        const int dstX = baseX + TILE_SIZE / 2 - EXPL_DRAW / 2 - camera.x;
+        const int dstY = baseY + TILE_SIZE - EXPL_DRAW - camera.y;
+        renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
+                      SDL2pp::Rect(dstX, dstY, EXPL_DRAW, EXPL_DRAW));
+    } else {
+        const std::string p = std::string(RESOURCES_DIR) + FX_SHEET;
+        if (!std::ifstream(p).good())
+            return;
+        SDL2pp::Texture& tex = textures.get(p);
         const FrameRect fr = fxFrameRect(frame, FX_FRAME_W, FX_FRAME_H, FX_COLS);
         const int dstX = baseX + TILE_SIZE / 2 - FX_DRAW_W / 2 - camera.x;
         const int dstY = baseY + TILE_SIZE - FX_DRAW_H - camera.y;
-        const SDL2pp::Rect dst(dstX, dstY, FX_DRAW_W, FX_DRAW_H);
-        renderer.Copy(fx, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst);
+        renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
+                      SDL2pp::Rect(dstX, dstY, FX_DRAW_W, FX_DRAW_H));
     }
 }
 
@@ -427,7 +480,10 @@ void Game::syncProjectileAnimators(uint32_t nowMs) {
             const int py = static_cast<int>(it->second.getVirtualY() * TILE_SIZE);
 
             // Setear el FX estático (targetId = 0 indica que no sigue a nadie)
-            activeFx = ActiveFx{0, SDL_GetTicks(), px, py};
+            const FxType impactType = (it->second.getSpriteId() == STAFF_SPRITE_ID) ?
+                                              FxType::EXPLOSION :
+                                              FxType::DEFAULT;
+            activeFx = ActiveFx{0, SDL_GetTicks(), px, py, impactType};
 
             it = projectileAnimators.erase(it);
         } else {
@@ -454,7 +510,7 @@ void Game::renderProjectiles(const CameraOffset& camera) {
 
         anim.lastPixelX = px + camera.x;
         anim.lastPixelY = py + camera.y;
-        //printf("[PROJ] id=%u spriteId=%u\n", id, anim.getSpriteId());
+        // printf("[PROJ] id=%u spriteId=%u\n", id, anim.getSpriteId());
         if (anim.getSpriteId() == ARROW_SPRITE_ID) {
             const std::string arrowPath = std::string(RESOURCES_DIR) + ARROW_SHEET;
             if (!std::ifstream(arrowPath).good())
@@ -473,6 +529,18 @@ void Game::renderProjectiles(const CameraOffset& camera) {
             const float angle = std::atan2(anim.getVelY(), anim.getVelX()) * 180.0f / M_PI;
             renderer.Copy(arrowSheet, SDL2pp::Rect(srcX, srcY, ARROW_FRAME_W, ARROW_FRAME_H), dst,
                           angle, SDL2pp::NullOpt, SDL_FLIP_NONE);
+        } else if (anim.getSpriteId() == STAFF_SPRITE_ID) {
+            const std::string p = std::string(RESOURCES_DIR) + STAFF_PROJ_SHEET;
+            if (!std::ifstream(p).good())
+                continue;
+            SDL2pp::Texture& tex = textures.get(p);
+            const int frame = (now / STAFF_PROJ_DUR_MS) % STAFF_PROJ_FRAMES;
+            const FrameRect fr =
+                    fxFrameRect(frame, STAFF_PROJ_FRAME_W, STAFF_PROJ_FRAME_H, STAFF_PROJ_COLS);
+            const SDL2pp::Rect dst(px - STAFF_PROJ_DRAW / 2, py - STAFF_PROJ_DRAW / 2,
+                                   STAFF_PROJ_DRAW, STAFF_PROJ_DRAW);
+            renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst, 0.0, SDL2pp::NullOpt,
+                          SDL_FLIP_NONE);
         } else {
             // Comportamiento original: fuego
             const int frame = (now / 100) % 64;
