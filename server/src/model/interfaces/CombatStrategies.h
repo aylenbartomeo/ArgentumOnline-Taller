@@ -3,7 +3,8 @@
 
 #include <cstdint>
 
-#include "../systems/CombatSystem.h"
+#include "../systems/CombatTypes.h"
+class CombatSystem;
 
 // Forward declarations para evitar acoplamiento circular de headers
 class Player;
@@ -24,7 +25,7 @@ struct CombatModifiers {
 class IAttackDelivery {
 public:
     virtual ~IAttackDelivery() = default;
-    virtual CombatResult deliver(Player& attacker, Attackable& target,
+    virtual CombatResult deliver(Attackable& attacker, Attackable& target,
                                  const CombatModifiers& modifiers, const Weapon& weapon,
                                  CombatSystem& combatSystem) = 0;
 };
@@ -33,7 +34,7 @@ public:
 class IHitEffect {
 public:
     virtual ~IHitEffect() = default;
-    virtual CombatResult apply(Attackable& attacker, Attackable& target,
+    virtual CombatResult apply(Player& attacker, Attackable& target,
                                const CombatModifiers& modifiers, const Weapon& weapon,
                                CombatSystem& combatSystem) = 0;
 };
@@ -47,7 +48,7 @@ class InstantMeleeDelivery: public IAttackDelivery {
 public:
     ~InstantMeleeDelivery() override = default;
 
-    CombatResult deliver(Player& attacker, Attackable& target, const CombatModifiers& modifiers,
+    CombatResult deliver(Attackable& attacker, Attackable& target, const CombatModifiers& modifiers,
                          const Weapon& weapon, CombatSystem& combatSystem) override;
 };
 
@@ -56,7 +57,7 @@ class ProjectileDelivery: public IAttackDelivery {
 public:
     ~ProjectileDelivery() override = default;
 
-    CombatResult deliver(Player& attacker, Attackable& target, const CombatModifiers& modifiers,
+    CombatResult deliver(Attackable& attacker, Attackable& target, const CombatModifiers& modifiers,
                          const Weapon& weapon, CombatSystem& combatSystem) override;
 };
 
@@ -65,7 +66,7 @@ class MeleeDamageEffect: public IHitEffect {
 public:
     ~MeleeDamageEffect() override = default;
 
-    CombatResult apply(Attackable& attacker, Attackable& target, const CombatModifiers& modifiers,
+    CombatResult apply(Player& attacker, Attackable& target, const CombatModifiers& modifiers,
                        const Weapon& weapon, CombatSystem& combatSystem) override;
 };
 
@@ -74,6 +75,15 @@ class MagicDamageEffect: public IHitEffect {
 public:
     ~MagicDamageEffect() override = default;
 
-    CombatResult apply(Attackable& attacker, Attackable& target, const CombatModifiers& modifiers,
+    CombatResult apply(Player& attacker, Attackable& target, const CombatModifiers& modifiers,
+                       const Weapon& weapon, CombatSystem& combatSystem) override;
+};
+
+// Implementación para efectos de curacion mágica con consumo de maná (flauta magica)
+class MagicHealEffect: public IHitEffect {
+public:
+    ~MagicHealEffect() override = default;
+
+    CombatResult apply(Player& attacker, Attackable& target, const CombatModifiers& modifiers,
                        const Weapon& weapon, CombatSystem& combatSystem) override;
 };

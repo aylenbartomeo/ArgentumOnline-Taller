@@ -1,4 +1,4 @@
-﻿#include "server/src/config/ItemConfigLoader.h"
+#include "server/src/config/ItemConfigLoader.h"
 
 #include <cstdint>
 #include <limits>
@@ -115,6 +115,8 @@ WeaponConfig parseWeaponConfig(const toml::table& weaponTable) {
             requiredInt(weaponTable, "max_damage"),
             requiredInt(weaponTable, "attack_range"),
             requiredInt(weaponTable, "mana_cost"),
+            weaponTable["delivery"].value<std::string>().value_or(""),
+            weaponTable["hit_effect"].value<std::string>().value_or(""),
     };
 
     if (config.minDamage > config.maxDamage) {

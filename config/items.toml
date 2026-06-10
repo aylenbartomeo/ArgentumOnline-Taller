@@ -90,6 +90,8 @@ max_damage = 5
 type = "melee"
 attack_range = 1
 mana_cost = 0
+delivery = "instant_melee"
+hit_effect = "melee_damage"
 
 [[weapon]]
 id = 2001
@@ -100,6 +102,8 @@ max_damage = 5
 type = "melee"
 attack_range = 1
 mana_cost = 0
+delivery = "instant_melee"
+hit_effect = "melee_damage"
 
 [[weapon]]
 id = 2002
@@ -110,6 +114,8 @@ max_damage = 9
 type = "melee"
 attack_range = 1
 mana_cost = 0
+delivery = "instant_melee"
+hit_effect = "melee_damage"
 
 [[weapon]]
 id = 2010
@@ -120,6 +126,8 @@ max_damage = 4
 type = "ranged"
 attack_range = 8
 mana_cost = 0
+delivery = "projectile"
+hit_effect = "melee_damage"
 
 [[weapon]]
 id = 2011
@@ -130,6 +138,8 @@ max_damage = 16
 type = "ranged"
 attack_range = 8
 mana_cost = 0
+delivery = "projectile"
+hit_effect = "melee_damage"
 
 [[weapon]]
 id = 2020
@@ -140,6 +150,8 @@ max_damage = 4
 type = "magic"
 attack_range = 8
 mana_cost = 5
+delivery = "projectile"
+hit_effect = "magic_damage"
 
 [[weapon]]
 id = 2021
@@ -150,6 +162,8 @@ max_damage = 0
 type = "magic"
 attack_range = 8
 mana_cost = 100
+delivery = "projectile"
+hit_effect = "magic_heal"
 
 [[weapon]]
 id = 2022
@@ -160,6 +174,8 @@ max_damage = 8
 type = "magic"
 attack_range = 8
 mana_cost = 15
+delivery = "projectile"
+hit_effect = "magic_damage"
 
 [[weapon]]
 id = 2023
@@ -170,6 +186,8 @@ max_damage = 20
 type = "magic"
 attack_range = 8
 mana_cost = 30
+delivery = "projectile"
+hit_effect = "magic_damage"
 
 # =========================
 # CONSUMABLE - 3000 a 3999

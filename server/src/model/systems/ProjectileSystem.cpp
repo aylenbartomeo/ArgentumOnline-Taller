@@ -15,11 +15,12 @@ ProjectileSystem::ProjectileSystem(Map& map, EntityManager& em, CombatSystem& cs
 
 uint32_t ProjectileSystem::spawnProjectile(uint32_t ownerDbId, float sx, float sy, float tx,
                                            float ty, uint16_t spriteId, int minDmg, int maxDmg,
-                                           bool isMagical, ProjectileType type, float speed,
-                                           float maxRange) {
+                                           bool isMagical, IHitEffect* hitEffect,
+                                           ProjectileType type, float speed, float maxRange) {
     uint32_t id = nextId++;
+    // Captura el hitEffect en el momento del disparo (snapshot)
     projectiles.emplace_back(id, ownerDbId, sx, sy, tx, ty, speed, maxRange, spriteId, minDmg,
-                             maxDmg, isMagical, type);
+                             maxDmg, isMagical, type, hitEffect);
     return id;
 }
 
@@ -137,19 +138,25 @@ void ProjectileSystem::applySingleTargetDamage(const Projectile& p, uint32_t hit
     // Calcular modificadores de clan en el momento del impacto
     CombatModifiers modifiers = combatSystem.buildModifiers(p.ownerDbId, target);
 
-    // Obtener la estrategia de impacto del arma del atacante.
-    // Si el arma fue desequipada durante el vuelo del proyectil, usamos nullptr
-    // y onProjectileHit lo manejará degradando a sin efecto.
-    const Weapon* weapon = attacker->getEquippedWeapon();
-    IHitEffect* hitEffect = weapon ? weapon->getHitEffect() : nullptr;
+    // Usar el hitEffect capturado al momento del disparo.
+    // Si el jugador cambió de arma en vuelo, el efecto sigue siendo el del arma original.
+    // Si no hay efecto capturado (legacy / spawn sin arma), degradar a daño por parámetros.
+    if (!p.capturedHitEffect) {
+        AttackParams params = buildAttackParams(p, modifiers);
+        combatSystem.applyDamageEffect(*attacker, *target, params);
+        return;
+    }
 
+    // Necesitamos el Weapon para pasarlo a onProjectileHit; si el jugador cambió de arma
+    // en vuelo, usamos el arma actual como contexto de stats (rango ya no importa aquí).
+    const Weapon* weapon = attacker->getEquippedWeapon();
     if (!weapon) {
         AttackParams params = buildAttackParams(p, modifiers);
         combatSystem.applyDamageEffect(*attacker, *target, params);
         return;
     }
 
-    combatSystem.onProjectileHit(*attacker, *target, hitEffect, modifiers, *weapon);
+    combatSystem.onProjectileHit(*attacker, *target, p.capturedHitEffect, modifiers, *weapon);
 }
 
 void ProjectileSystem::applyAoeDamage(const Projectile& p) {
@@ -158,6 +165,10 @@ void ProjectileSystem::applyAoeDamage(const Projectile& p) {
     Player* attacker = entityManager.getPlayer(p.ownerDbId);
     if (!attacker)
         return;
+
+    // Contexto del arma actual (para pasar stats de rango a onProjectileHit; el rango no
+    // se valida en el impacto de proyectil, así que usar el arma actual es aceptable).
+    const Weapon* weapon = attacker->getEquippedWeapon();
 
     auto checkAndDamage = [&](float ex, float ey, uint32_t id) {
         float dx = p.x - ex, dy = p.y - ey;
@@ -175,8 +186,16 @@ void ProjectileSystem::applyAoeDamage(const Projectile& p) {
             return;
 
         CombatModifiers modifiers = combatSystem.buildModifiers(p.ownerDbId, target);
-        AttackParams params = buildAttackParams(p, modifiers);
-        combatSystem.applyDamageEffect(*attacker, *target, params);
+
+        // Rutar a través del IHitEffect capturado para que las explosiones AoE
+        // también puedan tener efectos de estado o curación en el futuro.
+        if (p.capturedHitEffect && weapon) {
+            combatSystem.onProjectileHit(*attacker, *target, p.capturedHitEffect, modifiers,
+                                         *weapon);
+        } else {
+            AttackParams params = buildAttackParams(p, modifiers);
+            combatSystem.applyDamageEffect(*attacker, *target, params);
+        }
     };
 
     for (const auto& [id, player]: entityManager.getPlayers()) {

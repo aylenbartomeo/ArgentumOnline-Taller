@@ -28,7 +28,8 @@ public:
     ~Weapon() override;
 
     Weapon(int id, std::string name, int price, WeaponType type, int minDamage, int maxDamage,
-           int attackRange = 1, int manaCost = 0);
+           int attackRange, int manaCost, std::unique_ptr<IAttackDelivery> delivery,
+           std::unique_ptr<IHitEffect> hitEffect);
 
     int getMinDamage() const;
     int getMaxDamage() const;

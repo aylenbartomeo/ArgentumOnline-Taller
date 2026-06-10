@@ -323,7 +323,8 @@ void World::playerShoot(uint32_t shooterDbId, float targetX, float targetY) {
 
     projectileSystem.spawnProjectile(shooterDbId, sx, sy, targetX, targetY, sprite,
                                      weapon->getMinDamage(), weapon->getMaxDamage(),
-                                     weapon->isMagic(), pType, speed, range);
+                                     weapon->isMagic(), weapon->getHitEffect(), pType, speed,
+                                     range);
 
     shooter->onActionStarted();
 }
