@@ -88,6 +88,10 @@ void Client::pushChatMessage(const ChatDTO& chat) { this->chatQueue.push(chat); 
 
 bool Client::tryPopChatMessage(ChatDTO& out) { return this->chatQueue.try_pop(out); }
 
+void Client::pushPlayerStats(const PlayerStatsDTO& stats) { this->statsQueue.push(stats); }
+
+bool Client::tryPopPlayerStats(PlayerStatsDTO& out) { return this->statsQueue.try_pop(out); }
+
 void Client::sendCommand(const CommandVariant& cmd) {
     try {
         commandQueue.push(cmd);

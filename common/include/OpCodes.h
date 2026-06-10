@@ -21,6 +21,7 @@ enum class OPCODE : uint8_t {
     NPC_CMD = 0x13,
     RESURRECT = 0x14,
     OPCODE_CHEAT = 0x15,
+    SHOOT = 0x16,
 
     // --- SERVIDOR A CLIENTE ---
     SNAPSHOT = 0x82,

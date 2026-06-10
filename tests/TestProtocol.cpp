@@ -5,6 +5,7 @@
 #include "../common/include/dto/StartMoveDTO.h"
 #include "../common/src/protocol/Protocol.h"
 #include "../common/src/socket/socket.h"
+#include "../common/utils/types.h"
 #include "dto/CommandDTO.h"
 
 // --- TEST PARA EL MENSAJE DE LOGIN ---
@@ -213,6 +214,12 @@ TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
     entity1.y = 20;
     entity1.current_hp = 50;
     entity1.max_hp = 100;
+    entity1.entityTypeId = static_cast<uint8_t>(Race::ELF);
+    entity1.action = static_cast<uint8_t>(EntityAction::ATTACKING);
+    entity1.weaponItemId = 1;
+    entity1.helmetItemId = 2;
+    entity1.shieldItemId = 3;
+    entity1.bodyArmorItemId = 4;
 
     EntityDTO entity2;
     entity2.id = 200;
@@ -221,6 +228,8 @@ TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
     entity2.y = 40;
     entity2.current_hp = 10;
     entity2.max_hp = 20;
+    entity2.entityTypeId = static_cast<uint8_t>(NPCType::GOBLIN);
+    entity2.action = static_cast<uint8_t>(EntityAction::WALKING);
 
     original_snap.players.push_back(entity1);
     original_snap.monsters.push_back(entity2);
@@ -245,10 +254,18 @@ TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
     EXPECT_EQ(received_snap.players[0].id, 100);
     EXPECT_EQ(received_snap.players[0].type, EntityType::PLAYER);
     EXPECT_EQ(received_snap.players[0].x, 15);
+    EXPECT_EQ(received_snap.players[0].entityTypeId, static_cast<uint8_t>(Race::ELF));
+    EXPECT_EQ(received_snap.players[0].action, static_cast<uint8_t>(EntityAction::ATTACKING));
+    EXPECT_EQ(received_snap.players[0].weaponItemId, 1);
+    EXPECT_EQ(received_snap.players[0].helmetItemId, 2);
+    EXPECT_EQ(received_snap.players[0].shieldItemId, 3);
+    EXPECT_EQ(received_snap.players[0].bodyArmorItemId, 4);
 
     ASSERT_EQ(received_snap.monsters.size(), 1u);
     EXPECT_EQ(received_snap.monsters[0].id, 200);
     EXPECT_EQ(received_snap.monsters[0].type, EntityType::MONSTER);
+    EXPECT_EQ(received_snap.monsters[0].entityTypeId, static_cast<uint8_t>(NPCType::GOBLIN));
+    EXPECT_EQ(received_snap.monsters[0].action, static_cast<uint8_t>(EntityAction::WALKING));
 }
 
 // --- TESTS PARA LA RESPUESTA DE LOGIN (SERVIDOR -> CLIENTE) ---

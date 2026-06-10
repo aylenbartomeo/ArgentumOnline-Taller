@@ -26,6 +26,13 @@ void Monster::move(const Position& new_pos) { this->pos = new_pos; }
 void Monster::update(float deltaMs) {
     time_since_last_attack += deltaMs;
     time_since_last_move += deltaMs;
+    if (actionTimerMs > 0.0f) {
+        actionTimerMs -= deltaMs;
+        if (actionTimerMs <= 0.0f) {
+            currentAction = 0;
+            actionTimerMs = 0.0f;
+        }
+    }
 }
 
 bool Monster::canAttack() const { return time_since_last_attack >= attack_cooldown_ms; }
@@ -78,23 +85,22 @@ std::string Monster::getName() const {
     }
 }
 
-uint16_t Monster::getSpriteId() const {
-    switch (this->type) {
-        case NPCType::GOBLIN:
-            return 1800;
-        case NPCType::ORC:
-            return 1875;
-        case NPCType::ZOMBIE:
-            return 1892;
-        case NPCType::SPIDER:
-            return 1052;
-        case NPCType::GOLEM:
-            return 1140;
-        case NPCType::SKELETON:
-            return 1238;
-        default:
-            return 25;
-    }
+EntityDTO Monster::toEntityDTO() const {
+    EntityDTO dto;
+    dto.id = id;
+    dto.type = EntityType::MONSTER;
+    dto.x = pos.x;
+    dto.y = pos.y;
+    dto.current_hp = static_cast<uint16_t>(health);
+    dto.max_hp = static_cast<uint16_t>(max_health);
+    dto.entityTypeId = static_cast<uint8_t>(type);
+    dto.action = currentAction;
+    return dto;
+}
+
+void Monster::setAction(uint8_t action, float durationMs) {
+    currentAction = action;
+    actionTimerMs = durationMs;
 }
 
 int Monster::getAttackMin() const { return this->attack_min; }

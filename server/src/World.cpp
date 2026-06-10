@@ -27,7 +27,8 @@ World::World(int worldId, const std::string& creatorPlayerName, const ItemRegist
         clanService(clanRepo),
         clanController(clanService),
         characterConfigs(configs),
-        combatSystem(map, entityManager, clanRepo, eventPublisher, *this, enforceFairPlay) {
+        combatSystem(map, entityManager, clanRepo, eventPublisher, *this, enforceFairPlay),
+        projectileSystem(map, entityManager, combatSystem) {
     map.setDimensions(20, 15);
     map.setSpawnPoint(0, 0);
     try {
@@ -60,6 +61,25 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         } else {
             eventPublisher.sendTo(dbId, "[CHEAT] Ya estás muerto.");
         }
+    } else if (type == CheatType::GIVE_RANGED_WEAPONS) {
+        Player* p = entityManager.getPlayer(dbId);
+        if (p) {
+            p->addItem(2010, 1);
+            p->addItem(2011, 1);
+            p->addItem(2020, 1);
+            p->addItem(2021, 1);
+            p->addItem(2022, 1);
+            p->addItem(2023, 1);
+        }
+        eventPublisher.sendTo(
+                dbId, "[CHEAT] Armas de rango agregados al inventario. Equipalo con doble click.");
+    } else if (type == CheatType::INFINITE_MANA) {
+        // Setea el maná al máximo actual del jugador
+        player->toggleInfiniteMana();
+        eventPublisher.sendTo(dbId, "[CHEAT] Maná infinito toggled.");
+    } else if (type == CheatType::GIVE_GOLD) {
+        player->addGold(1000);
+        eventPublisher.sendTo(dbId, "[CHEAT] +1.000 de oro agregados.");
     }
 }
 
@@ -175,6 +195,11 @@ bool World::loadMap(const std::string& path, bool spawnMonstersAndItems) {
     options.spawnGroundItems = spawnMonstersAndItems;
     if (map.loadSpawnFromJson(path, options)) {
         spawnNPCs();
+        if (spawnMonstersAndItems) {
+            for (const auto& req: spawnSystem.getInitialSpawns(map)) {
+                addMonster(req.type, req.pos, *req.config);
+            }
+        }
         return true;
     }
     return false;
@@ -212,12 +237,96 @@ void World::moveEntity(uint32_t dbId, Movement direction) {
     map.setEntityCollision(oldPos.x, oldPos.y, false);
     p->setPosition(candidate);
     map.setEntityCollision(candidate.x, candidate.y, true);
+    p->setAction(static_cast<uint8_t>(EntityAction::WALKING), 200.0f);
 
     interactionService.endInteraction(entityManager.resolveEntityId(dbId));
 }
 
 void World::playerAttack(uint32_t attackerId, uint32_t targetDbId) {
     combatSystem.playerAttack(attackerId, targetDbId);
+}
+
+void World::playerShoot(uint32_t shooterDbId, float targetX, float targetY) {
+    Player* shooter = entityManager.getPlayer(shooterDbId);
+    if (!shooter || shooter->isDead())
+        return;
+
+    if (!shooter->canAttack()) {
+        eventPublisher.sendTo(shooterDbId, "Aún no puedes disparar.");
+        return;
+    }
+    if (map.isSafeZone(shooter->getPosition().x, shooter->getPosition().y)) {
+        eventPublisher.sendTo(shooterDbId, "No puedes disparar en una zona segura.");
+        return;
+    }
+
+    const Weapon* weapon = shooter->getEquippedWeapon();
+    if (!weapon || weapon->getType() == WeaponType::MELEE) {
+        eventPublisher.sendTo(shooterDbId, "No tienes un arma de rango equipada.");
+        return;
+    }
+
+    // --- Flauta élfica: curación instantánea en self ---
+    if (weapon->getId() == ITEM_FLAUTA_ELFICA) {
+        if (!shooter->consumeMana(weapon->getManaCost())) {
+            eventPublisher.sendTo(shooterDbId, "No tienes suficiente maná.");
+            return;
+        }
+        shooter->heal(FLAUTA_HEAL_AMOUNT);
+        eventPublisher.sendTo(shooterDbId,
+                              "Te curaste " + std::to_string(FLAUTA_HEAL_AMOUNT) + " HP.");
+        shooter->onActionStarted();
+        return;
+    }
+
+    // --- Armas mágicas: consumir maná ---
+    if (weapon->getType() == WeaponType::MAGIC) {
+        if (!shooter->consumeMana(weapon->getManaCost())) {
+            eventPublisher.sendTo(shooterDbId, "No tienes suficiente maná.");
+            return;
+        }
+    }
+
+    // --- Determinar tipo de proyectil y sprite según item ID ---
+    ProjectileType pType = ProjectileType::ARROW;
+    uint16_t sprite = SPRITE_ARROW;
+    float speed = 12.f;
+    float range = 15.f;
+
+    switch (weapon->getId()) {
+        case ITEM_VARA_FRESNO:
+            pType = ProjectileType::MAGIC_ARROW;
+            sprite = SPRITE_MAGIC_ARROW;
+            speed = 10.f;
+            break;
+        case ITEM_BACULO_NUDOSO:
+            pType = ProjectileType::MISSILE;
+            sprite = SPRITE_MISSILE;
+            speed = 9.f;
+            break;
+        case ITEM_BACULO_ENGARZADO:
+            pType = ProjectileType::EXPLOSION;
+            sprite = SPRITE_EXPLOSION;
+            speed = 8.f;
+            range = 16.f;
+            break;
+        case ITEM_ARCO_COMPUESTO:
+            speed = 14.f;
+            range = 18.f;
+            break;
+        default:
+            break;
+    }
+
+    float sx = static_cast<float>(shooter->getPosition().x);
+    float sy = static_cast<float>(shooter->getPosition().y);
+
+    projectileSystem.spawnProjectile(shooterDbId, sx, sy, targetX, targetY, sprite,
+                                     weapon->getMinDamage(), weapon->getMaxDamage(),
+                                     weapon->isMagic(), weapon->getHitEffect(), pType, speed,
+                                     range);
+
+    shooter->onActionStarted();
 }
 
 void World::playerInteract(uint32_t dbId, uint32_t targetId) {
@@ -290,23 +399,23 @@ void World::moveMonsterTowards(Monster& monster, const Position& targetPos) {
 
     if (dx != 0 && dy != 0) {
         // Movimiento diagonal
-        candidates.push_back({mPos.x + dx, mPos.y + dy});  // 1. Diagonal directo
-        candidates.push_back({mPos.x + dx, mPos.y});       // 2. Solo X
-        candidates.push_back({mPos.x, mPos.y + dy});       // 3. Solo Y
+        candidates.push_back({mPos.x + dx, mPos.y + dy});
+        candidates.push_back({mPos.x + dx, mPos.y});
+        candidates.push_back({mPos.x, mPos.y + dy});
     } else if (dx != 0) {
         // Movimiento horizontal
-        candidates.push_back({mPos.x + dx, mPos.y});      // 1. Directo
-        candidates.push_back({mPos.x + dx, mPos.y + 1});  // 2. Diagonal arriba
-        candidates.push_back({mPos.x + dx, mPos.y - 1});  // 3. Diagonal abajo
-        candidates.push_back({mPos.x, mPos.y + 1});       // 4. Esquivar arriba (slide lateral)
-        candidates.push_back({mPos.x, mPos.y - 1});       // 5. Esquivar abajo (slide lateral)
+        candidates.push_back({mPos.x + dx, mPos.y});
+        candidates.push_back({mPos.x + dx, mPos.y + 1});
+        candidates.push_back({mPos.x + dx, mPos.y - 1});
+        candidates.push_back({mPos.x, mPos.y + 1});
+        candidates.push_back({mPos.x, mPos.y - 1});
     } else if (dy != 0) {
         // Movimiento vertical
-        candidates.push_back({mPos.x, mPos.y + dy});      // 1. Directo
-        candidates.push_back({mPos.x + 1, mPos.y + dy});  // 2. Diagonal derecha
-        candidates.push_back({mPos.x - 1, mPos.y + dy});  // 3. Diagonal izquierda
-        candidates.push_back({mPos.x + 1, mPos.y});       // 4. Esquivar derecha (slide lateral)
-        candidates.push_back({mPos.x - 1, mPos.y});       // 5. Esquivar izquierda (slide lateral)
+        candidates.push_back({mPos.x, mPos.y + dy});
+        candidates.push_back({mPos.x + 1, mPos.y + dy});
+        candidates.push_back({mPos.x - 1, mPos.y + dy});
+        candidates.push_back({mPos.x + 1, mPos.y});
+        candidates.push_back({mPos.x - 1, mPos.y});
     }
 
     auto it = std::find_if(candidates.begin(), candidates.end(),
@@ -317,6 +426,7 @@ void World::moveMonsterTowards(Monster& monster, const Position& targetPos) {
         monster.setPosition(*it);
         map.setEntityCollision(it->x, it->y, true);
         monster.resetMoveCooldown();
+        monster.setAction(static_cast<uint8_t>(EntityAction::WALKING), 200.0f);
     }
 }
 
@@ -349,6 +459,7 @@ void World::update(float delta_time) {
             if (monster->canAttack()) {
                 combatSystem.monsterAttack(*monster, *target);
                 monster->resetAttackCooldown();
+                monster->setAction(static_cast<uint8_t>(EntityAction::ATTACKING), 400.0f);
             }
         } else {
             moveMonsterTowards(*monster, target->getPosition());
@@ -388,6 +499,8 @@ void World::update(float delta_time) {
         entityManager.addMonster(req.type, req.pos, *req.config);
         map.setEntityCollision(req.pos.x, req.pos.y, true);
     }
+
+    projectileSystem.update(delta_time);
 }
 
 std::vector<WorldEvent> World::pollEvents() { return eventPublisher.pollEvents(); }
@@ -395,28 +508,11 @@ std::vector<WorldEvent> World::pollEvents() { return eventPublisher.pollEvents()
 SnapshotDTO World::generateSnapshot() const {
     SnapshotDTO snapshot;
     for (const auto& pair: entityManager.getMonsters()) {
-        uint32_t id = pair.first;
-        const Monster* monster = pair.second.get();
-        snapshot.monsters.emplace_back(id, EntityType::MONSTER, monster->getPosition().x,
-                                       monster->getPosition().y, monster->getHp(),
-                                       monster->getMaxHp(), monster->getSpriteId());
+        snapshot.monsters.push_back(pair.second->toEntityDTO());
     }
 
-    uint16_t spriteId = 1;
     for (const auto& pair: entityManager.getPlayers()) {
-        const Player& player = *(pair.second);
-        Position pos = player.getPosition();
-
-        EntityDTO entityData;
-        entityData.id = player.getDbId();
-        entityData.type = EntityType::PLAYER;
-        entityData.x = pos.x;
-        entityData.y = pos.y;
-        entityData.current_hp = player.getHp();
-        entityData.max_hp = player.getMaxHp();
-        entityData.sprite_id = spriteId;
-        spriteId++;
-        snapshot.players.push_back(entityData);
+        snapshot.players.push_back(pair.second->toEntityDTO());
     }
 
     for (const auto& pair: map.getGroundItemsSnapshot()) {
@@ -424,6 +520,8 @@ SnapshotDTO World::generateSnapshot() const {
         const GroundItem& item = pair.second;
         snapshot.groundItems.push_back(GroundItemDTO(item.itemId, item.amount, pos.x, pos.y));
     }
+
+    snapshot.projectiles = projectileSystem.getProjectileDTOs();
 
     return snapshot;
 }
@@ -489,6 +587,8 @@ void World::pickUpItem(uint32_t dbId) {
         return;
     }
 
+    p->setAction(static_cast<uint8_t>(EntityAction::GRABBING), 500.0f);
+
     if (itemOpt->itemId == GOLD_ITEM_ID) {
         p->addGold(itemOpt->amount);
         eventPublisher.sendTo(dbId,
@@ -543,6 +643,21 @@ void World::dropItem(uint32_t dbId, uint8_t slot, uint16_t amount) {
     }
 
     p->removeInventoryItem(slot, amount);
+}
+
+void World::equipItem(uint32_t dbId, uint8_t slot) {
+    Player* p = entityManager.getPlayer(dbId);
+    if (!p)
+        return;
+
+    if (p->isDead()) {
+        eventPublisher.sendTo(dbId, "No puedes hacer eso siendo un fantasma.");
+        return;
+    }
+
+    if (p->equipFromSlot(slot)) {
+        eventPublisher.sendTo(dbId, "Equipaste el item.");
+    }
 }
 
 void World::handlePlayerDeath(uint32_t dbId) {

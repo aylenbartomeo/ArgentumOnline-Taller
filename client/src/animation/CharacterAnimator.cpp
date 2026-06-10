@@ -20,6 +20,7 @@ constexpr uint32_t FRAME_MS = 120;
 constexpr int WALK_FRAMES = 4;
 constexpr float MOVE_SPEED = 0.005f;
 constexpr float SNAP_DIST = 2.5f;
+}  // namespace
 
 int rowForFacing(Movement facing) {
     switch (facing) {
@@ -33,7 +34,6 @@ int rowForFacing(Movement facing) {
             return 0;
     }
 }
-}  // namespace
 
 Movement directionFromDelta(int dx, int dy) {
     if (std::abs(dx) >= std::abs(dy)) {

@@ -4,17 +4,21 @@
 #include <utility>
 
 #include "../components/EquipmentComponent.h"
+#include "../interfaces/CombatStrategies.h"
 
 #include "FormulaEngine.h"
 
 Weapon::Weapon(int id, std::string name, int price, WeaponType type, int minDamage, int maxDamage,
-               int attackRange, int manaCost):
+               int attackRange, int manaCost, std::unique_ptr<IAttackDelivery> delivery,
+               std::unique_ptr<IHitEffect> hitEffect):
         Item(id, std::move(name), price),
         minDamage(minDamage),
         maxDamage(maxDamage),
         type(type),
         attackRange(attackRange),
-        manaCost(manaCost) {
+        manaCost(manaCost),
+        deliveryStrategy(std::move(delivery)),
+        hitEffectStrategy(std::move(hitEffect)) {
 
     // Validate weapon-specific parameters (name is already validated by Item)
     if (minDamage < 0) {
@@ -32,6 +36,18 @@ Weapon::Weapon(int id, std::string name, int price, WeaponType type, int minDama
     if (manaCost < 0) {
         throw std::invalid_argument("Weapon mana cost cannot be negative");
     }
+
+    // Strategies are now injected by the factory.
+}
+
+int Weapon::getMinDamage() const { return minDamage; }
+int Weapon::getMaxDamage() const { return maxDamage; }
+WeaponType Weapon::getType() const { return type; }
+int Weapon::getAttackRange() const { return attackRange; }
+int Weapon::getManaCost() const { return manaCost; }
+
+void Weapon::equip_on(EquipmentComponent& equipment, uint8_t slotIndex) const {
+    equipment.equipWeapon(this, slotIndex);
 }
 
 bool Weapon::isMagic() const {
@@ -41,18 +57,4 @@ bool Weapon::isMagic() const {
     return false;
 }
 
-int Weapon::getMinDamage() const { return minDamage; }
-int Weapon::getMaxDamage() const { return maxDamage; }
-WeaponType Weapon::getType() const { return type; }
-int Weapon::getAttackRange() const { return attackRange; }
-int Weapon::getManaCost() const { return manaCost; }
-
-uint16_t Weapon::calculateDamage(uint16_t attackPower) const {
-    return FormulaEngine::getInstance().calculate_base_damage(
-            attackPower, static_cast<uint16_t>(this->minDamage),
-            static_cast<uint16_t>(this->maxDamage));
-}
-
-void Weapon::equip_on(EquipmentComponent& equipment, uint8_t slotIndex) const {
-    equipment.equipWeapon(this, slotIndex);
-}
+Weapon::~Weapon() = default;

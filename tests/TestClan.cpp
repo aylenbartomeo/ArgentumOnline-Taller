@@ -333,9 +333,9 @@ class WorldClanTest: public ::testing::Test {
 protected:
     ItemRegistry* registry = nullptr;
     World* world = nullptr;
+    PlayerPersistData pdata{};
 
     void SetUp() override {
-
         registry = new ItemRegistry("../config/items.toml");
         CharacterConfigs configs = getTestConfigs();
         world = new World(1, "Tester", *registry, configs, getTestInventoryConfig());
@@ -344,11 +344,19 @@ protected:
         world->setFairPlayRules(false);
         world->setClanMinLevel(1);
 
-        // Agregar tres jugadores de prueba fuera de la safe zone
-        PlayerPersistData pdata;
+        pdata.dbId = 1;
         pdata.posX = 5;
         pdata.posY = 5;
+        pdata.level = 1;
+        pdata.hp = 15;
+        pdata.mana = 15;
+
+        pdata.race = static_cast<uint8_t>(Race::HUMAN);
+        pdata.characterClass = static_cast<uint8_t>(CharacterClass::WARRIOR);
+
         std::string u1 = "Founder", u2 = "Member1", u3 = "Member2";
+
+        // Pasamos el mismo pdata limpio para los tres (les cambia el dbId adentro de addPlayer)
         world->addPlayer(1, u1, pdata);
         world->addPlayer(2, u2, pdata);
         world->addPlayer(3, u3, pdata);
@@ -405,9 +413,6 @@ TEST_F(WorldClanTest, World_PlayersInDifferentClans_CanAttackEachOther) {
 
     // Agregar cuarto jugador para fundar Beta
     std::string u4 = "OtherFounder";
-    PlayerPersistData pdata;
-    pdata.posX = 5;
-    pdata.posY = 5;
     world->addPlayer(4, u4, pdata);
     world->pollEvents();
 
@@ -428,9 +433,6 @@ TEST_F(WorldClanTest, World_UnderAttack_NotifiesClanmates) {
 
     // Agregar un cuarto jugador sin clan para que ataque al clan
     std::string u4 = "Enemy";
-    PlayerPersistData pdata;
-    pdata.posX = 5;
-    pdata.posY = 5;
     world->addPlayer(4, u4, pdata);
     world->pollEvents();
 
@@ -455,9 +457,6 @@ TEST_F(WorldClanTest, World_LoginNotifiesClanmates) {
 
     // Un nuevo jugador se une al clan
     std::string u5 = "Newbie";
-    PlayerPersistData pdata;
-    pdata.posX = 5;
-    pdata.posY = 5;
     world->addPlayer(5, u5, pdata);  // esto genera notificación si 5 ya estuviera en un clan
     // En este caso 5 no está en un clan aún, así que no hay notificación de clan en login
     auto events = world->pollEvents();

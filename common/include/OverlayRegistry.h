@@ -13,6 +13,7 @@ struct OverlayDef {
     std::string name;
     int itemId;
     bool solid;
+    bool stackable = false;
 };
 
 const std::vector<OverlayDef>& getOverlayRegistry();

@@ -1,9 +1,11 @@
+#include <algorithm>
 #include <stdexcept>
 #include <string>
 
 #include <gtest/gtest.h>
 
 #include "EditorMap.h"
+#include "OverlayRegistry.h"
 
 TEST(EditorMapTest, NewMapIsEmptyWithGivenDimensions) {
     EditorMap map(4, 3, 16, "tilemap_packed.png", 12);
@@ -244,4 +246,92 @@ TEST(EditorMapTest, ResizeShrinkClampsSpawn) {
     map.resize(2, 2);
     EXPECT_LT(map.getSpawn().x, 2);
     EXPECT_LT(map.getSpawn().y, 2);
+}
+
+TEST(OverlayRegistryTest, ContainsStackableGold) {
+    const std::vector<OverlayDef>& reg = getOverlayRegistry();
+    int goldIndex = -1;
+    for (size_t i = 0; i < reg.size(); ++i) {
+        if (reg[i].itemId == 1) {
+            goldIndex = static_cast<int>(i);
+            break;
+        }
+    }
+    ASSERT_GE(goldIndex, 0) << "El registry no tiene el oro (itemId 1)";
+    EXPECT_TRUE(reg[goldIndex].stackable);
+    EXPECT_FALSE(reg[goldIndex].solid);
+}
+
+static int goldOverlayIndex() {
+    const std::vector<OverlayDef>& reg = getOverlayRegistry();
+    for (size_t i = 0; i < reg.size(); ++i) {
+        if (reg[i].itemId == 1) {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+
+static int amountOfItemId(const nlohmann::json& out, int id) {
+    if (!out.contains("items")) {
+        return -1;
+    }
+    const auto& items = out["items"];
+    auto it = std::find_if(items.begin(), items.end(),
+                           [id](const nlohmann::json& item) { return item["id"] == id; });
+    return (it != items.end()) ? (*it)["amount"].get<int>() : -1;
+}
+
+TEST(EditorMapTest, PaintOverlayAccumulatesGoldAmount) {
+    EditorMap map(4, 4, 32, "5108.png", 32);
+    int gold = goldOverlayIndex();
+    ASSERT_GE(gold, 0);
+
+    map.paintOverlay(1, 1, gold);
+    map.paintOverlay(1, 1, gold);
+    map.paintOverlay(1, 1, gold);
+
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+    EXPECT_EQ(amountOfItemId(out, 1), 3);
+}
+
+TEST(EditorMapTest, PaintOverlayNonStackableStaysAtOne) {
+    EditorMap map(4, 4, 32, "5108.png", 32);
+    map.paintOverlay(2, 2, 4);
+    map.paintOverlay(2, 2, 4);
+
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+    EXPECT_EQ(amountOfItemId(out, 2000), 1);
+}
+
+TEST(EditorMapTest, RoundTripPreservesGoldAmount) {
+    int gold = goldOverlayIndex();
+    ASSERT_GE(gold, 0);
+    int goldTile = gold + 1;
+
+    nlohmann::json in;
+    in["tileSize"] = 32;
+    in["tileset"] = "5108.png";
+    in["tilesetCols"] = 32;
+    in["width"] = 2;
+    in["height"] = 2;
+    in["tiles"] = {{0, 0}, {0, goldTile}};
+    in["items"] = {{{"id", 1}, {"x", 1}, {"y", 1}, {"amount", 7}}};
+
+    EditorMap map(in.dump());
+    nlohmann::json out = nlohmann::json::parse(map.toJson());
+    EXPECT_EQ(amountOfItemId(out, 1), 7);
+}
+
+TEST(EditorMapTest, OverlayAmountAtReturnsAccumulatedGold) {
+    EditorMap map(4, 4, 32, "5108.png", 32);
+    int gold = goldOverlayIndex();
+    ASSERT_GE(gold, 0);
+
+    map.paintOverlay(1, 1, gold);
+    map.paintOverlay(1, 1, gold);
+    map.paintOverlay(1, 1, gold);
+
+    EXPECT_EQ(map.overlayAmountAt(1, 1), 3);
+    EXPECT_EQ(map.overlayAmountAt(0, 0), 1);
 }

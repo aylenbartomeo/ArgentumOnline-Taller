@@ -2,12 +2,12 @@
 
 const std::vector<MonsterCatalogEntry>& getMonsterCatalog() {
     static const std::vector<MonsterCatalogEntry> catalog = {
-            {"goblin", "1800.png", 2, 4, 24, 44, true, "422.png", 195, 14, 15, 14, 6},
-            {"orc", "1875.png", 2, 4, 24, 44, true, "430.png", 6, 16, 15, 13, 15},
-            {"zombie", "1892.png", 2, 4, 24, 44, true, "420.png", 89, 13, 11, 15, 6},
-            {"spider", "1052.png", 4, 5, 19, 39, false, "420.png", 6, 13, 13, 15, 0},
-            {"golem", "1140.png", 3, 16, 21, 30, false, "420.png", 6, 13, 13, 15, 0},
-            {"skeleton", "1238.png", 2, 6, 23, 38, false, "420.png", 6, 13, 13, 15, 0},
+            {"goblin", "4015.png", 2, 2, 22, 48, false, "420.png", 6, 13, 13, 15, 0},
+            {"orc", "4017.png", 2, 1, 22, 60, false, "420.png", 6, 13, 13, 15, 0},
+            {"zombie", "4044.png", 5, 2, 15, 44, false, "420.png", 6, 13, 13, 15, 0},
+            {"spider", "4151.png", 18, 42, 63, 54, false, "420.png", 6, 13, 13, 15, 0},
+            {"golem", "4091.png", 4, 17, 47, 72, false, "420.png", 6, 13, 13, 15, 0},
+            {"skeleton", "4079.png", 5, 3, 15, 48, false, "420.png", 6, 13, 13, 15, 0},
     };
     return catalog;
 }

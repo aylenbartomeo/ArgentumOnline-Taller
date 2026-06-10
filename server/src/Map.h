@@ -115,6 +115,9 @@ public:
     // está dentro de los límites del mapa Y no hay obstáculo en collision_grid.
     bool canMoveTo(const Position& pos) const;
 
+    // Verifica la colision para proyectiles
+    bool isTileSolid(float x, float y) const;
+
     std::optional<Position> findClosestFreePosition(const Position& origin, int maxRadius) const;
 };
 

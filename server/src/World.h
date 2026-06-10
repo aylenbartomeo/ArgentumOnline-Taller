@@ -25,6 +25,7 @@
 #include "model/items/ItemRegistry.h"
 #include "model/systems/CombatSystem.h"
 #include "model/systems/InteractionService.h"
+#include "model/systems/ProjectileSystem.h"
 #include "model/systems/ResurrectionService.h"
 #include "model/systems/SpawnSystem.h"
 #include "persistence/PlayerDataStore.h"
@@ -57,9 +58,10 @@ private:
 
     CharacterConfigs characterConfigs;
     SpawnSystem spawnSystem;
+    CombatSystem combatSystem;
+    ProjectileSystem projectileSystem;
     ResurrectionService resurrectionService;
     InteractionService interactionService;
-    CombatSystem combatSystem;
 
     // IA de monstruos: busca al Player más cercano dentro de un rango
     Player* findNearestPlayer(const Monster& monster, int range);
@@ -96,6 +98,8 @@ public:
 
     // Ataque genérico: el atacante (Player) busca al target en players Y monsters
     void playerAttack(uint32_t attackerId, uint32_t targetDbId);
+
+    void playerShoot(uint32_t shooterDbId, float targetX, float targetY);
 
     // El método que busca en 'cityNpcs' cuando el cliente manda un click de interacción
     void playerInteract(uint32_t dbId, uint32_t targetId);
@@ -155,6 +159,7 @@ public:
     void pickUpItem(uint32_t dbId);
     void playerMeditate(uint32_t dbId);
     void dropItem(uint32_t dbId, uint8_t slot, uint16_t amount);
+    void equipItem(uint32_t dbId, uint8_t slot);
     void handlePlayerDeath(uint32_t dbId);
     void playerResurrect(uint32_t dbId);
 
@@ -181,7 +186,7 @@ public:
     // Obtener una referencia al Player según su ID de base de datos
     Player* getPlayerById(uint32_t dbId);
 
-    ~World() = default;
+    ~World() override = default;
 };
 
 #endif

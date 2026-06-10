@@ -128,6 +128,10 @@ void GameLoop::processInputs() {
                 AttackDTO attack_dto = std::get<AttackDTO>(pCmd.command);
                 world.playerAttack(pCmd.clientId, attack_dto.targetId);
 
+            } else if (std::holds_alternative<EquipItemDTO>(pCmd.command)) {
+                EquipItemDTO equip_dto = std::get<EquipItemDTO>(pCmd.command);
+                world.equipItem(pCmd.clientId, equip_dto.slot);
+
             } else if (std::holds_alternative<DropItemDTO>(pCmd.command)) {
                 DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
                 world.dropItem(pCmd.clientId, drop_dto.slot, drop_dto.amount);
@@ -187,6 +191,9 @@ void GameLoop::processInputs() {
                 ChatDTO toSender;
                 toSender.message = "[PM → " + priv.recipientNick + "] " + priv.message;
                 monitor.sendToClient(pCmd.clientId, toSender);
+            } else if (std::holds_alternative<ShootDTO>(pCmd.command)) {
+                ShootDTO shoot = std::get<ShootDTO>(pCmd.command);
+                world.playerShoot(pCmd.clientId, shoot.targetX, shoot.targetY);
             } else if (std::holds_alternative<CheatDTO>(pCmd.command)) {
                 world.playerCheat(pCmd.clientId, std::get<CheatDTO>(pCmd.command).type);
             }

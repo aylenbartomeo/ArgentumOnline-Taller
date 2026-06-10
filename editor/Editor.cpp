@@ -174,7 +174,7 @@ void Editor::handleLeftClick(int x, int y) {
         if (cell.x >= 0 && cell.x < map.getWidth() && cell.y >= 0 && cell.y < map.getHeight()) {
             switch (toolbar.getActiveTool()) {
                 case Tool::OVERLAY:
-                    map.setTile(cell.x, cell.y, overlayPalette.getSelectedTile() + 1);
+                    map.paintOverlay(cell.x, cell.y, overlayPalette.getSelectedTile());
                     break;
                 case Tool::MONSTER:
                     map.addMonster(getMonsterCatalog()[monsterPalette.getSelectedTile()].type,
@@ -278,9 +278,13 @@ bool Editor::cellInSafeZone(int col, int row) const {
 void Editor::drawOverlay(const OverlayDef& def, int cellX, int cellY, int cellSize) {
     SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + def.tilesheet);
     const SDL2pp::Rect srcRect(def.srcX, def.srcY, def.srcW, def.srcH);
-    const int dstW = cellSize;
-    const int dstH = (def.srcH * cellSize) / def.srcW;
-    const int dstX = cellX;
+    int dstW = def.srcW;
+    int dstH = def.srcH;
+    if (dstW > cellSize) {
+        dstH = def.srcH * cellSize / def.srcW;
+        dstW = cellSize;
+    }
+    const int dstX = cellX + (cellSize - dstW) / 2;
     const int dstY = cellY + cellSize - dstH;
     renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
 }
@@ -289,9 +293,14 @@ void Editor::drawMonsterFromCatalog(const MonsterCatalogEntry& entry, int cellX,
                                     int cellSize) {
     SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + entry.sheet);
     const SDL2pp::Rect srcRect(entry.srcX, entry.srcY, entry.srcW, entry.srcH);
-    const int dstW = cellSize;
-    const int dstH = (entry.srcH * cellSize) / entry.srcW;
-    const int dstX = cellX;
+    const int box = cellSize * 2;
+    int dstW = box;
+    int dstH = entry.srcH * box / entry.srcW;
+    if (dstH > box) {
+        dstH = box;
+        dstW = entry.srcW * box / entry.srcH;
+    }
+    const int dstX = cellX + (cellSize - dstW) / 2;
     const int dstY = cellY + cellSize - dstH;
     renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
 
@@ -379,7 +388,18 @@ void Editor::renderOverlays() {
                 screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
                 continue;
             }
-            drawOverlay(registry[tileId - 1], screen.x, screen.y, TILE_SCREEN);
+            const OverlayDef& def = registry[tileId - 1];
+            drawOverlay(def, screen.x, screen.y, TILE_SCREEN);
+            if (def.stackable) {
+                int amount = map.overlayAmountAt(col, row);
+                if (amount > 1) {
+                    const std::string text = std::to_string(amount);
+                    const SDL_Color black{0, 0, 0, 255};
+                    const SDL_Color white{255, 255, 255, 255};
+                    font.drawString(text, screen.x + 3, screen.y + 3, black);
+                    font.drawString(text, screen.x + 2, screen.y + 2, white);
+                }
+            }
         }
     }
     renderer.SetClipRect();

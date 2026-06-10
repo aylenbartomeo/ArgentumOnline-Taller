@@ -29,6 +29,10 @@ Server::~Server() {
     }
     acceptor.join();
     gameLoop.stop();
-    gameQueue.close();
+    try {
+        gameQueue.close();
+    } catch (const std::exception& e) {
+        std::cerr << "Error closing game queue: " << e.what() << std::endl;
+    }
     gameLoop.join();
 }

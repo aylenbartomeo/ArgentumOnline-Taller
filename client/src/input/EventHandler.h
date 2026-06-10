@@ -31,9 +31,22 @@ struct FrameInput {
     int attackY = 0;
     bool resurrectPressed = false;
 
+    // --- Inventario ---
+    bool equipPressed = false;
+    int equipX = 0;
+    int equipY = 0;
+
     // --- Cheats ---
     bool cheatLevelUp = false;
     bool cheatDie = false;
+    bool cheatGiveRanged = false;
+    bool cheatInfiniteMana = false;
+    bool cheatGiveGold = false;
+
+    // --- Shoot ---
+    bool shootPressed = false;
+    int shootScreenX = 0;
+    int shootScreenY = 0;
 };
 
 class EventHandler {

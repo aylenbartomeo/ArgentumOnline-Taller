@@ -119,15 +119,13 @@ bool FormulaEngine::is_critical_attack(float critical_probability) const {
 // REGENERACIÓN
 // ========================================================================
 
-uint16_t FormulaEngine::calculate_passive_recovery(float race_recovery_factor,
-                                                   float seconds_elapsed) const {
-    float result = race_recovery_factor * seconds_elapsed;
-    return static_cast<uint16_t>(result);
+float FormulaEngine::calculate_passive_recovery(float race_recovery_factor,
+                                                float seconds_elapsed) const {
+    return race_recovery_factor * seconds_elapsed;
 }
 
-uint16_t FormulaEngine::calculate_meditation_recovery(float class_meditation_factor,
-                                                      uint16_t intelligence,
-                                                      float seconds_elapsed) const {
-    float result = class_meditation_factor * static_cast<float>(intelligence) * seconds_elapsed;
-    return static_cast<uint16_t>(result);
+float FormulaEngine::calculate_meditation_recovery(float class_meditation_factor,
+                                                   uint16_t intelligence,
+                                                   float seconds_elapsed) const {
+    return class_meditation_factor * static_cast<float>(intelligence) * seconds_elapsed;
 }
