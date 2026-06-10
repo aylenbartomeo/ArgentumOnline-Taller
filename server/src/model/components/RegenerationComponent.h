@@ -20,6 +20,9 @@ private:
 
     const FormulaEngine& formulaEngine;
 
+    float accumulatedHpRecovery = 0.0f;
+    float accumulatedManaRecovery = 0.0f;
+
 public:
     RegenerationComponent(StatsComponent& stats, StateComponent& state, const RaceConfig& race,
                           const CharacterClassConfig& cls,
