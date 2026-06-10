@@ -17,6 +17,12 @@ target_sources(lib_client
     src/core/Client.cpp
     src/core/Game.cpp
     src/core/Targeting.cpp
+    src/core/systems/AudioSystem.cpp
+    src/core/systems/CameraSystem.cpp
+    src/core/systems/FxSystem.cpp
+    src/core/systems/EntityRenderer.cpp
+    src/core/systems/WorldRenderer.cpp
+    src/core/systems/InputProcessor.cpp
 
     # network
     src/network/Sender.cpp
@@ -56,6 +62,15 @@ target_sources(lib_client
     src/core/Client.h
     src/core/Game.h
     src/core/Targeting.h
+    src/core/systems/AudioSystem.h
+    src/core/systems/CameraSystem.h
+    src/core/systems/FxSystem.h
+    src/core/systems/EntityRenderer.h
+    src/core/systems/WorldRenderer.h
+    src/core/systems/InputProcessor.h
+    src/core/common/GameConstants.h
+    src/core/common/FxType.h
+    src/core/common/WeaponHelper.h
 
     # network
     src/network/Sender.h
@@ -98,6 +113,8 @@ target_include_directories(lib_client PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/rendering
     ${CMAKE_CURRENT_SOURCE_DIR}/src/animation
     ${CMAKE_CURRENT_SOURCE_DIR}/src/input
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/systems
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/common
     PRIVATE
     ${libSDL2pp_SOURCE_DIR}
 )
