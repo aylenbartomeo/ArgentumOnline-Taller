@@ -124,6 +124,25 @@ constexpr int EXPL_DRAW = TILE_SIZE * 4;
 
 constexpr uint32_t STAFF_WEAPON_ID = 203;
 
+// --- BACULO NUDOSO: PROYECTIL (Trayectoria) ---
+constexpr const char* NUDOSO_PROJ_SHEET = "3483.png";
+constexpr int NUDOSO_PROJ_FRAME_W = 102;  // Tamaño corregido a 204px
+constexpr int NUDOSO_PROJ_FRAME_H = 102;  // Tamaño corregido a 204px
+constexpr int NUDOSO_PROJ_COLS = 5;
+constexpr int NUDOSO_PROJ_FRAMES = 19;       // Bucle exacto sin fotogramas vacíos
+constexpr uint32_t NUDOSO_PROJ_DUR_MS = 60;  // Velocidad de la trayectoria
+constexpr int NUDOSO_PROJ_DRAW = TILE_SIZE * 2;
+constexpr uint16_t NUDOSO_SPRITE_ID = 202;
+
+// --- BACULO NUDOSO: IMPACTO (Explosión) ---
+constexpr const char* NUDOSO_IMPACT_SHEET = "3534.png";
+constexpr int NUDOSO_IMPACT_FRAME_W = 204;  // Tamaño corregido a 204px
+constexpr int NUDOSO_IMPACT_FRAME_H = 204;  // Tamaño corregido a 204px
+constexpr int NUDOSO_IMPACT_COLS = 5;
+constexpr int NUDOSO_IMPACT_FRAMES = 25;       // Recorre los 25 fotogramas (5x5)
+constexpr uint32_t NUDOSO_IMPACT_DUR_MS = 40;  // Velocidad de la explosión
+constexpr int NUDOSO_IMPACT_DRAW = TILE_SIZE * 3;
+
 const char* citizenSheet(const std::string& type) {
     if (type == "merchant")
         return "1077.png";
@@ -389,6 +408,10 @@ void Game::renderFx(const CameraOffset& camera) {
             dur = EXPL_DUR_MS;
             count = EXPL_FRAMES;
             break;
+        case FxType::NUDOSO_IMPACT:
+            dur = NUDOSO_IMPACT_DUR_MS;
+            count = NUDOSO_IMPACT_FRAMES;
+            break;
         default:
             dur = FX_FRAME_DUR_MS;
             count = FX_FRAME_COUNT;
@@ -449,6 +472,19 @@ void Game::renderFx(const CameraOffset& camera) {
         const int dstY = baseY + TILE_SIZE - EXPL_DRAW - camera.y;
         renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
                       SDL2pp::Rect(dstX, dstY, EXPL_DRAW, EXPL_DRAW));
+    } else if (activeFx->type == FxType::NUDOSO_IMPACT) {
+        const std::string p = std::string(RESOURCES_DIR) + NUDOSO_IMPACT_SHEET;
+        if (!std::ifstream(p).good())
+            return;
+        SDL2pp::Texture& tex = textures.get(p);
+        const FrameRect fr = fxFrameRect(frame, NUDOSO_IMPACT_FRAME_W, NUDOSO_IMPACT_FRAME_H,
+                                         NUDOSO_IMPACT_COLS);
+
+        const int dstX = baseX + TILE_SIZE / 2 - NUDOSO_IMPACT_DRAW / 2 - camera.x;
+        const int dstY = baseY + TILE_SIZE / 2 - NUDOSO_IMPACT_DRAW / 2 - camera.y;
+
+        renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
+                      SDL2pp::Rect(dstX, dstY, NUDOSO_IMPACT_DRAW, NUDOSO_IMPACT_DRAW));
     } else {
         const std::string p = std::string(RESOURCES_DIR) + FX_SHEET;
         if (!std::ifstream(p).good())
@@ -480,9 +516,13 @@ void Game::syncProjectileAnimators(uint32_t nowMs) {
             const int py = static_cast<int>(it->second.getVirtualY() * TILE_SIZE);
 
             // Setear el FX estático (targetId = 0 indica que no sigue a nadie)
-            const FxType impactType = (it->second.getSpriteId() == STAFF_SPRITE_ID) ?
-                                              FxType::EXPLOSION :
-                                              FxType::DEFAULT;
+            FxType impactType = FxType::DEFAULT;
+            if (it->second.getSpriteId() == STAFF_SPRITE_ID) {
+                impactType = FxType::EXPLOSION;
+            } else if (it->second.getSpriteId() == NUDOSO_SPRITE_ID) {
+                impactType = FxType::NUDOSO_IMPACT;
+            }
+
             activeFx = ActiveFx{0, SDL_GetTicks(), px, py, impactType};
 
             it = projectileAnimators.erase(it);
@@ -510,7 +550,9 @@ void Game::renderProjectiles(const CameraOffset& camera) {
 
         anim.lastPixelX = px + camera.x;
         anim.lastPixelY = py + camera.y;
-        // printf("[PROJ] id=%u spriteId=%u\n", id, anim.getSpriteId());
+
+        // BORRAR!
+        printf("[PROJ] id=%u spriteId=%u\n", id, anim.getSpriteId());
         if (anim.getSpriteId() == ARROW_SPRITE_ID) {
             const std::string arrowPath = std::string(RESOURCES_DIR) + ARROW_SHEET;
             if (!std::ifstream(arrowPath).good())
@@ -541,6 +583,22 @@ void Game::renderProjectiles(const CameraOffset& camera) {
                                    STAFF_PROJ_DRAW, STAFF_PROJ_DRAW);
             renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst, 0.0, SDL2pp::NullOpt,
                           SDL_FLIP_NONE);
+        } else if (anim.getSpriteId() == NUDOSO_SPRITE_ID) {
+            const std::string p = std::string(RESOURCES_DIR) + NUDOSO_PROJ_SHEET;
+            if (!std::ifstream(p).good())
+                continue;
+            SDL2pp::Texture& tex = textures.get(p);
+            const int frame = (now / NUDOSO_PROJ_DUR_MS) % NUDOSO_PROJ_FRAMES;
+            const FrameRect fr =
+                    fxFrameRect(frame, NUDOSO_PROJ_FRAME_W, NUDOSO_PROJ_FRAME_H, NUDOSO_PROJ_COLS);
+
+            const SDL2pp::Rect dst(px - NUDOSO_PROJ_DRAW / 2, py - NUDOSO_PROJ_DRAW / 2,
+                                   NUDOSO_PROJ_DRAW, NUDOSO_PROJ_DRAW);
+
+            const float angle = std::atan2(anim.getVelY(), anim.getVelX()) * 180.0f / M_PI;
+            renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst, angle, SDL2pp::NullOpt,
+                          SDL_FLIP_NONE);
+
         } else {
             // Comportamiento original: fuego
             const int frame = (now / 100) % 64;
