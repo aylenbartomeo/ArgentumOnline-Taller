@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 
 #include "model/components/EquipmentComponent.h"
+#include "model/interfaces/CombatStrategies.h"
 #include "model/items/BodyArmor.h"
 #include "model/items/Helmet.h"
 #include "model/items/Shield.h"
 #include "model/items/Weapon.h"
+#include "model/items/WeaponFactory.h"
 
 // Centraliza la creaciÃ³n de Ã­tems para no repetirla en cada test.
 // Todos los Ã­tems tienen min == max para que getDefense()/calculateDamage() sean deterministas y
@@ -18,9 +20,36 @@ protected:
     Shield shield{3001, "Escudo de tortuga", 2, 2};
 
     // Armas
-    Weapon sword{4001, "Espada", 100, WeaponType::MELEE, 3, 3, 1};
-    Weapon bow{4002, "Arco simple", 80, WeaponType::RANGED, 2, 2, 5};
-    Weapon staff{4003, "Vara de fresno", 120, WeaponType::MAGIC, 2, 2, 3, 5};
+    Weapon sword{4001,
+                 "Espada",
+                 100,
+                 WeaponType::MELEE,
+                 3,
+                 3,
+                 1,
+                 0,
+                 WeaponFactory::createDeliveryStrategy(WeaponType::MELEE),
+                 WeaponFactory::createHitEffectStrategy(WeaponType::MELEE)};
+    Weapon bow{4002,
+               "Arco simple",
+               80,
+               WeaponType::RANGED,
+               2,
+               2,
+               5,
+               0,
+               WeaponFactory::createDeliveryStrategy(WeaponType::RANGED),
+               WeaponFactory::createHitEffectStrategy(WeaponType::RANGED)};
+    Weapon staff{4003,
+                 "Vara de fresno",
+                 120,
+                 WeaponType::MAGIC,
+                 2,
+                 2,
+                 3,
+                 5,
+                 WeaponFactory::createDeliveryStrategy(WeaponType::MAGIC),
+                 WeaponFactory::createHitEffectStrategy(WeaponType::MAGIC)};
 
     EquipmentComponent eq;
 };

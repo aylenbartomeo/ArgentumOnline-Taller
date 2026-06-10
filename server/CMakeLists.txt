@@ -44,6 +44,8 @@ target_sources(lib_server
     src/model/systems/ResurrectionService.cpp
     src/model/systems/InteractionService.cpp
     src/model/systems/CombatSystem.cpp
+    src/model/systems/ClanBonusCalculator.cpp
+    src/model/systems/CombatNotifier.cpp
 
     # Items
     src/model/items/Armor.cpp
@@ -114,6 +116,9 @@ target_sources(lib_server
     src/model/systems/ResurrectionService.h
     src/model/systems/InteractionService.h
     src/model/systems/CombatSystem.h
+    src/model/systems/ClanBonusCalculator.h
+    src/model/systems/CombatNotifier.h
+    src/model/systems/CombatTypes.h
     src/model/components/StatsComponent.h
     src/model/components/InventoryComponent.h
     src/model/components/EquipmentComponent.h

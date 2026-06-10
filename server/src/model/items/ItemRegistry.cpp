@@ -3,9 +3,11 @@
 #include <vector>
 
 #include "server/src/config/ItemConfigLoader.h"
+#include "server/src/model/interfaces/CombatStrategies.h"
 #include "server/src/model/items/BodyArmor.h"
 #include "server/src/model/items/Helmet.h"
 #include "server/src/model/items/Shield.h"
+#include "server/src/model/items/WeaponFactory.h"
 
 ItemRegistry::ItemRegistry(const std::filesystem::path& configPath) {
     auto weaponConfigs = ItemConfigLoader::loadWeaponConfigs(configPath);
@@ -15,7 +17,9 @@ ItemRegistry::ItemRegistry(const std::filesystem::path& configPath) {
     for (const auto& [name, config]: weaponConfigs) {
         weapons[config.id] = std::make_unique<Weapon>(config.id, name, config.price, config.type,
                                                       config.minDamage, config.maxDamage,
-                                                      config.attackRange, config.manaCost);
+                                                      config.attackRange, config.manaCost,
+                                                      WeaponFactory::createDeliveryStrategy(config.type),
+                                                      WeaponFactory::createHitEffectStrategy(config.type));
     }
 
     for (const auto& [name, config]: armorConfigs) {

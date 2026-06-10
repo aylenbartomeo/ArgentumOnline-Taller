@@ -7,7 +7,9 @@
 
 #include "config/CharacterConfig.h"
 #include "model/entities/Player.h"
+#include "model/interfaces/CombatStrategies.h"
 #include "model/items/ItemRegistry.h"
+#include "model/items/WeaponFactory.h"
 #include "persistence/PlayerDataStore.h"
 
 #include "World.h"
@@ -773,7 +775,9 @@ TEST(WorldTest, World_MonsterDropsLootOnDeath_AndCleanup) {
     p->applyBoost(BoostType::STRENGTH, 100, 10000);  // Para matarlo de 1 golpe
 
     // Equipar un arma para que el combate ocurra
-    Weapon testSword(999, "Espada", 100, WeaponType::MELEE, 50, 100, 2, 0);
+    Weapon testSword(999, "Espada", 100, WeaponType::MELEE, 50, 100, 2, 0,
+                     WeaponFactory::createDeliveryStrategy(WeaponType::MELEE),
+                     WeaponFactory::createHitEffectStrategy(WeaponType::MELEE));
     p->equipWeapon(&testSword);
 
     bool droppedSomething = false;
