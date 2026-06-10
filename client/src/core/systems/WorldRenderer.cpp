@@ -48,28 +48,6 @@ FrameRect citizenHead(const std::string& type) {
 }
 }  // namespace
 
-namespace {
-const char* citizenSheet(const std::string& type) {
-    if (type == "merchant")
-        return "1077.png";
-    if (type == "banker")
-        return "1071.png";
-    if (type == "priest")
-        return "1910.png";
-    return "1200.png";
-}
-
-FrameRect citizenHead(const std::string& type) {
-    if (type == "merchant")
-        return FrameRect{115, 13, 13, 15};
-    if (type == "banker")
-        return FrameRect{142, 13, 13, 15};
-    if (type == "priest")
-        return FrameRect{170, 13, 11, 15};
-    return FrameRect{6, 13, 13, 15};
-}
-}  // namespace
-
 WorldRenderer::WorldRenderer(TextureManager& textures, SDL2pp::Renderer& renderer,
                              const TileMap& map, TTF_Font* worldFont):
         textures(textures), renderer(renderer), map(map), worldFont(worldFont) {}
