@@ -7,7 +7,6 @@ enum class FxType : uint8_t {
     DEFAULT,
     SWORD,
     EXPLOSION,
-    SKULL_IMPACT,
     NUDOSO_IMPACT,
     FRESNO_IMPACT,
     FLAUTA_HEAL
