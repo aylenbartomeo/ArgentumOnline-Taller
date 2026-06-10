@@ -255,8 +255,8 @@ void Game::processCheats(const FrameInput& input) {
     if (input.cheatDie) {
         client.sendCommand(CheatDTO{CheatType::DIE});
     }
-    if (input.cheatGiveBow) {
-        client.sendCommand(CheatDTO{CheatType::GIVE_BOW});
+    if (input.cheatGiveRanged) {
+        client.sendCommand(CheatDTO{CheatType::GIVE_RANGED_WEAPONS});
     }
     if (input.cheatInfiniteMana) {
         client.sendCommand(CheatDTO{CheatType::INFINITE_MANA});

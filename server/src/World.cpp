@@ -61,13 +61,18 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         } else {
             eventPublisher.sendTo(dbId, "[CHEAT] Ya estás muerto.");
         }
-    } else if (type == CheatType::GIVE_BOW) {
+    } else if (type == CheatType::GIVE_RANGED_WEAPONS) {
         Player* p = entityManager.getPlayer(dbId);
         if (p) {
             p->addItem(2010, 1);
+            p->addItem(2011, 1);
+            p->addItem(2020, 1);
+            p->addItem(2021, 1);
+            p->addItem(2022, 1);
+            p->addItem(2023, 1);
         }
         eventPublisher.sendTo(
-                dbId, "[CHEAT] Arco simple agregado al inventario. Equipalo con doble click.");
+                dbId, "[CHEAT] Armas de rango agregados al inventario. Equipalo con doble click.");
     } else if (type == CheatType::INFINITE_MANA) {
         // Setea el maná al máximo actual del jugador
         player->toggleInfiniteMana();

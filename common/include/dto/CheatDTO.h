@@ -6,7 +6,7 @@
 enum class CheatType : uint8_t {
     LEVEL_UP,
     DIE,
-    GIVE_BOW,
+    GIVE_RANGED_WEAPONS,
     INFINITE_MANA,
     GIVE_GOLD,
 };

@@ -39,7 +39,7 @@ struct FrameInput {
     // --- Cheats ---
     bool cheatLevelUp = false;
     bool cheatDie = false;
-    bool cheatGiveBow = false;
+    bool cheatGiveRanged = false;
     bool cheatInfiniteMana = false;
     bool cheatGiveGold = false;
 
