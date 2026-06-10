@@ -71,6 +71,12 @@ bool Player::equipFromSlot(uint8_t slotIndex) {
     if (!item || !item->is_wearable())
         return false;
 
+    // si es un arma y ya hay otra equipada en un slot distinto, desequiparla primero
+    const Weapon* asWeapon = dynamic_cast<const Weapon*>(item);
+    if (asWeapon && equipment.getWeapon() != nullptr) {
+        equipment.unequip_weapon();  // limpia weapon y weaponSlot
+    }
+
     // Equipamos el ítem pero NO lo sacamos del inventario
     equipment.equipItem(item, slotIndex);
 
@@ -80,7 +86,16 @@ bool Player::equipFromSlot(uint8_t slotIndex) {
 void Player::update(float dtMs) {
     if (this->isDead()) {
         stats.clearBoosts();  // Regla AO: al morir se pierden los elixires
+        currentAction = 0;
+        actionTimerMs = 0.0f;
         return;
+    }
+    if (actionTimerMs > 0.0f) {
+        actionTimerMs -= dtMs;
+        if (actionTimerMs <= 0.0f) {
+            currentAction = 0;
+            actionTimerMs = 0.0f;
+        }
     }
     stats.updateTicks(dtMs);
     regeneration.tick(dtMs / 1000.0f);  // tick espera segundos, dtMs viene en ms
@@ -129,6 +144,35 @@ PlayerStatsDTO Player::getStatsDTO() const {
     dto.expForLevel = stats.getExpForCurrentLevel();
     dto.inventory = inventory.getInventoryDTO(equipment);
     return dto;
+}
+
+EntityDTO Player::toEntityDTO() const {
+    EntityDTO dto;
+    dto.id = dbId;
+    dto.type = EntityType::PLAYER;
+    dto.x = pos.x;
+    dto.y = pos.y;
+    dto.current_hp = stats.getHp();
+    dto.max_hp = stats.getMaxHp();
+    dto.entityTypeId = static_cast<uint8_t>(stats.getRace());
+    dto.action = currentAction;
+
+    // Equipamiento visual
+    const Weapon* w = equipment.getWeapon();
+    dto.weaponItemId = w ? static_cast<uint16_t>(w->getId()) : 0;
+    const Helmet* h = equipment.getHelmet();
+    dto.helmetItemId = h ? static_cast<uint16_t>(h->getId()) : 0;
+    const Shield* s = equipment.getShield();
+    dto.shieldItemId = s ? static_cast<uint16_t>(s->getId()) : 0;
+    const BodyArmor* a = equipment.getBodyArmor();
+    dto.bodyArmorItemId = a ? static_cast<uint16_t>(a->getId()) : 0;
+
+    return dto;
+}
+
+void Player::setAction(uint8_t action, float durationMs) {
+    currentAction = action;
+    actionTimerMs = durationMs;
 }
 
 uint16_t Player::addInventoryItem(uint32_t item_id, uint16_t amount) {
@@ -230,6 +274,13 @@ PlayerPersistData Player::toPersistData() const {
         d.inventory[i].amount = slots[i].amount;
     }
 
+    d.equippedSlots = 0;
+    for (uint8_t i = 0; i < d.inventorySize; ++i) {
+        if (equipment.isSlotEquipped(i)) {
+            d.equippedSlots |= (1u << i);
+        }
+    }
+
     return d;
 }
 
@@ -241,8 +292,12 @@ void Player::fromPersistData(const PlayerPersistData& data) {
     // Inventario
     uint8_t slots = std::min<uint8_t>(data.inventorySize, 16);
     for (uint8_t i = 0; i < slots; ++i) {
-        if (data.inventory[i].item_id != 0 && data.inventory[i].amount > 0) {
-            addInventoryItem(data.inventory[i].item_id, data.inventory[i].amount);
+        inventory.restoreSlot(i, data.inventory[i].item_id, data.inventory[i].amount);
+    }
+
+    for (uint8_t i = 0; i < slots; ++i) {
+        if ((data.equippedSlots >> i) & 1u) {
+            equipFromSlot(i);
         }
     }
 

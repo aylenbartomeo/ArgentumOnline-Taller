@@ -30,6 +30,7 @@ target_sources(lib_client
     src/ui/HudLayout.cpp
     src/ui/ItemIcons.cpp
     src/ui/HudPanel.cpp
+    src/ui/ManualPanel.cpp
 
     # rendering
     src/rendering/TileMap.cpp
@@ -42,6 +43,7 @@ target_sources(lib_client
     src/animation/Death.cpp
     src/animation/FxAnimator.cpp
     src/animation/Motion.cpp
+    src/animation/ProjectileAnimator.cpp
 
     # input
     src/input/EventHandler.cpp
@@ -67,6 +69,7 @@ target_sources(lib_client
     src/ui/HudLayout.h
     src/ui/ItemIcons.h
     src/ui/HudPanel.h
+    src/ui/ManualPanel.h
 
     # rendering
     src/rendering/TileMap.h
@@ -106,6 +109,7 @@ target_link_libraries(lib_client PUBLIC
     SDL2_image::SDL2_image
     SDL2::SDL2
     SDL2_ttf::SDL2_ttf
+    SDL2_mixer::SDL2_mixer
     Qt5::Widgets 
     nlohmann_json::nlohmann_json
     pthread

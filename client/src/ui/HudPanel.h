@@ -6,9 +6,8 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
-#include "common/include/dto/PlayerStatsDTO.h"
-
 #include "../rendering/TextureManager.h"
+#include "common/include/dto/PlayerStatsDTO.h"
 
 class HudPanel {
 public:
@@ -19,6 +18,7 @@ public:
     void render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats);
 
     int slotAtPosition(int x, int y) const;
+    bool isManualButtonClicked(int x, int y) const;
 
     HudPanel(const HudPanel&) = delete;
     HudPanel& operator=(const HudPanel&) = delete;

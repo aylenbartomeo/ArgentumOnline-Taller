@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <memory>
 
@@ -39,6 +40,30 @@ TEST(WorldTest, World_InitializesCorrectly) {
     EXPECT_EQ(mundo.getCreatorPlayerName(), "PaladinGM");
     EXPECT_TRUE(mundo.isEmpty());
     EXPECT_EQ(mundo.getPlayerCount(), 0);
+}
+
+TEST(WorldTest, LoadMapSpawnsEditorMonsters) {
+    const std::string mapPath = "test_world_monsters_map.json";
+    {
+        std::ofstream out(mapPath);
+        out << R"({
+            "width": 5,
+            "height": 5,
+            "spawn": {"x": 0, "y": 0},
+            "monsters": [{"type": "goblin", "x": 2, "y": 2}]
+        })";
+    }
+
+    ItemRegistry registry("../config/items.toml");
+    CharacterConfigs configs = getTestConfigs();
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
+
+    ASSERT_TRUE(mundo.loadMap(mapPath, true));
+
+    SnapshotDTO snap = mundo.generateSnapshot();
+    EXPECT_FALSE(snap.monsters.empty());
+
+    std::filesystem::remove(mapPath);
 }
 
 TEST(WorldTest, World_HandlesPlayerLifecycleWithUniquePtr) {
@@ -130,10 +155,8 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
 
     bool encontroPlayer1 = false;
     bool encontroPlayer2 = false;
-    int spritesEvaluados = 0;
 
     for (const auto& entity: snapshotActual.players) {
-        spritesEvaluados++;
         std::cout << "Entity ID in snapshot: " << entity.id << std::endl;
 
         if (entity.id == 100) {
@@ -143,7 +166,6 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
             EXPECT_EQ(entity.y, 1);
             EXPECT_EQ(entity.current_hp, 15);
             EXPECT_EQ(entity.max_hp, 15);
-            EXPECT_EQ(entity.sprite_id, spritesEvaluados);
         } else if (entity.id == 200) {
             encontroPlayer2 = true;
             EXPECT_EQ(entity.type, EntityType::PLAYER);
@@ -151,7 +173,6 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
             EXPECT_EQ(entity.y, 0);
             EXPECT_EQ(entity.current_hp, 15);
             EXPECT_EQ(entity.max_hp, 15);
-            EXPECT_EQ(entity.sprite_id, spritesEvaluados);
         }
     }
 

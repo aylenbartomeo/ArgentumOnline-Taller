@@ -7,6 +7,7 @@
 
 #include "../../../../common/include/dto/CommandDTO.h"
 #include "../../common/include/dto/PlayerStatsDTO.h"
+#include "../../common/include/dto/Snapshot.h"
 #include "../../common/utils/types.h"
 #include "../components/EquipmentComponent.h"
 #include "../components/InventoryComponent.h"
@@ -33,6 +34,9 @@ private:
     StateComponent state;
     RegenerationComponent regeneration;
     const ItemRegistry* itemRegistry;  // Puntero para permitir nullptr en tests
+    uint8_t currentAction = 0;
+    float actionTimerMs = 0.0f;
+    bool infiniteMana = false;
 
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race, CharacterClass cls,
@@ -93,7 +97,16 @@ public:
     uint16_t getMaxHp() const override { return stats.getMaxHp(); }
     uint16_t getMana() const { return stats.getMana(); }
     uint16_t getMaxMana() const { return stats.getMaxMana(); }
-    bool consumeMana(int amount) { return stats.consumeMana(static_cast<uint16_t>(amount)); }
+    bool consumeMana(int amount) {
+        if (infiniteMana)
+            return true;
+        return stats.consumeMana(static_cast<uint16_t>(amount));
+    }
+    void toggleInfiniteMana() { infiniteMana = !infiniteMana; }
+    uint16_t heal(uint16_t amount) {
+        stats.heal(amount);
+        return amount;
+    }
     void restoreHp() { stats.restoreHp(); }
     void restoreMana() { stats.restoreMana(); }
     void setHp(uint16_t newHp) { stats.setHp(newHp); }
@@ -125,6 +138,13 @@ public:
 
     // Obtener stats del jugador y armar el DTO para el cliente
     PlayerStatsDTO getStatsDTO() const;
+
+    // Arma el EntityDTO para el snapshot (encapsula toda la info visual)
+    EntityDTO toEntityDTO() const;
+
+    // Acción visual transitoria
+    void setAction(uint8_t action, float durationMs);
+    uint8_t getCurrentAction() const { return currentAction; }
 
     // Equipment (Usado principalmente en tests)
     void equipWeapon(const Weapon* weapon) { equipment.equipWeapon(weapon, 255); }

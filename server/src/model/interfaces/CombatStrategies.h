@@ -3,11 +3,12 @@
 
 #include <cstdint>
 
+#include "../systems/CombatSystem.h"
+
 // Forward declarations para evitar acoplamiento circular de headers
 class Player;
 class Attackable;
 class Weapon;
-class CombatSystem;
 
 // Estructura de modificadores contextuales que calculaba el World/CombatSystem
 struct CombatModifiers {
@@ -23,67 +24,56 @@ struct CombatModifiers {
 class IAttackDelivery {
 public:
     virtual ~IAttackDelivery() = default;
-    virtual bool deliver(Player& attacker, Attackable& target, 
-                         const CombatModifiers& modifiers, 
-                         const Weapon& weapon, 
-                         CombatSystem& combatSystem) = 0;
+    virtual CombatResult deliver(Player& attacker, Attackable& target,
+                                 const CombatModifiers& modifiers, const Weapon& weapon,
+                                 CombatSystem& combatSystem) = 0;
 };
 
 // Estrategia de impacto: ¿Qué pasa cuando conecta?
 class IHitEffect {
 public:
     virtual ~IHitEffect() = default;
-    virtual void apply(Attackable& attacker, Attackable& target, 
-                       const CombatModifiers& modifiers, 
-                       const Weapon& weapon, 
-                       CombatSystem& combatSystem) = 0;
+    virtual CombatResult apply(Attackable& attacker, Attackable& target,
+                               const CombatModifiers& modifiers, const Weapon& weapon,
+                               CombatSystem& combatSystem) = 0;
 };
-
 
 // ==========================================
 // DECLARACIÓN DE CLASES CONCRETAS
 // ==========================================
 
 // Implementación para ataques inmediatos / cuerpo a cuerpo
-class InstantMeleeDelivery : public IAttackDelivery {
+class InstantMeleeDelivery: public IAttackDelivery {
 public:
     ~InstantMeleeDelivery() override = default;
-    
-    bool deliver(Player& attacker, Attackable& target, 
-                 const CombatModifiers& modifiers, 
-                 const Weapon& weapon, 
-                 CombatSystem& combatSystem) override;
+
+    CombatResult deliver(Player& attacker, Attackable& target, const CombatModifiers& modifiers,
+                         const Weapon& weapon, CombatSystem& combatSystem) override;
 };
 
 // Implementacion de ataques a travez de proyectiles
-class ProjectileDelivery : public IAttackDelivery {
+class ProjectileDelivery: public IAttackDelivery {
 public:
     ~ProjectileDelivery() override = default;
-    
-    bool deliver(Player& attacker, Attackable& target, 
-                 const CombatModifiers& modifiers, 
-                 const Weapon& weapon, 
-                 CombatSystem& combatSystem) override;
+
+    CombatResult deliver(Player& attacker, Attackable& target, const CombatModifiers& modifiers,
+                         const Weapon& weapon, CombatSystem& combatSystem) override;
 };
 
 // Implementación para efectos de daño físico tradicional (Espadas, Hachas, Arcos iniciales)
-class MeleeDamageEffect : public IHitEffect {
+class MeleeDamageEffect: public IHitEffect {
 public:
     ~MeleeDamageEffect() override = default;
-    
-    void apply(Attackable& attacker, Attackable& target, 
-               const CombatModifiers& modifiers, 
-               const Weapon& weapon, 
-               CombatSystem& combatSystem) override;
+
+    CombatResult apply(Attackable& attacker, Attackable& target, const CombatModifiers& modifiers,
+                       const Weapon& weapon, CombatSystem& combatSystem) override;
 };
 
 // Implementación para efectos de daño mágico con consumo de maná (Bastones)
-class MagicDamageEffect : public IHitEffect {
+class MagicDamageEffect: public IHitEffect {
 public:
     ~MagicDamageEffect() override = default;
-    
-    void apply(Attackable& attacker, Attackable& target, 
-               const CombatModifiers& modifiers, 
-               const Weapon& weapon, 
-               CombatSystem& combatSystem) override;
+
+    CombatResult apply(Attackable& attacker, Attackable& target, const CombatModifiers& modifiers,
+                       const Weapon& weapon, CombatSystem& combatSystem) override;
 };

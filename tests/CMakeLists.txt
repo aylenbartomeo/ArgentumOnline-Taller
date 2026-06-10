@@ -1,7 +1,7 @@
 # Target de testing
 add_executable(argentum_online_tests)
 
-set_target_properties(argentum_online_server PROPERTIES
+set_target_properties(argentum_online_tests PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
@@ -34,6 +34,7 @@ target_sources(argentum_online_tests
     TestPlayerDataStore.cpp
     TestClan.cpp
     TestHealthBar.cpp
+    TestGroundItemLabel.cpp
     TestViewport.cpp
     TestCharacterSprites.cpp
     TestCharacterAnimator.cpp

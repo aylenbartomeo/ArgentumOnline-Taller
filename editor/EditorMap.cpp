@@ -73,6 +73,14 @@ EditorMap::EditorMap(const std::string& jsonText) {
                                                monster.at("y").get<int>()};
                        });
     }
+
+    if (data.contains("items")) {
+        for (const auto& item: data.at("items")) {
+            int x = item.at("x").get<int>();
+            int y = item.at("y").get<int>();
+            overlayAmounts[{x, y}] = item.value("amount", 1);
+        }
+    }
 }
 
 std::string EditorMap::toJson() const {
@@ -128,7 +136,10 @@ std::string EditorMap::toJson() const {
             }
             const OverlayDef& def = registry[tile - 1];
             if (def.itemId != 0) {
-                itemsJson.push_back({{"id", def.itemId}, {"x", col}, {"y", row}, {"amount", 1}});
+                auto amtIt = overlayAmounts.find({col, row});
+                int amount = (amtIt != overlayAmounts.end()) ? amtIt->second : 1;
+                itemsJson.push_back(
+                        {{"id", def.itemId}, {"x", col}, {"y", row}, {"amount", amount}});
             }
             if (def.solid) {
                 obstaclesJson.push_back({{"x", col}, {"y", row}});
@@ -148,7 +159,31 @@ std::string EditorMap::toJson() const {
 
 int EditorMap::tileAt(int col, int row) const { return tiles.at(row).at(col); }
 
+int EditorMap::overlayAmountAt(int col, int row) const {
+    auto it = overlayAmounts.find({col, row});
+    return (it != overlayAmounts.end()) ? it->second : 1;
+}
+
 void EditorMap::setTile(int col, int row, int tileId) { tiles.at(row).at(col) = tileId; }
+
+void EditorMap::paintOverlay(int col, int row, int overlayIndex) {
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+    if (overlayIndex < 0 || overlayIndex >= static_cast<int>(registry.size())) {
+        return;
+    }
+    int tile = overlayIndex + 1;
+    bool stackable = registry[overlayIndex].stackable;
+    if (stackable && tileAt(col, row) == tile) {
+        overlayAmounts[{col, row}] += 1;
+    } else {
+        setTile(col, row, tile);
+        if (stackable) {
+            overlayAmounts[{col, row}] = 1;
+        } else {
+            overlayAmounts.erase({col, row});
+        }
+    }
+}
 
 Position EditorMap::getSpawn() const { return spawnPos; }
 

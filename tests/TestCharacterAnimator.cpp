@@ -84,3 +84,10 @@ TEST(CharacterAnimatorTest, VirtualSnapsOnFarJump) {
     EXPECT_FLOAT_EQ(anim.getVirtualX(), 40.0f);
     EXPECT_FLOAT_EQ(anim.getVirtualY(), 40.0f);
 }
+
+TEST(CharacterAnimatorTest, RowForFacingMapsDirections) {
+    EXPECT_EQ(rowForFacing(Movement::DOWN), 0);
+    EXPECT_EQ(rowForFacing(Movement::UP), 1);
+    EXPECT_EQ(rowForFacing(Movement::LEFT), 2);
+    EXPECT_EQ(rowForFacing(Movement::RIGHT), 3);
+}

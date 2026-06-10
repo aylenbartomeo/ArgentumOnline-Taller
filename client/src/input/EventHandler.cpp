@@ -16,6 +16,9 @@ FrameInput EventHandler::pollEvents() {
     int scrollThisFrame = 0;
     bool mouseLeftJustPressedThisFrame = false;
 
+    bool shootThisFrame = false;
+    int shootX = 0, shootY = 0;
+
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             quitRequested = true;
@@ -49,13 +52,15 @@ FrameInput EventHandler::pollEvents() {
                         attackY = event.button.y;
                     }
                 }
+            } else if (event.button.button == SDL_BUTTON_RIGHT) {
+                shootThisFrame = true;
+                shootX = event.button.x;
+                shootY = event.button.y;
             }
-
         } else if (event.type == SDL_MOUSEBUTTONUP) {
             if (event.button.button == SDL_BUTTON_LEFT) {
                 mouseLeftHeld = false;
             }
-
         } else if (event.type == SDL_KEYDOWN) {
             const SDL_Keycode key = event.key.keysym.sym;
 
@@ -123,6 +128,9 @@ FrameInput EventHandler::pollEvents() {
         bool shiftHeld = (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0;
         input.cheatLevelUp = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_L);
         input.cheatDie = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_K);
+        input.cheatGiveRanged = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_B);
+        input.cheatInfiniteMana = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_M);
+        input.cheatGiveGold = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_G);
     }
 
     input.attackPressed = attackThisFrame;
@@ -132,6 +140,9 @@ FrameInput EventHandler::pollEvents() {
     input.equipX = equipX;
     input.equipY = equipY;
     input.resurrectPressed = resurrectThisFrame;
+    input.shootPressed = shootThisFrame;
+    input.shootScreenX = shootX;
+    input.shootScreenY = shootY;
 
     justPressedKeys.clear();
     justPressedScancodes.clear();

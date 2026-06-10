@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
 #include <memory>
+#include <string>
 
 #include "Item.h"
 
@@ -38,7 +38,7 @@ public:
     bool is_wearable() const override { return true; }
     void equip_on(EquipmentComponent& equipment, uint8_t slotIndex) const override;
     bool isMagic() const override;
-    
+
     IAttackDelivery* getDelivery() const { return deliveryStrategy.get(); }
     IHitEffect* getHitEffect() const { return hitEffectStrategy.get(); }
 };

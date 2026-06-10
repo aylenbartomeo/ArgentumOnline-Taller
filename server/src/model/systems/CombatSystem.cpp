@@ -4,10 +4,10 @@
 
 #include "../entities/Monster.h"
 #include "../entities/Player.h"
+#include "../interfaces/CombatStrategies.h"
 #include "../items/Weapon.h"
 
 #include "FormulaEngine.h"
-#include "../interfaces/CombatStrategies.h"
 
 CombatSystem::CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, EventPublisher& ep,
                            ICombatEventCallback& cb, bool enforceFairPlay):
@@ -49,6 +49,49 @@ int CombatSystem::countNearbyClanmates(uint32_t dbId, int range) const {
         }
     }
     return count;
+}
+
+void CombatSystem::notifyCombatResult(const Attackable& attacker, const Attackable& target,
+                                      const CombatResult& res) {
+    if (!res.attackHappened || res.isPending)
+        return;
+
+    const Player* pAttacker = dynamic_cast<const Player*>(&attacker);
+    if (!pAttacker)
+        return;
+
+    uint32_t attackerDbId = pAttacker->getDbId();
+    const Player* pTarget = dynamic_cast<const Player*>(&target);
+
+    if (res.evaded) {
+        eventPublisher.sendTo(attackerDbId, "¡" + target.getName() + " evadió tu ataque!");
+        if (pTarget) {
+            eventPublisher.sendTo(pTarget->getDbId(),
+                                  "¡Evadiste el ataque de " + attacker.getName() + "!");
+        }
+    } else {
+        std::string critMsg = res.critical ? " ¡GOLPE CRITICO!" : "";
+        eventPublisher.sendTo(attackerDbId, "¡Le hiciste " + std::to_string(res.damage) +
+                                                    " de dano a " + target.getName() + "!" +
+                                                    critMsg);
+        if (pTarget) {
+            eventPublisher.sendTo(pTarget->getDbId(), "¡Recibiste " + std::to_string(res.damage) +
+                                                              " de dano de " + attacker.getName() +
+                                                              "!");
+
+            if (pTarget->isDead()) {
+                std::string deathMsg =
+                        attacker.getName() + " ha asesinado a " + pTarget->getName() + "!";
+                eventPublisher.broadcast(deathMsg);
+                callback.onPlayerDeath(pTarget->getDbId());
+            }
+        }
+
+        const Monster* mTarget = dynamic_cast<const Monster*>(&target);
+        if (mTarget && mTarget->isDead()) {
+            callback.onMonsterDeath(*mTarget, attackerDbId);
+        }
+    }
 }
 
 void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
@@ -130,41 +173,14 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     }
 
     // Ejecutar ataque con bonificaciones calculadas
-    CombatResult res = processAttack(attacker, *target, attackBonus,
-                                                                  defenseBonus);
+    CombatResult res = processAttack(attacker, *target, attackBonus, defenseBonus);
 
     if (!res.attackHappened)
         return;
 
-    if (res.evaded) {
-        eventPublisher.sendTo(attackerDbId, "¡" + target->getName() + " evadió tu ataque!");
-        if (targetPlayerIt) {
-            eventPublisher.sendTo(targetPlayerIt->getDbId(),
-                                  "¡Evadiste el ataque de " + attacker.getName() + "!");
-        }
-    } else {
-        std::string critMsg = res.critical ? " ¡GOLPE CRITICO!" : "";
-        eventPublisher.sendTo(attackerDbId, "¡Le hiciste " + std::to_string(res.damage) +
-                                                    " de dano a " + target->getName() + "!" +
-                                                    critMsg);
-        if (targetPlayerIt) {
-            eventPublisher.sendTo(targetPlayerIt->getDbId(),
-                                  "¡Recibiste " + std::to_string(res.damage) + " de dano de " +
-                                          attacker.getName() + "!");
+    attacker.setAction(static_cast<uint8_t>(EntityAction::ATTACKING), 400.0f);
 
-            if (targetPlayerIt->isDead()) {
-                std::string deathMsg =
-                        attacker.getName() + " ha asesinado a " + targetPlayerIt->getName() + "!";
-                eventPublisher.broadcast(deathMsg);
-                callback.onPlayerDeath(targetPlayerIt->getDbId());
-            }
-        }
-
-        const Monster* mTarget = dynamic_cast<const Monster*>(target);
-        if (mTarget && mTarget->isDead()) {
-            callback.onMonsterDeath(*mTarget, attackerDbId);
-        }
-    }
+    notifyCombatResult(attacker, *target, res);
 }
 
 void CombatSystem::monsterAttack(const Monster& monster, Player& target) {
@@ -214,13 +230,11 @@ void CombatSystem::monsterAttack(const Monster& monster, Player& target) {
     }
 }
 
-// --- Lógica compartida de combate ---
 
-// Se encarga de validar si el ataque físico/inmediato es viable.
 CombatResult CombatSystem::resolveCombat(const Attackable& attacker, Attackable& target,
                                          const AttackParams& params) {
     CombatResult res;
-    
+
     // 1. Validar distancia (Esto es lo que el proyectil NO usará al impactar)
     if (attacker.distance_to(target) > params.attackRange) {
         return res;  // attackHappened = false
@@ -235,8 +249,7 @@ CombatResult CombatSystem::resolveCombat(const Attackable& attacker, Attackable&
     return applyDamageEffect(const_cast<Attackable&>(attacker), target, params);
 }
 
-// Lógica de impacto compartida para ataques de Player y Monster. Aplica daño, calcula crítico/esquive, etc.
-CombatResult CombatSystem::applyDamageEffect(Attackable& attacker, Attackable& target,
+CombatResult CombatSystem::applyDamageEffect(const Attackable& attacker, Attackable& target,
                                              const AttackParams& params) {
     CombatResult res;
     res.attackHappened = true;
@@ -272,21 +285,16 @@ CombatResult CombatSystem::applyDamageEffect(Attackable& attacker, Attackable& t
     return res;
 }
 
-// --- Monster ataca ---
 
 CombatResult CombatSystem::processAttack(const Monster& attacker, Attackable& target) {
-    // Armar los parámetros de ataque a partir de los stats del monstruo
     AttackParams params{static_cast<uint16_t>(attacker.getAttackMin()),
                         static_cast<uint16_t>(attacker.getAttackMax()), attacker.get_attack_range(),
-                        0,       // sin costo de maná
-                        false};  // siempre físico
+                        0, false};
 
-    // Resolver combate (lógica compartida)
     CombatResult res = resolveCombat(attacker, target, params);
     if (!res.attackHappened || res.evaded)
         return res;
 
-    // Si el target muere, ejecutar lógica de muerte (sin XP para monstruos)
     if (target.isDead()) {
         target.handleDeath();
     }
@@ -294,35 +302,20 @@ CombatResult CombatSystem::processAttack(const Monster& attacker, Attackable& ta
     return res;
 }
 
-// --- Player ataca ---
-
+// --- Player ataca con bonuses de clan ---
 CombatResult CombatSystem::processAttack(Player& attacker, Attackable& target, float attackBonus,
                                          float defenseBonus) {
     const Weapon* weapon = attacker.getEquippedWeapon();
     if (!weapon)
         return CombatResult{};
 
-    // 1. Preparar los modificadores contextuales del combate (reemplaza parte de AttackParams)
     CombatModifiers modifiers{attackBonus, defenseBonus};
 
-    // 2. DELEGACIÓN POLIMÓRFICA:
-    // Dejamos que la estrategia de entrega maneje el flujo. 
-    // Si la distancia es correcta y hay recursos, ejecutará el impacto e informará 'true'.
-    bool attackHappened = weapon->getDelivery()->deliver(attacker, target, modifiers, *weapon, *this);
+    CombatResult res = weapon->getDelivery()->deliver(attacker, target, modifiers, *weapon, *this);
 
-    // Creamos un resultado local básico para mantener la lógica de experiencia y muerte existente
-    CombatResult res;
-    res.attackHappened = attackHappened;
-
-    if (!res.attackHappened)
+    if (!res.attackHappened || res.isPending)
         return res;
 
-    // NOTA: Como la aplicación real del daño ahora ocurre dentro de apply() de forma diferida o inmediata,
-    // para mantener el flujo de XP actual de la fase síncrona, asumimos que si el ataque ocurrió,
-    // podemos procesar el estado de muerte del objetivo.
-    
-    // Deberiamos refactorizar esto dado que el impacto real se maneja en onProjectileHit, 
-    // pero lo dejamos para no romper la lógica de XP actual.
     if (target.isDead()) {
         target.handleDeath();
         uint32_t killXp = FormulaEngine::getInstance().calculate_kill_xp_gain(
@@ -333,29 +326,23 @@ CombatResult CombatSystem::processAttack(Player& attacker, Attackable& target, f
     return res;
 }
 
-void CombatSystem::onProjectileHit(Attackable& attacker, Attackable& target, 
-                                   IHitEffect* hitEffect, const CombatModifiers& modifiers, 
-                                   const Weapon& weapon) {
+// --- Impacto de proyectil (llamado por ProjectileSystem cuando el proyectil llega) ---
+void CombatSystem::onProjectileHit(Attackable& attacker, Attackable& target, IHitEffect* hitEffect,
+                                   const CombatModifiers& modifiers, const Weapon& weapon) {
     if (target.isDead() || !target.canBeAttacked()) {
-        return; // Si el objetivo murió en el viaje del proyectil, se descarta el impacto
+        return;  // Si el objetivo murió en el viaje del proyectil, se descarta el impacto
     }
 
+    CombatResult res;
     // Ejecución polimórfica diferida.
-    // Si era un arco -> MeleeDamageEffect (daño físico)
+    // Si era un arco         -> MeleeDamageEffect  (daño físico)
     // Si era un bastón mágico -> MagicDamageEffect (valida/consume maná e impacta daño mágico)
-    // FALTA: Si era un bastón de vida -> MagicHealEffect (cura al objetivo)
     if (hitEffect) {
-        hitEffect->apply(attacker, target, modifiers, weapon, *this);
+        res = hitEffect->apply(attacker, target, modifiers, weapon, *this);
     }
 
-    // --- MANEJO DE EXPERIENCIA DIFERIDA Y MUERTE ---
-    // Movemos la lógica de recompensa que antes estaba en processAttack acá,
-    // porque el impacto real ocurre en este frame, ticks después del disparo.
     Player* playerAttacker = dynamic_cast<Player*>(&attacker);
     if (playerAttacker) {
-        // Nota: para el cálculo exacto de XP de ataque, podrías requerir el daño infligido.
-        // Si tu applyDamageEffect devuelve el daño real aplicado, lo usás acá.
-        
         if (target.isDead()) {
             target.handleDeath();
             uint32_t killXp = FormulaEngine::getInstance().calculate_kill_xp_gain(
@@ -363,4 +350,19 @@ void CombatSystem::onProjectileHit(Attackable& attacker, Attackable& target,
             playerAttacker->addExperience(killXp);
         }
     }
+
+    notifyCombatResult(attacker, target, res);
+}
+
+CombatModifiers CombatSystem::buildModifiers(uint32_t attackerDbId,
+                                             const Attackable* target) const {
+    CombatModifiers m;
+    m.attackBonus = 1.0f + (countNearbyClanmates(attackerDbId, CLAN_BONUS_RANGE) *
+                            CLAN_ATTACK_BONUS_PER_MEMBER);
+    m.defenseBonus = 1.0f;
+    const Player* tp = dynamic_cast<const Player*>(target);
+    if (tp)
+        m.defenseBonus += countNearbyClanmates(tp->getDbId(), CLAN_BONUS_RANGE) *
+                          CLAN_DEFENSE_BONUS_PER_MEMBER;
+    return m;
 }

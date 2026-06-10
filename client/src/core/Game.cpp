@@ -2,7 +2,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <fstream>
+#include <iostream>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
@@ -10,10 +12,12 @@
 #include <vector>
 
 #include <SDL2/SDL.h>
+#include <SDL_ttf.h>
 
 #include "../animation/CharacterSprites.h"
 #include "../animation/Death.h"
 #include "../animation/FxAnimator.h"
+#include "../ui/GroundItemLabel.h"
 #include "../ui/HealthBar.h"
 #include "common/include/dto/CheatDTO.h"
 #include "common/include/dto/ClientCommands.h"
@@ -63,12 +67,103 @@ constexpr int FX_DRAW_W = TILE_SIZE * 3 / 2;
 constexpr int FX_DRAW_H = FX_DRAW_W * FX_FRAME_H / FX_FRAME_W;
 constexpr int ATTACK_RANGE_TILES = 1;
 
+// SWORD
+constexpr const char* SWORD_FX_SHEET = "2101.png";
+constexpr int SWORD_FRAME_W = 32;
+constexpr int SWORD_FRAME_H = 32;
+constexpr int SWORD_FRAME_COLS = 5;
+constexpr int SWORD_FRAME_COUNT = 21;
+constexpr uint32_t SWORD_FRAME_DUR_MS = 40;
+constexpr int SWORD_DRAW_W = TILE_SIZE * 2;
+constexpr int SWORD_DRAW_H = TILE_SIZE * 2;
+constexpr uint32_t SWORD_WEAPON_ID = 2000;
+
 constexpr const char* GROUND_SHEET = "5108.png";
 constexpr int GROUND_SRC_X = 416;
 constexpr int GROUND_SRC_Y = 384;
 constexpr int DARK_GROUND_SRC_X = 512;
 constexpr int DARK_GROUND_SRC_Y = 480;
 constexpr int GROUND_TILE = 32;
+
+constexpr int PROJ_DRAW_W = 64;
+constexpr int PROJ_DRAW_H = 64;
+constexpr int PROJ_FRAME_COLS = 8;
+constexpr int PROJ_FRAME_SIZE = 64;
+constexpr const char* PROJ_SHEET = "projectiles.png";
+
+// ARROW
+constexpr const char* ARROW_SHEET = "2046.png";
+constexpr int ARROW_FRAME_COLS = 2;
+constexpr int ARROW_FRAME_ROWS = 1;
+constexpr int ARROW_FRAME_W = 32;
+constexpr int ARROW_FRAME_H = 32;
+constexpr int ARROW_SRC_Y = 224;
+constexpr int ARROW_SRC_X0 = 32;
+constexpr int ARROW_DRAW_W = 48;
+constexpr int ARROW_DRAW_H = 48;
+constexpr uint16_t ARROW_SPRITE_ID = 200;
+
+// MAGIC PROJECTILE - fireball
+constexpr const char* STAFF_PROJ_SHEET = "3492.png";
+constexpr int STAFF_PROJ_FRAME_W = 128;
+constexpr int STAFF_PROJ_FRAME_H = 128;
+constexpr int STAFF_PROJ_COLS = 4;
+constexpr int STAFF_PROJ_FRAMES = 16;
+constexpr uint32_t STAFF_PROJ_DUR_MS = 60;
+constexpr int STAFF_PROJ_DRAW = TILE_SIZE * 2;
+constexpr uint16_t STAFF_SPRITE_ID = 203;
+
+// EXPLOSION FX - impacto
+constexpr const char* EXPL_SHEET = "3471.png";
+constexpr int EXPL_FRAME_W = 204;
+constexpr int EXPL_FRAME_H = 204;
+constexpr int EXPL_COLS = 5;
+constexpr int EXPL_FRAMES = 22;
+constexpr uint32_t EXPL_DUR_MS = 55;
+constexpr int EXPL_DRAW = TILE_SIZE * 4;
+
+constexpr uint32_t STAFF_WEAPON_ID = 203;
+
+// --- BACULO NUDOSO: PROYECTIL (Trayectoria) ---
+constexpr const char* NUDOSO_PROJ_SHEET = "3483.png";
+constexpr int NUDOSO_PROJ_FRAME_W = 102;
+constexpr int NUDOSO_PROJ_FRAME_H = 102;
+constexpr int NUDOSO_PROJ_COLS = 5;
+constexpr int NUDOSO_PROJ_FRAMES = 19;
+constexpr uint32_t NUDOSO_PROJ_DUR_MS = 60;
+constexpr int NUDOSO_PROJ_DRAW = TILE_SIZE * 2;
+constexpr uint16_t NUDOSO_SPRITE_ID = 202;
+
+// --- BACULO NUDOSO: IMPACTO (Explosión) ---
+constexpr const char* NUDOSO_IMPACT_SHEET = "3534.png";
+constexpr int NUDOSO_IMPACT_FRAME_W = 204;
+constexpr int NUDOSO_IMPACT_FRAME_H = 204;
+constexpr int NUDOSO_IMPACT_COLS = 5;
+constexpr int NUDOSO_IMPACT_FRAMES = 25;
+constexpr uint32_t NUDOSO_IMPACT_DUR_MS = 40;
+constexpr int NUDOSO_IMPACT_DRAW = TILE_SIZE * 3;
+
+// --- VARA DE FRESNO ---
+constexpr uint32_t VARA_FRESNO_WEAPON_ID = 2020;
+
+constexpr uint16_t VARA_SPRITE_ID = 201;
+constexpr const char* FRESNO_IMPACT_SHEET = "3490.png";
+constexpr int FRESNO_IMPACT_FRAME_W = 128;
+constexpr int FRESNO_IMPACT_FRAME_H = 128;
+constexpr int FRESNO_IMPACT_COLS = 4;
+constexpr int FRESNO_IMPACT_FRAMES = 28;
+constexpr uint32_t FRESNO_IMPACT_DUR_MS = 35;
+constexpr int FRESNO_IMPACT_DRAW = TILE_SIZE * 3;
+
+// --- FLAUTA ELFICA: CURACION ---
+constexpr uint32_t FLAUTA_WEAPON_ID = 2021;
+constexpr const char* FLAUTA_HEAL_SHEET = "3456.png";
+constexpr int FLAUTA_HEAL_FRAME_W = 32;
+constexpr int FLAUTA_HEAL_FRAME_H = 32;
+constexpr int FLAUTA_HEAL_COLS = 5;
+constexpr int FLAUTA_HEAL_FRAMES = 5;
+constexpr uint32_t FLAUTA_HEAL_DUR_MS = 60;
+constexpr int FLAUTA_HEAL_DRAW = TILE_SIZE * 2;
 
 const char* citizenSheet(const std::string& type) {
     if (type == "merchant")
@@ -105,7 +200,7 @@ std::string readWholeFile(const std::string& path) {
 }  // namespace
 
 Game::Game(Client& client):
-        sdl(SDL_INIT_VIDEO),
+        sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
         window("Argentum Online - Client", WINDOW_WIDTH, WINDOW_HEIGHT),
         events(),
         client(client),
@@ -113,11 +208,41 @@ Game::Game(Client& client):
         map(readWholeFile("maps/defaultMap.json")),
         miniChat(CHAT_FONT_PATH),
         hud(textures, HUD_FONT_PATH),
+        manualPanel(HUD_FONT_PATH),
         chatParser(),
         lastSnapshot(),
         lastMoveSentMs(0) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
     window.getRenderer().SetLogicalSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    worldFont = TTF_OpenFont(HUD_FONT_PATH, 12);
+    if (worldFont == nullptr) {
+        std::cerr << "No pude abrir la fuente del texto del mundo: " << TTF_GetError() << std::endl;
+    }
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        std::cerr << "[AUDIO] Mix_OpenAudio error: " << Mix_GetError() << std::endl;
+    } else {
+        bgMusic = Mix_LoadMUS("resources/audio/music/game_theme.mp3");
+        if (!bgMusic) {
+            std::cerr << "[AUDIO] No se pudo cargar la música: " << Mix_GetError() << std::endl;
+        } else {
+            Mix_PlayMusic(bgMusic, -1);
+            Mix_VolumeMusic(64);
+        }
+    }
+
+    manualPanel.loadManual("../MANUAL_JUGADOR.md");
+}
+
+Game::~Game() {
+    if (worldFont != nullptr) {
+        TTF_CloseFont(worldFont);
+    }
+    if (bgMusic != nullptr) {
+        Mix_HaltMusic();
+        Mix_FreeMusic(bgMusic);
+    }
+    Mix_CloseAudio();
+    Mix_Quit();
 }
 
 void Game::run() {
@@ -126,11 +251,13 @@ void Game::run() {
         if (input.quit) {
             break;
         }
-        miniChat.update(input, VIEW_W, VIEW_H);
+        miniChat.update(input, VIEW_X + VIEW_W, VIEW_Y + VIEW_H);
+        manualPanel.update(input, WINDOW_WIDTH, WINDOW_HEIGHT);
         drainIncomingChat();
         processChatInput(input);
         processCheats(input);
         processEquipInput(input);
+        processUiInput(input);
         sendMoveIfDue(input);
         render(input);
         SDL_Delay(16);
@@ -144,9 +271,21 @@ void Game::processEquipInput(const FrameInput& input) {
     float logicalX = 0.0f, logicalY = 0.0f;
     SDL_RenderWindowToLogical(window.getRenderer().Get(), input.equipX, input.equipY, &logicalX,
                               &logicalY);
-    const int slot = hud.slotAtPosition(static_cast<int>(logicalX), static_cast<int>(logicalY));
+    const int slot = hud.slotAtPosition(input.equipX, input.equipY);
     if (slot >= 0) {
         client.sendCommand(EquipItemDTO{static_cast<uint8_t>(slot)});
+    }
+}
+
+void Game::processUiInput(const FrameInput& input) {
+    if (!input.mouseLeftJustPressed) {
+        return;
+    }
+    float logicalX = 0.0f, logicalY = 0.0f;
+    SDL_RenderWindowToLogical(window.getRenderer().Get(), input.mouseX, input.mouseY, &logicalX,
+                              &logicalY);
+    if (hud.isManualButtonClicked(static_cast<int>(logicalX), static_cast<int>(logicalY))) {
+        manualPanel.toggle();
     }
 }
 
@@ -156,6 +295,15 @@ void Game::processCheats(const FrameInput& input) {
     }
     if (input.cheatDie) {
         client.sendCommand(CheatDTO{CheatType::DIE});
+    }
+    if (input.cheatGiveRanged) {
+        client.sendCommand(CheatDTO{CheatType::GIVE_RANGED_WEAPONS});
+    }
+    if (input.cheatInfiniteMana) {
+        client.sendCommand(CheatDTO{CheatType::INFINITE_MANA});
+    }
+    if (input.cheatGiveGold) {
+        client.sendCommand(CheatDTO{CheatType::GIVE_GOLD});
     }
 }
 
@@ -209,6 +357,34 @@ void Game::sendMoveIfDue(const FrameInput& input) {
     }
 }
 
+static bool hasVaraFresnoEquipped(const PlayerStatsDTO& stats) {
+    return std::any_of(stats.inventory.begin(), stats.inventory.end(),
+                       [](const InventorySlotDTO& slot) {
+                           return slot.isEquipped && slot.itemId == VARA_FRESNO_WEAPON_ID;
+                       });
+}
+
+static bool hasFlautaEquipped(const PlayerStatsDTO& stats) {
+    return std::any_of(stats.inventory.begin(), stats.inventory.end(),
+                       [](const InventorySlotDTO& slot) {
+                           return slot.isEquipped && slot.itemId == FLAUTA_WEAPON_ID;
+                       });
+}
+
+static bool hasSwordEquipped(const PlayerStatsDTO& stats) {
+    return std::any_of(stats.inventory.begin(), stats.inventory.end(),
+                       [](const InventorySlotDTO& slot) {
+                           return slot.isEquipped && slot.itemId == SWORD_WEAPON_ID;
+                       });
+}
+
+static bool hasStaffEquipped(const PlayerStatsDTO& stats) {
+    return std::any_of(stats.inventory.begin(), stats.inventory.end(),
+                       [](const InventorySlotDTO& slot) {
+                           return slot.isEquipped && slot.itemId == STAFF_WEAPON_ID;
+                       });
+}
+
 void Game::processCombatInput(const FrameInput& input, const CameraOffset& camera) {
     if (input.resurrectPressed) {
         client.sendCommand(ResurrectDTO{});
@@ -218,6 +394,19 @@ void Game::processCombatInput(const FrameInput& input, const CameraOffset& camer
 
     if (localPlayer != nullptr && isDead(localPlayer->current_hp))
         return;
+
+    if (input.shootPressed && hasFlautaEquipped(lastStats)) {
+        activeFx = ActiveFx{client.getClientId(), SDL_GetTicks(), 0, 0, FxType::FLAUTA_HEAL};
+        client.sendCommand(ShootDTO{static_cast<float>(0), static_cast<float>(0)});
+
+    } else if (input.shootPressed) {
+        float logicalX = 0.f, logicalY = 0.f;
+        SDL_RenderWindowToLogical(window.getRenderer().Get(), input.shootScreenX,
+                                  input.shootScreenY, &logicalX, &logicalY);
+        const Cell cell = screenToCell(static_cast<int>(logicalX), static_cast<int>(logicalY),
+                                       camera.x, camera.y, TILE_SIZE);
+        client.sendCommand(ShootDTO{static_cast<float>(cell.col), static_cast<float>(cell.row)});
+    }
 
     if (!input.attackPressed)
         return;
@@ -236,7 +425,13 @@ void Game::processCombatInput(const FrameInput& input, const CameraOffset& camer
                                                         client.getClientId(), ATTACK_RANGE_TILES);
     if (target) {
         client.sendCommand(AttackDTO{*target});
-        activeFx = ActiveFx{*target, SDL_GetTicks()};
+        FxType fxType = FxType::DEFAULT;
+        if (hasFlautaEquipped(lastStats)) {
+            fxType = FxType::FLAUTA_HEAL;
+        } else if (hasSwordEquipped(lastStats)) {
+            fxType = FxType::SWORD;
+        }
+        activeFx = ActiveFx{*target, SDL_GetTicks(), 0, 0, fxType};
     }
 }
 
@@ -244,35 +439,259 @@ void Game::renderFx(const CameraOffset& camera) {
     if (!activeFx) {
         return;
     }
+
     const uint32_t now = SDL_GetTicks();
-    const int frame = fxFrameIndex(now - activeFx->startMs, FX_FRAME_DUR_MS, FX_FRAME_COUNT);
+
+    uint32_t dur;
+    int count;
+    switch (activeFx->type) {
+        case FxType::SWORD:
+            dur = SWORD_FRAME_DUR_MS;
+            count = SWORD_FRAME_COUNT;
+            break;
+        case FxType::EXPLOSION:
+            dur = EXPL_DUR_MS;
+            count = EXPL_FRAMES;
+            break;
+        case FxType::NUDOSO_IMPACT:
+            dur = NUDOSO_IMPACT_DUR_MS;
+            count = NUDOSO_IMPACT_FRAMES;
+            break;
+        case FxType::FRESNO_IMPACT:
+            dur = FRESNO_IMPACT_DUR_MS;
+            count = FRESNO_IMPACT_FRAMES;
+            break;
+        case FxType::FLAUTA_HEAL:
+            dur = FLAUTA_HEAL_DUR_MS;
+            count = FLAUTA_HEAL_FRAMES;
+            break;
+        default:
+            dur = FX_FRAME_DUR_MS;
+            count = FX_FRAME_COUNT;
+            break;
+    }
+    const int frame = fxFrameIndex(now - activeFx->startMs, dur, count);
     if (frame < 0) {
         activeFx.reset();
         return;
     }
-    const EntityDTO* target = findEntityById(lastSnapshot, activeFx->targetId);
-    if (!target) {
-        activeFx.reset();
-        return;
+
+    int baseX = 0;
+    int baseY = 0;
+
+    // --- RAMIFICA LA OBTENCIÓN DE COORDENADAS ---
+    if (activeFx->targetId == 0) {
+        // 1. Caso FX estático (ej: impacto de un proyectil).
+        // Usamos la posición en píxeles que guardamos al momento de su muerte.
+        baseX = activeFx->fixedPixelX;
+        baseY = activeFx->fixedPixelY;
+
+    } else {
+        // 2. Caso FX sobre una entidad viva (ej: meditación o daño a un jugador).
+        const EntityDTO* target = findEntityById(lastSnapshot, activeFx->targetId);
+
+        // Si la entidad murió y desapareció del snapshot mientras el FX seguía activo, lo
+        // cancelamos.
+        if (!target) {
+            activeFx.reset();
+            return;
+        }
+
+        auto ait = animators.find(activeFx->targetId);
+        baseX = (ait != animators.end()) ? static_cast<int>(ait->second.getVirtualX() * TILE_SIZE) :
+                                           target->x * TILE_SIZE;
+        baseY = (ait != animators.end()) ? static_cast<int>(ait->second.getVirtualY() * TILE_SIZE) :
+                                           target->y * TILE_SIZE;
     }
-    const std::string path = std::string(RESOURCES_DIR) + FX_SHEET;
-    if (!std::ifstream(path).good()) {
-        return;
-    }
+
     SDL2pp::Renderer& renderer = window.getRenderer();
-    SDL2pp::Texture& fx = textures.get(path);
-    const FrameRect fr = fxFrameRect(frame, FX_FRAME_W, FX_FRAME_H, FX_COLS);
-    auto ait = animators.find(activeFx->targetId);
-    const int baseX = (ait != animators.end()) ?
-                              static_cast<int>(ait->second.getVirtualX() * TILE_SIZE) :
-                              target->x * TILE_SIZE;
-    const int baseY = (ait != animators.end()) ?
-                              static_cast<int>(ait->second.getVirtualY() * TILE_SIZE) :
-                              target->y * TILE_SIZE;
-    const int dstX = baseX + TILE_SIZE / 2 - FX_DRAW_W / 2 - camera.x;
-    const int dstY = baseY + TILE_SIZE - FX_DRAW_H - camera.y;
-    const SDL2pp::Rect dst(dstX, dstY, FX_DRAW_W, FX_DRAW_H);
-    renderer.Copy(fx, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst);
+    if (activeFx->type == FxType::SWORD) {
+        const std::string p = std::string(RESOURCES_DIR) + SWORD_FX_SHEET;
+        if (!std::ifstream(p).good())
+            return;
+        SDL2pp::Texture& tex = textures.get(p);
+        const FrameRect fr = fxFrameRect(frame, SWORD_FRAME_W, SWORD_FRAME_H, SWORD_FRAME_COLS);
+        const int dstX = baseX + TILE_SIZE / 2 - SWORD_DRAW_W / 2 - camera.x;
+        const int dstY = baseY + TILE_SIZE - SWORD_DRAW_H - camera.y;
+        renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
+                      SDL2pp::Rect(dstX, dstY, SWORD_DRAW_W, SWORD_DRAW_H));
+    } else if (activeFx->type == FxType::EXPLOSION) {
+        const std::string p = std::string(RESOURCES_DIR) + EXPL_SHEET;
+        if (!std::ifstream(p).good())
+            return;
+        SDL2pp::Texture& tex = textures.get(p);
+        const FrameRect fr = fxFrameRect(frame, EXPL_FRAME_W, EXPL_FRAME_H, EXPL_COLS);
+        const int dstX = baseX + TILE_SIZE / 2 - EXPL_DRAW / 2 - camera.x;
+        const int dstY = baseY + TILE_SIZE - EXPL_DRAW - camera.y;
+        renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
+                      SDL2pp::Rect(dstX, dstY, EXPL_DRAW, EXPL_DRAW));
+    } else if (activeFx->type == FxType::NUDOSO_IMPACT) {
+        const std::string p = std::string(RESOURCES_DIR) + NUDOSO_IMPACT_SHEET;
+        if (!std::ifstream(p).good())
+            return;
+        SDL2pp::Texture& tex = textures.get(p);
+        const FrameRect fr = fxFrameRect(frame, NUDOSO_IMPACT_FRAME_W, NUDOSO_IMPACT_FRAME_H,
+                                         NUDOSO_IMPACT_COLS);
+
+        const int dstX = baseX + TILE_SIZE / 2 - NUDOSO_IMPACT_DRAW / 2 - camera.x;
+        const int dstY = baseY + TILE_SIZE / 2 - NUDOSO_IMPACT_DRAW / 2 - camera.y;
+
+        renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
+                      SDL2pp::Rect(dstX, dstY, NUDOSO_IMPACT_DRAW, NUDOSO_IMPACT_DRAW));
+    } else if (activeFx->type == FxType::FRESNO_IMPACT) {
+        const std::string p = std::string(RESOURCES_DIR) + FRESNO_IMPACT_SHEET;
+        if (!std::ifstream(p).good())
+            return;
+        SDL2pp::Texture& tex = textures.get(p);
+        const FrameRect fr = fxFrameRect(frame, FRESNO_IMPACT_FRAME_W, FRESNO_IMPACT_FRAME_H,
+                                         FRESNO_IMPACT_COLS);
+
+        const int dstX = baseX + TILE_SIZE / 2 - FRESNO_IMPACT_DRAW / 2 - camera.x;
+        const int dstY = baseY + TILE_SIZE / 2 - FRESNO_IMPACT_DRAW / 2 - camera.y;
+
+        renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
+                      SDL2pp::Rect(dstX, dstY, FRESNO_IMPACT_DRAW, FRESNO_IMPACT_DRAW));
+    } else if (activeFx->type == FxType::FLAUTA_HEAL) {
+        const std::string p = std::string(RESOURCES_DIR) + FLAUTA_HEAL_SHEET;
+        if (!std::ifstream(p).good())
+            return;
+        SDL2pp::Texture& tex = textures.get(p);
+        const FrameRect fr =
+                fxFrameRect(frame, FLAUTA_HEAL_FRAME_W, FLAUTA_HEAL_FRAME_H, FLAUTA_HEAL_COLS);
+
+        const int dstX = baseX + TILE_SIZE / 2 - FLAUTA_HEAL_DRAW / 2 - camera.x;
+        const int dstY = baseY + TILE_SIZE / 2 - FLAUTA_HEAL_DRAW / 2 - camera.y;
+
+        renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
+                      SDL2pp::Rect(dstX, dstY, FLAUTA_HEAL_DRAW, FLAUTA_HEAL_DRAW));
+    } else {
+        const std::string p = std::string(RESOURCES_DIR) + FX_SHEET;
+        if (!std::ifstream(p).good())
+            return;
+        SDL2pp::Texture& tex = textures.get(p);
+        const FrameRect fr = fxFrameRect(frame, FX_FRAME_W, FX_FRAME_H, FX_COLS);
+        const int dstX = baseX + TILE_SIZE / 2 - FX_DRAW_W / 2 - camera.x;
+        const int dstY = baseY + TILE_SIZE - FX_DRAW_H - camera.y;
+        renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h),
+                      SDL2pp::Rect(dstX, dstY, FX_DRAW_W, FX_DRAW_H));
+    }
+}
+
+void Game::syncProjectileAnimators(uint32_t nowMs) {
+    // Actualizar o crear animators para proyectiles del snapshot
+    for (const ProjectileDTO& dto: lastSnapshot.projectiles) {
+        projectileAnimators[dto.id].update(dto, nowMs);
+    }
+
+    // Detectar proyectiles que desaparecieron → activar FX de impacto
+    for (auto it = projectileAnimators.begin(); it != projectileAnimators.end();) {
+        const bool stillAlive =
+                std::any_of(lastSnapshot.projectiles.begin(), lastSnapshot.projectiles.end(),
+                            [&](const ProjectileDTO& dto) { return dto.id == it->first; });
+
+        if (!stillAlive) {
+            // Interpolar la última posición del proyectil en el momento de su muerte
+            const int px = static_cast<int>(it->second.getVirtualX() * TILE_SIZE);
+            const int py = static_cast<int>(it->second.getVirtualY() * TILE_SIZE);
+
+            // Setear el FX estático (targetId = 0 indica que no sigue a nadie)
+            FxType impactType = FxType::DEFAULT;
+            if (it->second.getSpriteId() == STAFF_SPRITE_ID) {
+                impactType = FxType::EXPLOSION;
+            } else if (it->second.getSpriteId() == NUDOSO_SPRITE_ID) {
+                impactType = FxType::NUDOSO_IMPACT;
+            } else if (it->second.getSpriteId() == VARA_SPRITE_ID) {
+                impactType = FxType::FRESNO_IMPACT;
+            }
+
+            activeFx = ActiveFx{0, SDL_GetTicks(), px, py, impactType};
+
+            it = projectileAnimators.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void Game::renderProjectiles(const CameraOffset& camera) {
+    const uint32_t now = SDL_GetTicks();
+    SDL2pp::Renderer& renderer = window.getRenderer();
+
+    const std::string defaultPath = std::string(RESOURCES_DIR) + PROJ_SHEET;
+    if (!std::ifstream(defaultPath).good())
+        return;
+
+    SDL2pp::Texture& defaultSheet = textures.get(defaultPath);
+
+    for (auto& [id, anim]: projectileAnimators) {
+        anim.extrapolate(now);
+
+        const int px = static_cast<int>(anim.getVirtualX() * TILE_SIZE) - camera.x;
+        const int py = static_cast<int>(anim.getVirtualY() * TILE_SIZE) - camera.y;
+
+        anim.lastPixelX = px + camera.x;
+        anim.lastPixelY = py + camera.y;
+
+        // BORRAR!
+        // printf("[PROJ] id=%u spriteId=%u\n", id, anim.getSpriteId());
+        if (anim.getSpriteId() == ARROW_SPRITE_ID || anim.getSpriteId() == VARA_SPRITE_ID) {
+            const std::string arrowPath = std::string(RESOURCES_DIR) + ARROW_SHEET;
+            if (!std::ifstream(arrowPath).good())
+                continue;
+
+            SDL2pp::Texture& arrowSheet = textures.get(arrowPath);
+
+            const int frame = (now / 80) % ARROW_FRAME_COLS;
+            const int srcX = ARROW_SRC_X0 + frame * ARROW_FRAME_W;
+            const int srcY = ARROW_SRC_Y;
+
+            const SDL2pp::Rect dst(px - ARROW_DRAW_W / 2, py - ARROW_DRAW_H / 2, ARROW_DRAW_W,
+                                   ARROW_DRAW_H);
+
+            // Rotar la flecha según dirección de vuelo
+            const float angle = std::atan2(anim.getVelY(), anim.getVelX()) * 180.0f / M_PI;
+            renderer.Copy(arrowSheet, SDL2pp::Rect(srcX, srcY, ARROW_FRAME_W, ARROW_FRAME_H), dst,
+                          angle, SDL2pp::NullOpt, SDL_FLIP_NONE);
+        } else if (anim.getSpriteId() == STAFF_SPRITE_ID) {
+            const std::string p = std::string(RESOURCES_DIR) + STAFF_PROJ_SHEET;
+            if (!std::ifstream(p).good())
+                continue;
+            SDL2pp::Texture& tex = textures.get(p);
+            const int frame = (now / STAFF_PROJ_DUR_MS) % STAFF_PROJ_FRAMES;
+            const FrameRect fr =
+                    fxFrameRect(frame, STAFF_PROJ_FRAME_W, STAFF_PROJ_FRAME_H, STAFF_PROJ_COLS);
+            const SDL2pp::Rect dst(px - STAFF_PROJ_DRAW / 2, py - STAFF_PROJ_DRAW / 2,
+                                   STAFF_PROJ_DRAW, STAFF_PROJ_DRAW);
+            renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst, 0.0, SDL2pp::NullOpt,
+                          SDL_FLIP_NONE);
+        } else if (anim.getSpriteId() == NUDOSO_SPRITE_ID) {
+            const std::string p = std::string(RESOURCES_DIR) + NUDOSO_PROJ_SHEET;
+            if (!std::ifstream(p).good())
+                continue;
+            SDL2pp::Texture& tex = textures.get(p);
+            const int frame = (now / NUDOSO_PROJ_DUR_MS) % NUDOSO_PROJ_FRAMES;
+            const FrameRect fr =
+                    fxFrameRect(frame, NUDOSO_PROJ_FRAME_W, NUDOSO_PROJ_FRAME_H, NUDOSO_PROJ_COLS);
+
+            const SDL2pp::Rect dst(px - NUDOSO_PROJ_DRAW / 2, py - NUDOSO_PROJ_DRAW / 2,
+                                   NUDOSO_PROJ_DRAW, NUDOSO_PROJ_DRAW);
+
+            const float angle = std::atan2(anim.getVelY(), anim.getVelX()) * 180.0f / M_PI;
+            renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst, angle, SDL2pp::NullOpt,
+                          SDL_FLIP_NONE);
+
+        } else {
+            // Comportamiento original: fuego
+            const int frame = (now / 100) % 64;
+            const int srcX = (frame % PROJ_FRAME_COLS) * PROJ_FRAME_SIZE;
+            const int srcY = (frame / PROJ_FRAME_COLS) * PROJ_FRAME_SIZE;
+            const SDL2pp::Rect dst(px - PROJ_DRAW_W / 2, py - PROJ_DRAW_H / 2, PROJ_DRAW_W,
+                                   PROJ_DRAW_H);
+
+            renderer.Copy(defaultSheet, SDL2pp::Rect(srcX, srcY, PROJ_FRAME_SIZE, PROJ_FRAME_SIZE),
+                          dst, 0.0, SDL2pp::NullOpt, SDL_FLIP_NONE);
+        }
+    }
 }
 
 void Game::render(const FrameInput& input) {
@@ -292,11 +711,15 @@ void Game::render(const FrameInput& input) {
     const CameraOffset camera = computeCamera();
     processCombatInput(input, camera);
 
+    const uint32_t now = SDL_GetTicks();
+    syncProjectileAnimators(now);
+
     renderTerrain(camera);
     renderOverlays(camera);
     renderGroundItems(camera);
     renderCitizens(camera);
     renderEntities(camera);
+    renderProjectiles(camera);
     renderFx(camera);
 
     // MiniChat superpuesto
@@ -305,6 +728,8 @@ void Game::render(const FrameInput& input) {
 
     hud.renderBackground(renderer);
     hud.render(renderer, lastStats);
+    manualPanel.render(renderer.Get(), WINDOW_WIDTH, WINDOW_HEIGHT);
+
     renderer.Present();
 }
 
@@ -361,14 +786,50 @@ void Game::renderGroundItems(const CameraOffset& camera) {
             const OverlayDef& def = *it;
             SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + def.tilesheet);
             const SDL2pp::Rect srcRect(def.srcX, def.srcY, def.srcW, def.srcH);
-            const int dstW = TILE_SIZE;
-            const int dstH = (def.srcH * TILE_SIZE) / def.srcW;
-            const int dstX = item.x * TILE_SIZE - camera.x;
+            int dstW = def.srcW;
+            int dstH = def.srcH;
+            if (dstW > TILE_SIZE) {
+                dstH = def.srcH * TILE_SIZE / def.srcW;
+                dstW = TILE_SIZE;
+            }
+            const int dstX = item.x * TILE_SIZE + (TILE_SIZE - dstW) / 2 - camera.x;
             const int dstY = item.y * TILE_SIZE + TILE_SIZE - dstH - camera.y;
 
             renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
+
+            if (auto label = groundAmountLabel(item.amount)) {
+                drawGroundAmount(renderer, *label, item.x, item.y, camera);
+            }
         }
     }
+}
+
+void Game::drawGroundAmount(SDL2pp::Renderer& renderer, const std::string& text, int tileX,
+                            int tileY, const CameraOffset& camera) {
+    if (worldFont == nullptr) {
+        return;
+    }
+    const SDL_Color white{255, 255, 255, 255};
+    SDL_Surface* surf = TTF_RenderUTF8_Blended(worldFont, text.c_str(), white);
+    if (surf == nullptr) {
+        return;
+    }
+    SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer.Get(), surf);
+    const int w = surf->w;
+    const int h = surf->h;
+    SDL_FreeSurface(surf);
+    if (tex == nullptr) {
+        return;
+    }
+    const int x = tileX * TILE_SIZE + TILE_SIZE / 2 - w / 2 - camera.x;
+    const int y = tileY * TILE_SIZE + TILE_SIZE - h - camera.y;
+    SDL_SetTextureColorMod(tex, 0, 0, 0);
+    SDL_Rect shadow{x + 1, y + 1, w, h};
+    SDL_RenderCopy(renderer.Get(), tex, nullptr, &shadow);
+    SDL_SetTextureColorMod(tex, 255, 255, 255);
+    SDL_Rect dst{x, y, w, h};
+    SDL_RenderCopy(renderer.Get(), tex, nullptr, &dst);
+    SDL_DestroyTexture(tex);
 }
 
 void Game::renderCitizens(const CameraOffset& camera) {
@@ -444,7 +905,7 @@ void Game::renderEntities(const CameraOffset& camera) {
             renderer.Copy(skull, SDL2pp::Rect(sf.x, sf.y, sf.w, sf.h), skullDst);
             return;
         }
-        const EntitySprite sprite = spriteForEntity(entity.type, entity.sprite_id);
+        const EntitySprite sprite = spriteForEntity(entity.type, entity.entityTypeId, entity.id);
         SDL2pp::Texture& body = textures.get(std::string(RESOURCES_DIR) + sprite.bodySheet);
 
         int bodyW = sprite.bodySrcW;
@@ -452,18 +913,27 @@ void Game::renderEntities(const CameraOffset& camera) {
         SDL2pp::Rect bodySrc(sprite.bodySrcX, sprite.bodySrcY, bodyW, bodyH);
         SDL2pp::Rect headSrcRect(sprite.headSrcX, sprite.headSrcY, sprite.headSrcW,
                                  sprite.headSrcH);
-        if (entity.type == EntityType::PLAYER) {
-            const Movement facing = anim.getFacing();
-            const FrameRect bf = bodyFrameRect(facing, anim.frameColumn(now));
-            bodySrc = SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h);
-            bodyW = bf.w;
-            bodyH = bf.h;
+
+        const Movement facing = anim.getFacing();
+        const int frameCol = (static_cast<EntityAction>(entity.action) == EntityAction::WALKING) ?
+                                     anim.frameColumn(now) :
+                                     0;
+        const FrameRect bf = sprite.customGrid ? bodyFrameRectFor(sprite, facing, frameCol) :
+                                                 bodyFrameRect(facing, frameCol);
+        bodySrc = SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h);
+        bodyW = bf.w;
+        bodyH = bf.h;
+        if (sprite.drawHead) {
             const FrameRect hf = headFrameRect(facing);
             headSrcRect = SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h);
         }
 
-        const int bodyDstW = bodyW * TILE_SIZE / CHARACTER_FRAME_W;
-        const int bodyDstH = bodyH * CHARACTER_DRAW_H / CHARACTER_FRAME_H;
+        const int bodyDstW = sprite.customGrid ?
+                                     bodyW * sprite.bodyScale / 100 :
+                                     bodyW * TILE_SIZE / CHARACTER_FRAME_W * sprite.bodyScale / 100;
+        const int bodyDstH = sprite.customGrid ? bodyH * sprite.bodyScale / 100 :
+                                                 bodyH * CHARACTER_DRAW_H / CHARACTER_FRAME_H *
+                                                         sprite.bodyScale / 100;
         const SDL2pp::Rect dstRect(px + (TILE_SIZE - bodyDstW) / 2 - camera.x,
                                    py + TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH);
         renderer.Copy(body, bodySrc, dstRect);
