@@ -88,6 +88,7 @@ void Game::run() {
         inputProcessor.sendMoveIfDue(input, lastSnapshot);
 
         render(input);
+        audio.updateMonsterSounds(lastSnapshot, SDL_GetTicks(), client.getClientId());
         SDL_Delay(16);
     }
 }

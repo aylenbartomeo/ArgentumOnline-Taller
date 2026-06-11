@@ -1,10 +1,22 @@
 #ifndef AUDIO_SYSTEM_H
 #define AUDIO_SYSTEM_H
 
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+
 #include <SDL_mixer.h>
+
+#include "common/include/dto/Snapshot.h"
+#include "common/utils/types.h"
 
 class AudioSystem {
 public:
+    static constexpr int MONSTER_SOUND_MAX_DIST = 15;
+    static constexpr int MONSTER_SOUND_MIN_DIST = 3;  // distancia a la que suena al máximo
+    static constexpr int MONSTER_SOUND_MAX_VOL = MIX_MAX_VOLUME;  // 128
+    static constexpr int MONSTER_SOUND_MIN_VOL = 12;  // volumen mínimo audible (no cero)
+
     AudioSystem();
     ~AudioSystem();
 
@@ -15,8 +27,21 @@ public:
 
     void toggleMute();
 
+    void updateMonsterSounds(const SnapshotDTO& snapshot, uint32_t nowMs, uint32_t myId);
+
 private:
-    Mix_Music* bgMusic_ = nullptr;
+    Mix_Music* bgMusic = nullptr;
+
+    std::unordered_map<NPCType, Mix_Chunk*> monsterSounds;
+    std::unordered_map<uint32_t, uint32_t> nextSoundTime;
+
+    std::unordered_map<uint32_t, int> activeChannel;
+
+    int getChannel(uint32_t monsterId) {
+        auto it = activeChannel.find(monsterId);
+        return (it != activeChannel.end()) ? it->second : -1;
+    }
+
 
     bool isMuted = false;
     int lastVolume = MIX_MAX_VOLUME / 2;
