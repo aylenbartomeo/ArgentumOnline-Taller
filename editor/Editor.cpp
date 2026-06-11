@@ -196,8 +196,10 @@ void Editor::handleLeftClick(int x, int y) {
                                    cell.x, cell.y);
                     break;
                 case Tool::CITIZEN:
-                    map.addCitizen(getCitizenCatalog()[citizenPalette.getSelectedTile()].type,
-                                   cell.x, cell.y);
+                    if (safeZoneAt(cell.x, cell.y) != nullptr) {
+                        map.addCitizen(getCitizenCatalog()[citizenPalette.getSelectedTile()].type,
+                                       cell.x, cell.y);
+                    }
                     break;
                 case Tool::TERRAIN:
                     map.setTerrain(cell.x, cell.y, terrainPalette.getSelectedTile());
@@ -205,9 +207,13 @@ void Editor::handleLeftClick(int x, int y) {
                 case Tool::CITY:
                     applyCityPrefab(map, cell.x, cell.y, "Ciudad");
                     break;
-                case Tool::CITY_ERASE:
-                    clearCity(map, cell.x, cell.y);
+                case Tool::CITY_ERASE: {
+                    const EditorSafeZone* zone = safeZoneAt(cell.x, cell.y);
+                    if (zone != nullptr) {
+                        clearCity(map, zone->x, zone->y);
+                    }
                     break;
+                }
                 case Tool::ERASER:
                     map.setTile(cell.x, cell.y, 0);
                     map.removeEntitiesAt(cell.x, cell.y);
@@ -280,6 +286,16 @@ Palette& Editor::activePalette() {
 }
 
 const Palette& Editor::activePalette() const { return const_cast<Editor*>(this)->activePalette(); }
+
+const EditorSafeZone* Editor::safeZoneAt(int col, int row) const {
+    for (const EditorSafeZone& zone : map.getSafeZones()) {
+        if (col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
+            row < zone.y + zone.height) {
+            return &zone;
+        }
+    }
+    return nullptr;
+}
 
 void Editor::drawGrass(int dstX, int dstY, int dstSize) {
     SDL2pp::Texture& tex = textures.get(GRASS_SHEET_PATH);

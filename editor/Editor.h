@@ -51,6 +51,7 @@ private:
     void renderSpawn();
     void renderPanel();
     void renderStatusBar();
+    const EditorSafeZone* safeZoneAt(int col, int row) const;
     void drawGrass(int dstX, int dstY, int dstSize);
     void drawTerrainTile(int code, int dstX, int dstY, int dstSize);
     void drawOverlay(const OverlayDef& def, int cellX, int cellY, int cellSize);
