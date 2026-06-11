@@ -12,7 +12,7 @@
 
 class AudioSystem {
 public:
-    static constexpr int MONSTER_SOUND_MAX_DIST = 15;
+    static constexpr int MONSTER_SOUND_MAX_DIST = 10;
     static constexpr int MONSTER_SOUND_MIN_DIST = 3;  // distancia a la que suena al máximo
     static constexpr int MONSTER_SOUND_MAX_VOL = MIX_MAX_VOLUME;  // 128
     static constexpr int MONSTER_SOUND_MIN_VOL = 12;  // volumen mínimo audible (no cero)

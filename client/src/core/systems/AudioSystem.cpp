@@ -104,7 +104,7 @@ void AudioSystem::updateMonsterSounds(const SnapshotDTO& snapshot, uint32_t nowM
         if (soundIt == monsterSounds.end())
             continue;
 
-        // Distancia euclidiana (circular)
+        // Distancia euclidiana
         const float dx = static_cast<float>(monster.x) - static_cast<float>(me->x);
         const float dy = static_cast<float>(monster.y) - static_cast<float>(me->y);
         const float dist = std::sqrt(dx * dx + dy * dy);
@@ -122,28 +122,17 @@ void AudioSystem::updateMonsterSounds(const SnapshotDTO& snapshot, uint32_t nowM
         // Si es momento de reproducir el sonido
         if (nowMs >= nextTime) {
             if (vol > 0) {
-                // Pedimos el primer canal libre (-1)
                 const int chan = Mix_PlayChannel(-1, soundIt->second, 0);
 
                 if (chan >= 0) {
-                    // Paneo Estéreo (3D Posicional)
-                    // Calculamos cuánto peso de sonido va al auricular Izquierdo y Derecho
                     int leftVol = vol;
                     int rightVol = vol;
 
                     if (dist > 0) {
-                        // dx / dist nos da un valor entre -1.0 (totalmente a la izq) y 1.0
-                        // (totalmente a la der)
                         const float balance = dx / dist;
-
-                        // Ajustamos la distribución. Si está en el centro (balance = 0), ambos
-                        // audífonos suenan igual.
                         leftVol = static_cast<int>(vol * (1.0f - balance) / 2.0f + vol / 2.0f);
                         rightVol = static_cast<int>(vol * (1.0f + balance) / 2.0f + vol / 2.0f);
                     }
-
-                    // IMPORTANTE: Primero se aplica el Paneo y luego el volumen general en
-                    // SDL_mixer
                     Mix_SetPanning(chan, leftVol, rightVol);
                     Mix_Volume(chan, vol);
                 }
