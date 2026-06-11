@@ -160,6 +160,13 @@ void Editor::handleEvent(const SDL_Event& event, bool& running) {
             lastMouseX = event.motion.x;
             lastMouseY = event.motion.y;
         }
+    } else if (event.type == SDL_MOUSEWHEEL) {
+        int mouseX = 0;
+        int mouseY = 0;
+        SDL_GetMouseState(&mouseX, &mouseY);
+        if (mouseX >= PANEL_X) {
+            activePalette().scroll(-event.wheel.y);
+        }
     } else if (event.type == SDL_KEYDOWN) {
         switch (event.key.keysym.sym) {
             case SDLK_LEFT:
@@ -615,7 +622,10 @@ void Editor::renderPanel() {
     int count = pal.getTileCount();
     for (int i = 0; i < count; ++i) {
         int col = i % pal.getCols();
-        int row = i / pal.getCols();
+        int row = i / pal.getCols() - pal.getScrollRow();
+        if (row < 0) {
+            continue;
+        }
         int dx = pal.getPanelX() + col * pal.getTileDrawSize();
         int dy = pal.getPanelY() + row * pal.getTileDrawSize();
         if (dy + pal.getTileDrawSize() > CANVAS_HEIGHT) {
