@@ -10,7 +10,8 @@
 #include "../ui/GroundItemLabel.h"
 
 #include "OverlayRegistry.h"
-#include "TerrainRegistry.h"
+
+#include "../rendering/TileDraw.h"
 
 namespace GC = GameConstants;
 
@@ -47,22 +48,28 @@ WorldRenderer::WorldRenderer(TextureManager& textures, SDL2pp::Renderer& rendere
         textures(textures), renderer(renderer), map(map), worldFont(worldFont) {}
 
 void WorldRenderer::renderTerrain(const CameraOffset& camera) const {
-    const std::vector<TerrainDef>& registry = getTerrainRegistry();
+    renderTileLayer(map.getGround(), "ground/", camera);
+    renderTileLayer(map.getGround2(), "ground/", camera);
+    renderTileLayer(map.getDecoration(), "decoration/", camera);
+    renderer.SetClipRect();
+}
+
+void WorldRenderer::renderTileLayer(const std::vector<std::vector<int>>& grid,
+                                    const std::string& folder, const CameraOffset& camera) const {
     for (int row = 0; row < map.getHeight(); ++row) {
         for (int col = 0; col < map.getWidth(); ++col) {
-            int code = map.terrainAt(col, row);
-            if (code < 0 || code >= static_cast<int>(registry.size())) {
-                code = 0;
+            int v = grid[row][col];
+            if (v <= 0) {
+                continue;
             }
-            const TerrainDef& def = registry[code];
-            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + def.sheet);
-            const SDL2pp::Rect src(0, 0, tex.GetWidth(), tex.GetHeight());
-            const SDL2pp::Rect dst(col * GC::TILE_SIZE - camera.x, row * GC::TILE_SIZE - camera.y,
-                                   GC::TILE_SIZE, GC::TILE_SIZE);
-            renderer.Copy(tex, src, dst);
+            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + folder +
+                                                std::to_string(v - 1) + ".png");
+            TileRect r = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE,
+                                      camera.x, camera.y);
+            renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
+                          SDL2pp::Rect(r.x, r.y, r.w, r.h));
         }
     }
-    renderer.SetClipRect();
 }
 
 void WorldRenderer::renderOverlays(const CameraOffset& camera) const {

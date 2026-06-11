@@ -22,6 +22,8 @@ public:
     void renderCitizens(const CameraOffset& camera) const;
 
 private:
+    void renderTileLayer(const std::vector<std::vector<int>>& grid, const std::string& folder,
+                         const CameraOffset& camera) const;
     void drawGroundAmount(const std::string& text, int tileX, int tileY,
                           const CameraOffset& camera) const;
 
