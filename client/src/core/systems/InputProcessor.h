@@ -26,6 +26,8 @@ public:
     void processChatInput(const FrameInput& input);
     void processCheats(const FrameInput& input);
     void processEquipInput(const FrameInput& input);
+    void processUseInput(const FrameInput& input);
+    void processSelectSlotInput(const FrameInput& input);
     void processUiInput(const FrameInput& input);
     void drainIncomingChat();
     void sendMoveIfDue(const FrameInput& input, const SnapshotDTO& snapshot);

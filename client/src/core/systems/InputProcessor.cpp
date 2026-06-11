@@ -31,11 +31,29 @@ void InputProcessor::processChatInput(const FrameInput& input) {
     if (!input.chatSubmitted || input.chatText.empty())
         return;
     std::optional<CommandVariant> cmdOpt = chatParser.parse(input.chatText);
-    if (cmdOpt.has_value()) {
-        client.sendCommand(cmdOpt.value());
-    } else {
+    if (!cmdOpt.has_value()) {
         miniChat.pushMessage("[Info] Comando inexistente o mal formateado.");
+        return;
     }
+
+    // Interceptar errores de /tirar (señalizados como ChatDTO con prefijo especial)
+    if (std::holds_alternative<ChatDTO>(cmdOpt.value())) {
+        const std::string& msg = std::get<ChatDTO>(cmdOpt.value()).message;
+        if (msg == "__INVALID_NO_SLOT__") {
+            miniChat.pushMessage("[Info] Selecciona un slot del inventario primero.");
+            return;
+        }
+        if (msg == "__INVALID_ZERO_AMOUNT__") {
+            miniChat.pushMessage("[Info] La cantidad debe ser mayor a 0.");
+            return;
+        }
+        if (msg == "__INVALID_AMOUNT_PARSE__") {
+            miniChat.pushMessage("[Info] Cantidad invalida.");
+            return;
+        }
+    }
+
+    client.sendCommand(cmdOpt.value());
 }
 
 void InputProcessor::processCheats(const FrameInput& input) {
@@ -59,6 +77,30 @@ void InputProcessor::processEquipInput(const FrameInput& input) {
     const int slot = hud.slotAtPosition(input.equipX, input.equipY);
     if (slot >= 0)
         client.sendCommand(EquipItemDTO{static_cast<uint8_t>(slot)});
+}
+
+void InputProcessor::processUseInput(const FrameInput& input) {
+    if (!input.consumeKeyPressed)
+        return;
+
+    int slot = hud.getSelectedSlot();
+    if (slot >= 0) {
+        client.sendCommand(UseItemDTO{static_cast<uint8_t>(slot)});
+    } else {
+        miniChat.pushMessage("[Info] Selecciona un slot del inventario primero.");
+    }
+}
+
+void InputProcessor::processSelectSlotInput(const FrameInput& input) {
+    // Solo procesar click simple (no doble click que va a equip)
+    if (!input.mouseLeftJustPressed || input.equipPressed)
+        return;
+
+    const int slot = hud.slotAtPosition(input.mouseX, input.mouseY);
+    if (slot >= 0) {
+        // selectSlot internamente hace toggle si es el mismo slot
+        hud.selectSlot(slot);
+    }
 }
 
 void InputProcessor::processUiInput(const FrameInput& input) {

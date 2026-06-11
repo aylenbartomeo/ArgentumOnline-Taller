@@ -153,7 +153,21 @@ void HudPanel::drawItemSprite(SDL2pp::Renderer& renderer, uint32_t itemId, int x
                   SDL2pp::Rect(dx, dy, dw, dh));
 }
 
+void HudPanel::drawSlotHighlight(SDL2pp::Renderer& renderer, int slotIndex) {
+    const SlotRect r =
+            inventorySlotRect(slotIndex, INV_COLS, INV_CELL, INV_GAP, INV_ORIGIN_X, INV_ORIGIN_Y);
+    // Borde dorado para indicar slot seleccionado
+    SDL_SetRenderDrawColor(renderer.Get(), 255, 215, 0, 255);
+    SDL_Rect border{r.x - 1, r.y - 1, r.w + 2, r.h + 2};
+    SDL_RenderDrawRect(renderer.Get(), &border);
+    SDL_Rect borderInner{r.x - 2, r.y - 2, r.w + 4, r.h + 4};
+    SDL_RenderDrawRect(renderer.Get(), &borderInner);
+}
+
 void HudPanel::drawInventory(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats) {
+    if (selectedSlot >= 0) {
+        drawSlotHighlight(renderer, selectedSlot);
+    }
     for (const InventorySlotDTO& it: stats.inventory) {
         const SlotRect r =
                 inventorySlotRect(it.slot, INV_COLS, INV_CELL, INV_GAP, INV_ORIGIN_X, INV_ORIGIN_Y);
@@ -196,3 +210,16 @@ void HudPanel::render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats) {
                  MP_X + 78, MP_Y + 1);
     }
 }
+
+void HudPanel::selectSlot(int slot) {
+    // Toggle: si el slot ya está seleccionado, deseleccionarlo
+    if (selectedSlot == slot) {
+        selectedSlot = -1;
+    } else {
+        selectedSlot = slot;
+    }
+}
+
+void HudPanel::clearSelection() { selectedSlot = -1; }
+
+int HudPanel::getSelectedSlot() const { return selectedSlot; }
