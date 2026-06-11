@@ -120,7 +120,7 @@ void Game::render(const FrameInput& input) {
             camera.compute(client.getClientId(), lastSnapshot, entityRenderer.getAnimators(), map);
 
     const auto combatResult =
-            inputProcessor.processCombatInput(input, cam, lastSnapshot, lastStats);
+            inputProcessor.processCombatInput(input, cam, lastSnapshot, lastStats, map);
     if (combatResult.fx) {
         fxSystem.triggerOnEntity(combatResult.fx->targetId, combatResult.fx->startMs,
                                  combatResult.fx->type);

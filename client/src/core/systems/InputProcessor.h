@@ -8,6 +8,7 @@
 #include "../common/FxType.h"
 #include "../input/ChatCommandParser.h"
 #include "../input/EventHandler.h"
+#include "../rendering/TileMap.h"
 #include "../rendering/Viewport.h"
 #include "../ui/HudPanel.h"
 #include "../ui/ManualPanel.h"
@@ -40,7 +41,8 @@ public:
     };
 
     CombatResult processCombatInput(const FrameInput& input, const CameraOffset& camera,
-                                    const SnapshotDTO& snapshot, const PlayerStatsDTO& stats);
+                                    const SnapshotDTO& snapshot, const PlayerStatsDTO& stats,
+                                    const TileMap& map);
 
 private:
     static CommandVariant buildChatCommand(const std::string& text);
@@ -52,6 +54,7 @@ private:
     ManualPanel& manualPanel;
     ChatCommandParser& chatParser;
     uint32_t lastMoveSentMs = 0;
+    bool localInfiniteManaActive = false;
 };
 
 #endif
