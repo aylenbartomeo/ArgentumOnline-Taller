@@ -106,9 +106,11 @@ void Game::render(const FrameInput& input) {
     while (client.tryPopPlayerStats(incomingStats)) lastStats = incomingStats;
 
     StateAudioTrigger audioTrigger;
-    bool tookDamage = audioTrigger.checkAndTrigger(previousStats, lastStats, audio);
-    if (tookDamage)
+    StateChanges changes = audioTrigger.checkAndTrigger(previousStats, lastStats, audio);
+    if (changes.tookDamage)
         fxSystem.triggerOnEntity(0, SDL_GetTicks(), FxType::BE_ATTACKED);
+    if (changes.gotHealed)
+        fxSystem.triggerOnEntity(0, SDL_GetTicks(), FxType::BE_HEALED);
 
     SDL2pp::Renderer& renderer = window.getRenderer();
     renderer.SetDrawColor(0, 0, 0, 255);

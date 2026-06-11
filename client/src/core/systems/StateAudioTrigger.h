@@ -5,12 +5,16 @@
 
 #include "AudioSystem.h"
 
+struct StateChanges {
+    bool tookDamage = false;
+    bool gotHealed = false;
+};
+
 class StateAudioTrigger {
 public:
     // Compara el estado anterior con el nuevo y dispara sonidos.
-    // Retorna true si el jugador recibió daño
-    bool checkAndTrigger(const PlayerStatsDTO& oldStats, const PlayerStatsDTO& newStats,
-                         AudioSystem& audio);
+    StateChanges checkAndTrigger(const PlayerStatsDTO& oldStats, const PlayerStatsDTO& newStats,
+                                 AudioSystem& audio);
 };
 
 #endif

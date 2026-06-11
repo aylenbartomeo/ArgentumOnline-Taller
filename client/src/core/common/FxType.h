@@ -10,7 +10,8 @@ enum class FxType : uint8_t {
     NUDOSO_IMPACT,
     FRESNO_IMPACT,
     FLAUTA_HEAL,
-    BE_ATTACKED
+    BE_ATTACKED,
+    BE_HEALED,
 };
 
 struct ActiveFx {

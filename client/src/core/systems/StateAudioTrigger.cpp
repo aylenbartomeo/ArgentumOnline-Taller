@@ -4,8 +4,10 @@
 #include <numeric>
 #include <vector>
 
-bool StateAudioTrigger::checkAndTrigger(const PlayerStatsDTO& oldStats,
-                                        const PlayerStatsDTO& newStats, AudioSystem& audio) {
+StateChanges StateAudioTrigger::checkAndTrigger(const PlayerStatsDTO& oldStats,
+                                                const PlayerStatsDTO& newStats,
+                                                AudioSystem& audio) {
+    StateChanges changes;
     bool wasDead = (oldStats.maxHp > 0 && oldStats.currentHp <= 0);
     bool isAliveNow = (newStats.maxHp > 0 && newStats.currentHp > 0);
 
@@ -50,7 +52,13 @@ bool StateAudioTrigger::checkAndTrigger(const PlayerStatsDTO& oldStats,
     if (oldEquipped != newEquipped)
         audio.playSound(SoundEffect::EQUIP_WEAPON);
 
-    bool tookDamage = wasAlive && !isDeadNow && (oldStats.maxHp > 0) &&
-                      (newStats.currentHp < oldStats.currentHp);
-    return tookDamage;
+    int hpDifference = static_cast<int>(newStats.currentHp) - static_cast<int>(oldStats.currentHp);
+
+    // Si la diferencia es menor a 0, significa que recibió daño
+    changes.tookDamage = wasAlive && !isDeadNow && (oldStats.maxHp > 0) && (hpDifference < 0);
+
+    // Solo activamos el efecto si la curación es mayor a 5 HP de golpe
+    changes.gotHealed = wasAlive && !isDeadNow && (oldStats.maxHp > 0) && (hpDifference > 5);
+
+    return changes;
 }
