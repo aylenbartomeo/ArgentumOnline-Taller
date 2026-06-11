@@ -117,9 +117,17 @@ void Game::render(const FrameInput& input) {
 
     const auto combatResult =
             inputProcessor.processCombatInput(input, cam, lastSnapshot, lastStats);
-    if (combatResult.fx)
+    if (combatResult.fx) {
         fxSystem.triggerOnEntity(combatResult.fx->targetId, combatResult.fx->startMs,
                                  combatResult.fx->type);
+
+        if (combatResult.fx->type == FxType::SWORD) {
+            audio.playSwordAttackSound();
+        }
+    }
+
+    if (combatResult.magicAttack)
+        audio.playMagicAttackSound();
 
     const uint32_t now = SDL_GetTicks();
     fxSystem.syncProjectileAnimators(now, lastSnapshot);

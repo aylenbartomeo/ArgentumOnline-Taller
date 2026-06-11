@@ -45,6 +45,16 @@ AudioSystem::AudioSystem() {
                   << std::endl;
     }
 
+    swordAttackSound = Mix_LoadWAV("resources/audio/weapons/sword-attack.ogg");
+    if (!swordAttackSound) {
+        std::cerr << "[AUDIO] No se pudo cargar sonido de espada: " << Mix_GetError() << std::endl;
+    }
+
+    magicAttackSound = Mix_LoadWAV("resources/audio/weapons/magic-attack.ogg");
+    if (!magicAttackSound) {
+        std::cerr << "[AUDIO] No se pudo cargar sonido de magia: " << Mix_GetError() << std::endl;
+    }
+
     for (const auto& [type, path]: soundPaths) {
         Mix_Chunk* chunk = Mix_LoadWAV(path.c_str());
         if (!chunk)
@@ -60,9 +70,13 @@ AudioSystem::~AudioSystem() {
         Mix_HaltMusic();
         Mix_FreeMusic(bgMusic);
     }
-    if (resurrectSound) {
+    if (resurrectSound)
         Mix_FreeChunk(resurrectSound);
-    }
+    if (swordAttackSound)
+        Mix_FreeChunk(swordAttackSound);
+    if (magicAttackSound)
+        Mix_FreeChunk(magicAttackSound);
+
     for (auto& [type, chunk]: monsterSounds) {
         if (chunk)
             Mix_FreeChunk(chunk);
@@ -79,6 +93,26 @@ void AudioSystem::toggleMute() {
         Mix_VolumeMusic(0);
     } else {
         Mix_VolumeMusic(lastVolume);
+    }
+}
+
+void AudioSystem::playSwordAttackSound() {
+    if (!isMuted && swordAttackSound) {
+        const int chan = Mix_PlayChannel(-1, swordAttackSound, 0);
+        if (chan >= 0) {
+            Mix_SetPanning(chan, 255, 255);
+            Mix_Volume(chan, 60);
+        }
+    }
+}
+
+void AudioSystem::playMagicAttackSound() {
+    if (!isMuted && magicAttackSound) {
+        const int chan = Mix_PlayChannel(-1, magicAttackSound, 0);
+        if (chan >= 0) {
+            Mix_SetPanning(chan, 255, 255);
+            Mix_Volume(chan, 60);
+        }
     }
 }
 

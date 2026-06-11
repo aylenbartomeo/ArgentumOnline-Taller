@@ -168,6 +168,8 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
         const Cell cell = screenToCell(static_cast<int>(lx), static_cast<int>(ly), camera.x,
                                        camera.y, GC::TILE_SIZE);
         client.sendCommand(ShootDTO{static_cast<float>(cell.col), static_cast<float>(cell.row)});
+
+        result.magicAttack = true;
     }
 
     if (!input.attackPressed)

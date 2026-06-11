@@ -35,7 +35,9 @@ public:
     // Retorna el FX a activar si el usuario atacó/disparó, o std::nullopt si no.
     struct CombatResult {
         std::optional<ActiveFx> fx;
+        bool magicAttack = false;
     };
+
     CombatResult processCombatInput(const FrameInput& input, const CameraOffset& camera,
                                     const SnapshotDTO& snapshot, const PlayerStatsDTO& stats);
 
