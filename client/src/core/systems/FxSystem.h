@@ -18,7 +18,7 @@ public:
     FxSystem(TextureManager& textures, SDL2pp::Renderer& renderer);
 
     // Detecta proyectiles muertos y activa FX de impacto. Llama a update() en cada animator.
-    void syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapshot);
+    bool syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapshot);
 
     void triggerOnEntity(uint32_t targetId, uint32_t nowMs, FxType type);
     void triggerAtPixel(int px, int py, uint32_t nowMs, FxType type);

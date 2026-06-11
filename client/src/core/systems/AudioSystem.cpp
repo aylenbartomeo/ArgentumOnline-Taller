@@ -55,6 +55,17 @@ AudioSystem::AudioSystem() {
         std::cerr << "[AUDIO] No se pudo cargar sonido de magia: " << Mix_GetError() << std::endl;
     }
 
+    pickGoldSound = Mix_LoadWAV("resources/audio/player/pick-gold.ogg");
+    if (!pickGoldSound) {
+        std::cerr << "[AUDIO] No se pudo cargar sonido de oro: " << Mix_GetError() << std::endl;
+    }
+
+    projHitSound = Mix_LoadWAV("resources/audio/weapons/proj-hit.ogg");
+    if (!projHitSound) {
+        std::cerr << "[AUDIO] No se pudo cargar sonido de impacto de proyectil: " << Mix_GetError()
+                  << std::endl;
+    }
+
     for (const auto& [type, path]: soundPaths) {
         Mix_Chunk* chunk = Mix_LoadWAV(path.c_str());
         if (!chunk)
@@ -76,6 +87,10 @@ AudioSystem::~AudioSystem() {
         Mix_FreeChunk(swordAttackSound);
     if (magicAttackSound)
         Mix_FreeChunk(magicAttackSound);
+    if (pickGoldSound)
+        Mix_FreeChunk(pickGoldSound);
+    if (projHitSound)
+        Mix_FreeChunk(projHitSound);
 
     for (auto& [type, chunk]: monsterSounds) {
         if (chunk)
@@ -137,6 +152,26 @@ void AudioSystem::playResurrectSound() {
         if (chan >= 0) {
             Mix_SetPanning(chan, 255, 255);
             Mix_Volume(chan, 60);
+        }
+    }
+}
+
+void AudioSystem::playProjectileHitSound() {
+    if (!isMuted && projHitSound) {
+        const int chan = Mix_PlayChannel(-1, projHitSound, 0);
+        if (chan >= 0) {
+            Mix_SetPanning(chan, 255, 255);
+            Mix_Volume(chan, 60);
+        }
+    }
+}
+
+void AudioSystem::playPickGoldSound() {
+    if (!isMuted && pickGoldSound) {
+        const int chan = Mix_PlayChannel(-1, pickGoldSound, 0);
+        if (chan >= 0) {
+            Mix_SetPanning(chan, 255, 255);
+            Mix_Volume(chan, 70);
         }
     }
 }

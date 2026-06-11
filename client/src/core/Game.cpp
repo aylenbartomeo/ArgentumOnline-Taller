@@ -98,6 +98,7 @@ void Game::render(const FrameInput& input) {
     PlayerStatsDTO incomingStats;
 
     bool wasDead = (lastStats.maxHp > 0 && lastStats.currentHp <= 0);
+    uint32_t oldGold = lastStats.gold;
 
     while (client.tryPopSnapshot(incomingSnap)) lastSnapshot = incomingSnap;
     while (client.tryPopPlayerStats(incomingStats)) lastStats = incomingStats;
@@ -107,6 +108,9 @@ void Game::render(const FrameInput& input) {
     // Si estaba muerto y ahora está vivo, reproducimos el sonido
     if (wasDead && isAliveNow)
         audio.playResurrectSound();
+
+    if (lastStats.gold > oldGold)
+        audio.playPickGoldSound();
 
     SDL2pp::Renderer& renderer = window.getRenderer();
     renderer.SetDrawColor(0, 0, 0, 255);
@@ -130,6 +134,11 @@ void Game::render(const FrameInput& input) {
         audio.playMagicAttackSound();
 
     const uint32_t now = SDL_GetTicks();
+
+    // Si la sincronización devuelve true, significa que un proyectil desapareció/impactó
+    if (fxSystem.syncProjectileAnimators(now, lastSnapshot))
+        audio.playProjectileHitSound();
+
     fxSystem.syncProjectileAnimators(now, lastSnapshot);
 
     worldRenderer.renderTerrain(cam);

@@ -146,7 +146,9 @@ void FxSystem::triggerAtPixel(int px, int py, uint32_t nowMs, FxType type) {
     activeFx = ActiveFx{0, nowMs, px, py, type};
 }
 
-void FxSystem::syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapshot) {
+bool FxSystem::syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapshot) {
+    bool impactOccurred = false;
+
     for (const ProjectileDTO& dto: snapshot.projectiles) {
         projAnimators[dto.id].update(dto, nowMs);
     }
@@ -169,10 +171,13 @@ void FxSystem::syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapsh
 
             activeFx = ActiveFx{0, SDL_GetTicks(), px, py, impactType};
             it = projAnimators.erase(it);
+
+            impactOccurred = true;
         } else {
             ++it;
         }
     }
+    return impactOccurred;
 }
 
 void FxSystem::render(const CameraOffset& camera, const SnapshotDTO& snapshot,
