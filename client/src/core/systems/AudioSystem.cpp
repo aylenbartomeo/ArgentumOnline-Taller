@@ -77,6 +77,11 @@ AudioSystem::AudioSystem() {
                   << std::endl;
     }
 
+    equipSound = Mix_LoadWAV("resources/audio/player/equip-weapon.ogg");
+    if (!equipSound) {
+        std::cerr << "[AUDIO] No se pudo cargar sonido de equipar: " << Mix_GetError() << std::endl;
+    }
+
     for (const auto& [type, path]: soundPaths) {
         Mix_Chunk* chunk = Mix_LoadWAV(path.c_str());
         if (!chunk)
@@ -106,6 +111,8 @@ AudioSystem::~AudioSystem() {
         Mix_FreeChunk(pickItemSound);
     if (dropItemSound)
         Mix_FreeChunk(dropItemSound);
+    if (equipSound)
+        Mix_FreeChunk(equipSound);
 
     for (auto& [type, chunk]: monsterSounds) {
         if (chunk)
@@ -142,6 +149,16 @@ void AudioSystem::playMagicAttackSound() {
         if (chan >= 0) {
             Mix_SetPanning(chan, 255, 255);
             Mix_Volume(chan, 60);
+        }
+    }
+}
+
+void AudioSystem::playEquipSound() {
+    if (!isMuted && equipSound) {
+        const int chan = Mix_PlayChannel(-1, equipSound, 0);
+        if (chan >= 0) {
+            Mix_SetPanning(chan, 255, 255);
+            Mix_Volume(chan, 60);  // Ajusta el volumen a tu preferencia
         }
     }
 }

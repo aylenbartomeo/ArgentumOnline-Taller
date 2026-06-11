@@ -1,11 +1,13 @@
 #include "Game.h"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
@@ -105,6 +107,13 @@ void Game::render(const FrameInput& input) {
             std::accumulate(lastStats.inventory.begin(), lastStats.inventory.end(), uint32_t{0},
                             [](uint32_t sum, const auto& slot) { return sum + slot.amount; });
 
+    std::vector<uint8_t> oldEquipped;
+    for (const auto& slot: lastStats.inventory) {
+        if (slot.isEquipped)
+            oldEquipped.push_back(slot.slot);
+    }
+    std::sort(oldEquipped.begin(), oldEquipped.end());
+
     while (client.tryPopSnapshot(incomingSnap)) lastSnapshot = incomingSnap;
     while (client.tryPopPlayerStats(incomingStats)) lastStats = incomingStats;
 
@@ -116,6 +125,19 @@ void Game::render(const FrameInput& input) {
 
     if (lastStats.gold > oldGold)
         audio.playPickGoldSound();
+
+    std::vector<uint8_t> newEquipped;
+    for (const auto& slot: lastStats.inventory) {
+        if (slot.isEquipped)
+            newEquipped.push_back(slot.slot);
+    }
+
+    std::sort(newEquipped.begin(), newEquipped.end());
+
+    if (oldEquipped != newEquipped) {
+        audio.playEquipSound();
+    }
+    std::sort(newEquipped.begin(), newEquipped.end());
 
     uint32_t newItemCount =
             std::accumulate(lastStats.inventory.begin(), lastStats.inventory.end(), uint32_t{0},
@@ -153,8 +175,6 @@ void Game::render(const FrameInput& input) {
     // Si la sincronización devuelve true, significa que un proyectil desapareció/impactó
     if (fxSystem.syncProjectileAnimators(now, lastSnapshot))
         audio.playProjectileHitSound();
-
-    fxSystem.syncProjectileAnimators(now, lastSnapshot);
 
     worldRenderer.renderTerrain(cam);
     worldRenderer.renderOverlays(cam);
