@@ -18,6 +18,9 @@ target_sources(argentum_online_tests
     TestStatsComponent.cpp
     TestRegenerationComponent.cpp
     TestTileMap.cpp
+    TestTerrainRegistry.cpp
+    TestCityPrefab.cpp
+    TestCityStamp.cpp
     TestMerchant.cpp
     TestPriest.cpp
     TestGlobalBank.cpp

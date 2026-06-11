@@ -1,0 +1,11 @@
+#ifndef CITY_STAMP_H
+#define CITY_STAMP_H
+
+#include <string>
+
+#include "EditorMap.h"
+
+void applyCityPrefab(EditorMap& map, int originX, int originY, const std::string& name);
+void clearCity(EditorMap& map, int originX, int originY);
+
+#endif
