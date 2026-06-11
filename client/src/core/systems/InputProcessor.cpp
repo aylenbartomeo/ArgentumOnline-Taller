@@ -77,11 +77,15 @@ void InputProcessor::processCheats(const FrameInput& input) {
 void InputProcessor::processEquipInput(const FrameInput& input) {
     if (!input.equipPressed)
         return;
-    float lx = 0.f, ly = 0.f;
-    SDL_RenderWindowToLogical(window.getRenderer().Get(), input.equipX, input.equipY, &lx, &ly);
+
     const int slot = hud.slotAtPosition(input.equipX, input.equipY);
-    if (slot >= 0)
+
+    if (slot >= 0) {
         client.sendCommand(EquipItemDTO{static_cast<uint8_t>(slot)});
+        if (hud.getSelectedSlot() != slot) {
+            hud.selectSlot(slot);
+        }
+    }
 }
 
 void InputProcessor::processUseInput(const FrameInput& input, AudioSystem& audio) {
