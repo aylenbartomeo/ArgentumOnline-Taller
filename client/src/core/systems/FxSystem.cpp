@@ -332,12 +332,11 @@ void FxSystem::renderFullscreen(int windowW, int windowH) {
         return;
     }
 
-    // Cada frame es un archivo individual: resources/audio/beAttacked/0.png .. 27.png
     const std::string path =
             std::string(GC::RESOURCES_DIR) + "beAttacked/" + std::to_string(frame) + ".png";
 
     if (!std::ifstream(path).good())
-        return;  // frame faltante: saltarlo sin cancelar la animación
+        return;
 
     SDL2pp::Texture& tex = textures.get(path);
 
