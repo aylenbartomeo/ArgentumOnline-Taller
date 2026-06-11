@@ -144,3 +144,26 @@ TEST(PriestTest, Priest_DeadPlayerCannotTrade) {
     // pero falló la regla de negocio por estar muerto.
     EXPECT_EQ(res.status, InteractionStatus::FAILURE);
 }
+
+// =========================================================================
+// TEST 5: EL SACERDOTE MUESTRA SU CATÁLOGO EXCLUSIVO DE VENTA
+// =========================================================================
+TEST(PriestTest, Priest_ListStockSuccessfully) {
+    ItemRegistry registry("../config/items.toml");
+    Priest sacerdote(1, {0, 0}, registry);
+    Player player = makePriestTestPlayer();
+
+    // El jugador ejecuta el comando de listado ante el sacerdote
+    NpcCommandDTO cmd = createPriestTestCommand(NpcCommandType::LIST, "");
+    InteractionResult res = sacerdote.handleCommand(player, cmd);
+
+    // VALIDACIONES:
+    EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
+    
+    // El mensaje debe estructurar el catálogo básico
+    EXPECT_NE(res.msg.find("--- CATÁLOGO DISPONIBLE ---"), std::string::npos);
+    
+    // El Sacerdote inicia con ítems específicos en su stock (1001u y 1002u)
+    EXPECT_NE(res.msg.find("[ID: 1001]"), std::string::npos);
+    EXPECT_NE(res.msg.find("[ID: 1002]"), std::string::npos);
+}
