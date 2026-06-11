@@ -10,7 +10,11 @@
 
 class ChatCommandParser {
 public:
+    // Provider que devuelve el slot seleccionado (-1 si ninguno)
+    using SlotProvider = std::function<int()>;
+
     ChatCommandParser();
+    explicit ChatCommandParser(SlotProvider slotProvider);
 
     // Parsea el texto del chat y devuelve el comando adecuado (o nullopt si es inválido)
     std::optional<CommandVariant> parse(const std::string& text) const;
@@ -19,6 +23,7 @@ private:
     using CommandHandler = std::function<CommandVariant(const std::string& args)>;
 
     std::unordered_map<std::string, CommandHandler> handlers;
+    SlotProvider selectedSlotProvider;
 
     void registerHandlers();
 };

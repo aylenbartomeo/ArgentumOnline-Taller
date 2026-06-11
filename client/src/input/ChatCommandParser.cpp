@@ -1,6 +1,15 @@
 #include "ChatCommandParser.h"
 
-ChatCommandParser::ChatCommandParser() { registerHandlers(); }
+#include <utility>
+
+ChatCommandParser::ChatCommandParser(): selectedSlotProvider([]() { return -1; }) {
+    registerHandlers();
+}
+
+ChatCommandParser::ChatCommandParser(SlotProvider slotProvider):
+        selectedSlotProvider(std::move(slotProvider)) {
+    registerHandlers();
+}
 
 void ChatCommandParser::registerHandlers() {
     // === Comandos sin argumentos ===
@@ -57,19 +66,41 @@ void ChatCommandParser::registerHandlers() {
         return ClanCommandDTO{ClanCommandType::KICK, args};
     };
 
-    // === Comandos pendientes / TODO ===
-    handlers["/tirar"] = [](const std::string& args) -> CommandVariant {
-        // TODO: Mapear al slot seleccionado cuando el cliente maneje inventario.
-        // Por ahora lo mandamos con slot 0 temporalmente, u omitimos su uso real.
-        uint16_t amount = 1;
-        if (!args.empty()) {
-            try {
-                amount = static_cast<uint16_t>(std::stoul(args));
-            } catch (...) {}
+    handlers["/consumir"] = [this](const std::string&) -> CommandVariant {
+        int slot = selectedSlotProvider();
+        if (slot < 0) {
+            return ChatDTO{"__INVALID_NO_SLOT__"};
         }
+        return UseItemDTO{static_cast<uint8_t>(slot)};
+    };
+
+    // === Comando /tirar: usa el slot seleccionado del inventario ===
+    handlers["/tirar"] = [this](const std::string& args) -> CommandVariant {
+        int slot = selectedSlotProvider();
+        if (slot < 0) {
+            // Sin slot seleccionado: retornamos un ChatDTO vacío como señal
+            // de error (el caller va a ver nullopt vía parse())
+            return ChatDTO{"__INVALID_NO_SLOT__"};
+        }
+
         DropItemDTO dto;
-        dto.slot = 0;  // Stub
-        dto.amount = amount;
+        dto.slot = static_cast<uint8_t>(slot);
+
+        if (args.empty()) {
+            // Sin argumento: tirar todo el stack (el server interpreta amount=0)
+            dto.amount = 0;
+        } else {
+            try {
+                unsigned long parsed = std::stoul(args);
+                if (parsed == 0) {
+                    // "/tirar 0" explícito: cantidad inválida
+                    return ChatDTO{"__INVALID_ZERO_AMOUNT__"};
+                }
+                dto.amount = static_cast<uint16_t>(parsed);
+            } catch (...) {
+                return ChatDTO{"__INVALID_AMOUNT_PARSE__"};
+            }
+        }
         return dto;
     };
 }
