@@ -27,6 +27,7 @@ private:
     Palette overlayPalette;
     Palette monsterPalette;
     Palette citizenPalette;
+    Palette terrainPalette;
     Font font;
     Toolbar toolbar;
     std::string mapPath;
@@ -51,8 +52,7 @@ private:
     void renderPanel();
     void renderStatusBar();
     void drawGrass(int dstX, int dstY, int dstSize);
-    void drawDarkGrass(int dstX, int dstY, int dstSize);
-    bool cellInSafeZone(int col, int row) const;
+    void drawTerrainTile(int code, int dstX, int dstY, int dstSize);
     void drawOverlay(const OverlayDef& def, int cellX, int cellY, int cellSize);
     void drawMonsterFromCatalog(const MonsterCatalogEntry& entry, int cellX, int cellY,
                                 int cellSize);
