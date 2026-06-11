@@ -12,6 +12,7 @@ enum class SoundEffect : uint8_t {
     PICK_ITEM,
     DROP_ITEM,
     EQUIP_WEAPON,
+    LEVEL_UP,
 };
 
 #endif

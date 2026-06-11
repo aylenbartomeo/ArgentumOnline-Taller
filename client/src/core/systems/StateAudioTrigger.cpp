@@ -26,6 +26,10 @@ void StateAudioTrigger::checkAndTrigger(const PlayerStatsDTO& oldStats,
     else if (newItemCount < oldItemCount)
         audio.playSound(SoundEffect::DROP_ITEM);
 
+    if (oldStats.level > 0 && newStats.level > oldStats.level) {
+        audio.playSound(SoundEffect::LEVEL_UP);
+    }
+
     std::vector<uint8_t> oldEquipped, newEquipped;
     for (const auto& slot: oldStats.inventory)
         if (slot.isEquipped)

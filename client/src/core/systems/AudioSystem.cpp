@@ -36,7 +36,9 @@ AudioSystem::AudioSystem() {
             {SoundEffect::PROJ_HIT, {"resources/audio/weapons/proj-hit.ogg", 60}},
             {SoundEffect::PICK_ITEM, {"resources/audio/player/pick-item.ogg", 60}},
             {SoundEffect::DROP_ITEM, {"resources/audio/player/drop-item.ogg", 60}},
-            {SoundEffect::EQUIP_WEAPON, {"resources/audio/player/equip-weapon.ogg", 60}}};
+            {SoundEffect::EQUIP_WEAPON, {"resources/audio/player/equip-weapon.ogg", 60}},
+            {SoundEffect::LEVEL_UP, {"resources/audio/player/level-up.ogg", 65}}};
+
 
     // Cargar todos los sonidos automáticamente
     for (const auto& [effect, config]: sfxRegistry) {
