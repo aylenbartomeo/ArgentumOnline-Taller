@@ -37,7 +37,11 @@ AudioSystem::AudioSystem() {
             {SoundEffect::PICK_ITEM, {"resources/audio/player/pick-item.ogg", 60}},
             {SoundEffect::DROP_ITEM, {"resources/audio/player/drop-item.ogg", 60}},
             {SoundEffect::EQUIP_WEAPON, {"resources/audio/player/equip-weapon.ogg", 60}},
-            {SoundEffect::LEVEL_UP, {"resources/audio/player/level-up.ogg", 65}}};
+            {SoundEffect::LEVEL_UP, {"resources/audio/player/level-up.ogg", 65}},
+            {SoundEffect::DIE, {"resources/audio/player/die.wav", 65}},
+            {SoundEffect::FLAUTE, {"resources/audio/weapons/flaute.wav", 60}},
+            {SoundEffect::BOW_SHOOT, {"resources/audio/weapons/bow-attack.wav", 60}},
+    };
 
 
     // Cargar todos los sonidos automáticamente

@@ -36,6 +36,7 @@ public:
     struct CombatResult {
         std::optional<ActiveFx> fx;
         bool magicAttack = false;
+        bool bowAttack = false;
     };
 
     CombatResult processCombatInput(const FrameInput& input, const CameraOffset& camera,

@@ -169,7 +169,11 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
                                        camera.y, GC::TILE_SIZE);
         client.sendCommand(ShootDTO{static_cast<float>(cell.col), static_cast<float>(cell.row)});
 
-        result.magicAttack = true;
+        if (WeaponHelper::hasBow(stats)) {
+            result.bowAttack = true;
+        } else {
+            result.magicAttack = true;
+        }
     }
 
     if (!input.attackPressed)

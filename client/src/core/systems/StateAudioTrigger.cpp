@@ -14,6 +14,9 @@ void StateAudioTrigger::checkAndTrigger(const PlayerStatsDTO& oldStats,
     if (newStats.gold > oldStats.gold)
         audio.playSound(SoundEffect::PICK_GOLD);
 
+    bool wasAlive = (oldStats.maxHp > 0 && oldStats.currentHp > 0);
+    bool isDeadNow = (newStats.maxHp > 0 && newStats.currentHp <= 0);
+
     uint32_t oldItemCount =
             std::accumulate(oldStats.inventory.begin(), oldStats.inventory.end(), uint32_t{0},
                             [](uint32_t sum, const auto& slot) { return sum + slot.amount; });
@@ -28,6 +31,10 @@ void StateAudioTrigger::checkAndTrigger(const PlayerStatsDTO& oldStats,
 
     if (oldStats.level > 0 && newStats.level > oldStats.level) {
         audio.playSound(SoundEffect::LEVEL_UP);
+    }
+
+    if (wasAlive && isDeadNow) {
+        audio.playSound(SoundEffect::DIE);
     }
 
     std::vector<uint8_t> oldEquipped, newEquipped;

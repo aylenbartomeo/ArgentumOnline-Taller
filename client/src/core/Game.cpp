@@ -123,11 +123,15 @@ void Game::render(const FrameInput& input) {
 
         if (combatResult.fx->type == FxType::SWORD) {
             audio.playSound(SoundEffect::SWORD_ATTACK);
+        } else if (combatResult.fx->type == FxType::FLAUTA_HEAL) {
+            audio.playSound(SoundEffect::FLAUTE);
         }
     }
 
     if (combatResult.magicAttack)
         audio.playSound(SoundEffect::MAGIC_ATTACK);
+    if (combatResult.bowAttack)
+        audio.playSound(SoundEffect::BOW_SHOOT);
 
     const uint32_t now = SDL_GetTicks();
 
