@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -100,6 +101,10 @@ void Game::render(const FrameInput& input) {
     bool wasDead = (lastStats.maxHp > 0 && lastStats.currentHp <= 0);
     uint32_t oldGold = lastStats.gold;
 
+    uint32_t oldItemCount =
+            std::accumulate(lastStats.inventory.begin(), lastStats.inventory.end(), uint32_t{0},
+                            [](uint32_t sum, const auto& slot) { return sum + slot.amount; });
+
     while (client.tryPopSnapshot(incomingSnap)) lastSnapshot = incomingSnap;
     while (client.tryPopPlayerStats(incomingStats)) lastStats = incomingStats;
 
@@ -111,6 +116,16 @@ void Game::render(const FrameInput& input) {
 
     if (lastStats.gold > oldGold)
         audio.playPickGoldSound();
+
+    uint32_t newItemCount =
+            std::accumulate(lastStats.inventory.begin(), lastStats.inventory.end(), uint32_t{0},
+                            [](uint32_t sum, const auto& slot) { return sum + slot.amount; });
+
+    if (newItemCount > oldItemCount) {
+        audio.playPickItemSound();
+    } else if (newItemCount < oldItemCount) {
+        audio.playDropItemSound();
+    }
 
     SDL2pp::Renderer& renderer = window.getRenderer();
     renderer.SetDrawColor(0, 0, 0, 255);

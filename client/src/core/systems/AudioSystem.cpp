@@ -65,6 +65,17 @@ AudioSystem::AudioSystem() {
         std::cerr << "[AUDIO] No se pudo cargar sonido de impacto de proyectil: " << Mix_GetError()
                   << std::endl;
     }
+    pickItemSound = Mix_LoadWAV("resources/audio/player/pick-item.ogg");
+    if (!pickItemSound) {
+        std::cerr << "[AUDIO] No se pudo cargar sonido de agarrar item: " << Mix_GetError()
+                  << std::endl;
+    }
+
+    dropItemSound = Mix_LoadWAV("resources/audio/player/drop-item.ogg");
+    if (!dropItemSound) {
+        std::cerr << "[AUDIO] No se pudo cargar sonido de soltar item: " << Mix_GetError()
+                  << std::endl;
+    }
 
     for (const auto& [type, path]: soundPaths) {
         Mix_Chunk* chunk = Mix_LoadWAV(path.c_str());
@@ -91,6 +102,10 @@ AudioSystem::~AudioSystem() {
         Mix_FreeChunk(pickGoldSound);
     if (projHitSound)
         Mix_FreeChunk(projHitSound);
+    if (pickItemSound)
+        Mix_FreeChunk(pickItemSound);
+    if (dropItemSound)
+        Mix_FreeChunk(dropItemSound);
 
     for (auto& [type, chunk]: monsterSounds) {
         if (chunk)
@@ -124,6 +139,26 @@ void AudioSystem::playSwordAttackSound() {
 void AudioSystem::playMagicAttackSound() {
     if (!isMuted && magicAttackSound) {
         const int chan = Mix_PlayChannel(-1, magicAttackSound, 0);
+        if (chan >= 0) {
+            Mix_SetPanning(chan, 255, 255);
+            Mix_Volume(chan, 60);
+        }
+    }
+}
+
+void AudioSystem::playPickItemSound() {
+    if (!isMuted && pickItemSound) {
+        const int chan = Mix_PlayChannel(-1, pickItemSound, 0);
+        if (chan >= 0) {
+            Mix_SetPanning(chan, 255, 255);
+            Mix_Volume(chan, 60);
+        }
+    }
+}
+
+void AudioSystem::playDropItemSound() {
+    if (!isMuted && dropItemSound) {
+        const int chan = Mix_PlayChannel(-1, dropItemSound, 0);
         if (chan >= 0) {
             Mix_SetPanning(chan, 255, 255);
             Mix_Volume(chan, 60);

@@ -34,6 +34,8 @@ public:
     void playMagicAttackSound();
     void playPickGoldSound();
     void playProjectileHitSound();
+    void playPickItemSound();
+    void playDropItemSound();
 
 private:
     Mix_Music* bgMusic = nullptr;
@@ -42,6 +44,8 @@ private:
     Mix_Chunk* magicAttackSound = nullptr;
     Mix_Chunk* pickGoldSound = nullptr;
     Mix_Chunk* projHitSound = nullptr;
+    Mix_Chunk* pickItemSound = nullptr;
+    Mix_Chunk* dropItemSound = nullptr;
 
     std::unordered_map<NPCType, Mix_Chunk*> monsterSounds;
     std::unordered_map<uint32_t, uint32_t> nextSoundTime;
