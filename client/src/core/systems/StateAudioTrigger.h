@@ -7,8 +7,9 @@
 
 class StateAudioTrigger {
 public:
-    // Compara el estado anterior con el nuevo y dispara sonidos
-    void checkAndTrigger(const PlayerStatsDTO& oldStats, const PlayerStatsDTO& newStats,
+    // Compara el estado anterior con el nuevo y dispara sonidos.
+    // Retorna true si el jugador recibió daño
+    bool checkAndTrigger(const PlayerStatsDTO& oldStats, const PlayerStatsDTO& newStats,
                          AudioSystem& audio);
 };
 

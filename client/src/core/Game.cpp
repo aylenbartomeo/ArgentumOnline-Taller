@@ -106,7 +106,9 @@ void Game::render(const FrameInput& input) {
     while (client.tryPopPlayerStats(incomingStats)) lastStats = incomingStats;
 
     StateAudioTrigger audioTrigger;
-    audioTrigger.checkAndTrigger(previousStats, lastStats, audio);
+    bool tookDamage = audioTrigger.checkAndTrigger(previousStats, lastStats, audio);
+    if (tookDamage)
+        fxSystem.triggerOnEntity(0, SDL_GetTicks(), FxType::BE_ATTACKED);
 
     SDL2pp::Renderer& renderer = window.getRenderer();
     renderer.SetDrawColor(0, 0, 0, 255);
@@ -145,6 +147,7 @@ void Game::render(const FrameInput& input) {
     entityRenderer.render(cam, lastSnapshot, now);
     fxSystem.renderProjectiles(cam, now);
     fxSystem.render(cam, lastSnapshot, entityRenderer.getAnimators());
+    fxSystem.renderFullscreen(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     miniChat.render(renderer.Get(), VIEW_X + VIEW_W, VIEW_Y + VIEW_H, input.chatInputActive,
                     input.chatText);

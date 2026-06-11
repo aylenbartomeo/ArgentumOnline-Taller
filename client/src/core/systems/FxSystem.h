@@ -26,6 +26,9 @@ public:
     void render(const CameraOffset& camera, const SnapshotDTO& snapshot,
                 const std::unordered_map<uint32_t, CharacterAnimator>& animators);
 
+    // Renderiza animación fullscreen (BE_ATTACKED)
+    void renderFullscreen(int windowW, int windowH);
+
     void renderProjectiles(const CameraOffset& camera, uint32_t nowMs);
 
     const std::unordered_map<uint32_t, ProjectileAnimator>& projectileAnimators() const;
@@ -47,6 +50,7 @@ private:
     SDL2pp::Renderer& renderer;
 
     std::optional<ActiveFx> activeFx;
+    std::optional<ActiveFx> fullscreenFx;
     std::unordered_map<uint32_t, ProjectileAnimator> projAnimators;
 };
 

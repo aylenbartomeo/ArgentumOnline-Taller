@@ -4,7 +4,7 @@
 #include <numeric>
 #include <vector>
 
-void StateAudioTrigger::checkAndTrigger(const PlayerStatsDTO& oldStats,
+bool StateAudioTrigger::checkAndTrigger(const PlayerStatsDTO& oldStats,
                                         const PlayerStatsDTO& newStats, AudioSystem& audio) {
     bool wasDead = (oldStats.maxHp > 0 && oldStats.currentHp <= 0);
     bool isAliveNow = (newStats.maxHp > 0 && newStats.currentHp > 0);
@@ -49,4 +49,8 @@ void StateAudioTrigger::checkAndTrigger(const PlayerStatsDTO& oldStats,
 
     if (oldEquipped != newEquipped)
         audio.playSound(SoundEffect::EQUIP_WEAPON);
+
+    bool tookDamage = wasAlive && !isDeadNow && (oldStats.maxHp > 0) &&
+                      (newStats.currentHp < oldStats.currentHp);
+    return tookDamage;
 }
