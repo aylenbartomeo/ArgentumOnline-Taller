@@ -56,7 +56,7 @@ void WorldRenderer::renderTerrain(const CameraOffset& camera) const {
             }
             const TerrainDef& def = registry[code];
             SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + def.sheet);
-            const SDL2pp::Rect src(def.srcX, def.srcY, GC::TILE_SIZE, GC::TILE_SIZE);
+            const SDL2pp::Rect src(0, 0, tex.GetWidth(), tex.GetHeight());
             const SDL2pp::Rect dst(col * GC::TILE_SIZE - camera.x, row * GC::TILE_SIZE - camera.y,
                                    GC::TILE_SIZE, GC::TILE_SIZE);
             renderer.Copy(tex, src, dst);

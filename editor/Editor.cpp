@@ -311,7 +311,7 @@ void Editor::drawTerrainTile(int code, int dstX, int dstY, int dstSize) {
     }
     const TerrainDef& def = reg[code];
     SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + def.sheet);
-    const SDL2pp::Rect srcRect(def.srcX, def.srcY, GRASS_SRC_SIZE, GRASS_SRC_SIZE);
+    const SDL2pp::Rect srcRect(0, 0, tex.GetWidth(), tex.GetHeight());
     const SDL2pp::Rect dstRect(dstX, dstY, dstSize, dstSize);
     renderer.Copy(tex, srcRect, dstRect);
 }
