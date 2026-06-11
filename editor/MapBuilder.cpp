@@ -9,6 +9,7 @@ constexpr int W = 60;
 constexpr int H = 60;
 constexpr int GRASS = 108;
 constexpr int WATER = 109;
+constexpr int STONE = 17;
 
 constexpr int TREE = 11;
 constexpr int PALM = 42;
@@ -51,6 +52,16 @@ struct Builder {
         }
     }
 
+    void path(int x0, int y0, int x1, int y1) {
+        for (int y = y0; y <= y1; ++y) {
+            for (int x = x0; x <= x1; ++x) {
+                if (x >= 0 && x < W && y >= 0 && y < H) {
+                    ground[y][x] = STONE;
+                }
+            }
+        }
+    }
+
     void tree(int x, int y, int tile) {
         deco(x, y, tile);
         block(x, y);
@@ -79,7 +90,7 @@ int main() {
     b.water(36, 10, 39, 16);
 
     const int forest[][2] = {{4, 12}, {9, 8},   {12, 16}, {18, 6},  {30, 10},
-                             {48, 30}, {44, 46}, {38, 52}, {3, 40},  {50, 42}};
+                             {48, 30}, {44, 46}, {38, 52}, {2, 30},  {50, 42}};
     for (const auto& t : forest) {
         b.tree(t[0], t[1], TREE);
     }
@@ -88,11 +99,13 @@ int main() {
         b.tree(p[0], p[1], PALM);
     }
 
-    b.house(12, 42, HOUSE_STONE, "merchant");
-    b.house(24, 42, HOUSE_WOOD, "banker");
-    b.house(17, 50, HOUSE_STONE, "priest");
-    b.deco(20, 49, ALTAR);
-    b.deco(9, 38, SIGN);
+    b.path(9, 46, 36, 52);
+    b.path(22, 52, 23, 56);
+    b.house(9, 43, HOUSE_STONE, "merchant");
+    b.house(19, 43, HOUSE_WOOD, "banker");
+    b.house(29, 43, HOUSE_STONE, "priest");
+    b.deco(31, 49, ALTAR);
+    b.deco(17, 53, SIGN);
 
     b.monster(50, 52, "goblin");
     b.monster(5, 52, "orc");
@@ -105,7 +118,7 @@ int main() {
     m["tileSize"] = 32;
     m["tileset"] = "5108.png";
     m["tilesetCols"] = 32;
-    m["spawn"] = {{"x", 20}, {"y", 46}};
+    m["spawn"] = {{"x", 22}, {"y", 50}};
     m["ground"] = b.ground;
     m["ground2"] = std::vector<std::vector<int>>(H, std::vector<int>(W, 0));
     m["decoration"] = b.decoration;
@@ -115,7 +128,7 @@ int main() {
     m["npcs"] = b.npcs;
     m["monsters"] = b.monsters;
     m["safeZones"] = nlohmann::json::array(
-            {{{"name", "Nix"}, {"x", 8}, {"y", 36}, {"width", 26}, {"height", 20}}});
+            {{{"name", "Nix"}, {"x", 8}, {"y", 36}, {"width", 30}, {"height", 20}}});
 
     std::ofstream out("maps/defaultMap.json");
     out << m.dump(4);
