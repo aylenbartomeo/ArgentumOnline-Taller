@@ -16,6 +16,7 @@ namespace GC = GameConstants;
 namespace {
 constexpr Uint32 MOVE_INTERVAL_MS = 200;
 constexpr int ATTACK_RANGE_TILES = 1;
+constexpr uint32_t FLAUTA_MANA_COST = 100;
 }  // namespace
 
 InputProcessor::InputProcessor(Client& client, Window& window, MiniChat& miniChat, HudPanel& hud,
@@ -159,8 +160,10 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
         return result;
 
     if (input.shootPressed && WeaponHelper::hasFlauta(stats)) {
-        result.fx = ActiveFx{client.getClientId(), SDL_GetTicks(), 0, 0, FxType::FLAUTA_HEAL};
-        client.sendCommand(ShootDTO{0.f, 0.f});
+        if (stats.currentMana >= WeaponHelper::FLAUTA_MANA_COST) {
+            result.fx = ActiveFx{client.getClientId(), SDL_GetTicks(), 0, 0, FxType::FLAUTA_HEAL};
+            client.sendCommand(ShootDTO{0.f, 0.f});
+        }
     } else if (input.shootPressed) {
         float lx = 0.f, ly = 0.f;
         SDL_RenderWindowToLogical(window.getRenderer().Get(), input.shootScreenX,
@@ -170,7 +173,8 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
         client.sendCommand(ShootDTO{static_cast<float>(cell.col), static_cast<float>(cell.row)});
 
         if (WeaponHelper::hasBow(stats)) {
-            result.bowAttack = true;
+            if (localPlayer && !localPlayer->inSafeZone)
+                result.bowAttack = true;
         } else {
             result.magicAttack = true;
         }
