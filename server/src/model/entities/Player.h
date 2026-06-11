@@ -157,6 +157,7 @@ public:
     StateComponent& getState() { return this->state; }
     const StateComponent& getState() const { return this->state; }
     bool canAttack() const { return this->state.canAttack(); }
+    bool canUseItems() const { return this->state.canUseItems(); }
     bool canBeAttacked() const override { return this->state.canBeAttacked(); }
     void handleDeath() override;
     void resurrect();

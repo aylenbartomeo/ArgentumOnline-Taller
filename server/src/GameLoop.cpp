@@ -132,6 +132,11 @@ void GameLoop::processInputs() {
                 EquipItemDTO equip_dto = std::get<EquipItemDTO>(pCmd.command);
                 world.equipItem(pCmd.clientId, equip_dto.slot);
 
+            } else if (std::holds_alternative<UseItemDTO>(pCmd.command)) {
+                UseItemDTO use_dto = std::get<UseItemDTO>(pCmd.command);
+                world.useItem(pCmd.clientId, use_dto.slot);
+
+
             } else if (std::holds_alternative<DropItemDTO>(pCmd.command)) {
                 DropItemDTO drop_dto = std::get<DropItemDTO>(pCmd.command);
                 world.dropItem(pCmd.clientId, drop_dto.slot, drop_dto.amount);
