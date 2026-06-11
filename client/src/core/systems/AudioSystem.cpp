@@ -32,3 +32,13 @@ AudioSystem::~AudioSystem() {
     Mix_CloseAudio();
     Mix_Quit();
 }
+
+void AudioSystem::toggleMute() {
+    isMuted_ = !isMuted_;
+    if (isMuted_) {
+        lastVolume = Mix_VolumeMusic(-1);
+        Mix_VolumeMusic(0);
+    } else {
+        Mix_VolumeMusic(lastVolume);
+    }
+}

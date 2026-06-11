@@ -83,6 +83,8 @@ void Game::run() {
         inputProcessor.processUseInput(input);
         inputProcessor.processSelectSlotInput(input);
         inputProcessor.processUiInput(input);
+        if (input.toggleMute)
+            audio.toggleMute();
         inputProcessor.sendMoveIfDue(input, lastSnapshot);
 
         render(input);

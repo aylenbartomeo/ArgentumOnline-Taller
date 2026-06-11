@@ -13,8 +13,13 @@ public:
     AudioSystem(AudioSystem&&) = delete;
     AudioSystem& operator=(AudioSystem&&) = delete;
 
+    void toggleMute();
+
 private:
     Mix_Music* bgMusic_ = nullptr;
+
+    bool isMuted = false;
+    int lastVolume = MIX_MAX_VOLUME / 2;
 };
 
 #endif
