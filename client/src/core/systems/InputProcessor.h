@@ -17,6 +17,7 @@
 #include "common/include/dto/PlayerStatsDTO.h"
 #include "common/include/dto/Snapshot.h"
 
+#include "AudioSystem.h"
 #include "Client.h"
 
 class InputProcessor {
@@ -24,10 +25,10 @@ public:
     InputProcessor(Client& client, Window& window, MiniChat& miniChat, HudPanel& hud,
                    ManualPanel& manualPanel, ChatCommandParser& chatParser);
 
-    void processChatInput(const FrameInput& input);
+    void processChatInput(const FrameInput& input, AudioSystem& audio);
     void processCheats(const FrameInput& input);
     void processEquipInput(const FrameInput& input);
-    void processUseInput(const FrameInput& input);
+    void processUseInput(const FrameInput& input, AudioSystem& audio);
     void processSelectSlotInput(const FrameInput& input);
     void processUiInput(const FrameInput& input);
     void drainIncomingChat();

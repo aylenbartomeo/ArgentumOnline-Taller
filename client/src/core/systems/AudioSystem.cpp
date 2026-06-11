@@ -41,6 +41,7 @@ AudioSystem::AudioSystem() {
             {SoundEffect::DIE, {"resources/audio/player/die.wav", 65}},
             {SoundEffect::FLAUTE, {"resources/audio/weapons/flaute.wav", 60}},
             {SoundEffect::BOW_SHOOT, {"resources/audio/weapons/bow-attack.wav", 60}},
+            {SoundEffect::DRINK_POTION, {"resources/audio/player/drink-potion.ogg", 70}},
     };
 
 

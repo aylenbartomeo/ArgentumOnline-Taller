@@ -81,10 +81,10 @@ void Game::run() {
         manualPanel.update(input, WINDOW_WIDTH, WINDOW_HEIGHT);
 
         inputProcessor.drainIncomingChat();
-        inputProcessor.processChatInput(input);
+        inputProcessor.processChatInput(input, audio);
         inputProcessor.processCheats(input);
         inputProcessor.processEquipInput(input);
-        inputProcessor.processUseInput(input);
+        inputProcessor.processUseInput(input, audio);
         inputProcessor.processSelectSlotInput(input);
         inputProcessor.processUiInput(input);
         if (input.toggleMute)

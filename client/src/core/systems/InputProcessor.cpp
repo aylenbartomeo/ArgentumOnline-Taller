@@ -27,7 +27,7 @@ InputProcessor::InputProcessor(Client& client, Window& window, MiniChat& miniCha
         manualPanel(manualPanel),
         chatParser(chatParser) {}
 
-void InputProcessor::processChatInput(const FrameInput& input) {
+void InputProcessor::processChatInput(const FrameInput& input, AudioSystem& audio) {
     if (!input.chatSubmitted || input.chatText.empty())
         return;
     std::optional<CommandVariant> cmdOpt = chatParser.parse(input.chatText);
@@ -51,6 +51,10 @@ void InputProcessor::processChatInput(const FrameInput& input) {
             miniChat.pushMessage("[Info] Cantidad invalida.");
             return;
         }
+    }
+
+    if (std::holds_alternative<UseItemDTO>(cmdOpt.value())) {
+        audio.playSound(SoundEffect::DRINK_POTION);
     }
 
     client.sendCommand(cmdOpt.value());
@@ -80,13 +84,14 @@ void InputProcessor::processEquipInput(const FrameInput& input) {
         client.sendCommand(EquipItemDTO{static_cast<uint8_t>(slot)});
 }
 
-void InputProcessor::processUseInput(const FrameInput& input) {
+void InputProcessor::processUseInput(const FrameInput& input, AudioSystem& audio) {
     if (!input.consumeKeyPressed)
         return;
 
     int slot = hud.getSelectedSlot();
     if (slot >= 0) {
         client.sendCommand(UseItemDTO{static_cast<uint8_t>(slot)});
+        audio.playSound(SoundEffect::DRINK_POTION);
     } else {
         miniChat.pushMessage("[Info] Selecciona un slot del inventario primero.");
     }

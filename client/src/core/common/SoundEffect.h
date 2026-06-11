@@ -16,6 +16,7 @@ enum class SoundEffect : uint8_t {
     DIE,
     FLAUTE,
     BOW_SHOOT,
+    DRINK_POTION,
 };
 
 #endif
