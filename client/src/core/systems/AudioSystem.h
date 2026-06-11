@@ -29,8 +29,11 @@ public:
 
     void updateMonsterSounds(const SnapshotDTO& snapshot, uint32_t nowMs, uint32_t myId);
 
+    void playResurrectSound();
+
 private:
     Mix_Music* bgMusic = nullptr;
+    Mix_Chunk* resurrectSound = nullptr;
 
     std::unordered_map<NPCType, Mix_Chunk*> monsterSounds;
     std::unordered_map<uint32_t, uint32_t> nextSoundTime;

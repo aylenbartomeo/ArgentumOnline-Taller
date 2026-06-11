@@ -97,8 +97,16 @@ void Game::render(const FrameInput& input) {
     SnapshotDTO incomingSnap;
     PlayerStatsDTO incomingStats;
 
+    bool wasDead = (lastStats.maxHp > 0 && lastStats.currentHp <= 0);
+
     while (client.tryPopSnapshot(incomingSnap)) lastSnapshot = incomingSnap;
     while (client.tryPopPlayerStats(incomingStats)) lastStats = incomingStats;
+
+    bool isAliveNow = (lastStats.maxHp > 0 && lastStats.currentHp > 0);
+
+    // Si estaba muerto y ahora está vivo, reproducimos el sonido
+    if (wasDead && isAliveNow)
+        audio.playResurrectSound();
 
     SDL2pp::Renderer& renderer = window.getRenderer();
     renderer.SetDrawColor(0, 0, 0, 255);

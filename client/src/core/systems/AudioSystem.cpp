@@ -39,6 +39,12 @@ AudioSystem::AudioSystem() {
             {NPCType::ORC, "resources/audio/monsters/goblin.ogg"},
     };
 
+    resurrectSound = Mix_LoadWAV("resources/audio/player/resucitar.ogg");
+    if (!resurrectSound) {
+        std::cerr << "[AUDIO] No se pudo cargar sonido de resurreccion: " << Mix_GetError()
+                  << std::endl;
+    }
+
     for (const auto& [type, path]: soundPaths) {
         Mix_Chunk* chunk = Mix_LoadWAV(path.c_str());
         if (!chunk)
@@ -53,6 +59,9 @@ AudioSystem::~AudioSystem() {
     if (bgMusic) {
         Mix_HaltMusic();
         Mix_FreeMusic(bgMusic);
+    }
+    if (resurrectSound) {
+        Mix_FreeChunk(resurrectSound);
     }
     for (auto& [type, chunk]: monsterSounds) {
         if (chunk)
@@ -86,6 +95,16 @@ static int volumeForDistance(float dist) {
     const float falloff = (1.0f - t) * (1.0f - t);
 
     return static_cast<int>(AudioSystem::MONSTER_SOUND_MAX_VOL * falloff);
+}
+
+void AudioSystem::playResurrectSound() {
+    if (!isMuted && resurrectSound) {
+        const int chan = Mix_PlayChannel(-1, resurrectSound, 0);
+        if (chan >= 0) {
+            Mix_SetPanning(chan, 255, 255);
+            Mix_Volume(chan, 60);
+        }
+    }
 }
 
 void AudioSystem::updateMonsterSounds(const SnapshotDTO& snapshot, uint32_t nowMs, uint32_t myId) {
