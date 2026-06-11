@@ -31,15 +31,6 @@ public:
 
     void playSound(SoundEffect effect);
 
-    void playResurrectSound();
-    void playSwordAttackSound();
-    void playMagicAttackSound();
-    void playPickGoldSound();
-    void playProjectileHitSound();
-    void playPickItemSound();
-    void playDropItemSound();
-    void playEquipSound();
-
 private:
     struct SoundConfig {
         std::string path;
@@ -47,15 +38,6 @@ private:
     };
 
     Mix_Music* bgMusic = nullptr;
-    // Mix_Chunk* resurrectSound = nullptr;
-    // Mix_Chunk* swordAttackSound = nullptr;
-    // Mix_Chunk* magicAttackSound = nullptr;
-    // Mix_Chunk* pickGoldSound = nullptr;
-    // Mix_Chunk* projHitSound = nullptr;
-    // Mix_Chunk* pickItemSound = nullptr;
-    // Mix_Chunk* dropItemSound = nullptr;
-    // Mix_Chunk* equipSound = nullptr;
-
     std::unordered_map<SoundEffect, Mix_Chunk*> sfxMap;
     std::unordered_map<SoundEffect, int> sfxVolumes;
     std::unordered_map<NPCType, Mix_Chunk*> monsterSounds;
