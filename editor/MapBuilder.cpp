@@ -10,6 +10,7 @@ constexpr int H = 80;
 constexpr int GRASS = 108;
 constexpr int WATER = 109;
 constexpr int STONE = 17;
+constexpr int SAND = 74;
 
 constexpr int TREE = 11;
 constexpr int PALM = 42;
@@ -46,6 +47,17 @@ struct Builder {
                 }
             }
         }
+    }
+
+    void lake(int x0, int y0, int x1, int y1) {
+        for (int y = y0 - 2; y <= y1 + 2; ++y) {
+            for (int x = x0 - 2; x <= x1 + 2; ++x) {
+                if (inside(x, y)) {
+                    ground[y][x] = SAND;
+                }
+            }
+        }
+        water(x0, y0, x1, y1);
     }
 
     void path(int x0, int y0, int x1, int y1) {
@@ -104,7 +116,7 @@ int main() {
     b.town(44, 4, "Ullathorpe");
     b.town(44, 52, "Banderbill");
 
-    b.water(6, 6, 28, 24);
+    b.lake(8, 8, 28, 24);
 
     const int palms[][2] = {{4, 10}, {30, 12}, {7, 27}, {29, 22}, {16, 4}, {2, 20}};
     for (const auto& p : palms) {
