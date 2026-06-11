@@ -8,6 +8,7 @@
 #include "../common/FxType.h"
 #include "../input/ChatCommandParser.h"
 #include "../input/EventHandler.h"
+#include "../rendering/TileMap.h"
 #include "../rendering/Viewport.h"
 #include "../ui/HudPanel.h"
 #include "../ui/ManualPanel.h"
@@ -35,9 +36,13 @@ public:
     // Retorna el FX a activar si el usuario atacó/disparó, o std::nullopt si no.
     struct CombatResult {
         std::optional<ActiveFx> fx;
+        bool magicAttack = false;
+        bool bowAttack = false;
     };
+
     CombatResult processCombatInput(const FrameInput& input, const CameraOffset& camera,
-                                    const SnapshotDTO& snapshot, const PlayerStatsDTO& stats);
+                                    const SnapshotDTO& snapshot, const PlayerStatsDTO& stats,
+                                    const TileMap& map);
 
 private:
     static CommandVariant buildChatCommand(const std::string& text);
@@ -49,6 +54,7 @@ private:
     ManualPanel& manualPanel;
     ChatCommandParser& chatParser;
     uint32_t lastMoveSentMs = 0;
+    bool localInfiniteManaActive = false;
 };
 
 #endif

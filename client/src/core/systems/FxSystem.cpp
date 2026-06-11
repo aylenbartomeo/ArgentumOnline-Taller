@@ -100,6 +100,12 @@ constexpr int FLAUTA_HEAL_COLS = 5;
 constexpr int FLAUTA_HEAL_FRAMES = 5;
 constexpr uint32_t FLAUTA_HEAL_DUR_MS = 60;
 constexpr int FLAUTA_HEAL_DRAW = GC::TILE_SIZE * 2;
+
+constexpr int BE_ATTACKED_FRAMES = 28;
+constexpr uint32_t BE_ATTACKED_FRAME_DUR_MS = 40;
+
+constexpr int BE_HEALED_FRAMES = 19;
+constexpr uint32_t BE_HEALED_FRAME_DUR_MS = 40;
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -139,14 +145,19 @@ FxSystem::FxSystem(TextureManager& textures, SDL2pp::Renderer& renderer):
         textures(textures), renderer(renderer) {}
 
 void FxSystem::triggerOnEntity(uint32_t targetId, uint32_t nowMs, FxType type) {
-    activeFx = ActiveFx{targetId, nowMs, 0, 0, type};
+    if (type == FxType::BE_ATTACKED || type == FxType::BE_HEALED)
+        fullscreenFx = ActiveFx{0, nowMs, 0, 0, type};
+    else
+        activeFx = ActiveFx{targetId, nowMs, 0, 0, type};
 }
 
 void FxSystem::triggerAtPixel(int px, int py, uint32_t nowMs, FxType type) {
     activeFx = ActiveFx{0, nowMs, px, py, type};
 }
 
-void FxSystem::syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapshot) {
+bool FxSystem::syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapshot) {
+    bool impactOccurred = false;
+
     for (const ProjectileDTO& dto: snapshot.projectiles) {
         projAnimators[dto.id].update(dto, nowMs);
     }
@@ -169,10 +180,13 @@ void FxSystem::syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapsh
 
             activeFx = ActiveFx{0, SDL_GetTicks(), px, py, impactType};
             it = projAnimators.erase(it);
+
+            impactOccurred = true;
         } else {
             ++it;
         }
     }
+    return impactOccurred;
 }
 
 void FxSystem::render(const CameraOffset& camera, const SnapshotDTO& snapshot,
@@ -307,6 +321,52 @@ void FxSystem::renderProjectiles(const CameraOffset& camera, uint32_t nowMs) {
                           dst, 0.0, SDL2pp::NullOpt, SDL_FLIP_NONE);
         }
     }
+}
+
+void FxSystem::renderFullscreen(int windowW, int windowH) {
+    if (!fullscreenFx)
+        return;
+
+    const uint32_t elapsed = SDL_GetTicks() - fullscreenFx->startMs;
+
+    int totalFrames = 0;
+    uint32_t frameDurMs = 0;
+    std::string pathPrefix = "";
+
+    if (fullscreenFx->type == FxType::BE_ATTACKED) {
+        totalFrames = BE_ATTACKED_FRAMES;
+        frameDurMs = BE_ATTACKED_FRAME_DUR_MS;
+        pathPrefix = std::string(GC::RESOURCES_DIR) + "animation/beAttacked/";
+    } else if (fullscreenFx->type == FxType::BE_HEALED) {
+        totalFrames = BE_HEALED_FRAMES;
+        frameDurMs = BE_HEALED_FRAME_DUR_MS;
+        pathPrefix = std::string(GC::RESOURCES_DIR) + "animation/beHealed/";
+    } else {
+        return;
+    }
+
+    const int frame = static_cast<int>(elapsed / frameDurMs);
+
+    if (frame >= totalFrames) {
+        fullscreenFx.reset();
+        return;
+    }
+
+    const std::string path = pathPrefix + std::to_string(frame) + ".png";
+
+    if (!std::ifstream(path).good())
+        return;
+
+    SDL2pp::Texture& tex = textures.get(path);
+
+    const int halfFrames = totalFrames / 2;
+    uint8_t alpha = 255;
+    if (frame > halfFrames)
+        alpha = static_cast<uint8_t>(255 * (totalFrames - frame) / halfFrames);
+
+    tex.SetAlphaMod(alpha);
+    renderer.Copy(tex, SDL2pp::NullOpt, SDL2pp::Rect(0, 0, windowW, windowH));
+    tex.SetAlphaMod(255);
 }
 
 const std::unordered_map<uint32_t, ProjectileAnimator>& FxSystem::projectileAnimators() const {

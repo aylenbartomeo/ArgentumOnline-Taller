@@ -1,5 +1,6 @@
 #include "AudioSystem.h"
 
+#include <algorithm>
 #include <iostream>
 
 namespace {
@@ -7,7 +8,12 @@ constexpr int AUDIO_FREQUENCY = 44100;
 constexpr int AUDIO_CHANNELS = 2;
 constexpr int AUDIO_CHUNK_SIZE = 2048;
 constexpr int MUSIC_VOLUME = 64;
+constexpr uint32_t MONSTER_SOUND_INTERVAL_MIN_MS = 8000;
+constexpr uint32_t MONSTER_SOUND_INTERVAL_MAX_MS = 18000;
 constexpr const char* MUSIC_PATH = "resources/audio/music/game_theme.mp3";
+constexpr uint32_t MONSTER_SOUND_DURATION_MIN_MS = 5000;
+constexpr uint32_t MONSTER_SOUND_DURATION_MAX_MS = 10000;
+
 }  // namespace
 
 AudioSystem::AudioSystem() {
@@ -15,20 +21,183 @@ AudioSystem::AudioSystem() {
         std::cerr << "[AUDIO] Mix_OpenAudio error: " << Mix_GetError() << std::endl;
         return;
     }
-    bgMusic_ = Mix_LoadMUS(MUSIC_PATH);
-    if (!bgMusic_) {
+    bgMusic = Mix_LoadMUS(MUSIC_PATH);
+    if (!bgMusic) {
         std::cerr << "[AUDIO] No se pudo cargar la música: " << Mix_GetError() << std::endl;
         return;
     }
-    Mix_PlayMusic(bgMusic_, -1);
-    Mix_VolumeMusic(MUSIC_VOLUME);
+
+    // REGISTRO DE SONIDOS. Nota: se podria leer de un JSON
+    const std::unordered_map<SoundEffect, SoundConfig> sfxRegistry = {
+            {SoundEffect::RESURRECT, {"resources/audio/player/resucitar.ogg", 60}},
+            {SoundEffect::SWORD_ATTACK, {"resources/audio/weapons/sword-attack.ogg", 60}},
+            {SoundEffect::MAGIC_ATTACK, {"resources/audio/weapons/magic-attack.ogg", 60}},
+            {SoundEffect::PICK_GOLD, {"resources/audio/player/pick-gold.ogg", 70}},
+            {SoundEffect::PROJ_HIT, {"resources/audio/weapons/proj-hit.ogg", 60}},
+            {SoundEffect::PICK_ITEM, {"resources/audio/player/pick-item.ogg", 60}},
+            {SoundEffect::DROP_ITEM, {"resources/audio/player/drop-item.ogg", 60}},
+            {SoundEffect::EQUIP_WEAPON, {"resources/audio/player/equip-weapon.ogg", 60}},
+            {SoundEffect::LEVEL_UP, {"resources/audio/player/level-up.ogg", 65}},
+            {SoundEffect::DIE, {"resources/audio/player/die.wav", 65}},
+            {SoundEffect::FLAUTE, {"resources/audio/weapons/flaute.wav", 60}},
+            {SoundEffect::BOW_SHOOT, {"resources/audio/weapons/bow-attack.wav", 60}},
+    };
+
+
+    // Cargar todos los sonidos automáticamente
+    for (const auto& [effect, config]: sfxRegistry) {
+        Mix_Chunk* chunk = Mix_LoadWAV(config.path.c_str());
+        if (chunk) {
+            sfxMap[effect] = chunk;
+            sfxVolumes[effect] = config.volume;
+        } else {
+            std::cerr << "[AUDIO] No se pudo cargar: " << config.path << "\n";
+        }
+    }
+
+    // REGISTRO DE MONSTERS
+    const std::unordered_map<NPCType, std::string> soundPaths = {
+            {NPCType::ZOMBIE, "resources/audio/monsters/zombie.ogg"},
+            {NPCType::SKELETON, "resources/audio/monsters/skeleton.ogg"},
+            {NPCType::GOLEM, "resources/audio/monsters/golem.ogg"},
+            {NPCType::SPIDER, "resources/audio/monsters/spider.ogg"},
+            {NPCType::GOBLIN, "resources/audio/monsters/goblin.ogg"},
+            {NPCType::ORC, "resources/audio/monsters/orc.ogg"},
+    };
+
+    for (const auto& [type, path]: soundPaths) {
+        Mix_Chunk* chunk = Mix_LoadWAV(path.c_str());
+        if (!chunk)
+            std::cerr << "[AUDIO] No se pudo cargar sonido: " << path << " - " << Mix_GetError()
+                      << std::endl;
+        else
+            monsterSounds[type] = chunk;
+    }
 }
 
 AudioSystem::~AudioSystem() {
-    if (bgMusic_) {
+    if (bgMusic) {
         Mix_HaltMusic();
-        Mix_FreeMusic(bgMusic_);
+        Mix_FreeMusic(bgMusic);
     }
+
+    for (auto& [effect, chunk]: sfxMap) {
+        if (chunk)
+            Mix_FreeChunk(chunk);
+    }
+    sfxMap.clear();
+
+    for (auto& [type, chunk]: monsterSounds) {
+        if (chunk)
+            Mix_FreeChunk(chunk);
+    }
+    monsterSounds.clear();
     Mix_CloseAudio();
     Mix_Quit();
+}
+
+void AudioSystem::toggleMute() {
+    isMuted = !isMuted;
+    if (isMuted) {
+        lastVolume = Mix_VolumeMusic(-1);
+        Mix_VolumeMusic(0);
+    } else {
+        Mix_VolumeMusic(lastVolume);
+    }
+}
+
+void AudioSystem::playSound(SoundEffect effect) {
+    if (isMuted)
+        return;
+
+    auto it = sfxMap.find(effect);
+    if (it != sfxMap.end()) {
+        const int chan = Mix_PlayChannel(-1, it->second, 0);
+        if (chan >= 0) {
+            Mix_SetPanning(chan, 255, 255);
+            Mix_Volume(chan, sfxVolumes[effect]);
+        }
+    }
+}
+
+static int volumeForDistance(float dist) {
+    if (dist <= AudioSystem::MONSTER_SOUND_MIN_DIST)
+        return AudioSystem::MONSTER_SOUND_MAX_VOL;
+    if (dist >= AudioSystem::MONSTER_SOUND_MAX_DIST)
+        return 0;
+
+    const float t = (dist - AudioSystem::MONSTER_SOUND_MIN_DIST) /
+                    static_cast<float>(AudioSystem::MONSTER_SOUND_MAX_DIST -
+                                       AudioSystem::MONSTER_SOUND_MIN_DIST);
+
+    const float falloff = (1.0f - t) * (1.0f - t);
+
+    return static_cast<int>(AudioSystem::MONSTER_SOUND_MAX_VOL * falloff);
+}
+
+void AudioSystem::updateMonsterSounds(const SnapshotDTO& snapshot, uint32_t nowMs, uint32_t myId) {
+    const auto playerIt = std::find_if(snapshot.players.begin(), snapshot.players.end(),
+                                       [myId](const EntityDTO& p) { return p.id == myId; });
+
+    if (playerIt == snapshot.players.end())
+        return;
+
+    const EntityDTO* me = &(*playerIt);
+
+    for (const EntityDTO& monster: snapshot.monsters) {
+        const NPCType npcType = static_cast<NPCType>(monster.entityTypeId);
+
+        auto soundIt = monsterSounds.find(npcType);
+        if (soundIt == monsterSounds.end())
+            continue;
+
+        // Distancia euclidiana
+        const float dx = static_cast<float>(monster.x) - static_cast<float>(me->x);
+        const float dy = static_cast<float>(monster.y) - static_cast<float>(me->y);
+        const float dist = std::sqrt(dx * dx + dy * dy);
+
+        const int vol = volumeForDistance(dist);
+        auto& nextTime = nextSoundTime[monster.id];
+
+        // Inicializar el temporizador si es un monstruo nuevo en pantalla
+        if (nextTime == 0) {
+            nextTime = nowMs + MONSTER_SOUND_INTERVAL_MIN_MS +
+                       (rand() % (MONSTER_SOUND_INTERVAL_MAX_MS - MONSTER_SOUND_INTERVAL_MIN_MS));
+            continue;
+        }
+
+        // Si es momento de reproducir el sonido
+        if (nowMs >= nextTime) {
+            if (vol > 0) {
+                const int chan = Mix_PlayChannel(-1, soundIt->second, 0);
+
+                if (chan >= 0) {
+                    int leftVol = vol;
+                    int rightVol = vol;
+
+                    if (dist > 0) {
+                        const float balance = dx / dist;
+                        leftVol = static_cast<int>(vol * (1.0f - balance) / 2.0f + vol / 2.0f);
+                        rightVol = static_cast<int>(vol * (1.0f + balance) / 2.0f + vol / 2.0f);
+                    }
+                    Mix_SetPanning(chan, leftVol, rightVol);
+                    Mix_Volume(chan, vol);
+                }
+            }
+
+            // Reprogramar el siguiente sonido para este monstruo
+            nextTime = nowMs + MONSTER_SOUND_INTERVAL_MIN_MS +
+                       (rand() % (MONSTER_SOUND_INTERVAL_MAX_MS - MONSTER_SOUND_INTERVAL_MIN_MS));
+        }
+    }
+
+    // Limpiar temporizadores de monstruos muertos
+    for (auto cleanupIt = nextSoundTime.begin(); cleanupIt != nextSoundTime.end();) {
+        const bool alive = std::any_of(
+                snapshot.monsters.begin(), snapshot.monsters.end(),
+                [&](const EntityDTO& monster) { return monster.id == cleanupIt->first; });
+
+        // Si el monstruo murió, simplemente lo quitamos del mapa de temporizadores
+        cleanupIt = alive ? std::next(cleanupIt) : nextSoundTime.erase(cleanupIt);
+    }
 }

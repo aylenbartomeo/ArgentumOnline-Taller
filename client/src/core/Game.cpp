@@ -1,15 +1,19 @@
 #include "Game.h"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
 
 #include "common/GameConstants.h"
+#include "systems/StateAudioTrigger.h"
 
 using GameConstants::VIEW_H;
 using GameConstants::VIEW_W;
@@ -83,9 +87,12 @@ void Game::run() {
         inputProcessor.processUseInput(input);
         inputProcessor.processSelectSlotInput(input);
         inputProcessor.processUiInput(input);
+        if (input.toggleMute)
+            audio.toggleMute();
         inputProcessor.sendMoveIfDue(input, lastSnapshot);
 
         render(input);
+        audio.updateMonsterSounds(lastSnapshot, SDL_GetTicks(), client.getClientId());
         SDL_Delay(16);
     }
 }
@@ -93,9 +100,17 @@ void Game::run() {
 void Game::render(const FrameInput& input) {
     SnapshotDTO incomingSnap;
     PlayerStatsDTO incomingStats;
+    PlayerStatsDTO previousStats = lastStats;
 
     while (client.tryPopSnapshot(incomingSnap)) lastSnapshot = incomingSnap;
     while (client.tryPopPlayerStats(incomingStats)) lastStats = incomingStats;
+
+    StateAudioTrigger audioTrigger;
+    StateChanges changes = audioTrigger.checkAndTrigger(previousStats, lastStats, audio);
+    if (changes.tookDamage)
+        fxSystem.triggerOnEntity(0, SDL_GetTicks(), FxType::BE_ATTACKED);
+    if (changes.gotHealed)
+        fxSystem.triggerOnEntity(0, SDL_GetTicks(), FxType::BE_HEALED);
 
     SDL2pp::Renderer& renderer = window.getRenderer();
     renderer.SetDrawColor(0, 0, 0, 255);
@@ -105,13 +120,27 @@ void Game::render(const FrameInput& input) {
             camera.compute(client.getClientId(), lastSnapshot, entityRenderer.getAnimators(), map);
 
     const auto combatResult =
-            inputProcessor.processCombatInput(input, cam, lastSnapshot, lastStats);
-    if (combatResult.fx)
+            inputProcessor.processCombatInput(input, cam, lastSnapshot, lastStats, map);
+    if (combatResult.fx) {
         fxSystem.triggerOnEntity(combatResult.fx->targetId, combatResult.fx->startMs,
                                  combatResult.fx->type);
 
+        if (combatResult.fx->type == FxType::SWORD) {
+            audio.playSound(SoundEffect::SWORD_ATTACK);
+        } else if (combatResult.fx->type == FxType::FLAUTA_HEAL) {
+            audio.playSound(SoundEffect::FLAUTE);
+        }
+    }
+
+    if (combatResult.magicAttack)
+        audio.playSound(SoundEffect::MAGIC_ATTACK);
+    if (combatResult.bowAttack)
+        audio.playSound(SoundEffect::BOW_SHOOT);
+
     const uint32_t now = SDL_GetTicks();
-    fxSystem.syncProjectileAnimators(now, lastSnapshot);
+
+    if (fxSystem.syncProjectileAnimators(now, lastSnapshot))
+        audio.playSound(SoundEffect::PROJ_HIT);
 
     worldRenderer.renderTerrain(cam);
     worldRenderer.renderOverlays(cam);
@@ -120,6 +149,7 @@ void Game::render(const FrameInput& input) {
     entityRenderer.render(cam, lastSnapshot, now);
     fxSystem.renderProjectiles(cam, now);
     fxSystem.render(cam, lastSnapshot, entityRenderer.getAnimators());
+    fxSystem.renderFullscreen(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     miniChat.render(renderer.Get(), VIEW_X + VIEW_W, VIEW_Y + VIEW_H, input.chatInputActive,
                     input.chatText);

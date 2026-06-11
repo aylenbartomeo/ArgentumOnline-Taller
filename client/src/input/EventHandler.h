@@ -48,6 +48,9 @@ struct FrameInput {
     bool shootPressed = false;
     int shootScreenX = 0;
     int shootScreenY = 0;
+
+    // --- In game ---
+    bool toggleMute = false;
 };
 
 class EventHandler {
