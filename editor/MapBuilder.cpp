@@ -78,11 +78,14 @@ int main() {
     b.water(40, 6, 52, 20);
     b.water(36, 10, 39, 16);
 
-    const int trees[][3] = {{4, 12, TREE},  {9, 8, TREE},   {6, 22, PALM},  {12, 16, TREE},
-                            {48, 30, TREE}, {52, 38, PALM}, {44, 46, TREE}, {38, 52, TREE},
-                            {18, 6, TREE},  {30, 10, TREE}, {54, 50, PALM}, {3, 40, TREE}};
-    for (const auto& t : trees) {
-        b.tree(t[0], t[1], t[2]);
+    const int forest[][2] = {{4, 12}, {9, 8},   {12, 16}, {18, 6},  {30, 10},
+                             {48, 30}, {44, 46}, {38, 52}, {3, 40},  {50, 42}};
+    for (const auto& t : forest) {
+        b.tree(t[0], t[1], TREE);
+    }
+    const int palms[][2] = {{34, 10}, {53, 8}, {38, 22}, {53, 21}, {35, 16}};
+    for (const auto& p : palms) {
+        b.tree(p[0], p[1], PALM);
     }
 
     b.house(12, 42, HOUSE_STONE, "merchant");
