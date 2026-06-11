@@ -40,6 +40,7 @@ target_sources(lib_client
 
     # rendering
     src/rendering/TileMap.cpp
+    src/rendering/IndoorRegions.cpp
     src/rendering/Viewport.cpp
     src/rendering/TextureManager.cpp
 
