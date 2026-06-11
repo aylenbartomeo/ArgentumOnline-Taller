@@ -40,8 +40,6 @@ public:
                                     const SnapshotDTO& snapshot, const PlayerStatsDTO& stats);
 
 private:
-    static CommandVariant buildChatCommand(const std::string& text);
-
     Client& client;
     Window& window;
     MiniChat& miniChat;
