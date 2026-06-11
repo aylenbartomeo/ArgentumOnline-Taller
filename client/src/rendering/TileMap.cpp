@@ -25,6 +25,24 @@ TileMap::TileMap(const std::string& jsonText) {
         throw std::runtime_error("TileMap: una fila no coincide con width");
     }
 
+    if (data.contains("terrain")) {
+        terrain = data.at("terrain").get<std::vector<std::vector<int>>>();
+    } else {
+        terrain.assign(height, std::vector<int>(width, 0));
+    }
+
+    auto loadGrid = [&data, this](const char* key) {
+        if (data.contains(key)) {
+            return data.at(key).get<std::vector<std::vector<int>>>();
+        }
+        return std::vector<std::vector<int>>(height, std::vector<int>(width, 0));
+    };
+    ground = loadGrid("ground");
+    ground2 = loadGrid("ground2");
+    decoration = loadGrid("decoration");
+    roofs = loadGrid("roofs");
+    indoor = loadGrid("indoor");
+
     if (data.contains("safeZones")) {
         const auto& zones = data.at("safeZones");
         std::transform(zones.begin(), zones.end(), std::back_inserter(safeZones),
@@ -54,3 +72,11 @@ const std::vector<SafeZoneRect>& TileMap::getSafeZones() const { return safeZone
 const std::vector<MapCitizen>& TileMap::getCitizens() const { return citizens; }
 
 int TileMap::tileAt(int col, int row) const { return tiles.at(row).at(col); }
+
+int TileMap::terrainAt(int col, int row) const { return terrain.at(row).at(col); }
+
+const std::vector<std::vector<int>>& TileMap::getGround() const { return ground; }
+const std::vector<std::vector<int>>& TileMap::getGround2() const { return ground2; }
+const std::vector<std::vector<int>>& TileMap::getDecoration() const { return decoration; }
+const std::vector<std::vector<int>>& TileMap::getRoofs() const { return roofs; }
+const std::vector<std::vector<int>>& TileMap::getIndoor() const { return indoor; }
