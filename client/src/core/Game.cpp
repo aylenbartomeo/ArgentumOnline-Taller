@@ -42,7 +42,7 @@ Game::Game(Client& client):
         miniChat(CHAT_FONT_PATH),
         hud(textures, HUD_FONT_PATH),
         manualPanel(HUD_FONT_PATH),
-        chatParser(),
+        chatParser([this]() { return hud.getSelectedSlot(); }),
         lastSnapshot(),
         lastStats(),
         audio(),
@@ -80,6 +80,8 @@ void Game::run() {
         inputProcessor.processChatInput(input);
         inputProcessor.processCheats(input);
         inputProcessor.processEquipInput(input);
+        inputProcessor.processUseInput(input);
+        inputProcessor.processSelectSlotInput(input);
         inputProcessor.processUiInput(input);
         inputProcessor.sendMoveIfDue(input, lastSnapshot);
 

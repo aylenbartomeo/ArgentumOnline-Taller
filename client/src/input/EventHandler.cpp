@@ -11,6 +11,7 @@ FrameInput EventHandler::pollEvents() {
     int equipX = 0;
     int equipY = 0;
     bool resurrectThisFrame = false;
+    bool consumeThisFrame = false;
 
     bool toggleChatThisFrame = false;
     int scrollThisFrame = 0;
@@ -88,6 +89,9 @@ FrameInput EventHandler::pollEvents() {
                 } else if (key == SDLK_r) {
                     if (event.key.repeat == 0)
                         resurrectThisFrame = true;
+                } else if (key == SDLK_c) {
+                    if (event.key.repeat == 0)
+                        consumeThisFrame = true;
                 }
                 pressedKeys.insert(key);
                 justPressedKeys.insert(key);
@@ -139,6 +143,7 @@ FrameInput EventHandler::pollEvents() {
     input.equipPressed = equipThisFrame;
     input.equipX = equipX;
     input.equipY = equipY;
+    input.consumeKeyPressed = consumeThisFrame;
     input.resurrectPressed = resurrectThisFrame;
     input.shootPressed = shootThisFrame;
     input.shootScreenX = shootX;

@@ -35,6 +35,7 @@ struct FrameInput {
     bool equipPressed = false;
     int equipX = 0;
     int equipY = 0;
+    bool consumeKeyPressed = false;
 
     // --- Cheats ---
     bool cheatLevelUp = false;

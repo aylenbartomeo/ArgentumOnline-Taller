@@ -160,6 +160,7 @@ public:
     void playerMeditate(uint32_t dbId);
     void dropItem(uint32_t dbId, uint8_t slot, uint16_t amount);
     void equipItem(uint32_t dbId, uint8_t slot);
+    void useItem(uint32_t dbId, uint8_t slot);
     void handlePlayerDeath(uint32_t dbId);
     void playerResurrect(uint32_t dbId);
 

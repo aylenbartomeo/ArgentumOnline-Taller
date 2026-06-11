@@ -321,10 +321,9 @@ void World::playerShoot(uint32_t shooterDbId, float targetX, float targetY) {
     float sx = static_cast<float>(shooter->getPosition().x);
     float sy = static_cast<float>(shooter->getPosition().y);
 
-    projectileSystem.spawnProjectile(shooterDbId, sx, sy, targetX, targetY, sprite,
-                                     weapon->getMinDamage(), weapon->getMaxDamage(),
-                                     weapon->isMagic(), weapon->getHitEffect(), pType, speed,
-                                     range);
+    projectileSystem.spawnProjectile(
+            shooterDbId, sx, sy, targetX, targetY, sprite, weapon->getMinDamage(),
+            weapon->getMaxDamage(), weapon->isMagic(), weapon->getHitEffect(), pType, speed, range);
 
     shooter->onActionStarted();
 }
@@ -633,16 +632,22 @@ void World::dropItem(uint32_t dbId, uint8_t slot, uint16_t amount) {
     }
 
     auto slotOpt = p->inspectInventorySlot(slot);
-    if (!slotOpt || slotOpt->amount < amount)
+    if (!slotOpt || slotOpt->amount == 0)
         return;
 
-    auto placedPos = map.placeItemNearby(posOpt.value(), slotOpt->item_id, amount);
+    // amount == 0 significa "tirar todo el stack"; si amount > disponible, clampear
+    uint16_t effectiveAmount = amount;
+    if (effectiveAmount == 0 || effectiveAmount > slotOpt->amount) {
+        effectiveAmount = slotOpt->amount;
+    }
+
+    auto placedPos = map.placeItemNearby(posOpt.value(), slotOpt->item_id, effectiveAmount);
     if (!placedPos) {
         eventPublisher.sendTo(dbId, "No hay suficiente espacio en el suelo para tirar el objeto.");
         return;
     }
 
-    p->removeInventoryItem(slot, amount);
+    p->removeInventoryItem(slot, effectiveAmount);
 }
 
 void World::equipItem(uint32_t dbId, uint8_t slot) {
@@ -657,6 +662,38 @@ void World::equipItem(uint32_t dbId, uint8_t slot) {
 
     if (p->equipFromSlot(slot)) {
         eventPublisher.sendTo(dbId, "Equipaste el item.");
+    }
+}
+
+void World::useItem(uint32_t dbId, uint8_t slot) {
+    Player* p = entityManager.getPlayer(dbId);
+    if (!p)
+        return;
+
+    if (p->isDead()) {
+        eventPublisher.sendTo(dbId, "No puedes hacer eso siendo un fantasma.");
+        return;
+    }
+
+    if (!p->canUseItems()) {
+        eventPublisher.sendTo(dbId, "No puedes usar items en este momento.");
+        return;
+    }
+
+    auto slotOpt = p->inspectInventorySlot(slot);
+    if (!slotOpt || slotOpt->amount == 0)
+        return;
+
+    const Consumable* consumable = itemRegistry.get_consumable(slotOpt->item_id);
+    if (!consumable) {
+        eventPublisher.sendTo(dbId, "Ese objeto no es consumible.");
+        return;
+    }
+
+    if (consumable->use(*p)) {
+        p->removeInventoryItem(slot, 1);
+    } else {
+        eventPublisher.sendTo(dbId, "No necesitas usar eso en este momento.");
     }
 }
 
