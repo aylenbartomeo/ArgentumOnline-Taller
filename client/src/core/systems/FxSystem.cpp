@@ -332,8 +332,8 @@ void FxSystem::renderFullscreen(int windowW, int windowH) {
         return;
     }
 
-    const std::string path =
-            std::string(GC::RESOURCES_DIR) + "beAttacked/" + std::to_string(frame) + ".png";
+    const std::string path = std::string(GC::RESOURCES_DIR) + "animation/beAttacked/" +
+                             std::to_string(frame) + ".png";
 
     if (!std::ifstream(path).good())
         return;
