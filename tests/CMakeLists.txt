@@ -18,6 +18,8 @@ target_sources(argentum_online_tests
     TestStatsComponent.cpp
     TestRegenerationComponent.cpp
     TestTileMap.cpp
+    TestTileDraw.cpp
+    TestIndoorRegions.cpp
     TestTerrainRegistry.cpp
     TestCityPrefab.cpp
     TestCityStamp.cpp
