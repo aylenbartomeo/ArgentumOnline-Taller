@@ -39,6 +39,7 @@ private:
     int tilesetCols;
     std::string tileset;
     std::vector<std::vector<int>> tiles;
+    std::vector<std::vector<int>> terrain;
     Position spawnPos;
     std::vector<EditorSafeZone> safeZones;
     std::vector<CitizenSpawn> citizens;
@@ -53,6 +54,8 @@ public:
 
     int tileAt(int col, int row) const;
     void setTile(int col, int row, int tileId);
+    int terrainAt(int col, int row) const;
+    void setTerrain(int col, int row, int code);
     void paintOverlay(int col, int row, int overlayIndex);
     int overlayAmountAt(int col, int row) const;
 
@@ -68,6 +71,8 @@ public:
     const std::string& getTileset() const;
 
     const std::vector<EditorSafeZone>& getSafeZones() const;
+    void addSafeZone(const std::string& name, int x, int y, int width, int height);
+    void removeSafeZoneAt(int x, int y);
 
     const std::vector<CitizenSpawn>& getCitizens() const;
     void addCitizen(const std::string& type, int x, int y);

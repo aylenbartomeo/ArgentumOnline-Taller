@@ -16,6 +16,7 @@ EditorMap::EditorMap(int width, int height, int tileSize, const std::string& til
         tilesetCols(tilesetCols),
         tileset(tileset),
         tiles(height, std::vector<int>(width, 0)),
+        terrain(height, std::vector<int>(width, 0)),
         spawnPos({0, 0}) {}
 
 EditorMap::EditorMap(const std::string& jsonText) {
@@ -34,6 +35,12 @@ EditorMap::EditorMap(const std::string& jsonText) {
     if (std::any_of(tiles.begin(), tiles.end(),
                     [this](const auto& row) { return static_cast<int>(row.size()) != width; })) {
         throw std::runtime_error("EditorMap: una fila no coincide con width");
+    }
+
+    if (data.contains("terrain")) {
+        terrain = data.at("terrain").get<std::vector<std::vector<int>>>();
+    } else {
+        terrain.assign(height, std::vector<int>(width, 0));
     }
 
     if (data.contains("spawn")) {
@@ -153,6 +160,7 @@ std::string EditorMap::toJson() const {
         data["obstacles"] = obstaclesJson;
     }
 
+    data["terrain"] = terrain;
     data["tiles"] = tiles;
     return data.dump(4);
 }
@@ -165,6 +173,15 @@ int EditorMap::overlayAmountAt(int col, int row) const {
 }
 
 void EditorMap::setTile(int col, int row, int tileId) { tiles.at(row).at(col) = tileId; }
+
+int EditorMap::terrainAt(int col, int row) const { return terrain.at(row).at(col); }
+
+void EditorMap::setTerrain(int col, int row, int code) {
+    if (row < 0 || row >= height || col < 0 || col >= width) {
+        return;
+    }
+    terrain[row][col] = code;
+}
 
 void EditorMap::paintOverlay(int col, int row, int overlayIndex) {
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
@@ -217,6 +234,16 @@ int EditorMap::getTilesetCols() const { return tilesetCols; }
 const std::string& EditorMap::getTileset() const { return tileset; }
 
 const std::vector<EditorSafeZone>& EditorMap::getSafeZones() const { return safeZones; }
+
+void EditorMap::addSafeZone(const std::string& name, int x, int y, int width, int height) {
+    safeZones.push_back({name, x, y, width, height});
+}
+
+void EditorMap::removeSafeZoneAt(int x, int y) {
+    safeZones.erase(std::remove_if(safeZones.begin(), safeZones.end(),
+                                   [x, y](const EditorSafeZone& z) { return z.x == x && z.y == y; }),
+                    safeZones.end());
+}
 
 const std::vector<CitizenSpawn>& EditorMap::getCitizens() const { return citizens; }
 

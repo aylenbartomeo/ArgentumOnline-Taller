@@ -335,3 +335,23 @@ TEST(EditorMapTest, OverlayAmountAtReturnsAccumulatedGold) {
     EXPECT_EQ(map.overlayAmountAt(1, 1), 3);
     EXPECT_EQ(map.overlayAmountAt(0, 0), 1);
 }
+
+TEST(EditorMapTest, SerializesTerrainLayer) {
+    EditorMap map(2, 2, 32, "5108.png", 32);
+    map.setTerrain(0, 0, 3);
+    map.setTerrain(1, 1, 5);
+
+    nlohmann::json data = nlohmann::json::parse(map.toJson());
+    ASSERT_TRUE(data.contains("terrain"));
+    EXPECT_EQ(data["terrain"][0][0], 3);
+    EXPECT_EQ(data["terrain"][1][1], 5);
+}
+
+TEST(EditorMapTest, AddsAndRemovesSafeZone) {
+    EditorMap map(20, 20, 32, "5108.png", 32);
+    map.addSafeZone("Nix", 5, 5, 10, 10);
+    EXPECT_EQ(map.getSafeZones().size(), 1u);
+
+    map.removeSafeZoneAt(5, 5);
+    EXPECT_TRUE(map.getSafeZones().empty());
+}
