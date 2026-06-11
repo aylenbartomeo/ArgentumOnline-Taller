@@ -13,6 +13,7 @@
 #include <SDL_ttf.h>
 
 #include "common/GameConstants.h"
+#include "systems/StateAudioTrigger.h"
 
 using GameConstants::VIEW_H;
 using GameConstants::VIEW_W;
@@ -99,55 +100,13 @@ void Game::run() {
 void Game::render(const FrameInput& input) {
     SnapshotDTO incomingSnap;
     PlayerStatsDTO incomingStats;
-
-    bool wasDead = (lastStats.maxHp > 0 && lastStats.currentHp <= 0);
-    uint32_t oldGold = lastStats.gold;
-
-    uint32_t oldItemCount =
-            std::accumulate(lastStats.inventory.begin(), lastStats.inventory.end(), uint32_t{0},
-                            [](uint32_t sum, const auto& slot) { return sum + slot.amount; });
-
-    std::vector<uint8_t> oldEquipped;
-    for (const auto& slot: lastStats.inventory) {
-        if (slot.isEquipped)
-            oldEquipped.push_back(slot.slot);
-    }
-    std::sort(oldEquipped.begin(), oldEquipped.end());
+    PlayerStatsDTO previousStats = lastStats;
 
     while (client.tryPopSnapshot(incomingSnap)) lastSnapshot = incomingSnap;
     while (client.tryPopPlayerStats(incomingStats)) lastStats = incomingStats;
 
-    bool isAliveNow = (lastStats.maxHp > 0 && lastStats.currentHp > 0);
-
-    // Si estaba muerto y ahora está vivo, reproducimos el sonido
-    if (wasDead && isAliveNow)
-        audio.playResurrectSound();
-
-    if (lastStats.gold > oldGold)
-        audio.playPickGoldSound();
-
-    std::vector<uint8_t> newEquipped;
-    for (const auto& slot: lastStats.inventory) {
-        if (slot.isEquipped)
-            newEquipped.push_back(slot.slot);
-    }
-
-    std::sort(newEquipped.begin(), newEquipped.end());
-
-    if (oldEquipped != newEquipped) {
-        audio.playEquipSound();
-    }
-    std::sort(newEquipped.begin(), newEquipped.end());
-
-    uint32_t newItemCount =
-            std::accumulate(lastStats.inventory.begin(), lastStats.inventory.end(), uint32_t{0},
-                            [](uint32_t sum, const auto& slot) { return sum + slot.amount; });
-
-    if (newItemCount > oldItemCount) {
-        audio.playPickItemSound();
-    } else if (newItemCount < oldItemCount) {
-        audio.playDropItemSound();
-    }
+    StateAudioTrigger audioTrigger;
+    audioTrigger.checkAndTrigger(previousStats, lastStats, audio);
 
     SDL2pp::Renderer& renderer = window.getRenderer();
     renderer.SetDrawColor(0, 0, 0, 255);
@@ -163,18 +122,17 @@ void Game::render(const FrameInput& input) {
                                  combatResult.fx->type);
 
         if (combatResult.fx->type == FxType::SWORD) {
-            audio.playSwordAttackSound();
+            audio.playSound(SoundEffect::SWORD_ATTACK);
         }
     }
 
     if (combatResult.magicAttack)
-        audio.playMagicAttackSound();
+        audio.playSound(SoundEffect::MAGIC_ATTACK);
 
     const uint32_t now = SDL_GetTicks();
 
-    // Si la sincronización devuelve true, significa que un proyectil desapareció/impactó
     if (fxSystem.syncProjectileAnimators(now, lastSnapshot))
-        audio.playProjectileHitSound();
+        audio.playSound(SoundEffect::PROJ_HIT);
 
     worldRenderer.renderTerrain(cam);
     worldRenderer.renderOverlays(cam);

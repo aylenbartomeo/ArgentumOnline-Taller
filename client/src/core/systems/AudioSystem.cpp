@@ -26,10 +26,30 @@ AudioSystem::AudioSystem() {
         std::cerr << "[AUDIO] No se pudo cargar la música: " << Mix_GetError() << std::endl;
         return;
     }
-    Mix_PlayMusic(bgMusic, -1);
-    Mix_VolumeMusic(MUSIC_VOLUME);
-    Mix_AllocateChannels(16);
 
+    // REGISTRO DE SONIDOS. Nota: se podria leer de un JSON
+    const std::unordered_map<SoundEffect, SoundConfig> sfxRegistry = {
+            {SoundEffect::RESURRECT, {"resources/audio/player/resucitar.ogg", 60}},
+            {SoundEffect::SWORD_ATTACK, {"resources/audio/weapons/sword-attack.ogg", 60}},
+            {SoundEffect::MAGIC_ATTACK, {"resources/audio/weapons/magic-attack.ogg", 60}},
+            {SoundEffect::PICK_GOLD, {"resources/audio/player/pick-gold.ogg", 70}},
+            {SoundEffect::PROJ_HIT, {"resources/audio/weapons/proj-hit.ogg", 60}},
+            {SoundEffect::PICK_ITEM, {"resources/audio/player/pick-item.ogg", 60}},
+            {SoundEffect::DROP_ITEM, {"resources/audio/player/drop-item.ogg", 60}},
+            {SoundEffect::EQUIP_WEAPON, {"resources/audio/player/equip-weapon.ogg", 60}}};
+
+    // Cargar todos los sonidos automáticamente
+    for (const auto& [effect, config]: sfxRegistry) {
+        Mix_Chunk* chunk = Mix_LoadWAV(config.path.c_str());
+        if (chunk) {
+            sfxMap[effect] = chunk;
+            sfxVolumes[effect] = config.volume;
+        } else {
+            std::cerr << "[AUDIO] No se pudo cargar: " << config.path << "\n";
+        }
+    }
+
+    // REGISTRO DE MONSTERS
     const std::unordered_map<NPCType, std::string> soundPaths = {
             {NPCType::ZOMBIE, "resources/audio/monsters/zombie.ogg"},
             {NPCType::SKELETON, "resources/audio/monsters/skeleton.ogg"},
@@ -38,49 +58,6 @@ AudioSystem::AudioSystem() {
             {NPCType::GOBLIN, "resources/audio/monsters/goblin.ogg"},
             {NPCType::ORC, "resources/audio/monsters/orc.ogg"},
     };
-
-    resurrectSound = Mix_LoadWAV("resources/audio/player/resucitar.ogg");
-    if (!resurrectSound) {
-        std::cerr << "[AUDIO] No se pudo cargar sonido de resurreccion: " << Mix_GetError()
-                  << std::endl;
-    }
-
-    swordAttackSound = Mix_LoadWAV("resources/audio/weapons/sword-attack.ogg");
-    if (!swordAttackSound) {
-        std::cerr << "[AUDIO] No se pudo cargar sonido de espada: " << Mix_GetError() << std::endl;
-    }
-
-    magicAttackSound = Mix_LoadWAV("resources/audio/weapons/magic-attack.ogg");
-    if (!magicAttackSound) {
-        std::cerr << "[AUDIO] No se pudo cargar sonido de magia: " << Mix_GetError() << std::endl;
-    }
-
-    pickGoldSound = Mix_LoadWAV("resources/audio/player/pick-gold.ogg");
-    if (!pickGoldSound) {
-        std::cerr << "[AUDIO] No se pudo cargar sonido de oro: " << Mix_GetError() << std::endl;
-    }
-
-    projHitSound = Mix_LoadWAV("resources/audio/weapons/proj-hit.ogg");
-    if (!projHitSound) {
-        std::cerr << "[AUDIO] No se pudo cargar sonido de impacto de proyectil: " << Mix_GetError()
-                  << std::endl;
-    }
-    pickItemSound = Mix_LoadWAV("resources/audio/player/pick-item.ogg");
-    if (!pickItemSound) {
-        std::cerr << "[AUDIO] No se pudo cargar sonido de agarrar item: " << Mix_GetError()
-                  << std::endl;
-    }
-
-    dropItemSound = Mix_LoadWAV("resources/audio/player/drop-item.ogg");
-    if (!dropItemSound) {
-        std::cerr << "[AUDIO] No se pudo cargar sonido de soltar item: " << Mix_GetError()
-                  << std::endl;
-    }
-
-    equipSound = Mix_LoadWAV("resources/audio/player/equip-weapon.ogg");
-    if (!equipSound) {
-        std::cerr << "[AUDIO] No se pudo cargar sonido de equipar: " << Mix_GetError() << std::endl;
-    }
 
     for (const auto& [type, path]: soundPaths) {
         Mix_Chunk* chunk = Mix_LoadWAV(path.c_str());
@@ -97,22 +74,12 @@ AudioSystem::~AudioSystem() {
         Mix_HaltMusic();
         Mix_FreeMusic(bgMusic);
     }
-    if (resurrectSound)
-        Mix_FreeChunk(resurrectSound);
-    if (swordAttackSound)
-        Mix_FreeChunk(swordAttackSound);
-    if (magicAttackSound)
-        Mix_FreeChunk(magicAttackSound);
-    if (pickGoldSound)
-        Mix_FreeChunk(pickGoldSound);
-    if (projHitSound)
-        Mix_FreeChunk(projHitSound);
-    if (pickItemSound)
-        Mix_FreeChunk(pickItemSound);
-    if (dropItemSound)
-        Mix_FreeChunk(dropItemSound);
-    if (equipSound)
-        Mix_FreeChunk(equipSound);
+
+    for (auto& [effect, chunk]: sfxMap) {
+        if (chunk)
+            Mix_FreeChunk(chunk);
+    }
+    sfxMap.clear();
 
     for (auto& [type, chunk]: monsterSounds) {
         if (chunk)
@@ -133,52 +100,16 @@ void AudioSystem::toggleMute() {
     }
 }
 
-void AudioSystem::playSwordAttackSound() {
-    if (!isMuted && swordAttackSound) {
-        const int chan = Mix_PlayChannel(-1, swordAttackSound, 0);
-        if (chan >= 0) {
-            Mix_SetPanning(chan, 255, 255);
-            Mix_Volume(chan, 60);
-        }
-    }
-}
+void AudioSystem::playSound(SoundEffect effect) {
+    if (isMuted)
+        return;
 
-void AudioSystem::playMagicAttackSound() {
-    if (!isMuted && magicAttackSound) {
-        const int chan = Mix_PlayChannel(-1, magicAttackSound, 0);
+    auto it = sfxMap.find(effect);
+    if (it != sfxMap.end()) {
+        const int chan = Mix_PlayChannel(-1, it->second, 0);
         if (chan >= 0) {
             Mix_SetPanning(chan, 255, 255);
-            Mix_Volume(chan, 60);
-        }
-    }
-}
-
-void AudioSystem::playEquipSound() {
-    if (!isMuted && equipSound) {
-        const int chan = Mix_PlayChannel(-1, equipSound, 0);
-        if (chan >= 0) {
-            Mix_SetPanning(chan, 255, 255);
-            Mix_Volume(chan, 60);  // Ajusta el volumen a tu preferencia
-        }
-    }
-}
-
-void AudioSystem::playPickItemSound() {
-    if (!isMuted && pickItemSound) {
-        const int chan = Mix_PlayChannel(-1, pickItemSound, 0);
-        if (chan >= 0) {
-            Mix_SetPanning(chan, 255, 255);
-            Mix_Volume(chan, 60);
-        }
-    }
-}
-
-void AudioSystem::playDropItemSound() {
-    if (!isMuted && dropItemSound) {
-        const int chan = Mix_PlayChannel(-1, dropItemSound, 0);
-        if (chan >= 0) {
-            Mix_SetPanning(chan, 255, 255);
-            Mix_Volume(chan, 60);
+            Mix_Volume(chan, sfxVolumes[effect]);
         }
     }
 }
@@ -196,36 +127,6 @@ static int volumeForDistance(float dist) {
     const float falloff = (1.0f - t) * (1.0f - t);
 
     return static_cast<int>(AudioSystem::MONSTER_SOUND_MAX_VOL * falloff);
-}
-
-void AudioSystem::playResurrectSound() {
-    if (!isMuted && resurrectSound) {
-        const int chan = Mix_PlayChannel(-1, resurrectSound, 0);
-        if (chan >= 0) {
-            Mix_SetPanning(chan, 255, 255);
-            Mix_Volume(chan, 60);
-        }
-    }
-}
-
-void AudioSystem::playProjectileHitSound() {
-    if (!isMuted && projHitSound) {
-        const int chan = Mix_PlayChannel(-1, projHitSound, 0);
-        if (chan >= 0) {
-            Mix_SetPanning(chan, 255, 255);
-            Mix_Volume(chan, 60);
-        }
-    }
-}
-
-void AudioSystem::playPickGoldSound() {
-    if (!isMuted && pickGoldSound) {
-        const int chan = Mix_PlayChannel(-1, pickGoldSound, 0);
-        if (chan >= 0) {
-            Mix_SetPanning(chan, 255, 255);
-            Mix_Volume(chan, 70);
-        }
-    }
 }
 
 void AudioSystem::updateMonsterSounds(const SnapshotDTO& snapshot, uint32_t nowMs, uint32_t myId) {

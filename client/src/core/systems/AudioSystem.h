@@ -7,6 +7,7 @@
 
 #include <SDL_mixer.h>
 
+#include "../common/SoundEffect.h"
 #include "common/include/dto/Snapshot.h"
 #include "common/utils/types.h"
 
@@ -26,8 +27,9 @@ public:
     AudioSystem& operator=(AudioSystem&&) = delete;
 
     void toggleMute();
-
     void updateMonsterSounds(const SnapshotDTO& snapshot, uint32_t nowMs, uint32_t myId);
+
+    void playSound(SoundEffect effect);
 
     void playResurrectSound();
     void playSwordAttackSound();
@@ -39,16 +41,23 @@ public:
     void playEquipSound();
 
 private:
-    Mix_Music* bgMusic = nullptr;
-    Mix_Chunk* resurrectSound = nullptr;
-    Mix_Chunk* swordAttackSound = nullptr;
-    Mix_Chunk* magicAttackSound = nullptr;
-    Mix_Chunk* pickGoldSound = nullptr;
-    Mix_Chunk* projHitSound = nullptr;
-    Mix_Chunk* pickItemSound = nullptr;
-    Mix_Chunk* dropItemSound = nullptr;
-    Mix_Chunk* equipSound = nullptr;
+    struct SoundConfig {
+        std::string path;
+        int volume;
+    };
 
+    Mix_Music* bgMusic = nullptr;
+    // Mix_Chunk* resurrectSound = nullptr;
+    // Mix_Chunk* swordAttackSound = nullptr;
+    // Mix_Chunk* magicAttackSound = nullptr;
+    // Mix_Chunk* pickGoldSound = nullptr;
+    // Mix_Chunk* projHitSound = nullptr;
+    // Mix_Chunk* pickItemSound = nullptr;
+    // Mix_Chunk* dropItemSound = nullptr;
+    // Mix_Chunk* equipSound = nullptr;
+
+    std::unordered_map<SoundEffect, Mix_Chunk*> sfxMap;
+    std::unordered_map<SoundEffect, int> sfxVolumes;
     std::unordered_map<NPCType, Mix_Chunk*> monsterSounds;
     std::unordered_map<uint32_t, uint32_t> nextSoundTime;
 
