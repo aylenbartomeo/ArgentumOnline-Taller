@@ -10,17 +10,11 @@
 #include "../ui/GroundItemLabel.h"
 
 #include "OverlayRegistry.h"
+#include "TerrainRegistry.h"
 
 namespace GC = GameConstants;
 
 namespace {
-constexpr const char* GROUND_SHEET = "5108.png";
-constexpr int GROUND_SRC_X = 416;
-constexpr int GROUND_SRC_Y = 384;
-constexpr int DARK_GROUND_SRC_X = 512;
-constexpr int DARK_GROUND_SRC_Y = 480;
-constexpr int GROUND_TILE = 32;
-
 constexpr int CHARACTER_FRAME_X = 2;
 constexpr int CHARACTER_FRAME_Y = 4;
 constexpr int CHARACTER_FRAME_W = 24;
@@ -52,25 +46,20 @@ WorldRenderer::WorldRenderer(TextureManager& textures, SDL2pp::Renderer& rendere
                              const TileMap& map, TTF_Font* worldFont):
         textures(textures), renderer(renderer), map(map), worldFont(worldFont) {}
 
-bool WorldRenderer::cellInSafeZone(int col, int row) const {
-    return std::any_of(map.getSafeZones().begin(), map.getSafeZones().end(),
-                       [col, row](const SafeZoneRect& zone) {
-                           return col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
-                                  row < zone.y + zone.height;
-                       });
-}
-
 void WorldRenderer::renderTerrain(const CameraOffset& camera) const {
-    SDL2pp::Texture& ground = textures.get(std::string(GC::RESOURCES_DIR) + GROUND_SHEET);
-    const SDL2pp::Rect groundSrc(GROUND_SRC_X, GROUND_SRC_Y, GROUND_TILE, GROUND_TILE);
-    const SDL2pp::Rect darkGroundSrc(DARK_GROUND_SRC_X, DARK_GROUND_SRC_Y, GROUND_TILE,
-                                     GROUND_TILE);
-
+    const std::vector<TerrainDef>& registry = getTerrainRegistry();
     for (int row = 0; row < map.getHeight(); ++row) {
         for (int col = 0; col < map.getWidth(); ++col) {
+            int code = map.terrainAt(col, row);
+            if (code < 0 || code >= static_cast<int>(registry.size())) {
+                code = 0;
+            }
+            const TerrainDef& def = registry[code];
+            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + def.sheet);
+            const SDL2pp::Rect src(def.srcX, def.srcY, GC::TILE_SIZE, GC::TILE_SIZE);
             const SDL2pp::Rect dst(col * GC::TILE_SIZE - camera.x, row * GC::TILE_SIZE - camera.y,
                                    GC::TILE_SIZE, GC::TILE_SIZE);
-            renderer.Copy(ground, cellInSafeZone(col, row) ? darkGroundSrc : groundSrc, dst);
+            renderer.Copy(tex, src, dst);
         }
     }
     renderer.SetClipRect();

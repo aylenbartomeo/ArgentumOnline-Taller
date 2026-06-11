@@ -22,7 +22,6 @@ public:
     void renderCitizens(const CameraOffset& camera) const;
 
 private:
-    bool cellInSafeZone(int col, int row) const;
     void drawGroundAmount(const std::string& text, int tileX, int tileY,
                           const CameraOffset& camera) const;
 
