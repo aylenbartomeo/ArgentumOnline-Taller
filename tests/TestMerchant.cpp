@@ -138,3 +138,28 @@ TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
 
     EXPECT_EQ(player.getGold(), oroEsperado);
 }
+
+// =========================================================================
+// TEST 5: EL MERCADER LISTA SU STOCK DISPONIBLE (CON PRECIOS Y CANTIDAD)
+// =========================================================================
+TEST(MerchantTest, Merchant_ListStockSuccessfully) {
+    ItemRegistry registry("../config/items.toml");
+    Merchant comerciante(1, {0, 0}, registry);
+    Player player = makeTestPlayer();
+
+    // El jugador ejecuta el comando para listar la tienda del mercader
+    NpcCommandDTO cmd = createTestCommand(NpcCommandType::LIST, "");
+    InteractionResult res = comerciante.handleCommand(player, cmd);
+
+    // VALIDACIONES:
+    EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
+    
+    // Verificamos que el mensaje contenga palabras claves del catálogo formateado
+    EXPECT_NE(res.msg.find("--- CATÁLOGO DISPONIBLE ---"), std::string::npos);
+    EXPECT_NE(res.msg.find("Cantidad:"), std::string::npos);
+    EXPECT_NE(res.msg.find("Compra:"), std::string::npos);
+    
+    // Verificamos que al menos uno de los ítems hardcodeados del stock inicial esté presente en el texto
+    // El stock inicial del Merchant posee el ID 2000u y 1000u
+    EXPECT_NE(res.msg.find("[ID: 2000]"), std::string::npos);
+}

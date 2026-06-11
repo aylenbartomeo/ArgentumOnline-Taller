@@ -9,6 +9,8 @@
 
 #include "NpcCommandHandler.h"
 
+#define ONE 1
+
 class BankDepositHandler: public NpcCommandHandler {
 private:
     GlobalBank& bankInstance;
@@ -98,16 +100,14 @@ public:
             return result;
         }
 
-        // Intentamos depositarlo en la bóveda del banco (aquí se usa el find_if que refactorizamos
-        // antes)
-        if (!bankInstance.depositItem(playerId, itemId, 1)) {
+        if (!bankInstance.depositItem(playerId, itemId, ONE)) {
             result.status = InteractionStatus::FAILURE;
             result.msg = "Tu bovéda bancaria está llena. No hay espacio para más artículos.";
             return result;
         }
 
         // Si el banco lo aceptó con éxito, lo removemos de la mochila del jugador
-        player.removeItem(static_cast<uint8_t>(playerSlot), 1);
+        player.removeItem(static_cast<uint8_t>(playerSlot), ONE);
         result.status = InteractionStatus::SUCCESS;
         result.msg = "Depósito exitoso: Protegiste 1 " + itemDef->getName() + " en tu bovéda.";
         return result;

@@ -1,6 +1,7 @@
 #include "Merchant.h"
 
 #include "../handlers/TradeHandler.h"
+#include "../handlers/ListStockHandler.h"
 #include "model/entities/Player.h"
 
 Merchant::Merchant(uint32_t id, Position pos, const ItemRegistry& registry):
@@ -17,6 +18,8 @@ Merchant::Merchant(uint32_t id, Position pos, const ItemRegistry& registry):
             std::make_unique<TradeHandler>(registry, stock, true, merchantFilter);
     commandHandlers[NpcCommandType::SELL] =
             std::make_unique<TradeHandler>(registry, stock, true, merchantFilter);
+    commandHandlers[NpcCommandType::LIST] =
+            std::make_unique<ListStockHandler>(registry, stock, true, merchantFilter);
 }
 
 InteractionResult Merchant::beInteractedBy(Player& player) {
