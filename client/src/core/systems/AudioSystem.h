@@ -35,14 +35,6 @@ private:
     std::unordered_map<NPCType, Mix_Chunk*> monsterSounds;
     std::unordered_map<uint32_t, uint32_t> nextSoundTime;
 
-    std::unordered_map<uint32_t, int> activeChannel;
-
-    int getChannel(uint32_t monsterId) {
-        auto it = activeChannel.find(monsterId);
-        return (it != activeChannel.end()) ? it->second : -1;
-    }
-
-
     bool isMuted = false;
     int lastVolume = MIX_MAX_VOLUME / 2;
 };

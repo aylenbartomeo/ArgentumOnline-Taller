@@ -9,7 +9,7 @@ constexpr int AUDIO_CHANNELS = 2;
 constexpr int AUDIO_CHUNK_SIZE = 2048;
 constexpr int MUSIC_VOLUME = 64;
 constexpr uint32_t MONSTER_SOUND_INTERVAL_MIN_MS = 8000;
-constexpr uint32_t MONSTER_SOUND_INTERVAL_MAX_MS = 15000;
+constexpr uint32_t MONSTER_SOUND_INTERVAL_MAX_MS = 18000;
 constexpr const char* MUSIC_PATH = "resources/audio/music/game_theme.mp3";
 constexpr uint32_t MONSTER_SOUND_DURATION_MIN_MS = 5000;
 constexpr uint32_t MONSTER_SOUND_DURATION_MAX_MS = 10000;
@@ -73,17 +73,19 @@ void AudioSystem::toggleMute() {
     }
 }
 
-static int volumeForDistance(int dist) {
+static int volumeForDistance(float dist) {
     if (dist <= AudioSystem::MONSTER_SOUND_MIN_DIST)
         return AudioSystem::MONSTER_SOUND_MAX_VOL;
     if (dist >= AudioSystem::MONSTER_SOUND_MAX_DIST)
         return 0;
 
-    const float t = static_cast<float>(dist - AudioSystem::MONSTER_SOUND_MIN_DIST) /
+    const float t = (dist - AudioSystem::MONSTER_SOUND_MIN_DIST) /
                     static_cast<float>(AudioSystem::MONSTER_SOUND_MAX_DIST -
                                        AudioSystem::MONSTER_SOUND_MIN_DIST);
-    return static_cast<int>(AudioSystem::MONSTER_SOUND_MAX_VOL * (1.0f - t) +
-                            AudioSystem::MONSTER_SOUND_MIN_VOL * t);
+
+    const float falloff = (1.0f - t) * (1.0f - t);
+
+    return static_cast<int>(AudioSystem::MONSTER_SOUND_MAX_VOL * falloff);
 }
 
 void AudioSystem::updateMonsterSounds(const SnapshotDTO& snapshot, uint32_t nowMs, uint32_t myId) {
@@ -102,67 +104,64 @@ void AudioSystem::updateMonsterSounds(const SnapshotDTO& snapshot, uint32_t nowM
         if (soundIt == monsterSounds.end())
             continue;
 
-        const int dx = static_cast<int>(monster.x) - static_cast<int>(me->x);
-        const int dy = static_cast<int>(monster.y) - static_cast<int>(me->y);
-        const int dist = std::max(std::abs(dx), std::abs(dy));
+        // Distancia euclidiana (circular)
+        const float dx = static_cast<float>(monster.x) - static_cast<float>(me->x);
+        const float dy = static_cast<float>(monster.y) - static_cast<float>(me->y);
+        const float dist = std::sqrt(dx * dx + dy * dy);
+
         const int vol = volumeForDistance(dist);
-
-        int chan = getChannel(monster.id);
-
-        // Canal activo: actualizar volumen o detener si salió de rango
-        if (chan >= 0 && Mix_Playing(chan)) {
-            if (vol == 0) {
-                Mix_HaltChannel(chan);
-                activeChannel[monster.id] = -1;
-            } else {
-                Mix_Volume(chan, vol);
-            }
-            continue;
-        }
-
-        // Canal terminado o inexistente
-        activeChannel[monster.id] = -1;
-
-        if (vol == 0)
-            continue;
-
         auto& nextTime = nextSoundTime[monster.id];
 
+        // Inicializar el temporizador si es un monstruo nuevo en pantalla
         if (nextTime == 0) {
             nextTime = nowMs + MONSTER_SOUND_INTERVAL_MIN_MS +
                        (rand() % (MONSTER_SOUND_INTERVAL_MAX_MS - MONSTER_SOUND_INTERVAL_MIN_MS));
             continue;
         }
 
+        // Si es momento de reproducir el sonido
         if (nowMs >= nextTime) {
-            const int newChan = Mix_PlayChannel(-1, soundIt->second, 0);
+            if (vol > 0) {
+                // Pedimos el primer canal libre (-1)
+                const int chan = Mix_PlayChannel(-1, soundIt->second, 0);
 
-            if (newChan >= 0) {
-                Mix_Volume(newChan, vol);
-                activeChannel[monster.id] = newChan;
+                if (chan >= 0) {
+                    // Paneo Estéreo (3D Posicional)
+                    // Calculamos cuánto peso de sonido va al auricular Izquierdo y Derecho
+                    int leftVol = vol;
+                    int rightVol = vol;
+
+                    if (dist > 0) {
+                        // dx / dist nos da un valor entre -1.0 (totalmente a la izq) y 1.0
+                        // (totalmente a la der)
+                        const float balance = dx / dist;
+
+                        // Ajustamos la distribución. Si está en el centro (balance = 0), ambos
+                        // audífonos suenan igual.
+                        leftVol = static_cast<int>(vol * (1.0f - balance) / 2.0f + vol / 2.0f);
+                        rightVol = static_cast<int>(vol * (1.0f + balance) / 2.0f + vol / 2.0f);
+                    }
+
+                    // IMPORTANTE: Primero se aplica el Paneo y luego el volumen general en
+                    // SDL_mixer
+                    Mix_SetPanning(chan, leftVol, rightVol);
+                    Mix_Volume(chan, vol);
+                }
             }
 
+            // Reprogramar el siguiente sonido para este monstruo
             nextTime = nowMs + MONSTER_SOUND_INTERVAL_MIN_MS +
                        (rand() % (MONSTER_SOUND_INTERVAL_MAX_MS - MONSTER_SOUND_INTERVAL_MIN_MS));
         }
     }
 
-    // Limpiar monstruos muertos
+    // Limpiar temporizadores de monstruos muertos
     for (auto cleanupIt = nextSoundTime.begin(); cleanupIt != nextSoundTime.end();) {
-
         const bool alive = std::any_of(
                 snapshot.monsters.begin(), snapshot.monsters.end(),
                 [&](const EntityDTO& monster) { return monster.id == cleanupIt->first; });
 
-        if (!alive) {
-            const int chan = getChannel(cleanupIt->first);
-
-            if (chan >= 0)
-                Mix_HaltChannel(chan);
-
-            activeChannel.erase(cleanupIt->first);
-        }
-
+        // Si el monstruo murió, simplemente lo quitamos del mapa de temporizadores
         cleanupIt = alive ? std::next(cleanupIt) : nextSoundTime.erase(cleanupIt);
     }
 }
