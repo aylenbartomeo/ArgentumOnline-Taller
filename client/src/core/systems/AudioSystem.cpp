@@ -36,7 +36,7 @@ AudioSystem::AudioSystem() {
             {NPCType::GOLEM, "resources/audio/monsters/golem.ogg"},
             {NPCType::SPIDER, "resources/audio/monsters/spider.ogg"},
             {NPCType::GOBLIN, "resources/audio/monsters/goblin.ogg"},
-            {NPCType::ORC, "resources/audio/monsters/goblin.ogg"},
+            {NPCType::ORC, "resources/audio/monsters/orc.ogg"},
     };
 
     resurrectSound = Mix_LoadWAV("resources/audio/player/resucitar.ogg");
