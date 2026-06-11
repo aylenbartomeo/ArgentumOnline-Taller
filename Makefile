@@ -1,4 +1,4 @@
-.PHONY: all test clean editor client common server compile-debug run-tests valgrind-tests
+.PHONY: all test clean editor client common server compile-debug run-tests valgrind-tests compile-and-tests
 
 default: all
 
