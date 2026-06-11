@@ -5,8 +5,8 @@
 #include <nlohmann/json.hpp>
 
 namespace {
-constexpr int W = 60;
-constexpr int H = 60;
+constexpr int W = 80;
+constexpr int H = 80;
 constexpr int GRASS = 108;
 constexpr int WATER = 109;
 constexpr int STONE = 17;
@@ -24,12 +24,15 @@ struct Builder {
     nlohmann::json obstacles = nlohmann::json::array();
     nlohmann::json npcs = nlohmann::json::array();
     nlohmann::json monsters = nlohmann::json::array();
+    nlohmann::json safeZones = nlohmann::json::array();
 
     Builder():
             ground(H, std::vector<int>(W, GRASS)), decoration(H, std::vector<int>(W, 0)) {}
 
+    bool inside(int x, int y) const { return x >= 0 && x < W && y >= 0 && y < H; }
+
     void block(int x, int y) {
-        if (x >= 0 && x < W && y >= 0 && y < H) {
+        if (inside(x, y)) {
             obstacles.push_back({{"x", x}, {"y", y}});
         }
     }
@@ -37,28 +40,27 @@ struct Builder {
     void water(int x0, int y0, int x1, int y1) {
         for (int y = y0; y <= y1; ++y) {
             for (int x = x0; x <= x1; ++x) {
-                if (x < 0 || x >= W || y < 0 || y >= H) {
-                    continue;
+                if (inside(x, y)) {
+                    ground[y][x] = WATER;
+                    block(x, y);
                 }
-                ground[y][x] = WATER;
-                block(x, y);
             }
-        }
-    }
-
-    void deco(int x, int y, int tile) {
-        if (x >= 0 && x < W && y >= 0 && y < H) {
-            decoration[y][x] = tile;
         }
     }
 
     void path(int x0, int y0, int x1, int y1) {
         for (int y = y0; y <= y1; ++y) {
             for (int x = x0; x <= x1; ++x) {
-                if (x >= 0 && x < W && y >= 0 && y < H) {
+                if (inside(x, y)) {
                     ground[y][x] = STONE;
                 }
             }
+        }
+    }
+
+    void deco(int x, int y, int tile) {
+        if (inside(x, y)) {
+            decoration[y][x] = tile;
         }
     }
 
@@ -80,37 +82,44 @@ struct Builder {
     void monster(int x, int y, const std::string& type) {
         monsters.push_back({{"type", type}, {"x", x}, {"y", y}});
     }
+
+    void town(int ox, int oy, const std::string& name) {
+        path(ox + 1, oy + 10, ox + 28, oy + 16);
+        path(ox + 14, oy + 16, ox + 15, oy + 19);
+        house(ox + 1, oy + 7, HOUSE_STONE, "merchant");
+        house(ox + 11, oy + 7, HOUSE_WOOD, "banker");
+        house(ox + 21, oy + 7, HOUSE_STONE, "priest");
+        deco(ox + 23, oy + 13, ALTAR);
+        deco(ox + 9, oy + 17, SIGN);
+        safeZones.push_back(
+                {{"name", name}, {"x", ox}, {"y", oy}, {"width", 30}, {"height", 20}});
+    }
 };
 }  // namespace
 
 int main() {
     Builder b;
 
-    b.water(40, 6, 52, 20);
-    b.water(36, 10, 39, 16);
+    b.town(4, 50, "Nix");
+    b.town(44, 4, "Ullathorpe");
+    b.town(44, 52, "Banderbill");
 
-    const int forest[][2] = {{4, 12}, {9, 8},   {12, 16}, {18, 6},  {30, 10},
-                             {48, 30}, {44, 46}, {38, 52}, {2, 30},  {50, 42}};
-    for (const auto& t : forest) {
-        b.tree(t[0], t[1], TREE);
-    }
-    const int palms[][2] = {{34, 10}, {53, 8}, {38, 22}, {53, 21}, {35, 16}};
+    b.water(6, 6, 28, 24);
+
+    const int palms[][2] = {{4, 10}, {30, 12}, {7, 27}, {29, 22}, {16, 4}, {2, 20}};
     for (const auto& p : palms) {
         b.tree(p[0], p[1], PALM);
     }
+    const int forest[][2] = {{35, 30}, {38, 40}, {34, 48}, {40, 15}, {36, 64},
+                             {8, 38},  {12, 44}, {38, 5},  {42, 35}, {30, 30}};
+    for (const auto& t : forest) {
+        b.tree(t[0], t[1], TREE);
+    }
 
-    b.path(9, 46, 36, 52);
-    b.path(22, 52, 23, 56);
-    b.house(9, 43, HOUSE_STONE, "merchant");
-    b.house(19, 43, HOUSE_WOOD, "banker");
-    b.house(29, 43, HOUSE_STONE, "priest");
-    b.deco(31, 49, ALTAR);
-    b.deco(17, 53, SIGN);
-
-    b.monster(50, 52, "goblin");
-    b.monster(5, 52, "orc");
-    b.monster(54, 24, "zombie");
-    b.monster(30, 30, "goblin");
+    b.monster(35, 35, "goblin");
+    b.monster(60, 38, "orc");
+    b.monster(16, 36, "zombie");
+    b.monster(38, 74, "goblin");
 
     nlohmann::json m;
     m["width"] = W;
@@ -118,7 +127,7 @@ int main() {
     m["tileSize"] = 32;
     m["tileset"] = "5108.png";
     m["tilesetCols"] = 32;
-    m["spawn"] = {{"x", 22}, {"y", 50}};
+    m["spawn"] = {{"x", 18}, {"y", 62}};
     m["ground"] = b.ground;
     m["ground2"] = std::vector<std::vector<int>>(H, std::vector<int>(W, 0));
     m["decoration"] = b.decoration;
@@ -127,8 +136,7 @@ int main() {
     m["obstacles"] = b.obstacles;
     m["npcs"] = b.npcs;
     m["monsters"] = b.monsters;
-    m["safeZones"] = nlohmann::json::array(
-            {{{"name", "Nix"}, {"x", 8}, {"y", 36}, {"width", 30}, {"height", 20}}});
+    m["safeZones"] = b.safeZones;
 
     std::ofstream out("maps/defaultMap.json");
     out << m.dump(4);
