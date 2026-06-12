@@ -99,7 +99,8 @@ struct Builder {
 
     void tree(int x, int y, int tile) {
         deco(x, y, tile);
-        block(x, y);
+        int trunkOffset = (tile == PALM) ? 2 : 3;
+        block(x + trunkOffset, y);
     }
 
     void building(int ax, int ay, int decoVal, int roofVal, int wT, int hT, int doorHalf,
@@ -170,13 +171,13 @@ int main() {
     b.path(24, 36, 25, 86);
     b.path(46, 17, 53, 18);
 
-    const int palms[][2] = {{37, 44}, {37, 52}, {63, 46}, {63, 54},
-                            {45, 40}, {55, 40}, {45, 58}, {55, 58}};
+    const int palms[][2] = {{42, 40}, {54, 40}, {32, 46}, {32, 53},
+                            {64, 45}, {64, 53}, {44, 65}, {56, 65}};
     for (const auto& p : palms) {
         b.tree(p[0], p[1], PALM);
     }
     const int forest[][2] = {
-            {8, 40},  {12, 52}, {18, 45}, {30, 58}, {33, 40}, {48, 38}, {52, 60},
+            {8, 40},  {12, 52}, {18, 45}, {27, 59}, {33, 40}, {48, 38}, {52, 68},
             {58, 40}, {70, 58}, {76, 42}, {82, 52}, {88, 46}, {92, 58}, {8, 70},
             {14, 82}, {10, 92}, {20, 75}, {76, 70}, {82, 85}, {88, 72}, {92, 90},
             {74, 92}};
