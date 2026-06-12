@@ -14,7 +14,11 @@ TileMap::TileMap(const std::string& jsonText) {
     tileSize = data.at("tileSize").get<int>();
     tilesetCols = data.at("tilesetCols").get<int>();
     tileset = data.at("tileset").get<std::string>();
-    tiles = data.at("tiles").get<std::vector<std::vector<int>>>();
+    if (data.contains("tiles")) {
+        tiles = data.at("tiles").get<std::vector<std::vector<int>>>();
+    } else {
+        tiles.assign(height, std::vector<int>(width, 0));
+    }
 
     if (static_cast<int>(tiles.size()) != height) {
         throw std::runtime_error("TileMap: la cantidad de filas no coincide con height");
