@@ -1,46 +1,80 @@
 #include "CityPrefab.h"
 
-#include <utility>
+namespace {
+constexpr int STONE = 17;
+constexpr int WOOD = 106;
+constexpr int CHURCH = 201;
+constexpr int BANK = 202;
+constexpr int STALL = 203;
+constexpr int CHURCH_ROOF = 204;
+constexpr int BANK_ROOF = 205;
 
-#include "OverlayRegistry.h"
-#include "TerrainRegistry.h"
+struct Recorder {
+    CityPrefab prefab;
 
-CityPrefab makeCityPrefab() {
-    CityPrefab city;
-    city.width = 10;
-    city.height = 10;
-
-    for (int dy = 0; dy < 10; ++dy) {
-        for (int dx = 0; dx < 10; ++dx) {
-            city.terrain.push_back({dx, dy, TerrainCode::STONE});
-        }
-    }
-    auto setTerrain = [&city](int dx, int dy, int code) {
-        for (auto& c : city.terrain) {
-            if (c.dx == dx && c.dy == dy) {
-                c.code = code;
-                return;
+    void floorRect(int x0, int y0, int x1, int y1, int tile) {
+        for (int y = y0; y <= y1; ++y) {
+            for (int x = x0; x <= x1; ++x) {
+                prefab.ground.push_back({x, y, tile});
             }
         }
-    };
-    setTerrain(1, 7, TerrainCode::WOOD);
-    setTerrain(8, 7, TerrainCode::WOOD);
-
-    const std::vector<std::pair<int, int>> walls = {
-            {3, 0}, {4, 0}, {5, 0}, {3, 1}, {5, 1}, {3, 2}, {5, 2},
-            {0, 6}, {2, 6}, {0, 7}, {2, 7}, {0, 8}, {1, 8}, {2, 8},
-            {7, 6}, {9, 6}, {7, 7}, {9, 7}, {7, 8}, {8, 8}, {9, 8},
-    };
-    for (const auto& w : walls) {
-        city.overlays.push_back({w.first, w.second, OverlayTile::WALL});
     }
-    city.overlays.push_back({4, 1, OverlayTile::ALTAR});
-    city.overlays.push_back({1, 7, OverlayTile::BOVEDA});
-    city.overlays.push_back({8, 7, OverlayTile::MOSTRADOR});
 
-    city.npcs.push_back({"priest", 4, 1});
-    city.npcs.push_back({"banker", 1, 7});
-    city.npcs.push_back({"merchant", 8, 7});
+    void path(int x0, int y0, int x1, int y1) { floorRect(x0, y0, x1, y1, STONE); }
 
-    return city;
+    void block(int x, int y) { prefab.obstacles.push_back({x, y, 1}); }
+
+    void building(int ax, int ay, int decoVal, int roofVal, int wT, int hT, int doorHalf,
+                  int floorTile, const std::string& npcType, int npcX, int npcY) {
+        prefab.decoration.push_back({ax, ay, decoVal});
+        int x1 = ax + wT - 1;
+        int y0 = ay - hT + 1;
+        floorRect(ax, y0, x1, ay, floorTile);
+        int cx = ax + wT / 2;
+        for (int x = ax; x <= x1; ++x) {
+            block(x, y0);
+            bool door = (x >= cx - doorHalf && x <= cx + doorHalf);
+            if (!door) {
+                block(x, ay);
+            }
+        }
+        for (int y = y0; y <= ay; ++y) {
+            block(ax, y);
+            block(x1, y);
+        }
+        prefab.roofs.push_back({ax, ay, roofVal});
+        for (int y = y0; y <= ay; ++y) {
+            for (int x = ax; x <= x1; ++x) {
+                prefab.indoor.push_back({x, y, 1});
+            }
+        }
+        prefab.npcs.push_back({npcType, npcX, npcY});
+    }
+
+    void stall(int ax, int ay, int wT, const std::string& npcType, int npcX, int npcY) {
+        prefab.decoration.push_back({ax, ay, STALL});
+        for (int x = ax; x <= ax + wT - 1; ++x) {
+            block(x, ay);
+            block(x, ay - 1);
+        }
+        prefab.npcs.push_back({npcType, npcX, npcY});
+    }
+};
+
+CityPrefab buildPrefab() {
+    Recorder r;
+    r.prefab.width = 44;
+    r.prefab.height = 34;
+    r.path(1, 23, 42, 33);
+    r.building(2, 22, CHURCH, CHURCH_ROOF, 15, 18, 1, STONE, "priest", 9, 14);
+    r.building(20, 18, BANK, BANK_ROOF, 20, 11, 1, WOOD, "banker", 30, 10);
+    r.path(29, 19, 31, 23);
+    r.stall(16, 30, 9, "merchant", 20, 32);
+    return r.prefab;
+}
+}  // namespace
+
+const CityPrefab& getCityPrefab() {
+    static const CityPrefab prefab = buildPrefab();
+    return prefab;
 }

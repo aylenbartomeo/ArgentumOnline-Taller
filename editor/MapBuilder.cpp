@@ -4,21 +4,17 @@
 
 #include <nlohmann/json.hpp>
 
+#include "CityPrefab.h"
+
 namespace {
 constexpr int W = 100;
 constexpr int H = 100;
 constexpr int GRASS = 108;
 constexpr int WATER = 109;
 constexpr int STONE = 17;
-constexpr int WOOD = 106;
 
 constexpr int TREE = 11;
 constexpr int PALM = 42;
-constexpr int CHURCH = 201;
-constexpr int BANK = 202;
-constexpr int STALL = 203;
-constexpr int CHURCH_ROOF = 204;
-constexpr int BANK_ROOF = 205;
 
 struct Builder {
     std::vector<std::vector<int>> ground;
@@ -107,58 +103,41 @@ struct Builder {
         }
     }
 
-    void building(int ax, int ay, int decoVal, int roofVal, int wT, int hT, int doorHalf,
-                  int floorTile, const std::string& npcType, int npcX, int npcY) {
-        deco(ax, ay, decoVal);
-        int x1 = ax + wT - 1;
-        int y0 = ay - hT + 1;
-        floorRect(ax, y0, x1, ay, floorTile);
-        int cx = ax + wT / 2;
-        for (int x = ax; x <= x1; ++x) {
-            block(x, y0);
-            bool door = (x >= cx - doorHalf && x <= cx + doorHalf);
-            if (!door) {
-                block(x, ay);
-            }
-        }
-        for (int y = y0; y <= ay; ++y) {
-            block(ax, y);
-            block(x1, y);
-        }
-        if (roofVal > 0 && inside(ax, ay)) {
-            roofs[ay][ax] = roofVal;
-            for (int y = y0; y <= ay; ++y) {
-                for (int x = ax; x <= x1; ++x) {
-                    if (inside(x, y)) {
-                        indoor[y][x] = 1;
-                    }
-                }
-            }
-        }
-        npcs.push_back({{"type", npcType}, {"x", npcX}, {"y", npcY}});
-    }
-
-    void stall(int ax, int ay, int wT, const std::string& npcType, int npcX, int npcY) {
-        deco(ax, ay, STALL);
-        for (int x = ax; x <= ax + wT - 1; ++x) {
-            block(x, ay);
-            block(x, ay - 1);
-        }
-        npcs.push_back({{"type", npcType}, {"x", npcX}, {"y", npcY}});
-    }
-
     void monster(int x, int y, const std::string& type) {
         monsters.push_back({{"type", type}, {"x", x}, {"y", y}});
     }
 
     void town(int ox, int oy, const std::string& name) {
-        path(ox + 1, oy + 23, ox + 42, oy + 33);
-        building(ox + 2, oy + 22, CHURCH, CHURCH_ROOF, 15, 18, 1, STONE, "priest", ox + 9, oy + 14);
-        building(ox + 20, oy + 18, BANK, BANK_ROOF, 20, 11, 1, WOOD, "banker", ox + 30, oy + 10);
-        path(ox + 29, oy + 19, ox + 31, oy + 23);
-        stall(ox + 16, oy + 30, 9, "merchant", ox + 20, oy + 32);
-        safeZones.push_back(
-                {{"name", name}, {"x", ox}, {"y", oy}, {"width", 44}, {"height", 34}});
+        const CityPrefab& prefab = getCityPrefab();
+        for (const CityCell& c: prefab.ground) {
+            if (inside(ox + c.dx, oy + c.dy)) {
+                ground[oy + c.dy][ox + c.dx] = c.value;
+            }
+        }
+        for (const CityCell& c: prefab.decoration) {
+            deco(ox + c.dx, oy + c.dy, c.value);
+        }
+        for (const CityCell& c: prefab.roofs) {
+            if (inside(ox + c.dx, oy + c.dy)) {
+                roofs[oy + c.dy][ox + c.dx] = c.value;
+            }
+        }
+        for (const CityCell& c: prefab.indoor) {
+            if (inside(ox + c.dx, oy + c.dy)) {
+                indoor[oy + c.dy][ox + c.dx] = c.value;
+            }
+        }
+        for (const CityCell& c: prefab.obstacles) {
+            block(ox + c.dx, oy + c.dy);
+        }
+        for (const CityNpc& n: prefab.npcs) {
+            npcs.push_back({{"type", n.type}, {"x", ox + n.dx}, {"y", oy + n.dy}});
+        }
+        safeZones.push_back({{"name", name},
+                             {"x", ox},
+                             {"y", oy},
+                             {"width", prefab.width},
+                             {"height", prefab.height}});
     }
 };
 }  // namespace

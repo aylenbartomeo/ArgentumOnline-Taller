@@ -4,16 +4,10 @@
 #include <string>
 #include <vector>
 
-struct CityTerrainCell {
+struct CityCell {
     int dx;
     int dy;
-    int code;
-};
-
-struct CityOverlayCell {
-    int dx;
-    int dy;
-    int tile;
+    int value;
 };
 
 struct CityNpc {
@@ -25,11 +19,14 @@ struct CityNpc {
 struct CityPrefab {
     int width;
     int height;
-    std::vector<CityTerrainCell> terrain;
-    std::vector<CityOverlayCell> overlays;
+    std::vector<CityCell> ground;
+    std::vector<CityCell> decoration;
+    std::vector<CityCell> roofs;
+    std::vector<CityCell> indoor;
+    std::vector<CityCell> obstacles;
     std::vector<CityNpc> npcs;
 };
 
-CityPrefab makeCityPrefab();
+const CityPrefab& getCityPrefab();
 
 #endif
