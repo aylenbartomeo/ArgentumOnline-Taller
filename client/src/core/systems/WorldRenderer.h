@@ -6,6 +6,7 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
 
+#include "../rendering/IndoorRegions.h"
 #include "../rendering/TextureManager.h"
 #include "../rendering/TileMap.h"
 #include "../rendering/Viewport.h"
@@ -20,6 +21,7 @@ public:
     void renderOverlays(const CameraOffset& camera) const;
     void renderGroundItems(const CameraOffset& camera, const SnapshotDTO& snapshot) const;
     void renderCitizens(const CameraOffset& camera) const;
+    void renderRoofs(const CameraOffset& camera, int playerCol, int playerRow) const;
 
 private:
     void renderTileLayer(const std::vector<std::vector<int>>& grid, const std::string& folder,
@@ -31,6 +33,7 @@ private:
     SDL2pp::Renderer& renderer;
     const TileMap& map;
     TTF_Font* worldFont;
+    IndoorRegions indoorRegions;
 };
 
 #endif

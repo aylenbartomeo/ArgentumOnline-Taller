@@ -45,13 +45,38 @@ FrameRect citizenHead(const std::string& type) {
 
 WorldRenderer::WorldRenderer(TextureManager& textures, SDL2pp::Renderer& renderer,
                              const TileMap& map, TTF_Font* worldFont):
-        textures(textures), renderer(renderer), map(map), worldFont(worldFont) {}
+        textures(textures),
+        renderer(renderer),
+        map(map),
+        worldFont(worldFont),
+        indoorRegions(map.getIndoor()) {}
 
 void WorldRenderer::renderTerrain(const CameraOffset& camera) const {
     renderTileLayer(map.getGround(), "ground/", camera);
     renderTileLayer(map.getGround2(), "ground/", camera);
     renderTileLayer(map.getDecoration(), "decoration/", camera);
     renderer.SetClipRect();
+}
+
+void WorldRenderer::renderRoofs(const CameraOffset& camera, int playerCol, int playerRow) const {
+    const std::vector<std::vector<int>>& grid = map.getRoofs();
+    for (int row = 0; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            if (v <= 0) {
+                continue;
+            }
+            if (indoorRegions.roofHidden(col, row, playerCol, playerRow)) {
+                continue;
+            }
+            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "decoration/" +
+                                                std::to_string(v - 1) + ".png");
+            TileRect r = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE,
+                                      camera.x, camera.y);
+            renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
+                          SDL2pp::Rect(r.x, r.y, r.w, r.h));
+        }
+    }
 }
 
 void WorldRenderer::renderTileLayer(const std::vector<std::vector<int>>& grid,

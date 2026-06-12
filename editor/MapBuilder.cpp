@@ -17,11 +17,15 @@ constexpr int PALM = 42;
 constexpr int CHURCH = 201;
 constexpr int BANK = 202;
 constexpr int STALL = 203;
+constexpr int CHURCH_ROOF = 204;
+constexpr int BANK_ROOF = 205;
 
 struct Builder {
     std::vector<std::vector<int>> ground;
     std::vector<std::vector<int>> ground2;
     std::vector<std::vector<int>> decoration;
+    std::vector<std::vector<int>> roofs;
+    std::vector<std::vector<int>> indoor;
     nlohmann::json obstacles = nlohmann::json::array();
     nlohmann::json npcs = nlohmann::json::array();
     nlohmann::json monsters = nlohmann::json::array();
@@ -30,7 +34,9 @@ struct Builder {
     Builder():
             ground(H, std::vector<int>(W, GRASS)),
             ground2(H, std::vector<int>(W, 0)),
-            decoration(H, std::vector<int>(W, 0)) {}
+            decoration(H, std::vector<int>(W, 0)),
+            roofs(H, std::vector<int>(W, 0)),
+            indoor(H, std::vector<int>(W, 0)) {}
 
     bool inside(int x, int y) const { return x >= 0 && x < W && y >= 0 && y < H; }
 
@@ -96,8 +102,8 @@ struct Builder {
         block(x, y);
     }
 
-    void building(int ax, int ay, int decoVal, int wT, int hT, int doorHalf, int floorTile,
-                  const std::string& npcType, int npcX, int npcY) {
+    void building(int ax, int ay, int decoVal, int roofVal, int wT, int hT, int doorHalf,
+                  int floorTile, const std::string& npcType, int npcX, int npcY) {
         deco(ax, ay, decoVal);
         int x1 = ax + wT - 1;
         int y0 = ay - hT + 1;
@@ -113,6 +119,16 @@ struct Builder {
         for (int y = y0; y <= ay; ++y) {
             block(ax, y);
             block(x1, y);
+        }
+        if (roofVal > 0 && inside(ax, ay)) {
+            roofs[ay][ax] = roofVal;
+            for (int y = y0; y <= ay; ++y) {
+                for (int x = ax; x <= x1; ++x) {
+                    if (inside(x, y)) {
+                        indoor[y][x] = 1;
+                    }
+                }
+            }
         }
         npcs.push_back({{"type", npcType}, {"x", npcX}, {"y", npcY}});
     }
@@ -132,8 +148,8 @@ struct Builder {
 
     void town(int ox, int oy, const std::string& name) {
         path(ox + 1, oy + 23, ox + 42, oy + 33);
-        building(ox + 2, oy + 22, CHURCH, 15, 18, 1, STONE, "priest", ox + 9, oy + 14);
-        building(ox + 20, oy + 18, BANK, 20, 14, 1, WOOD, "banker", ox + 30, oy + 17);
+        building(ox + 2, oy + 22, CHURCH, CHURCH_ROOF, 15, 18, 1, STONE, "priest", ox + 9, oy + 14);
+        building(ox + 20, oy + 18, BANK, BANK_ROOF, 20, 11, 1, WOOD, "banker", ox + 30, oy + 10);
         path(ox + 29, oy + 19, ox + 31, oy + 23);
         stall(ox + 16, oy + 30, 9, "merchant", ox + 20, oy + 32);
         safeZones.push_back(
@@ -185,8 +201,8 @@ int main() {
     m["ground"] = b.ground;
     m["ground2"] = b.ground2;
     m["decoration"] = b.decoration;
-    m["roofs"] = std::vector<std::vector<int>>(H, std::vector<int>(W, 0));
-    m["indoor"] = std::vector<std::vector<int>>(H, std::vector<int>(W, 0));
+    m["roofs"] = b.roofs;
+    m["indoor"] = b.indoor;
     m["obstacles"] = b.obstacles;
     m["npcs"] = b.npcs;
     m["monsters"] = b.monsters;

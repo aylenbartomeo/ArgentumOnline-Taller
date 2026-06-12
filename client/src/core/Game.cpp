@@ -147,6 +147,26 @@ void Game::render(const FrameInput& input) {
     worldRenderer.renderGroundItems(cam, lastSnapshot);
     worldRenderer.renderCitizens(cam);
     entityRenderer.render(cam, lastSnapshot, now);
+
+    int playerCol = -1;
+    int playerRow = -1;
+    const uint32_t myId = client.getClientId();
+    const auto& animators = entityRenderer.getAnimators();
+    auto ait = animators.find(myId);
+    if (ait != animators.end()) {
+        playerCol = static_cast<int>(ait->second.getVirtualX() + 0.5f);
+        playerRow = static_cast<int>(ait->second.getVirtualY() + 0.5f);
+    } else {
+        for (const auto& e: lastSnapshot.players) {
+            if (e.id == myId) {
+                playerCol = e.x;
+                playerRow = e.y;
+                break;
+            }
+        }
+    }
+    worldRenderer.renderRoofs(cam, playerCol, playerRow);
+
     fxSystem.renderProjectiles(cam, now);
     fxSystem.render(cam, lastSnapshot, entityRenderer.getAnimators());
     fxSystem.renderFullscreen(WINDOW_WIDTH, WINDOW_HEIGHT);
