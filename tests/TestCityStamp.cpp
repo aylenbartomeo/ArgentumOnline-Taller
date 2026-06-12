@@ -1,30 +1,60 @@
 #include <gtest/gtest.h>
-#include <nlohmann/json.hpp>
 
+#include "CityPrefab.h"
 #include "CityStamp.h"
-#include "OverlayRegistry.h"
-#include "TerrainRegistry.h"
 
-TEST(CityStampTest, StampWritesNpcsSafeZoneAndObstacles) {
-    EditorMap map(60, 60, 32, "5108.png", 32);
-    applyCityPrefab(map, 25, 25, "Ullathorpe");
+namespace {
+constexpr int WATER = 109;
 
-    EXPECT_EQ(map.getCitizens().size(), 3u);
-    EXPECT_EQ(map.getSafeZones().size(), 1u);
-    EXPECT_EQ(map.terrainAt(25, 25), TerrainCode::STONE);
+EditorMap emptyMap() { return EditorMap(100, 100, 32, "5108.png", 32); }
+}  // namespace
 
-    nlohmann::json data = nlohmann::json::parse(map.toJson());
-    ASSERT_TRUE(data.contains("obstacles"));
-    EXPECT_FALSE(data["obstacles"].empty());
+TEST(CityStampTest, ApplyStampsAllLayersWithOffset) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+
+    EXPECT_EQ(map.getGround()[20 + 23][10 + 1], 17);
+    EXPECT_EQ(map.getGround()[20 + 18][10 + 20], 106);
+    EXPECT_EQ(map.getDecoration()[20 + 22][10 + 2], 201);
+    EXPECT_EQ(map.getDecoration()[20 + 18][10 + 20], 202);
+    EXPECT_EQ(map.getDecoration()[20 + 30][10 + 16], 203);
+    EXPECT_EQ(map.getRoofs()[20 + 22][10 + 2], 204);
+    EXPECT_EQ(map.getRoofs()[20 + 18][10 + 20], 205);
+    EXPECT_EQ(map.getIndoor()[20 + 14][10 + 9], 1);
+    EXPECT_TRUE(map.isBlocked(10 + 2, 20 + 22));
+    EXPECT_FALSE(map.isBlocked(10 + 9, 20 + 22));
+
+    ASSERT_EQ(map.getCitizens().size(), 3u);
+    EXPECT_EQ(map.getCitizens()[0].type, "priest");
+    EXPECT_EQ(map.getCitizens()[0].x, 10 + 9);
+    EXPECT_EQ(map.getCitizens()[0].y, 20 + 14);
+
+    ASSERT_EQ(map.getSafeZones().size(), 1u);
+    EXPECT_EQ(map.getSafeZones()[0].name, "Pueblo");
+    EXPECT_EQ(map.getSafeZones()[0].x, 10);
+    EXPECT_EQ(map.getSafeZones()[0].y, 20);
+    EXPECT_EQ(map.getSafeZones()[0].width, 44);
+    EXPECT_EQ(map.getSafeZones()[0].height, 34);
 }
 
-TEST(CityStampTest, ClearRemovesCity) {
-    EditorMap map(60, 60, 32, "5108.png", 32);
-    applyCityPrefab(map, 25, 25, "Ullathorpe");
-    clearCity(map, 25, 25);
+TEST(CityStampTest, RejectsWhenOutOfBounds) {
+    EditorMap map = emptyMap();
+    EXPECT_NE(cityStampError(map, 90, 10), "");
+    EXPECT_NE(cityStampError(map, 10, 90), "");
+    EXPECT_NE(cityStampError(map, -1, 10), "");
+    EXPECT_EQ(cityStampError(map, 10, 10), "");
+}
 
-    EXPECT_TRUE(map.getCitizens().empty());
-    EXPECT_TRUE(map.getSafeZones().empty());
-    EXPECT_EQ(map.terrainAt(25, 25), TerrainCode::GRASS);
-    EXPECT_EQ(map.tileAt(28, 25), 0);  // pared de la iglesia borrada (origin 25 + dx 3)
+TEST(CityStampTest, RejectsWhenOverWater) {
+    EditorMap map = emptyMap();
+    map.setGround(30, 30, WATER);
+    EXPECT_NE(cityStampError(map, 10, 10), "");
+    EXPECT_EQ(cityStampError(map, 50, 50), "");
+}
+
+TEST(CityStampTest, RejectsWhenOverlappingAnotherCity) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 10, "Pueblo");
+    EXPECT_NE(cityStampError(map, 30, 20), "");
+    EXPECT_EQ(cityStampError(map, 54, 10), "");
 }

@@ -5,7 +5,7 @@
 
 #include "EditorMap.h"
 
+std::string cityStampError(const EditorMap& map, int originX, int originY);
 void applyCityPrefab(EditorMap& map, int originX, int originY, const std::string& name);
-void clearCity(EditorMap& map, int originX, int originY);
 
 #endif
