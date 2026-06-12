@@ -7,6 +7,7 @@
 #include "../network/Receiver.h"
 #include "../network/Sender.h"
 #include "common/include/dto/ClientCommands.h"
+#include "common/include/dto/JoinResponseDTO.h"
 #include "common/include/dto/PlayerStatsDTO.h"
 #include "common/include/dto/Snapshot.h"
 #include "common/include/queue.h"
@@ -22,6 +23,7 @@ private:
     Queue<SnapshotDTO> snapshotQueue;
     Queue<ChatDTO> chatQueue;
     Queue<PlayerStatsDTO> statsQueue;
+    Queue<JoinResponseDTO> joinResponseQueue;
     Queue<CommandVariant> commandQueue;
 
     Receiver receiver;
@@ -42,6 +44,9 @@ public:
 
     void pushPlayerStats(const PlayerStatsDTO& stats);
     bool tryPopPlayerStats(PlayerStatsDTO& out);
+
+    void pushJoinResponse(const JoinResponseDTO& dto);
+    bool tryPopJoinResponse(JoinResponseDTO& out);
 
     void sendCommand(const CommandVariant& cmd);
 

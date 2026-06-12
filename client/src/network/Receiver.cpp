@@ -17,6 +17,9 @@ void Receiver::run() {
             } else if (opcode == static_cast<uint8_t>(OPCODE::STATS_UPDATE)) {
                 PlayerStatsDTO stats = protocol.receivePlayerStatsBody();
                 client.pushPlayerStats(stats);
+            } else if (opcode == static_cast<uint8_t>(OPCODE::JOIN_RESPONSE)) {
+                JoinResponseDTO resp = protocol.receiveJoinResponseBody();
+                client.pushJoinResponse(resp);
             }
         }
     } catch (...) {}

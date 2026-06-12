@@ -12,7 +12,10 @@
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
 
+#include "../ui/CharacterCreationScreen.h"
 #include "common/GameConstants.h"
+#include "common/include/dto/CreateCharacterDTO.h"
+#include "common/include/dto/JoinResponseDTO.h"
 #include "systems/StateAudioTrigger.h"
 
 using GameConstants::VIEW_H;
@@ -69,6 +72,39 @@ Game::Game(Client& client):
 Game::~Game() {
     if (worldFont)
         TTF_CloseFont(worldFont);
+}
+
+bool Game::runStartupAndCreation() {
+    JoinResponseDTO joinResp;
+
+    // Esperamos a recibir el JOIN_RESPONSE
+    bool received = false;
+    while (!received) {
+        if (events.pollEvents().quit) {
+            return false;  // Cerrar el juego
+        }
+        received = client.tryPopJoinResponse(joinResp);
+        SDL_Delay(10);
+    }
+
+    if (joinResp.needsCreation) {
+        CharacterCreationScreen screen(window.getRenderer(), textures, joinResp);
+        auto result = screen.run();
+
+        if (result.created) {
+            CreateCharacterDTO createDto{result.race, result.characterClass};
+            client.sendCommand(createDto);
+            run();  // Entramos al mundo
+            return false;
+        } else {
+            // El usuario apretó VOLVER
+            return true;  // Volvemos al login
+        }
+    } else {
+        // Ya tiene personaje
+        run();  // Entramos al mundo
+        return false;
+    }
 }
 
 void Game::run() {

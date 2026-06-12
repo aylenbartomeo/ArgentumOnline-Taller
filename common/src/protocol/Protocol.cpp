@@ -220,6 +220,53 @@ LoginResponseDTO Protocol::recvRegisterResponse() {
     }
 }
 
+void Protocol::sendJoinResponse(const JoinResponseDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::JOIN_RESPONSE));
+    sendUint8(dto.needsCreation ? 1 : 0);
+
+    if (dto.needsCreation) {
+        sendUint32(dto.baseStrength);
+        sendUint32(dto.baseAgility);
+        sendUint32(dto.baseIntelligence);
+        sendUint32(dto.baseConstitution);
+
+        sendUint16(static_cast<uint16_t>(dto.raceFactors.size()));
+        for (float f: dto.raceFactors) {
+            sendFloat(f);
+        }
+
+        sendUint16(static_cast<uint16_t>(dto.classFactors.size()));
+        for (float f: dto.classFactors) {
+            sendFloat(f);
+        }
+    }
+}
+
+JoinResponseDTO Protocol::receiveJoinResponseBody() {
+
+    JoinResponseDTO dto;
+    dto.needsCreation = (recvUint8() == 1);
+
+    if (dto.needsCreation) {
+        dto.baseStrength = recvUint32();
+        dto.baseAgility = recvUint32();
+        dto.baseIntelligence = recvUint32();
+        dto.baseConstitution = recvUint32();
+
+        uint16_t raceFactorsSize = recvUint16();
+        for (uint16_t i = 0; i < raceFactorsSize; ++i) {
+            dto.raceFactors.push_back(recvFloat());
+        }
+
+        uint16_t classFactorsSize = recvUint16();
+        for (uint16_t i = 0; i < classFactorsSize; ++i) {
+            dto.classFactors.push_back(recvFloat());
+        }
+    }
+
+    return dto;
+}
+
 SnapshotDTO Protocol::receiveSnapshotBody() {
     SnapshotDTO snap;
 
@@ -434,6 +481,12 @@ void Protocol::sendShoot(const ShootDTO& dto) {
     sendFloat(dto.targetY);
 }
 
+void Protocol::sendCreateCharacter(const CreateCharacterDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::CREATE_CHARACTER));
+    sendUint8(dto.race);
+    sendUint8(dto.characterClass);
+}
+
 // =======================================================
 // CAPA SEMÁNTICA (RECEPCIÓN DEL SERVIDOR)
 // =======================================================
@@ -518,6 +571,12 @@ CommandVariant Protocol::receive_command() {
             ShootDTO dto;
             dto.targetX = recvFloat();
             dto.targetY = recvFloat();
+            return dto;
+        }
+        case OPCODE::CREATE_CHARACTER: {
+            CreateCharacterDTO dto;
+            dto.race = recvUint8();
+            dto.characterClass = recvUint8();
             return dto;
         }
         default:

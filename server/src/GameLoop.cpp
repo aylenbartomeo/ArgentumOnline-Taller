@@ -94,8 +94,39 @@ void GameLoop::processInputs() {
             std::optional<Position> savedPos = std::nullopt;
             if (savedData.has_value()) {
                 savedPos = Position{savedData->posX, savedData->posY};
+                Race race = static_cast<Race>(savedData->race);
+                CharacterClass cls = static_cast<CharacterClass>(savedData->characterClass);
+                world.addPlayer(joinData.clientId, joinData.username, race, cls, savedData);
+
+                JoinResponseDTO resp;
+                resp.needsCreation = false;
+                monitor.sendToClient(joinData.clientId, resp);
+            } else {
+                pendingCreations[joinData.clientId] = joinData.username;
+                JoinResponseDTO resp;
+                resp.needsCreation = true;
+                resp.baseStrength = characterConfigs.player.baseStrength;
+                resp.baseAgility = characterConfigs.player.baseAgility;
+                resp.baseIntelligence = characterConfigs.player.baseIntelligence;
+                resp.baseConstitution = characterConfigs.player.baseConstitution;
+
+                for (int i = 0; i < 4; ++i) {
+                    auto race = static_cast<Race>(i);
+                    resp.raceFactors.push_back(characterConfigs.races[race].lifeFactor);
+                    resp.raceFactors.push_back(characterConfigs.races[race].manaFactor);
+                    resp.raceFactors.push_back(characterConfigs.races[race].strengthFactor);
+                    resp.raceFactors.push_back(characterConfigs.races[race].agilityFactor);
+                    resp.raceFactors.push_back(characterConfigs.races[race].intelligenceFactor);
+                }
+
+                for (int i = 0; i < 4; ++i) {
+                    auto cls = static_cast<CharacterClass>(i);
+                    resp.classFactors.push_back(characterConfigs.classes[cls].lifeFactor);
+                    resp.classFactors.push_back(characterConfigs.classes[cls].manaFactor);
+                }
+
+                monitor.sendToClient(joinData.clientId, resp);
             }
-            world.addPlayer(joinData.clientId, joinData.username, savedData);
 
             // 2. Un jugador se desconecta
         } else if (std::holds_alternative<DisconnectEvent>(event)) {
@@ -112,6 +143,7 @@ void GameLoop::processInputs() {
             }
 
             world.removePlayer(discData.clientId);
+            pendingCreations.erase(discData.clientId);
 
             // 3. Checkeo de comandos in-game
         } else if (std::holds_alternative<PlayerCommand>(event)) {
@@ -201,6 +233,18 @@ void GameLoop::processInputs() {
                 world.playerShoot(pCmd.clientId, shoot.targetX, shoot.targetY);
             } else if (std::holds_alternative<CheatDTO>(pCmd.command)) {
                 world.playerCheat(pCmd.clientId, std::get<CheatDTO>(pCmd.command).type);
+            } else if (std::holds_alternative<CreateCharacterDTO>(pCmd.command)) {
+                CreateCharacterDTO createDto = std::get<CreateCharacterDTO>(pCmd.command);
+                auto it = pendingCreations.find(pCmd.clientId);
+                if (it != pendingCreations.end()) {
+                    std::string pendingUsername = it->second;
+                    pendingCreations.erase(it);
+
+                    Race race = static_cast<Race>(createDto.race);
+                    CharacterClass cls = static_cast<CharacterClass>(createDto.characterClass);
+
+                    world.addPlayer(pCmd.clientId, pendingUsername, race, cls, std::nullopt);
+                }
             }
         }
     }

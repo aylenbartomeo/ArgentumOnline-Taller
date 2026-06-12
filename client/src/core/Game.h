@@ -31,6 +31,10 @@ public:
     ~Game();
 
     void run();
+    bool runStartupAndCreation();
+
+    SDL2pp::Renderer& getWindowRenderer() { return window.getRenderer(); }
+    TextureManager& getTextures() { return textures; }
 
     Game(const Game&) = delete;
     Game& operator=(const Game&) = delete;

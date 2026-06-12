@@ -86,7 +86,7 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
 std::string World::getCreatorPlayerName() const { return this->creatorPlayerName; }
 int World::getWorldId() const { return this->worldId; }
 
-bool World::addPlayer(uint32_t dbId, std::string& username,
+bool World::addPlayer(uint32_t dbId, std::string& username, Race race, CharacterClass cls,
                       const std::optional<PlayerPersistData>& savedData) {
     if (entityManager.resolveEntityId(dbId) != 0) {
         return false;
@@ -95,8 +95,8 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
     uint32_t entityId = entityManager.allocateEntityId();
 
     PlayerConfig baseConfig = characterConfigs.player;
-    Race savedRace = Race::HUMAN;
-    CharacterClass savedClass = CharacterClass::WARRIOR;
+    Race savedRace = race;
+    CharacterClass savedClass = cls;
 
     RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig classConfig = {1.0f, 1.0f, 1.0f, false};
