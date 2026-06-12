@@ -99,8 +99,12 @@ struct Builder {
 
     void tree(int x, int y, int tile) {
         deco(x, y, tile);
-        int trunkOffset = (tile == PALM) ? 2 : 3;
-        block(x + trunkOffset, y);
+        if (tile == PALM) {
+            block(x + 2, y);
+        } else {
+            block(x + 3, y);
+            block(x + 4, y);
+        }
     }
 
     void building(int ax, int ay, int decoVal, int roofVal, int wT, int hT, int doorHalf,
