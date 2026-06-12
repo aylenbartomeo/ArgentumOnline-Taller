@@ -46,7 +46,8 @@ Game::Game(Client& client):
         miniChat(CHAT_FONT_PATH),
         hud(textures, HUD_FONT_PATH),
         manualPanel(HUD_FONT_PATH),
-        chatParser([this]() { return hud.getSelectedSlot(); }),
+        chatParser([this]() { return hud.getSelectedSlot(); },
+                   [this]() { return this->client.getSelectedNpc(); }),
         lastSnapshot(),
         lastStats(),
         audio(),
@@ -119,6 +120,9 @@ void Game::render(const FrameInput& input) {
     const CameraOffset cam =
             camera.compute(client.getClientId(), lastSnapshot, entityRenderer.getAnimators(), map);
 
+    // Procesar click izq sobre npc
+    inputProcessor.processNpcTargetInput(input, cam, lastSnapshot, map);
+
     const auto combatResult =
             inputProcessor.processCombatInput(input, cam, lastSnapshot, lastStats, map);
     if (combatResult.fx) {
@@ -145,8 +149,8 @@ void Game::render(const FrameInput& input) {
     worldRenderer.renderTerrain(cam);
     worldRenderer.renderOverlays(cam);
     worldRenderer.renderGroundItems(cam, lastSnapshot);
-    worldRenderer.renderCitizens(cam);
-    entityRenderer.render(cam, lastSnapshot, now);
+    worldRenderer.renderCitizens(cam, client.getSelectedNpc());
+    entityRenderer.render(cam, lastSnapshot, now, client.getSelectedNpc());
     fxSystem.renderProjectiles(cam, now);
     fxSystem.render(cam, lastSnapshot, entityRenderer.getAnimators());
     fxSystem.renderFullscreen(WINDOW_WIDTH, WINDOW_HEIGHT);

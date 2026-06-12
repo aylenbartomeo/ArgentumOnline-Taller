@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -26,6 +27,10 @@ constexpr int CHARACTER_FRAME_Y = 4;
 constexpr int CHARACTER_FRAME_W = 24;
 constexpr int CHARACTER_FRAME_H = 44;
 constexpr int CITIZEN_HEAD_OVERLAP = 6;
+
+constexpr double TAU = 6.283185307179586;
+constexpr int MARKER_SEGMENTS = 24;
+constexpr int MARKER_SHIFT_X = 3;
 
 const char* citizenSheet(const std::string& type) {
     if (type == "merchant")
@@ -152,10 +157,12 @@ void WorldRenderer::drawGroundAmount(const std::string& text, int tileX, int til
     SDL_DestroyTexture(tex);
 }
 
-void WorldRenderer::renderCitizens(const CameraOffset& camera) const {
+void WorldRenderer::renderCitizens(const CameraOffset& camera,
+                                   std::optional<uint32_t> selectedNpc) const {
     SDL2pp::Texture& headSheet = textures.get(std::string(GC::RESOURCES_DIR) + GC::HEAD_SHEET);
     const SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
                                CHARACTER_FRAME_H);
+
     for (const MapCitizen& citizen: map.getCitizens()) {
         SDL2pp::Texture& body =
                 textures.get(std::string(GC::RESOURCES_DIR) + citizenSheet(citizen.type));
@@ -172,5 +179,26 @@ void WorldRenderer::renderCitizens(const CameraOffset& camera) const {
                           CITIZEN_HEAD_OVERLAP - GC::HEAD_DRAW_H - camera.y;
         renderer.Copy(headSheet, SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h),
                       SDL2pp::Rect(headX, headY, GC::HEAD_DRAW_W, GC::HEAD_DRAW_H));
+
+        // DIBUJAR ANILLO VERDE SI ESTÁ SELECCIONADO
+        uint32_t fakeId = (citizen.x << 16) | citizen.y;
+        if (selectedNpc.has_value() && selectedNpc.value() == fakeId) {
+            renderer.SetDrawColor(0, 255, 0, 255);
+            const int cx =
+                    citizen.x * GC::TILE_SIZE + GC::TILE_SIZE / 2 - MARKER_SHIFT_X - camera.x;
+            const int cy = citizen.y * GC::TILE_SIZE + GC::TILE_SIZE - 4 - camera.y;
+            for (int t = -1; t <= 1; ++t) {
+                const int rx = GC::TILE_SIZE / 2 - 2 + t;
+                const int ry = GC::TILE_SIZE / 5 + t;
+                for (int i = 0; i < MARKER_SEGMENTS; ++i) {
+                    const double a0 = TAU * i / MARKER_SEGMENTS;
+                    const double a1 = TAU * (i + 1) / MARKER_SEGMENTS;
+                    renderer.DrawLine(cx + static_cast<int>(rx * std::cos(a0)),
+                                      cy + static_cast<int>(ry * std::sin(a0)),
+                                      cx + static_cast<int>(rx * std::cos(a1)),
+                                      cy + static_cast<int>(ry * std::sin(a1)));
+                }
+            }
+        }
     }
 }

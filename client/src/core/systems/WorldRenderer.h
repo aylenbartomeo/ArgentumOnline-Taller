@@ -1,6 +1,7 @@
 #ifndef WORLD_RENDERER_H
 #define WORLD_RENDERER_H
 
+#include <optional>
 #include <string>
 
 #include <SDL2pp/SDL2pp.hh>
@@ -19,7 +20,8 @@ public:
     void renderTerrain(const CameraOffset& camera) const;
     void renderOverlays(const CameraOffset& camera) const;
     void renderGroundItems(const CameraOffset& camera, const SnapshotDTO& snapshot) const;
-    void renderCitizens(const CameraOffset& camera) const;
+    void renderCitizens(const CameraOffset& camera,
+                        std::optional<uint32_t> selectedNpc = std::nullopt) const;
 
 private:
     bool cellInSafeZone(int col, int row) const;

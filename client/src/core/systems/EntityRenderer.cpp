@@ -33,10 +33,11 @@ std::unordered_map<uint32_t, CharacterAnimator>& EntityRenderer::getAnimators() 
     return animators;
 }
 
-void EntityRenderer::render(const CameraOffset& camera, const SnapshotDTO& snapshot,
-                            uint32_t nowMs) {
-    for (const EntityDTO& player: snapshot.players) drawEntity(player, camera, nowMs);
-    for (const EntityDTO& monster: snapshot.monsters) drawEntity(monster, camera, nowMs);
+void EntityRenderer::render(const CameraOffset& camera, const SnapshotDTO& snapshot, uint32_t nowMs,
+                            std::optional<uint32_t> selectedNpc) {
+    for (const EntityDTO& player: snapshot.players) drawEntity(player, camera, nowMs, selectedNpc);
+    for (const EntityDTO& monster: snapshot.monsters)
+        drawEntity(monster, camera, nowMs, selectedNpc);
 
     // Purgar animators huérfanos
     for (auto it = animators.begin(); it != animators.end();) {
@@ -55,8 +56,8 @@ void EntityRenderer::render(const CameraOffset& camera, const SnapshotDTO& snaps
     for (const EntityDTO& monster: snapshot.monsters) drawHealthBar(monster, camera);
 }
 
-void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& camera,
-                                uint32_t nowMs) {
+void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& camera, uint32_t nowMs,
+                                std::optional<uint32_t> selectedNpc) {
     CharacterAnimator& anim = animators[entity.id];
     anim.update(entity.x, entity.y, nowMs);
     const int px = static_cast<int>(anim.getVirtualX() * GC::TILE_SIZE);
