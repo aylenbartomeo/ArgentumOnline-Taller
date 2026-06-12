@@ -93,6 +93,7 @@ target_sources(lib_client
     src/rendering/TileMap.h
     src/rendering/Viewport.h
     src/rendering/TextureManager.h
+    src/rendering/NpcVisuals.h
 
     # animation
     src/animation/CharacterAnimator.h
@@ -104,6 +105,7 @@ target_sources(lib_client
     # input
     src/input/EventHandler.h
     src/input/ChatCommandParser.h
+    src/input/NpcPolicy.h
 )
 
 # Definimos que las carpetas del cliente se expongan públicamente 

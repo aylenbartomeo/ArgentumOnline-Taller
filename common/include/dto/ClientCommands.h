@@ -61,6 +61,7 @@ enum NpcCommandType { RESPAWN, HEAL, BUY, SELL, DEPOSIT, WITHDRAW, LIST };
 struct NpcCommandDTO {
     NpcCommandType type;
     std::string arg;
+    uint32_t npcId;
 };
 
 // Esto es lo que la cola del Servidor va a recibir.

@@ -1,7 +1,9 @@
 #ifndef WORLD_RENDERER_H
 #define WORLD_RENDERER_H
 
+#include <optional>
 #include <string>
+#include <vector>
 
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL_ttf.h>
@@ -22,12 +24,11 @@ public:
     void renderDecorationFront(const CameraOffset& camera, int playerRow) const;
     void renderOverlays(const CameraOffset& camera) const;
     void renderGroundItems(const CameraOffset& camera, const SnapshotDTO& snapshot) const;
-    void renderCitizens(const CameraOffset& camera) const;
     void renderRoofs(const CameraOffset& camera, int playerCol, int playerRow) const;
+    void renderCitizens(const CameraOffset& camera,
+                        std::optional<uint32_t> selectedNpc = std::nullopt) const;
 
 private:
-    void renderTileLayer(const std::vector<std::vector<int>>& grid, const std::string& folder,
-                         const CameraOffset& camera) const;
     void renderGroundLayer(const std::vector<std::vector<int>>& grid,
                            const CameraOffset& camera) const;
     void drawDecorationTile(int id, int col, int row, const CameraOffset& camera) const;

@@ -4,16 +4,16 @@
 #include <optional>
 #include <string>
 
+#include "../../ui/HudPanel.h"
+#include "../../ui/ManualPanel.h"
+#include "../../ui/MiniChat.h"
+#include "../../ui/Window.h"
 #include "../Targeting.h"
 #include "../common/FxType.h"
 #include "../input/ChatCommandParser.h"
 #include "../input/EventHandler.h"
 #include "../rendering/TileMap.h"
 #include "../rendering/Viewport.h"
-#include "../ui/HudPanel.h"
-#include "../ui/ManualPanel.h"
-#include "../ui/MiniChat.h"
-#include "../ui/Window.h"
 #include "common/include/dto/PlayerStatsDTO.h"
 #include "common/include/dto/Snapshot.h"
 
@@ -32,7 +32,7 @@ public:
     void processSelectSlotInput(const FrameInput& input);
     void processUiInput(const FrameInput& input);
     void drainIncomingChat();
-    void sendMoveIfDue(const FrameInput& input, const SnapshotDTO& snapshot);
+    void sendMoveIfDue(const FrameInput& input, const SnapshotDTO& snapshot, const TileMap& map);
 
     // Retorna el FX a activar si el usuario atacó/disparó, o std::nullopt si no.
     struct CombatResult {
@@ -45,6 +45,9 @@ public:
                                     const SnapshotDTO& snapshot, const PlayerStatsDTO& stats,
                                     const TileMap& map);
 
+    void processNpcTargetInput(const FrameInput& input, const CameraOffset& camera,
+                               const SnapshotDTO& snapshot, const TileMap& map);
+
 private:
     Client& client;
     Window& window;
@@ -54,6 +57,10 @@ private:
     ChatCommandParser& chatParser;
     uint32_t lastMoveSentMs = 0;
     bool localInfiniteManaActive = false;
+
+    // Inyecta el npcId real y valida que el NPC seleccionado acepte el comando.
+    // Retorna false si el comando debe ser descartado (sin NPC, o comando no permitido).
+    bool validateAndAnnotateNpcCommand(NpcCommandDTO& npcCmd);
 };
 
 #endif

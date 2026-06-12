@@ -48,3 +48,24 @@ const EntityDTO* findEntityById(const SnapshotDTO& snap, uint32_t id) {
 
     return nullptr;
 }
+
+std::optional<uint32_t> pickNpcTargetAt(int col, int row, const SnapshotDTO& snap, uint32_t selfId,
+                                        int maxRange) {
+    const EntityDTO* self = findEntityById(snap, selfId);
+    if (!self)
+        return std::nullopt;
+    const int dist = std::abs((int)self->x - col) + std::abs((int)self->y - row);
+    if (dist > maxRange)
+        return std::nullopt;
+
+    // Los NPCs viajan en la lista de monsters
+    const auto it = std::find_if(
+            snap.monsters.begin(), snap.monsters.end(), [col, row](const EntityDTO& entity) {
+                return entity.type == EntityType::NPC && entity.x == col && entity.y == row;
+            });
+
+    if (it != snap.monsters.end()) {
+        return it->id;
+    }
+    return std::nullopt;
+}
