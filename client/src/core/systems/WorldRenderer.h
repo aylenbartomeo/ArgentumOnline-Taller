@@ -18,6 +18,8 @@ public:
                   TTF_Font* worldFont);
 
     void renderTerrain(const CameraOffset& camera) const;
+    void renderDecorationBehind(const CameraOffset& camera, int playerRow) const;
+    void renderDecorationFront(const CameraOffset& camera, int playerRow) const;
     void renderOverlays(const CameraOffset& camera) const;
     void renderGroundItems(const CameraOffset& camera, const SnapshotDTO& snapshot) const;
     void renderCitizens(const CameraOffset& camera) const;
@@ -28,6 +30,7 @@ private:
                          const CameraOffset& camera) const;
     void renderGroundLayer(const std::vector<std::vector<int>>& grid,
                            const CameraOffset& camera) const;
+    void drawDecorationTile(int id, int col, int row, const CameraOffset& camera) const;
     void drawGroundAmount(const std::string& text, int tileX, int tileY,
                           const CameraOffset& camera) const;
 

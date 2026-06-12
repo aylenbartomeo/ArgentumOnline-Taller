@@ -142,12 +142,6 @@ void Game::render(const FrameInput& input) {
     if (fxSystem.syncProjectileAnimators(now, lastSnapshot))
         audio.playSound(SoundEffect::PROJ_HIT);
 
-    worldRenderer.renderTerrain(cam);
-    worldRenderer.renderOverlays(cam);
-    worldRenderer.renderGroundItems(cam, lastSnapshot);
-    worldRenderer.renderCitizens(cam);
-    entityRenderer.render(cam, lastSnapshot, now);
-
     int playerCol = -1;
     int playerRow = -1;
     const uint32_t myId = client.getClientId();
@@ -165,6 +159,14 @@ void Game::render(const FrameInput& input) {
             }
         }
     }
+
+    worldRenderer.renderTerrain(cam);
+    worldRenderer.renderDecorationBehind(cam, playerRow);
+    worldRenderer.renderOverlays(cam);
+    worldRenderer.renderGroundItems(cam, lastSnapshot);
+    worldRenderer.renderCitizens(cam);
+    entityRenderer.render(cam, lastSnapshot, now);
+    worldRenderer.renderDecorationFront(cam, playerRow);
     worldRenderer.renderRoofs(cam, playerCol, playerRow);
 
     fxSystem.renderProjectiles(cam, now);

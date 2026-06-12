@@ -41,6 +41,11 @@ FrameRect citizenHead(const std::string& type) {
         return FrameRect{170, 13, 11, 15};
     return FrameRect{6, 13, 13, 15};
 }
+
+constexpr int TREE_TILE_ID = 10;
+constexpr int PALM_TILE_ID = 41;
+
+bool isTallFlora(int id) { return id == TREE_TILE_ID || id == PALM_TILE_ID; }
 }  // namespace
 
 WorldRenderer::WorldRenderer(TextureManager& textures, SDL2pp::Renderer& renderer,
@@ -54,8 +59,49 @@ WorldRenderer::WorldRenderer(TextureManager& textures, SDL2pp::Renderer& rendere
 void WorldRenderer::renderTerrain(const CameraOffset& camera) const {
     renderGroundLayer(map.getGround(), camera);
     renderGroundLayer(map.getGround2(), camera);
-    renderTileLayer(map.getDecoration(), "decoration/", camera);
     renderer.SetClipRect();
+}
+
+void WorldRenderer::renderDecorationBehind(const CameraOffset& camera, int playerRow) const {
+    const std::vector<std::vector<int>>& grid = map.getDecoration();
+    for (int row = 0; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            if (v <= 0) {
+                continue;
+            }
+            if (isTallFlora(v - 1) && playerRow >= 0 && row > playerRow) {
+                continue;
+            }
+            drawDecorationTile(v - 1, col, row, camera);
+        }
+    }
+}
+
+void WorldRenderer::renderDecorationFront(const CameraOffset& camera, int playerRow) const {
+    if (playerRow < 0) {
+        return;
+    }
+    const std::vector<std::vector<int>>& grid = map.getDecoration();
+    for (int row = playerRow + 1; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            if (v <= 0 || !isTallFlora(v - 1)) {
+                continue;
+            }
+            drawDecorationTile(v - 1, col, row, camera);
+        }
+    }
+}
+
+void WorldRenderer::drawDecorationTile(int id, int col, int row,
+                                       const CameraOffset& camera) const {
+    SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "decoration/" +
+                                        std::to_string(id) + ".png");
+    TileRect r = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE, camera.x,
+                              camera.y);
+    renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
+                  SDL2pp::Rect(r.x, r.y, r.w, r.h));
 }
 
 void WorldRenderer::renderGroundLayer(const std::vector<std::vector<int>>& grid,
