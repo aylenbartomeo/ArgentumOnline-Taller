@@ -4,9 +4,9 @@
 
 #include "../World.h"
 #include "../handlers/HealHandler.h"
+#include "../handlers/ListStockHandler.h"
 #include "../handlers/ResurrectHandler.h"
 #include "../handlers/TradeHandler.h"
-#include "../handlers/ListStockHandler.h"
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
 
@@ -21,8 +21,8 @@ Priest::Priest(uint32_t id, Position pos, const ItemRegistry& registry): id(id),
     // Inyección: Pasa su stock, pero NO permite que le vendan nada (allowsSell = false)
     commandHandlers[NpcCommandType::BUY] = std::make_unique<TradeHandler>(registry, stock, false);
     // En el constructor Priest::Priest(...)
-    commandHandlers[NpcCommandType::LIST] = 
-        std::make_unique<ListStockHandler>(registry, stock, false);
+    commandHandlers[NpcCommandType::LIST] =
+            std::make_unique<ListStockHandler>(registry, stock, false);
 }
 
 InteractionResult Priest::beInteractedBy(Player& player) {

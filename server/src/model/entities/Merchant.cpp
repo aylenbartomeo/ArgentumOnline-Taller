@@ -1,7 +1,7 @@
 #include "Merchant.h"
 
-#include "../handlers/TradeHandler.h"
 #include "../handlers/ListStockHandler.h"
+#include "../handlers/TradeHandler.h"
 #include "model/entities/Player.h"
 
 Merchant::Merchant(uint32_t id, Position pos, const ItemRegistry& registry):

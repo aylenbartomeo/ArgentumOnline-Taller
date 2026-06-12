@@ -105,6 +105,7 @@ void Protocol::sendSnapshot(const SnapshotDTO& snap) {
         sendUint16(entity.helmetItemId);
         sendUint16(entity.shieldItemId);
         sendUint16(entity.bodyArmorItemId);
+        sendUint16(entity.level);
     }
 
     sendUint16(static_cast<uint16_t>(snap.monsters.size()));
@@ -121,6 +122,7 @@ void Protocol::sendSnapshot(const SnapshotDTO& snap) {
         sendUint16(entity.helmetItemId);
         sendUint16(entity.shieldItemId);
         sendUint16(entity.bodyArmorItemId);
+        sendUint16(entity.level);
     }
 
     sendUint16(static_cast<uint16_t>(snap.groundItems.size()));
@@ -285,6 +287,7 @@ SnapshotDTO Protocol::receiveSnapshotBody() {
         entity.helmetItemId = recvUint16();
         entity.shieldItemId = recvUint16();
         entity.bodyArmorItemId = recvUint16();
+        entity.level = recvUint16();
         snap.players.push_back(entity);
     }
 
@@ -303,6 +306,7 @@ SnapshotDTO Protocol::receiveSnapshotBody() {
         entity.helmetItemId = recvUint16();
         entity.shieldItemId = recvUint16();
         entity.bodyArmorItemId = recvUint16();
+        entity.level = recvUint16();
         snap.monsters.push_back(entity);
     }
 

@@ -156,6 +156,7 @@ EntityDTO Player::toEntityDTO() const {
     dto.max_hp = stats.getMaxHp();
     dto.entityTypeId = static_cast<uint8_t>(stats.getRace());
     dto.action = currentAction;
+    dto.level = stats.getLevel();
 
     // Equipamiento visual
     const Weapon* w = equipment.getWeapon();

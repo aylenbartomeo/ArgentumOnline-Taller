@@ -165,7 +165,7 @@ CombatResult CombatSystem::applyDamageEffect(const Attackable& attacker, Attacka
 CombatResult CombatSystem::applyHealEffect(Player& target) {
     CombatResult res;
     res.attackHappened = true;
-    target.restoreHp();    
+    target.restoreHp();
     return res;
 }
 
@@ -231,7 +231,8 @@ void CombatSystem::onProjectileHit(Player& attacker, Attackable& target, IHitEff
     notifier.notifyCombatResult(attacker, target, res);
 }
 
-CombatModifiers CombatSystem::buildModifiers(uint32_t attackerDbId, const Attackable* target) const {
+CombatModifiers CombatSystem::buildModifiers(uint32_t attackerDbId,
+                                             const Attackable* target) const {
     return clanBonusCalc.buildModifiers(attackerDbId, target);
 }
 

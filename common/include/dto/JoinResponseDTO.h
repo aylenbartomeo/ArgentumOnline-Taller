@@ -6,7 +6,7 @@
 
 struct JoinResponseDTO {
     bool needsCreation;
-    
+
     // Only used if needsCreation is true
     // Base stats
     int baseStrength;
@@ -20,7 +20,12 @@ struct JoinResponseDTO {
     // Class factors (4 classes x 2 factors: life, mana)
     std::vector<float> classFactors;
 
-    JoinResponseDTO() : needsCreation(false), baseStrength(0), baseAgility(0), baseIntelligence(0), baseConstitution(0) {}
+    JoinResponseDTO():
+            needsCreation(false),
+            baseStrength(0),
+            baseAgility(0),
+            baseIntelligence(0),
+            baseConstitution(0) {}
 };
 
 #endif  // JOIN_RESPONSE_DTO_H

@@ -2,10 +2,11 @@
 #define CLAN_BONUS_CALCULATOR_H
 
 #include <cstdint>
+
 #include "server/src/model/clan/ClanRepository.h"
 #include "server/src/model/entities/EntityManager.h"
 #include "server/src/model/events/EventPublisher.h"
-#include "server/src/model/interfaces/CombatStrategies.h" // For CombatModifiers
+#include "server/src/model/interfaces/CombatStrategies.h"  // For CombatModifiers
 
 class ClanBonusCalculator {
 private:
@@ -29,4 +30,4 @@ public:
     CombatModifiers buildModifiers(uint32_t attackerDbId, const Attackable* target) const;
 };
 
-#endif // CLAN_BONUS_CALCULATOR_H
+#endif  // CLAN_BONUS_CALCULATOR_H

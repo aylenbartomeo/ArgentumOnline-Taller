@@ -1,8 +1,9 @@
 #include "server/src/model/systems/ClanBonusCalculator.h"
+
 #include "server/src/model/entities/Player.h"
 
-ClanBonusCalculator::ClanBonusCalculator(EntityManager& em, ClanRepository& cr, EventPublisher& ep)
-    : entityManager(em), clanRepo(cr), eventPublisher(ep) {}
+ClanBonusCalculator::ClanBonusCalculator(EntityManager& em, ClanRepository& cr, EventPublisher& ep):
+        entityManager(em), clanRepo(cr), eventPublisher(ep) {}
 
 bool ClanBonusCalculator::areClanmates(uint32_t dbId1, uint32_t dbId2) const {
     if (dbId1 == dbId2)
@@ -37,18 +38,22 @@ int ClanBonusCalculator::countNearbyClanmates(uint32_t dbId, int range) const {
     return count;
 }
 
-void ClanBonusCalculator::notifyClanOfAttack(uint32_t targetDbId, const std::string& attackerName) const {
+void ClanBonusCalculator::notifyClanOfAttack(uint32_t targetDbId,
+                                             const std::string& attackerName) const {
     auto clanIdOpt = clanRepo.getClanIdOfPlayer(targetDbId);
-    if (!clanIdOpt) return;
+    if (!clanIdOpt)
+        return;
 
     const Clan* clan = clanRepo.getClanById(*clanIdOpt);
-    if (!clan) return;
+    if (!clan)
+        return;
 
     // Resolve the target's name
     Player* targetPlayer = entityManager.getPlayer(targetDbId);
     std::string targetName = targetPlayer ? targetPlayer->getName() : "Un compañero";
 
-    std::string alertMsg = "[Clan] " + targetName + " está siendo atacado por " + attackerName + "!";
+    std::string alertMsg =
+            "[Clan] " + targetName + " está siendo atacado por " + attackerName + "!";
     for (uint32_t memberId: clan->getMembers()) {
         if (memberId != targetDbId) {
             eventPublisher.sendTo(memberId, alertMsg);
@@ -56,13 +61,16 @@ void ClanBonusCalculator::notifyClanOfAttack(uint32_t targetDbId, const std::str
     }
 }
 
-CombatModifiers ClanBonusCalculator::buildModifiers(uint32_t attackerDbId, const Attackable* target) const {
+CombatModifiers ClanBonusCalculator::buildModifiers(uint32_t attackerDbId,
+                                                    const Attackable* target) const {
     CombatModifiers m;
-    m.attackBonus = 1.0f + (countNearbyClanmates(attackerDbId, CLAN_BONUS_RANGE) * CLAN_ATTACK_BONUS_PER_MEMBER);
+    m.attackBonus = 1.0f + (countNearbyClanmates(attackerDbId, CLAN_BONUS_RANGE) *
+                            CLAN_ATTACK_BONUS_PER_MEMBER);
 
     if (const Player* tp = dynamic_cast<const Player*>(target)) {
         uint32_t targetDb = tp->getDbId();
-        m.defenseBonus += countNearbyClanmates(targetDb, CLAN_BONUS_RANGE) * CLAN_DEFENSE_BONUS_PER_MEMBER;
+        m.defenseBonus +=
+                countNearbyClanmates(targetDb, CLAN_BONUS_RANGE) * CLAN_DEFENSE_BONUS_PER_MEMBER;
 
         // Notify clan
         Player* attacker = entityManager.getPlayer(attackerDbId);

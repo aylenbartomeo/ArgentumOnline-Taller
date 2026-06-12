@@ -9,14 +9,14 @@
 
 #include "NpcCommandHandler.h"
 
-class BankListHandler : public NpcCommandHandler {
+class BankListHandler: public NpcCommandHandler {
 private:
     GlobalBank& bankInstance;
     const ItemRegistry& registry;
 
 public:
-    BankListHandler(GlobalBank& bankInstance, const ItemRegistry& registry)
-        : bankInstance(bankInstance), registry(registry) {}
+    BankListHandler(GlobalBank& bankInstance, const ItemRegistry& registry):
+            bankInstance(bankInstance), registry(registry) {}
 
     InteractionResult execute(Player& player, const NpcCommandDTO& dto) override {
         InteractionResult result;
@@ -44,12 +44,11 @@ public:
         ss << "Artículos depositados:\n";
 
         bool hasItems = false;
-        for (const auto& slot : slots) {
+        for (const auto& slot: slots) {
             if (!slot.is_empty()) {
                 const Item* itemDef = registry.get_item(slot.item_id);
                 if (itemDef) {
-                    ss << "- " << itemDef->getName() 
-                       << " [ID: " << slot.item_id << "]"
+                    ss << "- " << itemDef->getName() << " [ID: " << slot.item_id << "]"
                        << " x" << slot.amount << "\n";
                     hasItems = true;
                 }

@@ -103,6 +103,7 @@ EntityDTO Monster::toEntityDTO() const {
     dto.max_hp = static_cast<uint16_t>(max_health);
     dto.entityTypeId = static_cast<uint8_t>(type);
     dto.action = currentAction;
+    dto.level = level;
     return dto;
 }
 
