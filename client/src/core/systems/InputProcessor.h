@@ -4,16 +4,16 @@
 #include <optional>
 #include <string>
 
+#include "../../ui/HudPanel.h"
+#include "../../ui/ManualPanel.h"
+#include "../../ui/MiniChat.h"
+#include "../../ui/Window.h"
 #include "../Targeting.h"
 #include "../common/FxType.h"
 #include "../input/ChatCommandParser.h"
 #include "../input/EventHandler.h"
 #include "../rendering/TileMap.h"
 #include "../rendering/Viewport.h"
-#include "../ui/HudPanel.h"
-#include "../ui/ManualPanel.h"
-#include "../ui/MiniChat.h"
-#include "../ui/Window.h"
 #include "common/include/dto/PlayerStatsDTO.h"
 #include "common/include/dto/Snapshot.h"
 
@@ -44,6 +44,9 @@ public:
     CombatResult processCombatInput(const FrameInput& input, const CameraOffset& camera,
                                     const SnapshotDTO& snapshot, const PlayerStatsDTO& stats,
                                     const TileMap& map);
+
+    void processNpcTargetInput(const FrameInput& input, const CameraOffset& camera,
+                               const SnapshotDTO& snapshot, const TileMap& map);
 
 private:
     Client& client;

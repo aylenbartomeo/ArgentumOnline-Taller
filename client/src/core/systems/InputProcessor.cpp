@@ -1,5 +1,6 @@
 #include "InputProcessor.h"
 
+#include <algorithm>
 #include <optional>
 
 #include <SDL2/SDL.h>
@@ -36,9 +37,10 @@ void InputProcessor::processChatInput(const FrameInput& input, AudioSystem& audi
         return;
     }
 
-    // Interceptar errores de /tirar (señalizados como ChatDTO con prefijo especial)
-    if (std::holds_alternative<ChatDTO>(cmdOpt.value())) {
-        const std::string& msg = std::get<ChatDTO>(cmdOpt.value()).message;
+    CommandVariant cmd = cmdOpt.value();
+
+    if (std::holds_alternative<ChatDTO>(cmd)) {
+        const std::string& msg = std::get<ChatDTO>(cmd).message;
         if (msg == "__INVALID_NO_SLOT__") {
             miniChat.pushMessage("[Info] Selecciona un slot del inventario primero.");
             return;
@@ -53,11 +55,57 @@ void InputProcessor::processChatInput(const FrameInput& input, AudioSystem& audi
         }
     }
 
-    if (std::holds_alternative<UseItemDTO>(cmdOpt.value())) {
+    if (std::holds_alternative<UseItemDTO>(cmd)) {
         audio.playSound(SoundEffect::DRINK_POTION);
     }
 
-    client.sendCommand(cmdOpt.value());
+    // --- Validación de Reglas de Negocio y Feedback Local ---
+    if (std::holds_alternative<NpcCommandDTO>(cmd)) {
+        NpcCommandDTO& npcCmd = std::get<NpcCommandDTO>(cmd);
+
+        if (npcCmd.type != LIST) {
+            auto target = client.getSelectedNpc();
+            if (!target) {
+                miniChat.pushMessage("[INFO] Debes de seleccionar un NPC primero.");
+                return;
+            }
+
+            // Inyectamos el target real antes de enviarlo por la red
+            npcCmd.npcId = *target;
+            std::string type = client.getSelectedNpcType();
+
+            if (type == "priest") {
+                if (npcCmd.type != HEAL && npcCmd.type != BUY) {
+                    miniChat.pushMessage("[INFO] El Sacerdote no ofrece ese servicio.");
+                    return;
+                }
+                if (npcCmd.type == HEAL)
+                    miniChat.pushMessage("[INFO] Pidiendo curación a los dioses...");
+                if (npcCmd.type == BUY)
+                    miniChat.pushMessage("[INFO] Comprando artículos sagrados...");
+            } else if (type == "merchant") {
+                if (npcCmd.type != BUY && npcCmd.type != SELL) {
+                    miniChat.pushMessage("[INFO] El Comerciante solo compra y vende.");
+                    return;
+                }
+                if (npcCmd.type == BUY)
+                    miniChat.pushMessage("[INFO] Comprando mercancía...");
+                if (npcCmd.type == SELL)
+                    miniChat.pushMessage("[INFO] Vendiendo mercancía...");
+            } else if (type == "banker") {
+                if (npcCmd.type != DEPOSIT && npcCmd.type != WITHDRAW) {
+                    miniChat.pushMessage("[INFO] El Banquero solo acepta depósitos o retiros.");
+                    return;
+                }
+                if (npcCmd.type == DEPOSIT)
+                    miniChat.pushMessage("[INFO] Depositando en tu bóveda...");
+                if (npcCmd.type == WITHDRAW)
+                    miniChat.pushMessage("[INFO] Retirando de tu bóveda...");
+            }
+        }
+    }
+
+    client.sendCommand(cmd);
 }
 
 void InputProcessor::processCheats(const FrameInput& input) {
@@ -157,7 +205,6 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
                                                                 const SnapshotDTO& snapshot,
                                                                 const PlayerStatsDTO& stats,
                                                                 const TileMap& map) {
-
     CombatResult result;
 
     if (input.resurrectPressed)
@@ -167,48 +214,45 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
     if (!localPlayer || isDead(localPlayer->current_hp))
         return result;
 
-    // Verificacion de safezone (Atacante)
     bool inSafeZone = std::any_of(
             map.getSafeZones().begin(), map.getSafeZones().end(), [&](const SafeZoneRect& zone) {
                 return localPlayer->x >= zone.x && localPlayer->x < zone.x + zone.width &&
                        localPlayer->y >= zone.y && localPlayer->y < zone.y + zone.height;
             });
 
-    // Si intenta atacar/disparar desde zona segura, lo bloqueamos
-    if (inSafeZone && (input.shootPressed || input.attackPressed)) {
-        miniChat.pushMessage("[Info] Estás en zona segura.");
-        return result;
-    }
-
-    // Verificacion de uso de mana
-    if (input.shootPressed && WeaponHelper::hasFlauta(stats)) {
-        if (stats.currentMana > 0 || localInfiniteManaActive) {
-            result.fx = ActiveFx{client.getClientId(), SDL_GetTicks(), 0, 0, FxType::FLAUTA_HEAL};
-            client.sendCommand(ShootDTO{0.f, 0.f});
-        } else {
-            miniChat.pushMessage("[Info] No tienes maná suficiente.");
+    if (input.shootPressed) {
+        if (inSafeZone) {
+            miniChat.pushMessage("[INFO] Estás en zona segura.");
+            return result;
         }
-    } else if (input.shootPressed) {
-        bool isBow = WeaponHelper::hasBow(stats);
-        bool isMagic = !isBow;
-
-        if (isMagic && stats.currentMana <= 0 && !localInfiniteManaActive) {
-            miniChat.pushMessage("[Info] No tienes maná suficiente.");
-        } else {
-            const Cell cell = screenToCell(input.shootScreenX, input.shootScreenY, camera.x,
-                                           camera.y, GC::TILE_SIZE);
-
-            client.sendCommand(
-                    ShootDTO{static_cast<float>(cell.col), static_cast<float>(cell.row)});
-            if (isBow) {
-                result.bowAttack = true;
+        if (WeaponHelper::hasFlauta(stats)) {
+            if (stats.currentMana > 0 || localInfiniteManaActive) {
+                result.fx =
+                        ActiveFx{client.getClientId(), SDL_GetTicks(), 0, 0, FxType::FLAUTA_HEAL};
+                client.sendCommand(ShootDTO{0.f, 0.f});
             } else {
-                result.magicAttack = true;
+                miniChat.pushMessage("[INFO] No tienes maná suficiente.");
+            }
+        } else {
+            bool isBow = WeaponHelper::hasBow(stats);
+            bool isMagic = !isBow;
+
+            if (isMagic && stats.currentMana <= 0 && !localInfiniteManaActive) {
+                miniChat.pushMessage("[INFO] No tienes maná suficiente.");
+            } else {
+                const Cell cell = screenToCell(input.shootScreenX, input.shootScreenY, camera.x,
+                                               camera.y, GC::TILE_SIZE);
+                client.sendCommand(
+                        ShootDTO{static_cast<float>(cell.col), static_cast<float>(cell.row)});
+                if (isBow)
+                    result.bowAttack = true;
+                else
+                    result.magicAttack = true;
             }
         }
     }
 
-    // --- ATAQUE CUERPO A CUERPO ---
+    // Lógica MELEE
     if (!input.attackPressed)
         return result;
 
@@ -220,7 +264,22 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
 
     const Cell cell = screenToCell(mouseX, mouseY, camera.x, camera.y, GC::TILE_SIZE);
 
-    // --- VERIFICACIÓN DE ZONA SEGURA (Objetivo) ---
+    // INTERCEPCIÓN: Verificamos si le hizo click a un NPC Estático (Priest, Banker, Merchant)
+    bool clickedCitizen = std::any_of(
+            map.getCitizens().begin(), map.getCitizens().end(), [&](const MapCitizen& c) {
+                return c.x == cell.col && (c.y == cell.row || c.y - 1 == cell.row);
+            });
+
+    if (clickedCitizen) {
+        return result;  // Ignoramos el ataque local para que no diga "Estás en zona segura",
+    }
+
+    // Si no fue un NPC, entonces sí es un ataque normal. Verificamos zona segura:
+    if (inSafeZone) {
+        miniChat.pushMessage("[INFO] Estás en zona segura.");
+        return result;
+    }
+
     bool targetInSafeZone = std::any_of(
             map.getSafeZones().begin(), map.getSafeZones().end(), [&](const SafeZoneRect& zone) {
                 return cell.col >= zone.x && cell.col < zone.x + zone.width && cell.row >= zone.y &&
@@ -228,7 +287,7 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
             });
 
     if (targetInSafeZone) {
-        miniChat.pushMessage("[Info] El objetivo está en zona segura.");
+        miniChat.pushMessage("[INFO] El objetivo está en zona segura.");
         return result;
     }
 
@@ -246,4 +305,40 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
     }
 
     return result;
+}
+
+void InputProcessor::processNpcTargetInput(const FrameInput& input, const CameraOffset& camera,
+                                           const SnapshotDTO& snapshot, const TileMap& map) {
+    if (!input.mouseLeftJustPressed || input.equipPressed)
+        return;
+    if (miniChat.isMouseOver(input.mouseX, input.mouseY, GC::WINDOW_HEIGHT))
+        return;
+
+    const Cell cell = screenToCell(input.mouseX, input.mouseY, camera.x, camera.y, GC::TILE_SIZE);
+
+    // 1. Verificamos si es un NPC basándonos en el mapa
+    const auto citizenIt = std::find_if(
+            map.getCitizens().begin(), map.getCitizens().end(), [&cell](const auto& cit) {
+                return cit.x == cell.col && (cit.y == cell.row || cit.y - 1 == cell.row);
+            });
+
+    if (citizenIt != map.getCitizens().end()) {
+        const std::string& citType = citizenIt->type;
+
+        const auto monsterIt = std::find_if(
+                snapshot.monsters.begin(), snapshot.monsters.end(), [&cell](const auto& m) {
+                    return m.x == cell.col && (m.y == cell.row || m.y - 1 == cell.row);
+                });
+
+        std::optional<uint32_t> realId;
+        if (monsterIt != snapshot.monsters.end()) {
+            realId = monsterIt->id;
+        }
+
+        uint32_t targetId = realId ? *realId : ((cell.col << 16) | cell.row);
+
+        client.setSelectedNpc(targetId, citType);
+        client.sendCommand(AttackDTO{targetId});
+        miniChat.pushMessage("[Info] Seleccionaste al " + citType + ".");
+    }
 }
