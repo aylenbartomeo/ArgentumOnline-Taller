@@ -1,4 +1,4 @@
-.PHONY: all test clean editor client common server compile-debug run-tests valgrind-tests
+.PHONY: all test clean editor client common server compile-debug run-tests valgrind-tests compile-and-tests
 
 default: all
 
@@ -15,10 +15,11 @@ compile-debug:
 	@ln -sfn ../worlds build/worlds
 	@# --- Recursos del Cliente ---
 	@ln -sfn ../resources build/resources
-run-tests: compile-debug
-	cd build && ./tests/argentum_online_tests
 
-valgrind-tests: compile-debug
+run-tests:
+	cd build && ./argentum_online_tests
+
+valgrind-tests:
 	mkdir -p build/valgrind
 	cd build && valgrind --leak-check=full \
 	                     --show-leak-kinds=all \
@@ -26,6 +27,9 @@ valgrind-tests: compile-debug
 	                     --log-file=valgrind/reporte_tests.log \
 	                     ./argentum_online_tests
 	@echo "Chequeo de Valgrind completado. Reporte guardado en: build/valgrind/reporte_tests.log"
+
+compile-and-tests: compile-debug
+	cd build && ./argentum_online_tests
 
 PORT ?= 8080
 WORLD ?= DefaultWorld

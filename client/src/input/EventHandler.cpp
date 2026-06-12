@@ -17,6 +17,8 @@ FrameInput EventHandler::pollEvents() {
     int scrollThisFrame = 0;
     bool mouseLeftJustPressedThisFrame = false;
 
+    bool toggleMuteThisFrame = false;
+
     bool shootThisFrame = false;
     int shootX = 0, shootY = 0;
 
@@ -69,6 +71,10 @@ FrameInput EventHandler::pollEvents() {
                 toggleChatThisFrame = true;
             }
 
+            if (key == SDLK_F4 && event.key.repeat == 0) {
+                toggleMuteThisFrame = true;
+            }
+
             if (inputActive) {
                 if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
                     inputActive = false;
@@ -113,6 +119,7 @@ FrameInput EventHandler::pollEvents() {
     input.mouseLeftJustPressed = mouseLeftJustPressedThisFrame;
     input.mouseScroll = scrollThisFrame;
     input.toggleChat = toggleChatThisFrame;
+    input.toggleMute = toggleMuteThisFrame;
 
     if (inputActive) {
         input.chatInputActive = true;

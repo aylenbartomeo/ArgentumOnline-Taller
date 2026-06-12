@@ -22,6 +22,7 @@ target_sources(lib_client
     src/core/systems/FxSystem.cpp
     src/core/systems/EntityRenderer.cpp
     src/core/systems/WorldRenderer.cpp
+    src/core/systems/StateAudioTrigger.cpp
     src/core/systems/InputProcessor.cpp
 
     # network
@@ -67,6 +68,7 @@ target_sources(lib_client
     src/core/systems/FxSystem.h
     src/core/systems/EntityRenderer.h
     src/core/systems/WorldRenderer.h
+    src/core/systems/StateAudioTrigger.h
     src/core/systems/InputProcessor.h
     src/core/common/GameConstants.h
     src/core/common/FxType.h

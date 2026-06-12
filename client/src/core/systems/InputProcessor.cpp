@@ -27,7 +27,7 @@ InputProcessor::InputProcessor(Client& client, Window& window, MiniChat& miniCha
         manualPanel(manualPanel),
         chatParser(chatParser) {}
 
-void InputProcessor::processChatInput(const FrameInput& input) {
+void InputProcessor::processChatInput(const FrameInput& input, AudioSystem& audio) {
     if (!input.chatSubmitted || input.chatText.empty())
         return;
     std::optional<CommandVariant> cmdOpt = chatParser.parse(input.chatText);
@@ -53,6 +53,10 @@ void InputProcessor::processChatInput(const FrameInput& input) {
         }
     }
 
+    if (std::holds_alternative<UseItemDTO>(cmdOpt.value())) {
+        audio.playSound(SoundEffect::DRINK_POTION);
+    }
+
     client.sendCommand(cmdOpt.value());
 }
 
@@ -65,6 +69,7 @@ void InputProcessor::processCheats(const FrameInput& input) {
         client.sendCommand(CheatDTO{CheatType::GIVE_RANGED_WEAPONS});
     if (input.cheatInfiniteMana)
         client.sendCommand(CheatDTO{CheatType::INFINITE_MANA});
+    localInfiniteManaActive = !localInfiniteManaActive;
     if (input.cheatGiveGold)
         client.sendCommand(CheatDTO{CheatType::GIVE_GOLD});
 }
@@ -72,20 +77,25 @@ void InputProcessor::processCheats(const FrameInput& input) {
 void InputProcessor::processEquipInput(const FrameInput& input) {
     if (!input.equipPressed)
         return;
-    float lx = 0.f, ly = 0.f;
-    SDL_RenderWindowToLogical(window.getRenderer().Get(), input.equipX, input.equipY, &lx, &ly);
+
     const int slot = hud.slotAtPosition(input.equipX, input.equipY);
-    if (slot >= 0)
+
+    if (slot >= 0) {
         client.sendCommand(EquipItemDTO{static_cast<uint8_t>(slot)});
+        if (hud.getSelectedSlot() != slot) {
+            hud.selectSlot(slot);
+        }
+    }
 }
 
-void InputProcessor::processUseInput(const FrameInput& input) {
+void InputProcessor::processUseInput(const FrameInput& input, AudioSystem& audio) {
     if (!input.consumeKeyPressed)
         return;
 
     int slot = hud.getSelectedSlot();
     if (slot >= 0) {
         client.sendCommand(UseItemDTO{static_cast<uint8_t>(slot)});
+        audio.playSound(SoundEffect::DRINK_POTION);
     } else {
         miniChat.pushMessage("[Info] Selecciona un slot del inventario primero.");
     }
@@ -106,9 +116,7 @@ void InputProcessor::processSelectSlotInput(const FrameInput& input) {
 void InputProcessor::processUiInput(const FrameInput& input) {
     if (!input.mouseLeftJustPressed)
         return;
-    float lx = 0.f, ly = 0.f;
-    SDL_RenderWindowToLogical(window.getRenderer().Get(), input.mouseX, input.mouseY, &lx, &ly);
-    if (hud.isManualButtonClicked(static_cast<int>(lx), static_cast<int>(ly)))
+    if (hud.isManualButtonClicked(input.mouseX, input.mouseY))
         manualPanel.toggle();
 }
 
@@ -147,7 +155,8 @@ void InputProcessor::sendMoveIfDue(const FrameInput& input, const SnapshotDTO& s
 InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput& input,
                                                                 const CameraOffset& camera,
                                                                 const SnapshotDTO& snapshot,
-                                                                const PlayerStatsDTO& stats) {
+                                                                const PlayerStatsDTO& stats,
+                                                                const TileMap& map) {
 
     CombatResult result;
 
@@ -155,33 +164,74 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
         client.sendCommand(ResurrectDTO{});
 
     const EntityDTO* localPlayer = findEntityById(snapshot, client.getClientId());
-    if (localPlayer && isDead(localPlayer->current_hp))
+    if (!localPlayer || isDead(localPlayer->current_hp))
         return result;
 
-    if (input.shootPressed && WeaponHelper::hasFlauta(stats)) {
-        result.fx = ActiveFx{client.getClientId(), SDL_GetTicks(), 0, 0, FxType::FLAUTA_HEAL};
-        client.sendCommand(ShootDTO{0.f, 0.f});
-    } else if (input.shootPressed) {
-        float lx = 0.f, ly = 0.f;
-        SDL_RenderWindowToLogical(window.getRenderer().Get(), input.shootScreenX,
-                                  input.shootScreenY, &lx, &ly);
-        const Cell cell = screenToCell(static_cast<int>(lx), static_cast<int>(ly), camera.x,
-                                       camera.y, GC::TILE_SIZE);
-        client.sendCommand(ShootDTO{static_cast<float>(cell.col), static_cast<float>(cell.row)});
+    // Verificacion de safezone (Atacante)
+    bool inSafeZone = std::any_of(
+            map.getSafeZones().begin(), map.getSafeZones().end(), [&](const SafeZoneRect& zone) {
+                return localPlayer->x >= zone.x && localPlayer->x < zone.x + zone.width &&
+                       localPlayer->y >= zone.y && localPlayer->y < zone.y + zone.height;
+            });
+
+    // Si intenta atacar/disparar desde zona segura, lo bloqueamos
+    if (inSafeZone && (input.shootPressed || input.attackPressed)) {
+        miniChat.pushMessage("[Info] Estás en zona segura.");
+        return result;
     }
 
+    // Verificacion de uso de mana
+    if (input.shootPressed && WeaponHelper::hasFlauta(stats)) {
+        if (stats.currentMana > 0 || localInfiniteManaActive) {
+            result.fx = ActiveFx{client.getClientId(), SDL_GetTicks(), 0, 0, FxType::FLAUTA_HEAL};
+            client.sendCommand(ShootDTO{0.f, 0.f});
+        } else {
+            miniChat.pushMessage("[Info] No tienes maná suficiente.");
+        }
+    } else if (input.shootPressed) {
+        bool isBow = WeaponHelper::hasBow(stats);
+        bool isMagic = !isBow;
+
+        if (isMagic && stats.currentMana <= 0 && !localInfiniteManaActive) {
+            miniChat.pushMessage("[Info] No tienes maná suficiente.");
+        } else {
+            const Cell cell = screenToCell(input.shootScreenX, input.shootScreenY, camera.x,
+                                           camera.y, GC::TILE_SIZE);
+
+            client.sendCommand(
+                    ShootDTO{static_cast<float>(cell.col), static_cast<float>(cell.row)});
+            if (isBow) {
+                result.bowAttack = true;
+            } else {
+                result.magicAttack = true;
+            }
+        }
+    }
+
+    // --- ATAQUE CUERPO A CUERPO ---
     if (!input.attackPressed)
         return result;
 
-    float lx = 0.f, ly = 0.f;
-    SDL_RenderWindowToLogical(window.getRenderer().Get(), input.attackX, input.attackY, &lx, &ly);
-    const int mouseX = static_cast<int>(lx);
-    const int mouseY = static_cast<int>(ly);
+    const int mouseX = input.attackX;
+    const int mouseY = input.attackY;
 
     if (miniChat.isMouseOver(mouseX, mouseY, GC::WINDOW_HEIGHT))
         return result;
 
     const Cell cell = screenToCell(mouseX, mouseY, camera.x, camera.y, GC::TILE_SIZE);
+
+    // --- VERIFICACIÓN DE ZONA SEGURA (Objetivo) ---
+    bool targetInSafeZone = std::any_of(
+            map.getSafeZones().begin(), map.getSafeZones().end(), [&](const SafeZoneRect& zone) {
+                return cell.col >= zone.x && cell.col < zone.x + zone.width && cell.row >= zone.y &&
+                       cell.row < zone.y + zone.height;
+            });
+
+    if (targetInSafeZone) {
+        miniChat.pushMessage("[Info] El objetivo está en zona segura.");
+        return result;
+    }
+
     const std::optional<uint32_t> target =
             pickTargetAt(cell.col, cell.row, snapshot, client.getClientId(), ATTACK_RANGE_TILES);
 

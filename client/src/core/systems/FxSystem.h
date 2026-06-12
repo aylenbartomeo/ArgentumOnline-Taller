@@ -18,13 +18,16 @@ public:
     FxSystem(TextureManager& textures, SDL2pp::Renderer& renderer);
 
     // Detecta proyectiles muertos y activa FX de impacto. Llama a update() en cada animator.
-    void syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapshot);
+    bool syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapshot);
 
     void triggerOnEntity(uint32_t targetId, uint32_t nowMs, FxType type);
     void triggerAtPixel(int px, int py, uint32_t nowMs, FxType type);
 
     void render(const CameraOffset& camera, const SnapshotDTO& snapshot,
                 const std::unordered_map<uint32_t, CharacterAnimator>& animators);
+
+    // Renderiza animación fullscreen (BE_ATTACKED)
+    void renderFullscreen(int windowW, int windowH);
 
     void renderProjectiles(const CameraOffset& camera, uint32_t nowMs);
 
@@ -47,6 +50,7 @@ private:
     SDL2pp::Renderer& renderer;
 
     std::optional<ActiveFx> activeFx;
+    std::optional<ActiveFx> fullscreenFx;
     std::unordered_map<uint32_t, ProjectileAnimator> projAnimators;
 };
 
