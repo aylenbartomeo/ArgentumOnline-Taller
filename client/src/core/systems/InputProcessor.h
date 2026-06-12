@@ -46,8 +46,6 @@ public:
                                     const TileMap& map);
 
 private:
-    static CommandVariant buildChatCommand(const std::string& text);
-
     Client& client;
     Window& window;
     MiniChat& miniChat;

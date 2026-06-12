@@ -137,3 +137,32 @@ TEST(BankerTest, Banker_WithdrawWithFullInventoryDoesNotLoseItem) {
     uint16_t cantidadEnBanco = bancoInstance.withdrawItemById(player.getDbId(), 4001u, 1);
     EXPECT_EQ(cantidadEnBanco, 1);
 }
+
+// =========================================================================
+// TEST 5: EL BANQUERO LISTA EXTRACTO INDIVIDUAL (ORO E ÍTEMS EN BÓVEDA)
+// =========================================================================
+TEST(BankerTest, Banker_ListAccountBalancesAndItemsSuccessfully) {
+    ItemRegistry registry("../config/items.toml");
+    GlobalBank bancoInstance;
+    Banker banquero(1, {0, 0}, bancoInstance, registry);
+    Player player = makeBankerTestPlayer();
+
+    uint32_t playerId = player.getDbId();
+
+    bancoInstance.depositGold(playerId, 1500u);
+    bancoInstance.depositItem(playerId, 2000u, 1);
+    bancoInstance.depositItem(playerId, 2000u, 1);
+    bancoInstance.depositItem(playerId, 2000u, 1);
+
+    NpcCommandDTO cmd = {NpcCommandType::LIST, ""};
+    InteractionResult res = banquero.handleCommand(player, cmd);
+
+    // VALIDACIONES:
+    EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
+    
+    EXPECT_NE(res.msg.find("--- extracto de bóveda bancaria ---"), std::string::npos);
+    EXPECT_NE(res.msg.find("1500 monedas"), std::string::npos);
+    
+    EXPECT_NE(res.msg.find("[ID: 2000]"), std::string::npos);
+    EXPECT_NE(res.msg.find("x3"), std::string::npos);
+}

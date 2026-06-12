@@ -77,11 +77,15 @@ void InputProcessor::processCheats(const FrameInput& input) {
 void InputProcessor::processEquipInput(const FrameInput& input) {
     if (!input.equipPressed)
         return;
-    float lx = 0.f, ly = 0.f;
-    SDL_RenderWindowToLogical(window.getRenderer().Get(), input.equipX, input.equipY, &lx, &ly);
+
     const int slot = hud.slotAtPosition(input.equipX, input.equipY);
-    if (slot >= 0)
+
+    if (slot >= 0) {
         client.sendCommand(EquipItemDTO{static_cast<uint8_t>(slot)});
+        if (hud.getSelectedSlot() != slot) {
+            hud.selectSlot(slot);
+        }
+    }
 }
 
 void InputProcessor::processUseInput(const FrameInput& input, AudioSystem& audio) {
@@ -112,9 +116,7 @@ void InputProcessor::processSelectSlotInput(const FrameInput& input) {
 void InputProcessor::processUiInput(const FrameInput& input) {
     if (!input.mouseLeftJustPressed)
         return;
-    float lx = 0.f, ly = 0.f;
-    SDL_RenderWindowToLogical(window.getRenderer().Get(), input.mouseX, input.mouseY, &lx, &ly);
-    if (hud.isManualButtonClicked(static_cast<int>(lx), static_cast<int>(ly)))
+    if (hud.isManualButtonClicked(input.mouseX, input.mouseY))
         manualPanel.toggle();
 }
 
@@ -193,14 +195,11 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
         if (isMagic && stats.currentMana <= 0 && !localInfiniteManaActive) {
             miniChat.pushMessage("[Info] No tienes maná suficiente.");
         } else {
-            float lx = 0.f, ly = 0.f;
-            SDL_RenderWindowToLogical(window.getRenderer().Get(), input.shootScreenX,
-                                      input.shootScreenY, &lx, &ly);
-            const Cell cell = screenToCell(static_cast<int>(lx), static_cast<int>(ly), camera.x,
+            const Cell cell = screenToCell(input.shootScreenX, input.shootScreenY, camera.x,
                                            camera.y, GC::TILE_SIZE);
+
             client.sendCommand(
                     ShootDTO{static_cast<float>(cell.col), static_cast<float>(cell.row)});
-
             if (isBow) {
                 result.bowAttack = true;
             } else {
@@ -213,10 +212,8 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
     if (!input.attackPressed)
         return result;
 
-    float lx = 0.f, ly = 0.f;
-    SDL_RenderWindowToLogical(window.getRenderer().Get(), input.attackX, input.attackY, &lx, &ly);
-    const int mouseX = static_cast<int>(lx);
-    const int mouseY = static_cast<int>(ly);
+    const int mouseX = input.attackX;
+    const int mouseY = input.attackY;
 
     if (miniChat.isMouseOver(mouseX, mouseY, GC::WINDOW_HEIGHT))
         return result;
