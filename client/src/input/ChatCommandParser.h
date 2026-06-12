@@ -28,6 +28,15 @@ private:
     TargetProvider targetProvider;
 
     void registerHandlers();
+
+    // Helpers de registro
+    void registerNoArgCommand(const std::string& cmd, CommandVariant dto);
+    void registerNpcCommand(const std::string& cmd, NpcCommandType type);
+    void registerClanCommand(const std::string& cmd, ClanCommandType type, bool needsArgs = true);
+
+    // Helpers de parseo
+    static std::optional<CommandVariant> parsePrivateMessage(const std::string& text);
+    std::optional<CommandVariant> parseSlashCommand(const std::string& text) const;
 };
 
 #endif  // CHAT_COMMAND_PARSER_H
