@@ -26,7 +26,7 @@ detection_range = 6
 attack_range = 1
 zone = "dungeon"
 min_level = 1
-max_level = 10
+max_level = 15
 attack_cooldown_ms = 1500
 move_cooldown_ms = 700
 
@@ -40,7 +40,7 @@ detection_range = 5
 attack_range = 1
 zone = "cemetery"
 min_level = 1
-max_level = 10
+max_level = 15
 attack_cooldown_ms = 2000
 move_cooldown_ms = 1000
 
@@ -68,7 +68,7 @@ detection_range = 6
 attack_range = 1
 zone = "wilderness"
 min_level = 1
-max_level = 10
+max_level = 20
 attack_cooldown_ms = 1800
 move_cooldown_ms = 800
 
@@ -82,6 +82,6 @@ detection_range = 4
 attack_range = 1
 zone = "dungeon"
 min_level = 1
-max_level = 10
+max_level = 20
 attack_cooldown_ms = 3000
 move_cooldown_ms = 1200
