@@ -32,7 +32,7 @@ public:
     void processSelectSlotInput(const FrameInput& input);
     void processUiInput(const FrameInput& input);
     void drainIncomingChat();
-    void sendMoveIfDue(const FrameInput& input, const SnapshotDTO& snapshot);
+    void sendMoveIfDue(const FrameInput& input, const SnapshotDTO& snapshot, const TileMap& map);
 
     // Retorna el FX a activar si el usuario atacó/disparó, o std::nullopt si no.
     struct CombatResult {

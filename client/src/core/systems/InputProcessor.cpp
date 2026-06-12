@@ -19,6 +19,7 @@ namespace GC = GameConstants;
 namespace {
 constexpr Uint32 MOVE_INTERVAL_MS = 200;
 constexpr int ATTACK_RANGE_TILES = 1;
+constexpr int MAX_SELECT_RANGE = 2;
 }  // namespace
 
 // ─── Constructor ──────────────────────────────────────────────────────────────
@@ -40,15 +41,15 @@ static bool handleParseErrors(const CommandVariant& cmd, MiniChat& miniChat) {
         return false;
     const std::string& msg = std::get<ChatDTO>(cmd).message;
     if (msg == "__INVALID_NO_SLOT__") {
-        miniChat.pushMessage("[Info] Selecciona un slot del inventario primero.");
+        miniChat.pushMessage("[INFO] Selecciona un slot del inventario primero.");
         return true;
     }
     if (msg == "__INVALID_ZERO_AMOUNT__") {
-        miniChat.pushMessage("[Info] La cantidad debe ser mayor a 0.");
+        miniChat.pushMessage("[INFO] La cantidad debe ser mayor a 0.");
         return true;
     }
     if (msg == "__INVALID_AMOUNT_PARSE__") {
-        miniChat.pushMessage("[Info] Cantidad invalida.");
+        miniChat.pushMessage("[INFO] Cantidad invalida.");
         return true;
     }
     return false;
@@ -167,7 +168,8 @@ void InputProcessor::drainIncomingChat() {
     while (client.tryPopChatMessage(chat)) miniChat.pushMessage(chat.message);
 }
 
-void InputProcessor::sendMoveIfDue(const FrameInput& input, const SnapshotDTO& snapshot) {
+void InputProcessor::sendMoveIfDue(const FrameInput& input, const SnapshotDTO& snapshot,
+                                   const TileMap& map) {
     if (input.chatInputActive)
         return;
     const EntityDTO* localPlayer = findEntityById(snapshot, client.getClientId());
@@ -191,6 +193,7 @@ void InputProcessor::sendMoveIfDue(const FrameInput& input, const SnapshotDTO& s
     if (direction) {
         client.sendCommand(StartMoveDTO(*direction));
         lastMoveSentMs = now;
+        client.setSelectedNpc(std::nullopt);
     }
 }
 
@@ -310,18 +313,32 @@ void InputProcessor::processNpcTargetInput(const FrameInput& input, const Camera
     if (citizenIt == map.getCitizens().end())
         return;
 
-    // Busca el id real del NPC en el snapshot (puede viajar como monster con EntityType::NPC)
+    // Verificar rango máximo de selección
+    const EntityDTO* me = findEntityById(snapshot, client.getClientId());
+    if (!me)
+        return;
+    const int dist = std::abs(me->x - citizenIt->x) + std::abs(me->y - citizenIt->y);
+    if (dist > MAX_SELECT_RANGE) {
+        miniChat.pushMessage("[INFO] Estás demasiado lejos para interactuar.");
+        return;
+    }
+
+    // Deseleccionar si se vuelve a clickear el mismo NPC
+    const uint32_t fakeId = NpcVisuals::encodeId(citizenIt->x, citizenIt->y);
     const auto monsterIt = std::find_if(
             snapshot.monsters.begin(), snapshot.monsters.end(), [&cell](const auto& m) {
                 return m.x == cell.col && (m.y == cell.row || m.y - 1 == cell.row);
             });
+    const uint32_t targetId = (monsterIt != snapshot.monsters.end()) ? monsterIt->id : fakeId;
 
-    const uint32_t targetId = (monsterIt != snapshot.monsters.end()) ?
-                                      monsterIt->id :
-                                      NpcVisuals::encodeId(cell.col, cell.row);
+    if (client.getSelectedNpc() == targetId) {
+        client.setSelectedNpc(std::nullopt);
+        miniChat.pushMessage("[INFO] NPC deseleccionado.");
+        return;
+    }
 
     client.setSelectedNpc(targetId, citizenIt->type);
     client.sendCommand(AttackDTO{targetId});
-    miniChat.pushMessage("[Info] Seleccionaste al " + NpcVisuals::displayName(citizenIt->type) +
+    miniChat.pushMessage("[INFO] Seleccionaste al " + NpcVisuals::displayName(citizenIt->type) +
                          ".");
 }

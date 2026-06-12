@@ -90,7 +90,7 @@ void Game::run() {
         inputProcessor.processUiInput(input);
         if (input.toggleMute)
             audio.toggleMute();
-        inputProcessor.sendMoveIfDue(input, lastSnapshot);
+        inputProcessor.sendMoveIfDue(input, lastSnapshot, map);
 
         render(input);
         audio.updateMonsterSounds(lastSnapshot, SDL_GetTicks(), client.getClientId());
