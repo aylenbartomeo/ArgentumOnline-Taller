@@ -153,13 +153,13 @@ TEST(MerchantTest, Merchant_ListStockSuccessfully) {
 
     // VALIDACIONES:
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
-    
+
     // Verificamos que el mensaje contenga palabras claves del catálogo formateado
     EXPECT_NE(res.msg.find("--- CATÁLOGO DISPONIBLE ---"), std::string::npos);
     EXPECT_NE(res.msg.find("Cantidad:"), std::string::npos);
     EXPECT_NE(res.msg.find("Compra:"), std::string::npos);
-    
-    // Verificamos que al menos uno de los ítems hardcodeados del stock inicial esté presente en el texto
-    // El stock inicial del Merchant posee el ID 2000u y 1000u
+
+    // Verificamos que al menos uno de los ítems hardcodeados del stock inicial esté presente en el
+    // texto El stock inicial del Merchant posee el ID 2000u y 1000u
     EXPECT_NE(res.msg.find("[ID: 2000]"), std::string::npos);
 }

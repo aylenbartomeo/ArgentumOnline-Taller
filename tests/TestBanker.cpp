@@ -159,10 +159,10 @@ TEST(BankerTest, Banker_ListAccountBalancesAndItemsSuccessfully) {
 
     // VALIDACIONES:
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
-    
+
     EXPECT_NE(res.msg.find("--- extracto de bóveda bancaria ---"), std::string::npos);
     EXPECT_NE(res.msg.find("1500 monedas"), std::string::npos);
-    
+
     EXPECT_NE(res.msg.find("[ID: 2000]"), std::string::npos);
     EXPECT_NE(res.msg.find("x3"), std::string::npos);
 }

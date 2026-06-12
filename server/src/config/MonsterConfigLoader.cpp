@@ -61,7 +61,8 @@ MonsterConfig parseMonsterConfig(const toml::table& monsterTable) {
             requiredInt(monsterTable, "attack_max"),
             requiredInt(monsterTable, "detection_range"),
             requiredInt(monsterTable, "attack_range"),
-            requiredInt(monsterTable, "level"),
+            requiredInt(monsterTable, "min_level"),
+            requiredInt(monsterTable, "max_level"),
             requiredString(monsterTable, "zone"),
             requiredInt(monsterTable, "attack_cooldown_ms"),
             requiredInt(monsterTable, "move_cooldown_ms"),
@@ -77,6 +78,10 @@ MonsterConfig parseMonsterConfig(const toml::table& monsterTable) {
 
     if (config.detectionRange < 0 || config.attackRange < 1) {
         throw std::runtime_error("Monster ranges are invalid");
+    }
+
+    if (config.minLevel < 1 || config.minLevel > config.maxLevel) {
+        throw std::runtime_error("Monster level ranges are invalid");
     }
 
     return config;

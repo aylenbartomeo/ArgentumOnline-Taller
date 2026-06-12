@@ -159,10 +159,10 @@ TEST(PriestTest, Priest_ListStockSuccessfully) {
 
     // VALIDACIONES:
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
-    
+
     // El mensaje debe estructurar el catálogo básico
     EXPECT_NE(res.msg.find("--- CATÁLOGO DISPONIBLE ---"), std::string::npos);
-    
+
     // El Sacerdote inicia con ítems específicos en su stock (1001u y 1002u)
     EXPECT_NE(res.msg.find("[ID: 1001]"), std::string::npos);
     EXPECT_NE(res.msg.find("[ID: 1002]"), std::string::npos);
