@@ -26,6 +26,8 @@ public:
 private:
     void renderTileLayer(const std::vector<std::vector<int>>& grid, const std::string& folder,
                          const CameraOffset& camera) const;
+    void renderGroundLayer(const std::vector<std::vector<int>>& grid,
+                           const CameraOffset& camera) const;
     void drawGroundAmount(const std::string& text, int tileX, int tileY,
                           const CameraOffset& camera) const;
 

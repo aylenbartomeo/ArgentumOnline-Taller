@@ -52,10 +52,28 @@ WorldRenderer::WorldRenderer(TextureManager& textures, SDL2pp::Renderer& rendere
         indoorRegions(map.getIndoor()) {}
 
 void WorldRenderer::renderTerrain(const CameraOffset& camera) const {
-    renderTileLayer(map.getGround(), "ground/", camera);
-    renderTileLayer(map.getGround2(), "ground/", camera);
+    renderGroundLayer(map.getGround(), camera);
+    renderGroundLayer(map.getGround2(), camera);
     renderTileLayer(map.getDecoration(), "decoration/", camera);
     renderer.SetClipRect();
+}
+
+void WorldRenderer::renderGroundLayer(const std::vector<std::vector<int>>& grid,
+                                      const CameraOffset& camera) const {
+    for (int row = 0; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            if (v <= 0) {
+                continue;
+            }
+            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "ground/" +
+                                                std::to_string(v - 1) + ".png");
+            renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
+                          SDL2pp::Rect(col * GC::TILE_SIZE - camera.x,
+                                       row * GC::TILE_SIZE - camera.y, tex.GetWidth(),
+                                       tex.GetHeight()));
+        }
+    }
 }
 
 void WorldRenderer::renderRoofs(const CameraOffset& camera, int playerCol, int playerRow) const {
