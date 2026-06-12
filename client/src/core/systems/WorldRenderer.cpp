@@ -8,6 +8,7 @@
 
 #include "../animation/CharacterSprites.h"
 #include "../common/GameConstants.h"
+#include "../rendering/NpcVisuals.h"
 #include "../ui/GroundItemLabel.h"
 
 #include "OverlayRegistry.h"
@@ -27,36 +28,14 @@ constexpr int CHARACTER_FRAME_Y = 4;
 constexpr int CHARACTER_FRAME_W = 24;
 constexpr int CHARACTER_FRAME_H = 44;
 constexpr int CITIZEN_HEAD_OVERLAP = 6;
-
-constexpr double TAU = 6.283185307179586;
-constexpr int MARKER_SEGMENTS = 24;
-constexpr int MARKER_SHIFT_X = 3;
-
-const char* citizenSheet(const std::string& type) {
-    if (type == "merchant")
-        return "1077.png";
-    if (type == "banker")
-        return "1071.png";
-    if (type == "priest")
-        return "1910.png";
-    return "1200.png";
-}
-
-FrameRect citizenHead(const std::string& type) {
-    if (type == "merchant")
-        return FrameRect{115, 13, 13, 15};
-    if (type == "banker")
-        return FrameRect{142, 13, 13, 15};
-    if (type == "priest")
-        return FrameRect{170, 13, 11, 15};
-    return FrameRect{6, 13, 13, 15};
-}
 }  // namespace
 
+// ─── Constructor ──────────────────────────────────────────────────────────────
 WorldRenderer::WorldRenderer(TextureManager& textures, SDL2pp::Renderer& renderer,
                              const TileMap& map, TTF_Font* worldFont):
         textures(textures), renderer(renderer), map(map), worldFont(worldFont) {}
 
+// ─── Helpers privados ─────────────────────────────────────────────────────────
 bool WorldRenderer::cellInSafeZone(int col, int row) const {
     return std::any_of(map.getSafeZones().begin(), map.getSafeZones().end(),
                        [col, row](const SafeZoneRect& zone) {
@@ -65,6 +44,7 @@ bool WorldRenderer::cellInSafeZone(int col, int row) const {
                        });
 }
 
+// ─── Terrain ─────────────────────────────────────────────────────────────────
 void WorldRenderer::renderTerrain(const CameraOffset& camera) const {
     SDL2pp::Texture& ground = textures.get(std::string(GC::RESOURCES_DIR) + GROUND_SHEET);
     const SDL2pp::Rect groundSrc(GROUND_SRC_X, GROUND_SRC_Y, GROUND_TILE, GROUND_TILE);
@@ -81,6 +61,7 @@ void WorldRenderer::renderTerrain(const CameraOffset& camera) const {
     renderer.SetClipRect();
 }
 
+// ─── Overlays ────────────────────────────────────────────────────────────────
 void WorldRenderer::renderOverlays(const CameraOffset& camera) const {
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
     for (int row = 0; row < map.getHeight(); ++row) {
@@ -102,6 +83,7 @@ void WorldRenderer::renderOverlays(const CameraOffset& camera) const {
     }
 }
 
+// ─── Ground items ─────────────────────────────────────────────────────────────
 void WorldRenderer::renderGroundItems(const CameraOffset& camera,
                                       const SnapshotDTO& snapshot) const {
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
@@ -126,9 +108,8 @@ void WorldRenderer::renderGroundItems(const CameraOffset& camera,
         const int dstY = item.y * GC::TILE_SIZE + GC::TILE_SIZE - dstH - camera.y;
         renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
 
-        if (auto label = groundAmountLabel(item.amount)) {
+        if (auto label = groundAmountLabel(item.amount))
             drawGroundAmount(*label, item.x, item.y, camera);
-        }
     }
 }
 
@@ -157,6 +138,7 @@ void WorldRenderer::drawGroundAmount(const std::string& text, int tileX, int til
     SDL_DestroyTexture(tex);
 }
 
+// ─── Citizens ────────────────────────────────────────────────────────────────
 void WorldRenderer::renderCitizens(const CameraOffset& camera,
                                    std::optional<uint32_t> selectedNpc) const {
     SDL2pp::Texture& headSheet = textures.get(std::string(GC::RESOURCES_DIR) + GC::HEAD_SHEET);
@@ -164,41 +146,29 @@ void WorldRenderer::renderCitizens(const CameraOffset& camera,
                                CHARACTER_FRAME_H);
 
     for (const MapCitizen& citizen: map.getCitizens()) {
-        SDL2pp::Texture& body =
-                textures.get(std::string(GC::RESOURCES_DIR) + citizenSheet(citizen.type));
-        const SDL2pp::Rect dstRect(
-                citizen.x * GC::TILE_SIZE - camera.x,
-                citizen.y * GC::TILE_SIZE + GC::TILE_SIZE - GC::CHARACTER_DRAW_H - camera.y,
-                GC::TILE_SIZE, GC::CHARACTER_DRAW_H);
-        renderer.Copy(body, srcRect, dstRect);
+        const int tilePixelX = citizen.x * GC::TILE_SIZE;
+        const int tilePixelY = citizen.y * GC::TILE_SIZE;
 
-        const FrameRect hf = citizenHead(citizen.type);
-        const int headX =
-                citizen.x * GC::TILE_SIZE + GC::TILE_SIZE / 2 - GC::HEAD_DRAW_W / 2 - camera.x;
-        const int headY = citizen.y * GC::TILE_SIZE + GC::TILE_SIZE - GC::CHARACTER_DRAW_H +
-                          CITIZEN_HEAD_OVERLAP - GC::HEAD_DRAW_H - camera.y;
+        // Cuerpo
+        SDL2pp::Texture& body =
+                textures.get(std::string(GC::RESOURCES_DIR) + NpcVisuals::bodySheet(citizen.type));
+        renderer.Copy(body, srcRect,
+                      SDL2pp::Rect(tilePixelX - camera.x,
+                                   tilePixelY + GC::TILE_SIZE - GC::CHARACTER_DRAW_H - camera.y,
+                                   GC::TILE_SIZE, GC::CHARACTER_DRAW_H));
+
+        // Cabeza
+        const FrameRect hf = NpcVisuals::headRect(citizen.type);
+        const int headX = tilePixelX + GC::TILE_SIZE / 2 - GC::HEAD_DRAW_W / 2 - camera.x;
+        const int headY = tilePixelY + GC::TILE_SIZE - GC::CHARACTER_DRAW_H + CITIZEN_HEAD_OVERLAP -
+                          GC::HEAD_DRAW_H - camera.y;
         renderer.Copy(headSheet, SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h),
                       SDL2pp::Rect(headX, headY, GC::HEAD_DRAW_W, GC::HEAD_DRAW_H));
 
-        // DIBUJAR ANILLO VERDE SI ESTÁ SELECCIONADO
-        uint32_t fakeId = (citizen.x << 16) | citizen.y;
-        if (selectedNpc.has_value() && selectedNpc.value() == fakeId) {
-            renderer.SetDrawColor(0, 255, 0, 255);
-            const int cx =
-                    citizen.x * GC::TILE_SIZE + GC::TILE_SIZE / 2 - MARKER_SHIFT_X - camera.x;
-            const int cy = citizen.y * GC::TILE_SIZE + GC::TILE_SIZE - 4 - camera.y;
-            for (int t = -1; t <= 1; ++t) {
-                const int rx = GC::TILE_SIZE / 2 - 2 + t;
-                const int ry = GC::TILE_SIZE / 5 + t;
-                for (int i = 0; i < MARKER_SEGMENTS; ++i) {
-                    const double a0 = TAU * i / MARKER_SEGMENTS;
-                    const double a1 = TAU * (i + 1) / MARKER_SEGMENTS;
-                    renderer.DrawLine(cx + static_cast<int>(rx * std::cos(a0)),
-                                      cy + static_cast<int>(ry * std::sin(a0)),
-                                      cx + static_cast<int>(rx * std::cos(a1)),
-                                      cy + static_cast<int>(ry * std::sin(a1)));
-                }
-            }
+        // Anillo de selección (verde)
+        if (selectedNpc && NpcVisuals::matchesFakeId(*selectedNpc, citizen.x, citizen.y)) {
+            NpcVisuals::drawSelectionEllipse(renderer, tilePixelX - camera.x, tilePixelY - camera.y,
+                                             GC::TILE_SIZE, 0, 255, 0);
         }
     }
 }

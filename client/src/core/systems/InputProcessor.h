@@ -57,6 +57,10 @@ private:
     ChatCommandParser& chatParser;
     uint32_t lastMoveSentMs = 0;
     bool localInfiniteManaActive = false;
+
+    // Inyecta el npcId real y valida que el NPC seleccionado acepte el comando.
+    // Retorna false si el comando debe ser descartado (sin NPC, o comando no permitido).
+    bool validateAndAnnotateNpcCommand(NpcCommandDTO& npcCmd);
 };
 
 #endif
