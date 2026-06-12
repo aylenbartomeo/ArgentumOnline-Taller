@@ -11,7 +11,7 @@ TEST(CityStampTest, StampWritesNpcsSafeZoneAndObstacles) {
 
     EXPECT_EQ(map.getCitizens().size(), 3u);
     EXPECT_EQ(map.getSafeZones().size(), 1u);
-    EXPECT_EQ(map.terrainAt(25, 25), TerrainCode::COBBLE);
+    EXPECT_EQ(map.terrainAt(25, 25), TerrainCode::STONE);
 
     nlohmann::json data = nlohmann::json::parse(map.toJson());
     ASSERT_TRUE(data.contains("obstacles"));
