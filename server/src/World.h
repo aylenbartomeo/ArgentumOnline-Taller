@@ -187,6 +187,11 @@ public:
     // Obtener una referencia al Player según su ID de base de datos
     Player* getPlayerById(uint32_t dbId);
 
+    Interactable* resolveNpcTarget(uint32_t targetId, const Player& player) const;
+
+    void publishInteractionResult(uint32_t dbId, const InteractionResult& res);
+
+
     ~World() override = default;
 };
 
