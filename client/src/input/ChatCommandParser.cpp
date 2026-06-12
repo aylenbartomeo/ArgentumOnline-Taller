@@ -2,12 +2,13 @@
 
 #include <utility>
 
-ChatCommandParser::ChatCommandParser(): selectedSlotProvider([]() { return -1; }) {
+ChatCommandParser::ChatCommandParser():
+        selectedSlotProvider([]() { return -1; }), targetProvider([]() { return std::nullopt; }) {
     registerHandlers();
 }
 
-ChatCommandParser::ChatCommandParser(SlotProvider slotProvider):
-        selectedSlotProvider(std::move(slotProvider)) {
+ChatCommandParser::ChatCommandParser(SlotProvider slotProvider, TargetProvider targetProvider):
+        selectedSlotProvider(std::move(slotProvider)), targetProvider(std::move(targetProvider)) {
     registerHandlers();
 }
 
@@ -21,24 +22,29 @@ void ChatCommandParser::registerHandlers() {
         return NpcCommandDTO{LIST, ""};
     };
 
-    handlers["/resucitar"] = [](const std::string&) -> CommandVariant { return ResurrectDTO{}; };
-
     // === Comandos NPC (necesitan 1 argumento opcional/obligatorio) ===
-    handlers["/curar"] = [](const std::string&) -> CommandVariant {
-        return NpcCommandDTO{HEAL, ""};
+
+    handlers["/curar"] = [](const std::string& args) -> CommandVariant {
+        return NpcCommandDTO{HEAL, args, 0};
     };
+
     handlers["/comprar"] = [](const std::string& args) -> CommandVariant {
-        return NpcCommandDTO{BUY, args};
+        return NpcCommandDTO{BUY, args, 0};
     };
+
     handlers["/vender"] = [](const std::string& args) -> CommandVariant {
-        return NpcCommandDTO{SELL, args};
+        return NpcCommandDTO{SELL, args, 0};
     };
+
     handlers["/depositar"] = [](const std::string& args) -> CommandVariant {
-        return NpcCommandDTO{DEPOSIT, args};
+        return NpcCommandDTO{DEPOSIT, args, 0};
     };
+
     handlers["/retirar"] = [](const std::string& args) -> CommandVariant {
-        return NpcCommandDTO{WITHDRAW, args};
+        return NpcCommandDTO{WITHDRAW, args, 0};
     };
+
+    handlers["/resucitar"] = [](const std::string&) -> CommandVariant { return ResurrectDTO{}; };
 
     // === Comandos de Clan ===
     handlers["/fundar-clan"] = [](const std::string& args) -> CommandVariant {
