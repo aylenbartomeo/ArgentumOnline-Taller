@@ -8,7 +8,6 @@ target_sources(lib_common
     src/RandomNumberGenerator.cpp
     src/protocol/Protocol.cpp
     src/OverlayRegistry.cpp
-    src/TerrainRegistry.cpp
     src/CityPrefab.cpp
     PUBLIC
     # .h files
@@ -20,7 +19,6 @@ target_sources(lib_common
     include/queue.h
     include/thread.h
     include/OverlayRegistry.h
-    include/TerrainRegistry.h
     include/CityPrefab.h
     include/SafeZoneRect.h
     src/protocol/Protocol.h
