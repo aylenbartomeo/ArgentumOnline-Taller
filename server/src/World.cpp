@@ -345,8 +345,49 @@ void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
         return;
 
     p->onActionStarted();
-
     uint32_t playerEntityId = entityManager.resolveEntityId(dbId);
+
+    Interactable* targetNpc = nullptr;
+    uint32_t targetId = dto.npcId;
+
+    if (targetId > 0) {
+        int targetX = (targetId >> 16) & 0xFFFF;
+        int targetY = targetId & 0xFFFF;
+
+        for (auto& [id, npc]: entityManager.getCityNPCs()) {
+            if (npc->getPosition().x == targetX &&
+                (npc->getPosition().y == targetY || npc->getPosition().y - 1 == targetY)) {
+                targetNpc = npc.get();
+                break;
+            }
+        }
+        if (!targetNpc) {
+            targetNpc = entityManager.findInteractable(targetId);
+        }
+    }
+
+    if (!targetNpc) {
+        int minDist = 3;
+        for (auto& [id, npc]: entityManager.getCityNPCs()) {
+            int dist = p->getPosition().chebyshev_distance_to(npc->getPosition());
+            if (dist < minDist) {
+                minDist = dist;
+                targetNpc = npc.get();
+            }
+        }
+    }
+
+    if (!targetNpc) {
+        eventPublisher.sendTo(dbId, "[INFO] No hay nadie con quien interactuar allí.");
+        return;
+    }
+
+    InteractionResult startRes = interactionService.startInteraction(playerEntityId, *p, targetNpc);
+    if (startRes.status == InteractionStatus::FAILURE) {
+        eventPublisher.sendTo(dbId, "[INFO] " + startRes.msg);
+        return;
+    }
+
     InteractionResult res = interactionService.executeCommand(playerEntityId, *p, dto);
 
     switch (res.status) {
@@ -357,7 +398,7 @@ void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
             eventPublisher.sendTo(dbId, "[INFO] " + res.msg);
             break;
         case InteractionStatus::UNHANDLED:
-            eventPublisher.sendTo(dbId, "El NPC no comprende ese comando.");
+            eventPublisher.sendTo(dbId, "[INFO] El NPC no comprende ese comando.");
             break;
     }
 }
