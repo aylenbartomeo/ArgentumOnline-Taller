@@ -222,6 +222,14 @@ void EditorMap::addObstacle(int col, int row) {
     }
 }
 
+void EditorMap::removeObstacle(int col, int row) {
+    obstacles.erase(std::remove_if(obstacles.begin(), obstacles.end(),
+                                   [col, row](const std::pair<int, int>& obstacle) {
+                                       return obstacle.first == col && obstacle.second == row;
+                                   }),
+                    obstacles.end());
+}
+
 bool EditorMap::isBlocked(int col, int row) const {
     return std::any_of(obstacles.begin(), obstacles.end(),
                        [col, row](const std::pair<int, int>& obstacle) {
@@ -272,10 +280,26 @@ void EditorMap::addSafeZone(const std::string& name, int x, int y, int width, in
     safeZones.push_back({name, x, y, width, height});
 }
 
+void EditorMap::removeSafeZoneAt(int x, int y) {
+    safeZones.erase(
+            std::remove_if(safeZones.begin(), safeZones.end(),
+                           [x, y](const EditorSafeZone& z) { return z.x == x && z.y == y; }),
+            safeZones.end());
+}
+
 const std::vector<CitizenSpawn>& EditorMap::getCitizens() const { return citizens; }
 
 void EditorMap::addCitizen(const std::string& type, int x, int y) {
     citizens.push_back({type, x, y});
+}
+
+void EditorMap::removeCitizensInRect(int x, int y, int width, int height) {
+    citizens.erase(std::remove_if(citizens.begin(), citizens.end(),
+                                  [x, y, width, height](const CitizenSpawn& c) {
+                                      return c.x >= x && c.x < x + width && c.y >= y &&
+                                             c.y < y + height;
+                                  }),
+                   citizens.end());
 }
 
 const std::vector<MonsterSpawn>& EditorMap::getMonsters() const { return monsters; }

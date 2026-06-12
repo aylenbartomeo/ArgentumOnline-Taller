@@ -75,6 +75,7 @@ public:
     void setIndoor(int col, int row, int value);
 
     void addObstacle(int col, int row);
+    void removeObstacle(int col, int row);
     bool isBlocked(int col, int row) const;
 
     void paintItem(int col, int row, int overlayIndex);
@@ -93,9 +94,11 @@ public:
 
     const std::vector<EditorSafeZone>& getSafeZones() const;
     void addSafeZone(const std::string& name, int x, int y, int width, int height);
+    void removeSafeZoneAt(int x, int y);
 
     const std::vector<CitizenSpawn>& getCitizens() const;
     void addCitizen(const std::string& type, int x, int y);
+    void removeCitizensInRect(int x, int y, int width, int height);
     void removeEntitiesAt(int x, int y);
 
     const std::vector<MonsterSpawn>& getMonsters() const;

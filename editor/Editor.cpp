@@ -27,12 +27,13 @@ constexpr int OVERLAY_BTN_Y = 6;
 constexpr int MONSTER_BTN_Y = 44;
 constexpr int CITIZEN_BTN_Y = 82;
 constexpr int CITY_BTN_Y = 120;
-constexpr int ERASER_BTN_Y = 158;
-constexpr int SPAWN_BTN_Y = 196;
-constexpr int SAVE_Y = 236;
+constexpr int CITY_ERASE_BTN_Y = 158;
+constexpr int ERASER_BTN_Y = 196;
+constexpr int SPAWN_BTN_Y = 234;
+constexpr int SAVE_Y = 274;
 
 constexpr int PALETTE_X = PANEL_X + 10;
-constexpr int PALETTE_Y = 280;
+constexpr int PALETTE_Y = 318;
 constexpr int PALETTE_TILE = 32;
 constexpr int PALETTE_COLS = 5;
 
@@ -72,6 +73,8 @@ std::string labelForTool(Tool tool) {
             return "Citizen";
         case Tool::CITY:
             return "Ciudad";
+        case Tool::CITY_ERASE:
+            return "Borrar ciudad";
         case Tool::ERASER:
             return "Goma";
         case Tool::SPAWN:
@@ -121,6 +124,7 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
     toolbar.addToolButton(BTN_X, MONSTER_BTN_Y, BTN_W, BTN_H, Tool::MONSTER);
     toolbar.addToolButton(BTN_X, CITIZEN_BTN_Y, BTN_W, BTN_H, Tool::CITIZEN);
     toolbar.addToolButton(BTN_X, CITY_BTN_Y, BTN_W, BTN_H, Tool::CITY);
+    toolbar.addToolButton(BTN_X, CITY_ERASE_BTN_Y, BTN_W, BTN_H, Tool::CITY_ERASE);
     toolbar.addToolButton(BTN_X, ERASER_BTN_Y, BTN_W, BTN_H, Tool::ERASER);
     toolbar.addToolButton(BTN_X, SPAWN_BTN_Y, BTN_W, BTN_H, Tool::SPAWN);
     toolbar.addActionButton(BTN_X, SAVE_Y, BTN_W, BTN_H, ToolbarAction::SAVE);
@@ -226,6 +230,16 @@ void Editor::handleLeftClick(int x, int y) {
                     }
                     break;
                 }
+                case Tool::CITY_ERASE: {
+                    const EditorSafeZone* zone = safeZoneAt(cell.x, cell.y);
+                    if (zone != nullptr) {
+                        clearCity(map, zone->x, zone->y);
+                        statusMsg = "";
+                    } else {
+                        statusMsg = "ahi no hay ninguna ciudad";
+                    }
+                    break;
+                }
                 case Tool::ERASER:
                     map.removeEntitiesAt(cell.x, cell.y);
                     map.removeItemAt(cell.x, cell.y);
@@ -290,6 +304,7 @@ Palette& Editor::activePalette() {
             return citizenPalette;
         case Tool::OVERLAY:
         case Tool::CITY:
+        case Tool::CITY_ERASE:
         case Tool::ERASER:
         case Tool::SPAWN:
         default:
@@ -628,6 +643,7 @@ void Editor::renderPanel() {
                     case Tool::CITY:
                         drawGrass(b.x + 4, b.y + 2, b.h - 4);
                         break;
+                    case Tool::CITY_ERASE:
                     case Tool::ERASER:
                         drawEraserIcon(b);
                         break;
@@ -670,6 +686,7 @@ void Editor::renderPanel() {
                 break;
             case Tool::OVERLAY:
             case Tool::CITY:
+            case Tool::CITY_ERASE:
             case Tool::ERASER:
             case Tool::SPAWN:
             default:
@@ -719,6 +736,7 @@ void Editor::renderStatusBar() {
             selectedName = citizenCat[citizenPalette.getSelectedTile()].type;
             break;
         case Tool::CITY:
+        case Tool::CITY_ERASE:
             drawGrass(x0, y0, iconSize);
             break;
         case Tool::OVERLAY:

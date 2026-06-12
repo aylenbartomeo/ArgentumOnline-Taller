@@ -58,3 +58,21 @@ TEST(CityStampTest, RejectsWhenOverlappingAnotherCity) {
     EXPECT_NE(cityStampError(map, 30, 20), "");
     EXPECT_EQ(cityStampError(map, 54, 10), "");
 }
+
+TEST(CityStampTest, ClearCityRestoresGrassAndRemovesEverything) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+    map.addCitizen("priest", 10 + 5, 20 + 25);
+
+    clearCity(map, 10, 20);
+
+    EXPECT_EQ(map.getGround()[20 + 23][10 + 1], 108);
+    EXPECT_EQ(map.getDecoration()[20 + 22][10 + 2], 0);
+    EXPECT_EQ(map.getRoofs()[20 + 22][10 + 2], 0);
+    EXPECT_EQ(map.getIndoor()[20 + 14][10 + 9], 0);
+    EXPECT_FALSE(map.isBlocked(10 + 2, 20 + 22));
+    EXPECT_TRUE(map.getCitizens().empty());
+    EXPECT_TRUE(map.getSafeZones().empty());
+
+    EXPECT_EQ(cityStampError(map, 10, 20), "");
+}
