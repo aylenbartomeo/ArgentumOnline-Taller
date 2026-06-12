@@ -134,6 +134,13 @@ void HudPanel::drawText(SDL2pp::Renderer& renderer, const std::string& text, int
 
 void HudPanel::drawItemSprite(SDL2pp::Renderer& renderer, uint32_t itemId, int x, int y, int w,
                               int h) {
+
+    if (itemId == 2010) {
+        renderer.Copy(textures.get("resources/weapons/bowC.png"), SDL2pp::NullOpt,
+                      SDL2pp::Rect(x, y, w, h));
+        return;
+    }
+
     const OverlayDef* def = itemDef(itemId);
     if (def == nullptr) {
         renderer.Copy(textures.get(iconForItem(itemId)), SDL2pp::NullOpt, SDL2pp::Rect(x, y, w, h));

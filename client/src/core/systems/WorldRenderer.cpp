@@ -102,6 +102,22 @@ void WorldRenderer::renderGroundItems(const CameraOffset& camera,
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
 
     for (const auto& item: snapshot.groundItems) {
+        if (item.itemId == 2010) {
+            SDL2pp::Texture& tex = textures.get("resources/weapons/bowC.png");
+
+            // Ajustamos el tamaño a un tile estándar (32x32)
+            int dstW = GC::TILE_SIZE;
+            int dstH = GC::TILE_SIZE;
+            const int dstX = item.x * GC::TILE_SIZE + (GC::TILE_SIZE - dstW) / 2 - camera.x;
+            const int dstY = item.y * GC::TILE_SIZE + GC::TILE_SIZE - dstH - camera.y;
+
+            renderer.Copy(tex, SDL2pp::NullOpt, SDL2pp::Rect(dstX, dstY, dstW, dstH));
+
+            if (auto label = groundAmountLabel(item.amount)) {
+                drawGroundAmount(*label, item.x, item.y, camera);
+            }
+            continue;  // Saltamos la lógica por defecto de OverlayRegistry
+        }
         auto it = std::find_if(registry.begin(), registry.end(), [&item](const OverlayDef& def) {
             return static_cast<uint32_t>(def.itemId) == item.itemId;
         });

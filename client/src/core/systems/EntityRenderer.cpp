@@ -8,6 +8,7 @@
 #include "../animation/CharacterSprites.h"
 #include "../animation/Death.h"
 #include "../common/GameConstants.h"
+#include "../common/WeaponHelper.h"
 #include "../ui/HealthBar.h"
 
 namespace GC = GameConstants;
@@ -33,10 +34,11 @@ std::unordered_map<uint32_t, CharacterAnimator>& EntityRenderer::getAnimators() 
     return animators;
 }
 
-void EntityRenderer::render(const CameraOffset& camera, const SnapshotDTO& snapshot,
-                            uint32_t nowMs) {
-    for (const EntityDTO& player: snapshot.players) drawEntity(player, camera, nowMs);
-    for (const EntityDTO& monster: snapshot.monsters) drawEntity(monster, camera, nowMs);
+void EntityRenderer::render(const CameraOffset& camera, const SnapshotDTO& snapshot, uint32_t nowMs,
+                            const PlayerStatsDTO& localStats) {
+    for (const EntityDTO& player: snapshot.players) drawEntity(player, camera, nowMs, localStats);
+    for (const EntityDTO& monster: snapshot.monsters)
+        drawEntity(monster, camera, nowMs, localStats);
 
     // Purgar animators huérfanos
     for (auto it = animators.begin(); it != animators.end();) {
@@ -55,8 +57,8 @@ void EntityRenderer::render(const CameraOffset& camera, const SnapshotDTO& snaps
     for (const EntityDTO& monster: snapshot.monsters) drawHealthBar(monster, camera);
 }
 
-void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& camera,
-                                uint32_t nowMs) {
+void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& camera, uint32_t nowMs,
+                                const PlayerStatsDTO& localStats) {
     CharacterAnimator& anim = animators[entity.id];
     anim.update(entity.x, entity.y, nowMs);
     const int px = static_cast<int>(anim.getVirtualX() * GC::TILE_SIZE);
@@ -99,6 +101,30 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     renderer.Copy(body, bodySrc,
                   SDL2pp::Rect(px + (GC::TILE_SIZE - bodyDstW) / 2 - camera.x,
                                py + GC::TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH));
+
+
+    if (entity.id == myId && WeaponHelper::hasEquipped(localStats, WeaponHelper::ARCO_SIMPLE_ID)) {
+        SDL2pp::Texture& weaponTex =
+                textures.get(std::string(GC::RESOURCES_DIR) + "weapons/bowC-mov.png");
+
+        // Asumiendo un spritesheet de arma con 6 columnas y 4 filas uniformes
+        const int weaponFrameW = weaponTex.GetWidth() / 6;
+        const int weaponFrameH = weaponTex.GetHeight() / 4;
+
+        const int wCol = (static_cast<EntityAction>(entity.action) == EntityAction::WALKING) ?
+                                 anim.frameColumn(nowMs) :
+                                 0;
+        const int wRow = rowForFacing(facing);
+
+        SDL2pp::Rect weaponSrc(wCol * weaponFrameW, wRow * weaponFrameH, weaponFrameW,
+                               weaponFrameH);
+
+        // Se usa bodyDstW y bodyDstH para que el arma se escale y posicione exactamente igual que
+        // el cuerpo
+        renderer.Copy(weaponTex, weaponSrc,
+                      SDL2pp::Rect(px + (GC::TILE_SIZE - bodyDstW) / 2 - camera.x,
+                                   py + GC::TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH));
+    }
 
     if (sprite.drawHead) {
         SDL2pp::Texture& headSheet =

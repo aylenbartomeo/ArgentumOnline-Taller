@@ -146,7 +146,7 @@ void Game::render(const FrameInput& input) {
     worldRenderer.renderOverlays(cam);
     worldRenderer.renderGroundItems(cam, lastSnapshot);
     worldRenderer.renderCitizens(cam);
-    entityRenderer.render(cam, lastSnapshot, now);
+    entityRenderer.render(cam, lastSnapshot, now, lastStats);
     fxSystem.renderProjectiles(cam, now);
     fxSystem.render(cam, lastSnapshot, entityRenderer.getAnimators());
     fxSystem.renderFullscreen(WINDOW_WIDTH, WINDOW_HEIGHT);
