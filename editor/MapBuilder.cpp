@@ -72,17 +72,17 @@ struct Builder {
 
     void foamRing(int x0, int y0, int x1, int y1) {
         for (int x = x0; x <= x1; x += 2) {
-            foam(x, y0 - 1, 89);
-            foam(x, y1 + 1, 87);
+            foam(x, y0 - 1, 87);
+            foam(x, y1 + 1, 89);
         }
         for (int y = y0; y <= y1; y += 2) {
-            foam(x0 - 1, y, 90);
-            foam(x1 + 1, y, 88);
+            foam(x0 - 1, y, 88);
+            foam(x1 + 1, y, 90);
         }
-        foam(x0 - 1, y0 - 1, 96);
-        foam(x1 + 1, y0 - 1, 94);
-        foam(x0 - 1, y1 + 1, 95);
-        foam(x1 + 1, y1 + 1, 93);
+        foam(x0 - 1, y0 - 1, 86);
+        foam(x1 + 1, y0 - 1, 91);
+        foam(x0 - 1, y1 + 1, 85);
+        foam(x1 + 1, y1 + 1, 92);
     }
 
     void water(int x0, int y0, int x1, int y1) {
