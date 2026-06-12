@@ -2,6 +2,7 @@
 #define CLIENT_H
 
 #include <cstdint>
+#include <optional>
 #include <string>
 
 #include "../network/Receiver.h"
@@ -28,6 +29,9 @@ private:
     Sender sender;
     bool wasStarted;
 
+    std::optional<uint32_t> selectedNpcId;
+    std::string selectedNpcType = "dynamic";
+
 public:
     explicit Client(const char* hostname, const char* servname);
 
@@ -44,6 +48,14 @@ public:
     bool tryPopPlayerStats(PlayerStatsDTO& out);
 
     void sendCommand(const CommandVariant& cmd);
+
+    void setSelectedNpc(std::optional<uint32_t> id, const std::string& type = "dynamic") {
+        selectedNpcId = id;
+        selectedNpcType = type;
+    }
+
+    std::optional<uint32_t> getSelectedNpc() const { return selectedNpcId; }
+    std::string getSelectedNpcType() const { return selectedNpcType; }
 
     uint32_t getClientId() const;
 
