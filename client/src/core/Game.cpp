@@ -54,7 +54,7 @@ Game::Game(Client& client):
         lastStats(),
         audio(),
         camera(),
-        worldRenderer(textures, window.getRenderer(), map, worldFont),
+        worldRenderer(textures, window.getRenderer(), map),
         entityRenderer(textures, window.getRenderer(), client.getClientId()),
         fxSystem(textures, window.getRenderer()),
         inputProcessor(client, window, miniChat, hud, manualPanel, chatParser) {
@@ -63,8 +63,15 @@ Game::Game(Client& client):
     window.getRenderer().SetLogicalSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     worldFont = TTF_OpenFont(HUD_FONT_PATH, 12);
-    if (!worldFont)
+    entityFont = TTF_OpenFont(HUD_FONT_PATH, 9);  // Font más pequeño para LVL
+    if (!worldFont) {
         std::cerr << "No pude abrir la fuente del texto del mundo: " << TTF_GetError() << std::endl;
+    } else {
+        worldRenderer.setFont(worldFont);
+    }
+    if (entityFont) {
+        entityRenderer.setFont(entityFont);
+    }
 
     manualPanel.loadManual("../MANUAL_JUGADOR.md");
 }
@@ -72,6 +79,8 @@ Game::Game(Client& client):
 Game::~Game() {
     if (worldFont)
         TTF_CloseFont(worldFont);
+    if (entityFont)
+        TTF_CloseFont(entityFont);
 }
 
 bool Game::runStartupAndCreation() {

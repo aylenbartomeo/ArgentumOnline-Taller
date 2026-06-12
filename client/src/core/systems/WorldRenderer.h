@@ -13,8 +13,9 @@
 
 class WorldRenderer {
 public:
-    WorldRenderer(TextureManager& textures, SDL2pp::Renderer& renderer, const TileMap& map,
-                  TTF_Font* worldFont);
+    WorldRenderer(TextureManager& textures, SDL2pp::Renderer& renderer, const TileMap& map);
+
+    void setFont(TTF_Font* f) { worldFont = f; }
 
     void renderTerrain(const CameraOffset& camera) const;
     void renderOverlays(const CameraOffset& camera) const;

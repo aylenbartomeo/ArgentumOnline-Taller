@@ -23,7 +23,7 @@ constexpr const char* SKULL_SHEET = "106.png";
 }  // namespace
 
 EntityRenderer::EntityRenderer(TextureManager& textures, SDL2pp::Renderer& renderer, uint32_t myId):
-        textures(textures), renderer(renderer), myId(myId) {}
+        textures(textures), renderer(renderer), myId(myId), font(nullptr) {}
 
 const std::unordered_map<uint32_t, CharacterAnimator>& EntityRenderer::getAnimators() const {
     return animators;
@@ -135,6 +135,27 @@ void EntityRenderer::drawHealthBar(const EntityDTO& entity, const CameraOffset& 
     CharacterAnimator& anim = animators[entity.id];
     const int px = static_cast<int>(anim.getVirtualX() * GC::TILE_SIZE);
     const int py = static_cast<int>(anim.getVirtualY() * GC::TILE_SIZE);
+
+    if (font) {
+        std::string lvlText = "LVL " + std::to_string(entity.level);
+        SDL_Color color = {255, 255, 0, 255};  // Amarillo
+        SDL_Surface* surf = TTF_RenderUTF8_Blended(font, lvlText.c_str(), color);
+        if (surf) {
+            SDL_Texture* textTex = SDL_CreateTextureFromSurface(renderer.Get(), surf);
+            int textW = surf->w;
+            int textH = surf->h;
+            SDL_FreeSurface(surf);
+            if (textTex) {
+                // 36 is BAR_OFFSET_Y from HealthBar.cpp
+                int textX = px - camera.x + (GC::TILE_SIZE - textW) / 2;
+                int textY = py - camera.y - 36 - textH - 2;
+                SDL_Rect dst{textX, textY, textW, textH};
+                SDL_RenderCopy(renderer.Get(), textTex, nullptr, &dst);
+                SDL_DestroyTexture(textTex);
+            }
+        }
+    }
+
     const HealthBarLayout bar = computeHealthBar(entity.current_hp, entity.max_hp, px - camera.x,
                                                  py - camera.y, GC::TILE_SIZE);
     if (!bar.visible)

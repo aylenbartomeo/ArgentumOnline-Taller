@@ -1,15 +1,15 @@
 #include "ManualPanel.h"
 
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-#include <algorithm>
 
-ManualPanel::ManualPanel(const std::string& fontPath) : font(nullptr) {
+ManualPanel::ManualPanel(const std::string& fontPath): font(nullptr) {
     if (TTF_WasInit() == 0 && TTF_Init() != 0) {
         throw std::runtime_error(std::string("TTF_Init failed: ") + TTF_GetError());
     }
-    font = TTF_OpenFont(fontPath.c_str(), 14); // 14px size
+    font = TTF_OpenFont(fontPath.c_str(), 14);  // 14px size
     if (!font) {
         throw std::runtime_error(std::string("Cannot open font: ") + TTF_GetError());
     }
@@ -43,7 +43,8 @@ void ManualPanel::parseMarkdown(const std::string& content) {
 }
 
 void ManualPanel::update(const FrameInput& input, int windowW, int windowH) {
-    if (!visible) return;
+    if (!visible)
+        return;
 
     // Cerrar si se pide salir
     if (input.quit) {
@@ -73,7 +74,8 @@ void ManualPanel::update(const FrameInput& input, int windowW, int windowH) {
 }
 
 void ManualPanel::render(SDL_Renderer* renderer, int windowW, int windowH) {
-    if (!visible) return;
+    if (!visible)
+        return;
 
     const int panelX = (windowW - panelW) / 2;
     const int panelY = (windowH - panelH) / 2;
@@ -83,7 +85,7 @@ void ManualPanel::render(SDL_Renderer* renderer, int windowW, int windowH) {
     SDL_SetRenderDrawColor(renderer, 20, 20, 20, 230);
     SDL_Rect bg = {panelX, panelY, panelW, panelH};
     SDL_RenderFillRect(renderer, &bg);
-    
+
     // Borde
     SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255);
     SDL_RenderDrawRect(renderer, &bg);
@@ -92,20 +94,23 @@ void ManualPanel::render(SDL_Renderer* renderer, int windowW, int windowH) {
     // Renderizar texto con recorte
     SDL_Rect oldClip;
     SDL_RenderGetClipRect(renderer, &oldClip);
-    SDL_Rect textClip = {panelX + PADDING, panelY + PADDING, panelW - PADDING * 2, panelH - PADDING * 2};
+    SDL_Rect textClip = {panelX + PADDING, panelY + PADDING, panelW - PADDING * 2,
+                         panelH - PADDING * 2};
     SDL_RenderSetClipRect(renderer, &textClip);
 
-    const int textAreaW = textClip.w - 10; // menos espacio para el scrollbar
+    const int textAreaW = textClip.w - 10;  // menos espacio para el scrollbar
     int currentY = panelY + PADDING - scrollOffset;
 
     SDL_Color textColor = {220, 220, 220, 255};
     int renderedHeight = 0;
 
-    for (const std::string& line : lines) {
+    for (const std::string& line: lines) {
         std::string textToRender = line;
-        if (textToRender.empty()) textToRender = " ";
+        if (textToRender.empty())
+            textToRender = " ";
 
-        SDL_Surface* surf = TTF_RenderUTF8_Blended_Wrapped(font, textToRender.c_str(), textColor, textAreaW);
+        SDL_Surface* surf =
+                TTF_RenderUTF8_Blended_Wrapped(font, textToRender.c_str(), textColor, textAreaW);
         if (surf) {
             int h = surf->h;
             // Solo renderizar si está dentro de la vista
@@ -125,9 +130,11 @@ void ManualPanel::render(SDL_Renderer* renderer, int windowW, int windowH) {
 
     // Scrollbar lógica
     int maxScroll = renderedHeight - textClip.h + 20;
-    if (maxScroll < 0) maxScroll = 0;
-    
-    if (scrollOffset > maxScroll) scrollOffset = maxScroll;
+    if (maxScroll < 0)
+        maxScroll = 0;
+
+    if (scrollOffset > maxScroll)
+        scrollOffset = maxScroll;
 
     if (maxScroll > 0) {
         int trackX = panelX + panelW - 10;

@@ -54,6 +54,7 @@ private:
     TextureManager textures;
     TileMap map;
     TTF_Font* worldFont = nullptr;
+    TTF_Font* entityFont = nullptr;
 
     // UI
     MiniChat miniChat;

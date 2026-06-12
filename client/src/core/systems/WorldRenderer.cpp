@@ -49,8 +49,8 @@ FrameRect citizenHead(const std::string& type) {
 }  // namespace
 
 WorldRenderer::WorldRenderer(TextureManager& textures, SDL2pp::Renderer& renderer,
-                             const TileMap& map, TTF_Font* worldFont):
-        textures(textures), renderer(renderer), map(map), worldFont(worldFont) {}
+                             const TileMap& map):
+        textures(textures), renderer(renderer), map(map), worldFont(nullptr) {}
 
 bool WorldRenderer::cellInSafeZone(int col, int row) const {
     return std::any_of(map.getSafeZones().begin(), map.getSafeZones().end(),
