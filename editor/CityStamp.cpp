@@ -1,5 +1,6 @@
 #include "CityStamp.h"
 
+#include <algorithm>
 #include <vector>
 
 #include "CityPrefab.h"
@@ -7,6 +8,40 @@
 namespace {
 constexpr int WATER = 109;
 constexpr int GRASS = 108;
+
+std::string zoneNameForCitizen(const std::string& citizenType) {
+    if (citizenType == "priest") {
+        return "church";
+    }
+    if (citizenType == "banker") {
+        return "bank";
+    }
+    if (citizenType == "merchant") {
+        return "store";
+    }
+    return "";
+}
+
+std::string buildingErrorFor(const std::string& citizenType) {
+    if (citizenType == "priest") {
+        return "el priest va dentro de la iglesia";
+    }
+    if (citizenType == "banker") {
+        return "el banker va dentro del banco";
+    }
+    if (citizenType == "merchant") {
+        return "el merchant va alrededor de la tienda";
+    }
+    return "ese citizen no tiene lugar asignado";
+}
+
+const EditorSafeZone* zoneContaining(const EditorMap& map, int col, int row) {
+    const auto& zones = map.getSafeZones();
+    auto it = std::find_if(zones.begin(), zones.end(), [col, row](const EditorSafeZone& z) {
+        return col >= z.x && col < z.x + z.width && row >= z.y && row < z.y + z.height;
+    });
+    return (it != zones.end()) ? &(*it) : nullptr;
+}
 }
 
 std::string cityStampError(const EditorMap& map, int originX, int originY) {
@@ -75,4 +110,40 @@ void clearCity(EditorMap& map, int originX, int originY) {
     }
     map.removeCitizensInRect(originX, originY, prefab.width, prefab.height);
     map.removeSafeZoneAt(originX, originY);
+}
+
+bool cityZoneFor(const EditorSafeZone& zone, const std::string& citizenType, CellRect& out) {
+    const std::string zoneName = zoneNameForCitizen(citizenType);
+    if (zoneName.empty()) {
+        return false;
+    }
+    const CityPrefab& prefab = getCityPrefab();
+    auto it = std::find_if(prefab.buildings.begin(), prefab.buildings.end(),
+                           [&zoneName](const CityZone& z) { return z.name == zoneName; });
+    if (it == prefab.buildings.end()) {
+        return false;
+    }
+    out = {zone.x + it->dx, zone.y + it->dy, it->width, it->height};
+    return true;
+}
+
+std::string citizenPlacementError(const EditorMap& map, const std::string& citizenType, int col,
+                                  int row) {
+    const EditorSafeZone* zone = zoneContaining(map, col, row);
+    if (zone == nullptr) {
+        return "los citizens van dentro de una ciudad";
+    }
+    if (map.isBlocked(col, row)) {
+        return "esa celda esta ocupada";
+    }
+    CellRect rect;
+    if (!cityZoneFor(*zone, citizenType, rect)) {
+        return buildingErrorFor(citizenType);
+    }
+    bool inside = col >= rect.x && col < rect.x + rect.width && row >= rect.y &&
+                  row < rect.y + rect.height;
+    if (!inside) {
+        return buildingErrorFor(citizenType);
+    }
+    return "";
 }

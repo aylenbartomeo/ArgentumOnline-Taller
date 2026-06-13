@@ -76,3 +76,51 @@ TEST(CityStampTest, ClearCityRestoresGrassAndRemovesEverything) {
 
     EXPECT_EQ(cityStampError(map, 10, 20), "");
 }
+
+TEST(CitizenPlacementTest, PriestGoesInsideTheChurch) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+    EXPECT_EQ(citizenPlacementError(map, "priest", 10 + 9, 20 + 14), "");
+}
+
+TEST(CitizenPlacementTest, PriestRejectedOutsideTheChurch) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+    EXPECT_NE(citizenPlacementError(map, "priest", 10 + 30, 20 + 10), "");
+}
+
+TEST(CitizenPlacementTest, PriestRejectedOnAWall) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+    EXPECT_NE(citizenPlacementError(map, "priest", 10 + 2, 20 + 22), "");
+}
+
+TEST(CitizenPlacementTest, BankerGoesInsideTheBank) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+    EXPECT_EQ(citizenPlacementError(map, "banker", 10 + 30, 20 + 10), "");
+}
+
+TEST(CitizenPlacementTest, BankerRejectedInsideTheChurch) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+    EXPECT_NE(citizenPlacementError(map, "banker", 10 + 9, 20 + 14), "");
+}
+
+TEST(CitizenPlacementTest, MerchantGoesAroundTheStall) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+    EXPECT_EQ(citizenPlacementError(map, "merchant", 10 + 20, 20 + 32), "");
+}
+
+TEST(CitizenPlacementTest, MerchantRejectedInsideTheChurch) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+    EXPECT_NE(citizenPlacementError(map, "merchant", 10 + 9, 20 + 14), "");
+}
+
+TEST(CitizenPlacementTest, AnyCitizenRejectedOutsideAnyCity) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+    EXPECT_NE(citizenPlacementError(map, "priest", 5, 5), "");
+}
