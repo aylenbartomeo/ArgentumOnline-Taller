@@ -4,6 +4,7 @@
 
 namespace {
 constexpr int WATER = 109;
+constexpr int GRASS = 108;
 }
 
 std::string cityStampError(const EditorMap& map, int originX, int originY) {
@@ -51,4 +52,25 @@ void applyCityPrefab(EditorMap& map, int originX, int originY, const std::string
         map.addCitizen(npc.type, originX + npc.dx, originY + npc.dy);
     }
     map.addSafeZone(name, originX, originY, prefab.width, prefab.height);
+}
+
+void clearCity(EditorMap& map, int originX, int originY) {
+    const CityPrefab& prefab = getCityPrefab();
+    for (const CityCell& c: prefab.ground) {
+        map.setGround(originX + c.dx, originY + c.dy, GRASS);
+    }
+    for (const CityCell& c: prefab.decoration) {
+        map.setDecoration(originX + c.dx, originY + c.dy, 0);
+    }
+    for (const CityCell& c: prefab.roofs) {
+        map.setRoof(originX + c.dx, originY + c.dy, 0);
+    }
+    for (const CityCell& c: prefab.indoor) {
+        map.setIndoor(originX + c.dx, originY + c.dy, 0);
+    }
+    for (const CityCell& c: prefab.obstacles) {
+        map.removeObstacle(originX + c.dx, originY + c.dy);
+    }
+    map.removeCitizensInRect(originX, originY, prefab.width, prefab.height);
+    map.removeSafeZoneAt(originX, originY);
 }
