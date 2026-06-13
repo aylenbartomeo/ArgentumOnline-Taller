@@ -35,6 +35,7 @@ TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
     ItemRegistry registry("../config/items.toml");
     Position merchantPos{5, 5};
     Merchant comerciante(1, merchantPos, registry);
+    comerciante.initializeStock({{2000, 5}, {1000, 3}});
     Player player = makeTestPlayer();
 
     // Configuramos precondiciones usando la API real de tu InventoryComponent
@@ -144,6 +145,7 @@ TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
 TEST(MerchantTest, Merchant_ListStockSuccessfully) {
     ItemRegistry registry("../config/items.toml");
     Merchant comerciante(1, {0, 0}, registry);
+    comerciante.initializeStock({{2000, 5}, {1000, 3}});
     Player player = makeTestPlayer();
 
     // El jugador ejecuta el comando para listar la tienda del mercader

@@ -88,10 +88,8 @@ TEST(PriestTest, Priest_HealsHpAndManaToMaximum) {
 TEST(PriestTest, Priest_AllowsBuyingItemsInStock) {
     ItemRegistry registry("../config/items.toml");
     Priest sacerdote(1, {0, 0}, registry);
+    sacerdote.initializeStock({{1001, 10}, {1002, 5}});
     Player player = makePriestTestPlayer();
-
-    // Nota: Asegurate de que en el constructor de Priest se añada el ítem 1001 al mapa stock,
-    // por ejemplo: stock[1001u] = 5; para que este test pase con stock limitado.
 
     player.addGold(500);
 
@@ -151,6 +149,7 @@ TEST(PriestTest, Priest_DeadPlayerCannotTrade) {
 TEST(PriestTest, Priest_ListStockSuccessfully) {
     ItemRegistry registry("../config/items.toml");
     Priest sacerdote(1, {0, 0}, registry);
+    sacerdote.initializeStock({{1001, 10}, {1002, 5}});
     Player player = makePriestTestPlayer();
 
     // El jugador ejecuta el comando de listado ante el sacerdote
