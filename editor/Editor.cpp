@@ -16,7 +16,7 @@ constexpr int PANEL_WIDTH = 200;
 constexpr int STATUS_HEIGHT = 40;
 constexpr int CANVAS_WIDTH = WINDOW_WIDTH - PANEL_WIDTH;
 constexpr int CANVAS_HEIGHT = WINDOW_HEIGHT - STATUS_HEIGHT;
-constexpr int TILE_SCREEN = 32;
+constexpr int TILE_NATIVE = 32;
 constexpr int PANEL_X = CANVAS_WIDTH;
 constexpr int CAMERA_STEP = 32;
 
@@ -102,7 +102,7 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
         renderer(window, -1, SDL_RENDERER_ACCELERATED),
         textures(renderer),
         map(std::move(initialMap)),
-        camera(CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SCREEN, map.getWidth(), map.getHeight()),
+        camera(CANVAS_WIDTH, CANVAS_HEIGHT, TILE_NATIVE, map.getWidth(), map.getHeight()),
         itemOverlays(buildItemOverlays()),
         itemPalette(PALETTE_X, PALETTE_Y, PALETTE_TILE, PALETTE_COLS,
                     static_cast<int>(itemOverlays.size())),
@@ -186,6 +186,15 @@ void Editor::handleEvent(const SDL_Event& event, bool& running) {
             case SDLK_DOWN:
                 camera.move(0, CAMERA_STEP);
                 break;
+            case SDLK_PLUS:
+            case SDLK_EQUALS:
+            case SDLK_KP_PLUS:
+                camera.zoomIn();
+                break;
+            case SDLK_MINUS:
+            case SDLK_KP_MINUS:
+                camera.zoomOut();
+                break;
             case SDLK_s:
                 save();
                 break;
@@ -209,15 +218,18 @@ void Editor::handleLeftClick(int x, int y) {
                                    cell.x, cell.y);
                     statusMsg = "";
                     break;
-                case Tool::CITIZEN:
-                    if (safeZoneAt(cell.x, cell.y) != nullptr && !map.isBlocked(cell.x, cell.y)) {
-                        map.addCitizen(getCitizenCatalog()[citizenPalette.getSelectedTile()].type,
-                                       cell.x, cell.y);
+                case Tool::CITIZEN: {
+                    const std::string type =
+                            getCitizenCatalog()[citizenPalette.getSelectedTile()].type;
+                    std::string error = citizenPlacementError(map, type, cell.x, cell.y);
+                    if (error.empty()) {
+                        map.addCitizen(type, cell.x, cell.y);
                         statusMsg = "";
                     } else {
-                        statusMsg = "los citizens van dentro de una ciudad, en celda libre";
+                        statusMsg = error;
                     }
                     break;
+                }
                 case Tool::CITY: {
                     std::string error = cityStampError(map, cell.x, cell.y);
                     if (error.empty()) {
@@ -330,6 +342,7 @@ void Editor::drawGrass(int dstX, int dstY, int dstSize) {
 }
 
 void Editor::drawGroundLayer(const std::vector<std::vector<int>>& grid) {
+    const int ts = camera.getTileSize();
     for (int row = 0; row < map.getHeight(); ++row) {
         for (int col = 0; col < map.getWidth(); ++col) {
             int v = grid[row][col];
@@ -339,17 +352,20 @@ void Editor::drawGroundLayer(const std::vector<std::vector<int>>& grid) {
             SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + "ground/" +
                                                 std::to_string(v - 1) + ".png");
             Position screen = camera.cellToScreen(col, row);
-            if (screen.x + tex.GetWidth() <= 0 || screen.x >= CANVAS_WIDTH ||
-                screen.y + tex.GetHeight() <= 0 || screen.y >= CANVAS_HEIGHT) {
+            const int dstW = tex.GetWidth() * ts / TILE_NATIVE;
+            const int dstH = tex.GetHeight() * ts / TILE_NATIVE;
+            if (screen.x + dstW <= 0 || screen.x >= CANVAS_WIDTH || screen.y + dstH <= 0 ||
+                screen.y >= CANVAS_HEIGHT) {
                 continue;
             }
             renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
-                          SDL2pp::Rect(screen.x, screen.y, tex.GetWidth(), tex.GetHeight()));
+                          SDL2pp::Rect(screen.x, screen.y, dstW, dstH));
         }
     }
 }
 
 void Editor::drawDecorationLayer() {
+    const int ts = camera.getTileSize();
     const std::vector<std::vector<int>>& grid = map.getDecoration();
     for (int row = 0; row < map.getHeight(); ++row) {
         for (int col = 0; col < map.getWidth(); ++col) {
@@ -360,13 +376,15 @@ void Editor::drawDecorationLayer() {
             SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + "decoration/" +
                                                 std::to_string(v - 1) + ".png");
             Position screen = camera.cellToScreen(col, row);
-            const int dstY = screen.y + TILE_SCREEN - tex.GetHeight();
-            if (screen.x + tex.GetWidth() <= 0 || screen.x >= CANVAS_WIDTH ||
-                dstY + tex.GetHeight() <= 0 || dstY >= CANVAS_HEIGHT) {
+            const int dstW = tex.GetWidth() * ts / TILE_NATIVE;
+            const int dstH = tex.GetHeight() * ts / TILE_NATIVE;
+            const int dstY = screen.y + ts - dstH;
+            if (screen.x + dstW <= 0 || screen.x >= CANVAS_WIDTH || dstY + dstH <= 0 ||
+                dstY >= CANVAS_HEIGHT) {
                 continue;
             }
             renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
-                          SDL2pp::Rect(screen.x, dstY, tex.GetWidth(), tex.GetHeight()));
+                          SDL2pp::Rect(screen.x, dstY, dstW, dstH));
         }
     }
 }
@@ -402,10 +420,10 @@ void Editor::drawMonsterFromCatalog(const MonsterCatalogEntry& entry, int cellX,
 
     if (entry.drawHead) {
         SDL2pp::Texture& headTex = textures.get(std::string(RESOURCES_DIR) + entry.headSheet);
-        const int headW = HEAD_DRAW_W * cellSize / TILE_SCREEN;
-        const int headH = HEAD_DRAW_H * cellSize / TILE_SCREEN;
+        const int headW = HEAD_DRAW_W * cellSize / TILE_NATIVE;
+        const int headH = HEAD_DRAW_H * cellSize / TILE_NATIVE;
         const int headX = cellX + (cellSize - headW) / 2;
-        const int headY = dstY + entry.headOverlap * cellSize / TILE_SCREEN - headH;
+        const int headY = dstY + entry.headOverlap * cellSize / TILE_NATIVE - headH;
         renderer.Copy(headTex, SDL2pp::Rect(entry.headX, entry.headY, entry.headW, entry.headH),
                       SDL2pp::Rect(headX, headY, headW, headH));
     }
@@ -422,10 +440,10 @@ void Editor::drawCitizenFromCatalog(const CitizenCatalogEntry& entry, int cellX,
     renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
 
     SDL2pp::Texture& headTex = textures.get(std::string(RESOURCES_DIR) + entry.headSheet);
-    const int headW = HEAD_DRAW_W * cellSize / TILE_SCREEN;
-    const int headH = HEAD_DRAW_H * cellSize / TILE_SCREEN;
+    const int headW = HEAD_DRAW_W * cellSize / TILE_NATIVE;
+    const int headH = HEAD_DRAW_H * cellSize / TILE_NATIVE;
     const int headX = cellX + (cellSize - headW) / 2;
-    const int headY = dstY + entry.headOverlap * cellSize / TILE_SCREEN - headH;
+    const int headY = dstY + entry.headOverlap * cellSize / TILE_NATIVE - headH;
     renderer.Copy(headTex, SDL2pp::Rect(entry.headX, entry.headY, entry.headW, entry.headH),
                   SDL2pp::Rect(headX, headY, headW, headH));
 }
@@ -443,6 +461,7 @@ void Editor::render() {
     renderer.Clear();
     renderTerrain();
     renderSafeZones();
+    renderCitizenZones();
     renderItems();
     renderMonsters();
     renderCitizens();
@@ -461,30 +480,55 @@ void Editor::renderTerrain() {
 }
 
 void Editor::renderSafeZones() {
+    const int ts = camera.getTileSize();
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
     renderer.SetDrawColor(0, 220, 220, 255);
     for (const EditorSafeZone& zone: map.getSafeZones()) {
         Position screen = camera.cellToScreen(zone.x, zone.y);
-        renderer.DrawRect(SDL2pp::Rect(screen.x, screen.y, zone.width * TILE_SCREEN,
-                                       zone.height * TILE_SCREEN));
+        renderer.DrawRect(SDL2pp::Rect(screen.x, screen.y, zone.width * ts, zone.height * ts));
     }
+    renderer.SetClipRect();
+}
+
+void Editor::renderCitizenZones() {
+    if (toolbar.getActiveTool() != Tool::CITIZEN) {
+        return;
+    }
+    const int ts = camera.getTileSize();
+    const std::string type = getCitizenCatalog()[citizenPalette.getSelectedTile()].type;
+    renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
+    renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+    for (const EditorSafeZone& zone: map.getSafeZones()) {
+        CellRect rect;
+        if (!cityZoneFor(zone, type, rect)) {
+            continue;
+        }
+        Position screen = camera.cellToScreen(rect.x, rect.y);
+        SDL2pp::Rect dst(screen.x, screen.y, rect.width * ts, rect.height * ts);
+        renderer.SetDrawColor(80, 220, 120, 60);
+        renderer.FillRect(dst);
+        renderer.SetDrawColor(80, 220, 120, 200);
+        renderer.DrawRect(dst);
+    }
+    renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
     renderer.SetClipRect();
 }
 
 void Editor::renderItems() {
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
+    const int ts = camera.getTileSize();
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
     for (const auto& entry: map.getItems()) {
         int col = entry.first.first;
         int row = entry.first.second;
         const PlacedItem& item = entry.second;
         Position screen = camera.cellToScreen(col, row);
-        if (screen.x + TILE_SCREEN <= 0 || screen.x >= CANVAS_WIDTH ||
-            screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
+        if (screen.x + ts <= 0 || screen.x >= CANVAS_WIDTH || screen.y + ts <= 0 ||
+            screen.y >= CANVAS_HEIGHT) {
             continue;
         }
         const OverlayDef& def = registry[item.overlayIndex];
-        drawOverlay(def, screen.x, screen.y, TILE_SCREEN);
+        drawOverlay(def, screen.x, screen.y, ts);
         if (def.stackable && item.amount > 1) {
             const std::string text = std::to_string(item.amount);
             const SDL_Color black{0, 0, 0, 255};
@@ -498,6 +542,7 @@ void Editor::renderItems() {
 
 void Editor::renderMonsters() {
     const auto& catalog = getMonsterCatalog();
+    const int ts = camera.getTileSize();
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
     for (const MonsterSpawn& spawn: map.getMonsters()) {
         auto it = std::find_if(catalog.begin(), catalog.end(),
@@ -508,17 +553,18 @@ void Editor::renderMonsters() {
         if (!entry)
             continue;
         Position screen = camera.cellToScreen(spawn.x, spawn.y);
-        if (screen.x + TILE_SCREEN <= 0 || screen.x >= CANVAS_WIDTH ||
-            screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
+        if (screen.x + ts <= 0 || screen.x >= CANVAS_WIDTH || screen.y + ts <= 0 ||
+            screen.y >= CANVAS_HEIGHT) {
             continue;
         }
-        drawMonsterFromCatalog(*entry, screen.x, screen.y, TILE_SCREEN);
+        drawMonsterFromCatalog(*entry, screen.x, screen.y, ts);
     }
     renderer.SetClipRect();
 }
 
 void Editor::renderCitizens() {
     const auto& catalog = getCitizenCatalog();
+    const int ts = camera.getTileSize();
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
     for (const CitizenSpawn& spawn: map.getCitizens()) {
         auto it = std::find_if(catalog.begin(), catalog.end(),
@@ -529,34 +575,38 @@ void Editor::renderCitizens() {
         if (!entry)
             continue;
         Position screen = camera.cellToScreen(spawn.x, spawn.y);
-        if (screen.x + TILE_SCREEN <= 0 || screen.x >= CANVAS_WIDTH ||
-            screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
+        if (screen.x + ts <= 0 || screen.x >= CANVAS_WIDTH || screen.y + ts <= 0 ||
+            screen.y >= CANVAS_HEIGHT) {
             continue;
         }
-        drawCitizenFromCatalog(*entry, screen.x, screen.y, TILE_SCREEN);
+        drawCitizenFromCatalog(*entry, screen.x, screen.y, ts);
     }
     renderer.SetClipRect();
 }
 
 void Editor::renderSpawn() {
+    const int ts = camera.getTileSize();
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
     Position spawn = map.getSpawn();
     Position screen = camera.cellToScreen(spawn.x, spawn.y);
-    const int charH = TILE_SCREEN * 3 / 2;
-    drawCharacter(screen.x, screen.y + TILE_SCREEN - charH, TILE_SCREEN, charH);
+    const int charH = ts * 3 / 2;
+    drawCharacter(screen.x, screen.y + ts - charH, ts, charH);
 
     SDL2pp::Texture& headTex = textures.get(HEAD_SHEET_PATH);
     SDL2pp::Rect headSrc(HEAD_FRAME_X, HEAD_FRAME_Y, HEAD_FRAME_W, HEAD_FRAME_H);
-    const int headX = screen.x + TILE_SCREEN / 2 - HEAD_DRAW_W / 2;
-    const int headY = screen.y + TILE_SCREEN - charH + HEAD_OVERLAP - HEAD_DRAW_H;
-    renderer.Copy(headTex, headSrc, SDL2pp::Rect(headX, headY, HEAD_DRAW_W, HEAD_DRAW_H));
+    const int headW = HEAD_DRAW_W * ts / TILE_NATIVE;
+    const int headH = HEAD_DRAW_H * ts / TILE_NATIVE;
+    const int headOverlap = HEAD_OVERLAP * ts / TILE_NATIVE;
+    const int headX = screen.x + ts / 2 - headW / 2;
+    const int headY = screen.y + ts - charH + headOverlap - headH;
+    renderer.Copy(headTex, headSrc, SDL2pp::Rect(headX, headY, headW, headH));
 
     renderer.SetDrawColor(255, 235, 0, 255);
-    const int cx = screen.x + TILE_SCREEN / 2 - MARKER_SHIFT_X;
-    const int cy = screen.y + TILE_SCREEN - 4;
+    const int cx = screen.x + ts / 2 - MARKER_SHIFT_X;
+    const int cy = screen.y + ts - 4;
     for (int t = -1; t <= 1; ++t) {
-        const int rx = TILE_SCREEN / 2 - 2 + t;
-        const int ry = TILE_SCREEN / 5 + t;
+        const int rx = ts / 2 - 2 + t;
+        const int ry = ts / 5 + t;
         for (int i = 0; i < MARKER_SEGMENTS; ++i) {
             const double a0 = TAU * i / MARKER_SEGMENTS;
             const double a1 = TAU * (i + 1) / MARKER_SEGMENTS;

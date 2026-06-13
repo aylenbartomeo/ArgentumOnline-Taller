@@ -48,6 +48,7 @@ private:
     void render();
     void renderTerrain();
     void renderSafeZones();
+    void renderCitizenZones();
     void renderItems();
     void renderMonsters();
     void renderCitizens();
