@@ -32,12 +32,12 @@ public:
             std::cerr << "[ERROR Factory] No se pudo cargar la configuración de stocks: " << e.what() << std::endl;
         }
 
-        creators[NPCType::MERCHANT] = [&registry](uint32_t id, Position pos) {
+        creators[NPCType::MERCHANT] = [this, &registry](uint32_t id, Position pos) {
             auto merchant = std::make_unique<Merchant>(id, pos, registry);
             merchant->initializeStock(merchantInitialStock);
             return merchant;
         };
-        creators[NPCType::PRIEST] = [&registry](uint32_t id, Position pos) {
+        creators[NPCType::PRIEST] = [this, &registry](uint32_t id, Position pos) {
             auto priest = std::make_unique<Priest>(id, pos, registry);
             priest->initializeStock(priestInitialStock);
             return priest;
