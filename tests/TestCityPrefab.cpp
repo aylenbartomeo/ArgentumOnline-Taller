@@ -80,3 +80,35 @@ TEST(CityPrefabTest, GroundHasPlazaAndBankFloor) {
     EXPECT_TRUE(plaza);
     EXPECT_TRUE(bankFloor);
 }
+
+TEST(CityPrefabTest, HasBuildingZonesForChurchBankAndStore) {
+    const CityPrefab& prefab = getCityPrefab();
+    ASSERT_EQ(prefab.buildings.size(), 3u);
+
+    auto zoneNamed = [&prefab](const std::string& name) -> const CityZone* {
+        auto it = std::find_if(prefab.buildings.begin(), prefab.buildings.end(),
+                               [&name](const CityZone& z) { return z.name == name; });
+        return (it != prefab.buildings.end()) ? &(*it) : nullptr;
+    };
+
+    const CityZone* church = zoneNamed("church");
+    ASSERT_NE(church, nullptr);
+    EXPECT_EQ(church->dx, 2);
+    EXPECT_EQ(church->dy, 5);
+    EXPECT_EQ(church->width, 15);
+    EXPECT_EQ(church->height, 18);
+
+    const CityZone* bank = zoneNamed("bank");
+    ASSERT_NE(bank, nullptr);
+    EXPECT_EQ(bank->dx, 20);
+    EXPECT_EQ(bank->dy, 8);
+    EXPECT_EQ(bank->width, 20);
+    EXPECT_EQ(bank->height, 11);
+
+    const CityZone* store = zoneNamed("store");
+    ASSERT_NE(store, nullptr);
+    EXPECT_EQ(store->dx, 14);
+    EXPECT_EQ(store->dy, 27);
+    EXPECT_EQ(store->width, 13);
+    EXPECT_EQ(store->height, 6);
+}

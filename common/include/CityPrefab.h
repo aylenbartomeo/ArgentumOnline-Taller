@@ -16,6 +16,14 @@ struct CityNpc {
     int dy;
 };
 
+struct CityZone {
+    std::string name;
+    int dx;
+    int dy;
+    int width;
+    int height;
+};
+
 struct CityPrefab {
     int width;
     int height;
@@ -25,6 +33,7 @@ struct CityPrefab {
     std::vector<CityCell> indoor;
     std::vector<CityCell> obstacles;
     std::vector<CityNpc> npcs;
+    std::vector<CityZone> buildings;
 };
 
 const CityPrefab& getCityPrefab();
