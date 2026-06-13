@@ -30,4 +30,4 @@ struct AttackParams {
     float defenseBonus = 1.0f;
 };
 
-#endif // COMBAT_TYPES_H
+#endif  // COMBAT_TYPES_H

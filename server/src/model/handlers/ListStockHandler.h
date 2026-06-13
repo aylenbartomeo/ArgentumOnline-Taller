@@ -1,11 +1,15 @@
 #pragma once
 
-#include <sstream>
+#include <functional>
 #include <iomanip>
-#include "NpcCommandHandler.h"
+#include <sstream>
+#include <unordered_map>
+
 #include "../items/ItemRegistry.h"
 
-class ListStockHandler : public NpcCommandHandler {
+#include "NpcCommandHandler.h"
+
+class ListStockHandler: public NpcCommandHandler {
 private:
     const ItemRegistry& registry;
     const std::unordered_map<uint32_t, int>& npcStock;
@@ -14,11 +18,10 @@ private:
 
 public:
     ListStockHandler(
-        const ItemRegistry& registry, 
-        const std::unordered_map<uint32_t, int>& stock,
-        bool allowsSell,
-        std::function<bool(const Item*)> filter = [](const Item*) { return true; })
-        : registry(registry), npcStock(stock), allowsSell(allowsSell), isItemPermitted(filter) {}
+            const ItemRegistry& registry, const std::unordered_map<uint32_t, int>& stock,
+            bool allowsSell,
+            std::function<bool(const Item*)> filter = [](const Item*) { return true; }):
+            registry(registry), npcStock(stock), allowsSell(allowsSell), isItemPermitted(filter) {}
 
     InteractionResult execute(Player& player, const NpcCommandDTO& dto) override {
         InteractionResult result;
@@ -43,19 +46,19 @@ public:
         std::stringstream ss;
         ss << "--- CATÁLOGO DISPONIBLE ---\n";
 
-        for (const auto& [itemId, quantity] : npcStock) {
-            if (quantity <= 0) continue; // Saltamos si no hay stock
+        for (const auto& [itemId, quantity]: npcStock) {
+            if (quantity <= 0)
+                continue;  // Saltamos si no hay stock
 
             const Item* itemDef = registry.get_item(itemId);
-            if (!itemDef || !isItemPermitted(itemDef)) continue;
+            if (!itemDef || !isItemPermitted(itemDef))
+                continue;
 
             uint32_t buyPrice = itemDef->getPrice();
-            
-            ss << "- " << itemDef->getName() 
-               << " [ID: " << itemId << "]"
-               << " | Cantidad: " << quantity 
-               << " | Compra: " << buyPrice << "g";
-            
+
+            ss << "- " << itemDef->getName() << " [ID: " << itemId << "]"
+               << " | Cantidad: " << quantity << " | Compra: " << buyPrice << "g";
+
             if (allowsSell) {
                 ss << " | Venta: " << (buyPrice / 2) << "g";
             }

@@ -29,12 +29,20 @@ bool isTallFlora(int id) { return id == TREE_TILE_ID || id == PALM_TILE_ID; }
 
 // ─── Constructor ──────────────────────────────────────────────────────────────
 WorldRenderer::WorldRenderer(TextureManager& textures, SDL2pp::Renderer& renderer,
-                             const TileMap& map, TTF_Font* worldFont):
+                             const TileMap& map):
         textures(textures),
         renderer(renderer),
         map(map),
-        worldFont(worldFont),
+        worldFont(nullptr),
         indoorRegions(map.getIndoor()) {}
+
+bool WorldRenderer::cellInSafeZone(int col, int row) const {
+    return std::any_of(map.getSafeZones().begin(), map.getSafeZones().end(),
+                       [col, row](const SafeZoneRect& zone) {
+                           return col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
+                                  row < zone.y + zone.height;
+                       });
+}
 
 // ─── Terrain ─────────────────────────────────────────────────────────────────
 void WorldRenderer::renderTerrain(const CameraOffset& camera) const {

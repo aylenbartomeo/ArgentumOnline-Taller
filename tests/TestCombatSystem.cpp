@@ -1,20 +1,21 @@
 // tests/TestCombatSystem.cpp
 // Pruebas unitarias para el sistema de combate y sus estrategias de impacto
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <memory>
 
-#include "model/systems/CombatSystem.h"
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include "model/clan/ClanRepository.h"
+#include "model/entities/Monster.h"
+#include "model/entities/Player.h"
+#include "model/events/EventPublisher.h"
 #include "model/interfaces/CombatStrategies.h"
+#include "model/items/BodyArmor.h"
 #include "model/items/Weapon.h"
 #include "model/items/WeaponFactory.h"
-#include "model/entities/Player.h"
-#include "model/entities/Monster.h"
-#include "model/items/BodyArmor.h"
+#include "model/systems/CombatSystem.h"
 #include "model/systems/CombatTypes.h"
-#include "model/events/EventPublisher.h"
-#include "model/clan/ClanRepository.h"
 
 // Callback de prueba para eventos de combate
 class DummyCombatCallback: public ICombatEventCallback {
@@ -39,7 +40,7 @@ static Player makeTestPlayer(uint32_t id = 1) {
 // Helper: Crea un monstruo base de prueba
 static Monster makeTestMonster(uint32_t id = 2) {
     Position pos{0, 0};
-    MonsterConfig mConfig = {100, 100, 0, 10, 20, 5, 2, 1, "zone", 0, 0};
+    MonsterConfig mConfig = {100, 100, 0, 10, 20, 5, 2, 1, 1, "zone", 0, 0};
     return Monster(id, NPCType::GOBLIN, pos, mConfig);
 }
 
@@ -70,7 +71,8 @@ TEST(CombatSystemTest, ApplyDamageEffectBasicNoDefense) {
 
     EXPECT_TRUE(res.attackHappened);
     // Invariante: el HP del objetivo siempre refleja exactamente el daño reportado
-    uint16_t expectedHp = (res.damage >= initialHp) ? 0 : static_cast<uint16_t>(initialHp - res.damage);
+    uint16_t expectedHp =
+            (res.damage >= initialHp) ? 0 : static_cast<uint16_t>(initialHp - res.damage);
     EXPECT_EQ(victim.getHp(), expectedHp);
     // Si hubo esquive, daño es 0 (válido). Si no, debe ser mayor a 0.
     if (!res.evaded) {
@@ -110,9 +112,15 @@ TEST(CombatSystemTest, ApplyDamageEffectWithDefense) {
     EXPECT_TRUE(resNoArmor.attackHappened);
 
     // Invariante: HP siempre refleja el daño reportado
-    uint16_t expectedHpWithArmor = (resWithArmor.damage >= victimWithArmor.getMaxHp()) ? 0 : static_cast<uint16_t>(victimWithArmor.getMaxHp() - resWithArmor.damage);
+    uint16_t expectedHpWithArmor =
+            (resWithArmor.damage >= victimWithArmor.getMaxHp()) ?
+                    0 :
+                    static_cast<uint16_t>(victimWithArmor.getMaxHp() - resWithArmor.damage);
     EXPECT_EQ(victimWithArmor.getHp(), expectedHpWithArmor);
-    uint16_t expectedHpNoArmor = (resNoArmor.damage >= victimNoArmor.getMaxHp()) ? 0 : static_cast<uint16_t>(victimNoArmor.getMaxHp() - resNoArmor.damage);
+    uint16_t expectedHpNoArmor =
+            (resNoArmor.damage >= victimNoArmor.getMaxHp()) ?
+                    0 :
+                    static_cast<uint16_t>(victimNoArmor.getMaxHp() - resNoArmor.damage);
     EXPECT_EQ(victimNoArmor.getHp(), expectedHpNoArmor);
 
     // Si ninguno esquivó, el daño con armadura debe ser <= daño sin armadura
@@ -174,7 +182,8 @@ TEST(CombatSystemTest, MeleeDamageEffectBasic) {
 
     EXPECT_TRUE(res.attackHappened);
     // Invariante: el HP del objetivo siempre refleja exactamente el daño reportado
-    uint16_t expectedHp = (res.damage >= initialHp) ? 0 : static_cast<uint16_t>(initialHp - res.damage);
+    uint16_t expectedHp =
+            (res.damage >= initialHp) ? 0 : static_cast<uint16_t>(initialHp - res.damage);
     EXPECT_EQ(victim.getHp(), expectedHp);
     if (!res.evaded) {
         EXPECT_GT(res.damage, 0);
@@ -213,7 +222,8 @@ TEST(CombatSystemTest, MagicDamageEffectSufficientMana) {
     // El maná se consume independientemente del esquive
     EXPECT_EQ(attacker.getMana(), initialMana - 10);
     // Invariante: HP siempre refleja el daño reportado
-    uint16_t expectedHp = (res.damage >= initialHp) ? 0 : static_cast<uint16_t>(initialHp - res.damage);
+    uint16_t expectedHp =
+            (res.damage >= initialHp) ? 0 : static_cast<uint16_t>(initialHp - res.damage);
     EXPECT_EQ(victim.getHp(), expectedHp);
     if (!res.evaded) {
         EXPECT_GT(res.damage, 0);
@@ -317,6 +327,6 @@ TEST(CombatSystemTest, MagicHealEffectTargetNotPlayer) {
 
     EXPECT_FALSE(res.attackHappened);
     // Aunque falle, no debería consumir maná por fallar las validaciones semánticas de objetivo
-    EXPECT_EQ(attacker.getMana(), initialMana - 5); 
+    EXPECT_EQ(attacker.getMana(), initialMana - 5);
     EXPECT_EQ(monster.getHp(), 10);
 }

@@ -10,10 +10,10 @@
 #include "model/entities/Monster.h"
 #include "model/entities/Player.h"
 #include "model/events/EventPublisher.h"
-#include "server/src/model/systems/CombatTypes.h"
+#include "server/src/model/interfaces/CombatStrategies.h"
 #include "server/src/model/systems/ClanBonusCalculator.h"
 #include "server/src/model/systems/CombatNotifier.h"
-#include "server/src/model/interfaces/CombatStrategies.h"
+#include "server/src/model/systems/CombatTypes.h"
 
 class IHitEffect;
 class Weapon;
@@ -51,9 +51,9 @@ public:
     // Aplica el daño final sin validar distancia (para impactos ya confirmados, ej: proyectiles).
     CombatResult applyDamageEffect(const Attackable& attacker, Attackable& target,
                                    const AttackParams& params);
-                                   
+
     bool areClanmates(uint32_t dbId1, uint32_t dbId2) const;
-                                   
+
     // Aplica la curacion final
     CombatResult applyHealEffect(Player& target);
 

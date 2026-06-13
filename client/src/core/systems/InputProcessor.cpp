@@ -317,7 +317,7 @@ void InputProcessor::processNpcTargetInput(const FrameInput& input, const Camera
     const EntityDTO* me = findEntityById(snapshot, client.getClientId());
     if (!me)
         return;
-    const int dist = std::abs(me->x - citizenIt->x) + std::abs(me->y - citizenIt->y);
+    const int dist = std::max(std::abs(me->x - citizenIt->x), std::abs(me->y - citizenIt->y));
     if (dist > MAX_SELECT_RANGE) {
         miniChat.pushMessage("[INFO] Estás demasiado lejos para interactuar.");
         return;

@@ -3,8 +3,10 @@
 
 #include <string>
 #include <vector>
+
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
+
 #include "../input/EventHandler.h"
 
 class ManualPanel {

@@ -79,7 +79,7 @@ public:
     void playerCheat(uint32_t dbId, CheatType type);
 
     // Métodos lógicos: Entrar y salir del mundo virtual
-    bool addPlayer(uint32_t playerId, std::string& username,
+    bool addPlayer(uint32_t dbId, std::string& username, Race race, CharacterClass cls,
                    const std::optional<PlayerPersistData>& savedData = std::nullopt);
 
     // Extrae la data completa de un jugador para persistencia

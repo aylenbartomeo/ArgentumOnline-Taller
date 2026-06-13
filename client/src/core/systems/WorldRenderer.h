@@ -16,8 +16,9 @@
 
 class WorldRenderer {
 public:
-    WorldRenderer(TextureManager& textures, SDL2pp::Renderer& renderer, const TileMap& map,
-                  TTF_Font* worldFont);
+    WorldRenderer(TextureManager& textures, SDL2pp::Renderer& renderer, const TileMap& map);
+
+    void setFont(TTF_Font* f) { worldFont = f; }
 
     void renderTerrain(const CameraOffset& camera) const;
     void renderDecorationBehind(const CameraOffset& camera, int playerRow) const;
@@ -27,6 +28,8 @@ public:
     void renderRoofs(const CameraOffset& camera, int playerCol, int playerRow) const;
     void renderCitizens(const CameraOffset& camera,
                         std::optional<uint32_t> selectedNpc = std::nullopt) const;
+
+    bool cellInSafeZone(int col, int row) const;
 
 private:
     void renderGroundLayer(const std::vector<std::vector<int>>& grid,

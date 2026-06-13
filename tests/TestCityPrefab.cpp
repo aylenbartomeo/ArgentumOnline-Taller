@@ -74,10 +74,9 @@ TEST(CityPrefabTest, GroundHasPlazaAndBankFloor) {
     bool plaza = std::any_of(prefab.ground.begin(), prefab.ground.end(), [](const CityCell& c) {
         return c.dx == 1 && c.dy == 23 && c.value == 17;
     });
-    bool bankFloor = std::any_of(prefab.ground.begin(), prefab.ground.end(),
-                                 [](const CityCell& c) {
-                                     return c.dx == 20 && c.dy == 18 && c.value == 106;
-                                 });
+    bool bankFloor = std::any_of(prefab.ground.begin(), prefab.ground.end(), [](const CityCell& c) {
+        return c.dx == 20 && c.dy == 18 && c.value == 106;
+    });
     EXPECT_TRUE(plaza);
     EXPECT_TRUE(bankFloor);
 }

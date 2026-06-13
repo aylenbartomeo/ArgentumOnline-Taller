@@ -98,6 +98,9 @@ RaceConfig parseRaceConfig(const toml::table& raceTable) {
     return RaceConfig{
             requiredFloat(raceTable, "life_factor"),
             requiredFloat(raceTable, "mana_factor"),
+            requiredFloat(raceTable, "strength_factor"),
+            requiredFloat(raceTable, "agility_factor"),
+            requiredFloat(raceTable, "intelligence_factor"),
             requiredFloat(raceTable, "recovery_factor"),
     };
 }

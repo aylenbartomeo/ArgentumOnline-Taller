@@ -96,15 +96,31 @@ TEST(GameLoopTest, GameLoop_ConsumablesStopAffectingStatsAfterDuration) {
     join.username = "TestPlayer";
     gameQueue.push(join);
 
+    // Mandar comando de creación de personaje
+    CreateCharacterDTO createCmd;
+    createCmd.race = 0;            // Humano
+    createCmd.characterClass = 0;  // Guerrero
+    PlayerCommand pCmd;
+    pCmd.clientId = 999;
+    pCmd.command = createCmd;
+    gameQueue.push(pCmd);
+
     // 2. Iniciamos el GameLoop
     std::thread hiloGameLoop(&GameLoop::run, &loop);
 
     // Damos un breve tiempo para que el loop procese el JoinEvent y cree al jugador en el mundo
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-    // 3. Obtenemos al jugador del mundo
+    // 3. Obtenemos al jugador del mundo (el GameLoop usa clientId como dbId temporal o final)
     Player* player = loop.getWorld().getPlayerById(999);
-    ASSERT_NE(player, nullptr);
+
+    if (!player) {
+        loop.stop();
+        if (hiloGameLoop.joinable()) {
+            hiloGameLoop.join();
+        }
+        FAIL() << "El jugador no fue encontrado en el mundo";
+    }
 
     uint8_t baseStrength = player->getStrength();
 

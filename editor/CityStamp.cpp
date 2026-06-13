@@ -1,5 +1,7 @@
 #include "CityStamp.h"
 
+#include <vector>
+
 #include "CityPrefab.h"
 
 namespace {
