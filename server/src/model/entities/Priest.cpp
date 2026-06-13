@@ -14,15 +14,15 @@ Priest::Priest(uint32_t id, Position pos, const ItemRegistry& registry): id(id),
     commandHandlers[NpcCommandType::RESPAWN] = std::make_unique<ResurrectHandler>();
     commandHandlers[NpcCommandType::HEAL] = std::make_unique<HealHandler>();
 
-    // HARCODE ZONE: El Sacerdote abre su tienda con stock inicial limitado
-    stock[1001u] = 10;
-    stock[1002u] = 5;
-
     // Inyección: Pasa su stock, pero NO permite que le vendan nada (allowsSell = false)
     commandHandlers[NpcCommandType::BUY] = std::make_unique<TradeHandler>(registry, stock, false);
     // En el constructor Priest::Priest(...)
     commandHandlers[NpcCommandType::LIST] =
             std::make_unique<ListStockHandler>(registry, stock, false);
+}
+
+void Priest::initializeStock(const std::unordered_map<uint32_t, int>& initialStock) {
+    this->stock = initialStock;
 }
 
 InteractionResult Priest::beInteractedBy(Player& player) {

@@ -1,0 +1,7 @@
+[[stock]]
+item_id = 2000  # Espada
+amount = 5
+
+[[stock]]
+item_id = 1000  # Armadura de cuero
+amount = 3

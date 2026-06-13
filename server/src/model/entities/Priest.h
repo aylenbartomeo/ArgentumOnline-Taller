@@ -22,4 +22,6 @@ public:
     void setStock(const std::unordered_map<uint32_t, int>& savedStock) { stock = savedStock; }
     InteractionResult beInteractedBy(Player& player) override;
     InteractionResult handleCommand(Player& player, const NpcCommandDTO& dto) override;
+
+    void initializeStock(const std::unordered_map<uint32_t, int>& initialStock);
 };
