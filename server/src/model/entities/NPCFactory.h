@@ -33,15 +33,13 @@ public:
         }
 
         creators[NPCType::MERCHANT] = [this, &registry](uint32_t id, Position pos) {
-            auto merchant = std::make_unique<Merchant>(id, pos, registry);
-            merchant->initializeStock(merchantInitialStock);
-            return merchant;
+            return std::make_unique<Merchant>(id, pos, registry, merchantInitialStock);
         };
+
         creators[NPCType::PRIEST] = [this, &registry](uint32_t id, Position pos) {
-            auto priest = std::make_unique<Priest>(id, pos, registry);
-            priest->initializeStock(priestInitialStock);
-            return priest;
+            return std::make_unique<Priest>(id, pos, registry, priestInitialStock);
         };
+
         creators[NPCType::BANKER] = [&globalBank, &registry](uint32_t id, Position pos) {
             return std::make_unique<Banker>(id, pos, globalBank, registry);
         };
