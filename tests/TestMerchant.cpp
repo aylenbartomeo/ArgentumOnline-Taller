@@ -34,18 +34,13 @@ static Player makeTestPlayer(uint32_t id = 1) {
 TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
     ItemRegistry registry("../config/items.toml");
     Position merchantPos{5, 5};
-    Merchant comerciante(1, merchantPos, registry);
+    Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
     Player player = makeTestPlayer();
-
-    // Configuramos precondiciones usando la API real de tu InventoryComponent
     player.addGold(500);
 
-    // Intentamos comprar la "Espada"
     NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "2000");
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
-    // VALIDACIONES:
-    // 0. Verificamos que la compra fue exitosa
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
     EXPECT_EQ(player.getGold(), 480u);
 
@@ -61,7 +56,8 @@ TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
 // =========================================================================
 TEST(MerchantTest, Merchant_BuyWithFullInventoryDoesNotStealGold) {
     ItemRegistry registry("../config/items.toml");
-    Merchant comerciante(1, {0, 0}, registry);
+    Position merchantPos{5, 5};
+    Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
     Player player = makeTestPlayer();
 
     player.addGold(200);
@@ -88,7 +84,8 @@ TEST(MerchantTest, Merchant_BuyWithFullInventoryDoesNotStealGold) {
 // =========================================================================
 TEST(MerchantTest, Merchant_RejectsMagicItemsBasedOnName) {
     ItemRegistry registry("../config/items.toml");
-    Merchant comerciante(1, {0, 0}, registry);
+    Position merchantPos{5, 5};
+    Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
     Player player = makeTestPlayer();
 
     player.addGold(300);
@@ -114,7 +111,8 @@ TEST(MerchantTest, Merchant_RejectsMagicItemsBasedOnName) {
 // =========================================================================
 TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
     ItemRegistry registry("../config/items.toml");
-    Merchant comerciante(1, {0, 0}, registry);
+    Position merchantPos{5, 5};
+    Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
     Player player = makeTestPlayer();
 
     // Le damos una "Armadura de cuero" (ID: 1001) directo en la mochila
@@ -143,7 +141,8 @@ TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
 // =========================================================================
 TEST(MerchantTest, Merchant_ListStockSuccessfully) {
     ItemRegistry registry("../config/items.toml");
-    Merchant comerciante(1, {0, 0}, registry);
+    Position merchantPos{5, 5};
+    Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
     Player player = makeTestPlayer();
 
     // El jugador ejecuta el comando para listar la tienda del mercader
