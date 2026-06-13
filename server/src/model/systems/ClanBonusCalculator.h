@@ -2,6 +2,7 @@
 #define CLAN_BONUS_CALCULATOR_H
 
 #include <cstdint>
+#include <string>
 
 #include "server/src/model/clan/ClanRepository.h"
 #include "server/src/model/entities/EntityManager.h"

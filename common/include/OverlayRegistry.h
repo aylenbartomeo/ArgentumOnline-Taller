@@ -18,4 +18,11 @@ struct OverlayDef {
 
 const std::vector<OverlayDef>& getOverlayRegistry();
 
+namespace OverlayTile {
+constexpr int WALL = 27;
+constexpr int ALTAR = 28;
+constexpr int MOSTRADOR = 29;
+constexpr int BOVEDA = 30;
+}  // namespace OverlayTile
+
 #endif

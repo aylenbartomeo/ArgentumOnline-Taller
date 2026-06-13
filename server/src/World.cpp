@@ -128,7 +128,6 @@ bool World::addPlayer(uint32_t dbId, std::string& username, Race race, Character
 
         baseConfig.startingLevel = d.level;
         baseConfig.startingExperience = d.exp;
-        baseConfig.startingGold = d.gold;
 
         savedRace = static_cast<Race>(d.race);
         savedClass = static_cast<CharacterClass>(d.characterClass);
@@ -345,10 +344,58 @@ void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
         return;
 
     p->onActionStarted();
-
     uint32_t playerEntityId = entityManager.resolveEntityId(dbId);
-    InteractionResult res = interactionService.executeCommand(playerEntityId, *p, dto);
 
+    Interactable* targetNpc = resolveNpcTarget(dto.npcId, *p);
+
+    if (!targetNpc) {
+        eventPublisher.sendTo(dbId, "[INFO] No hay nadie con quien interactuar allí.");
+        return;
+    }
+
+    InteractionResult startRes = interactionService.startInteraction(playerEntityId, *p, targetNpc);
+    if (startRes.status == InteractionStatus::FAILURE) {
+        eventPublisher.sendTo(dbId, "[INFO] " + startRes.msg);
+        return;
+    }
+
+    InteractionResult res = interactionService.executeCommand(playerEntityId, *p, dto);
+    publishInteractionResult(dbId, res);
+}
+
+Interactable* World::resolveNpcTarget(uint32_t targetId, const Player& player) const {
+    // 1. Búsqueda por coordenadas codificadas en targetId
+    if (targetId > 0) {
+        int targetX = (targetId >> 16) & 0xFFFF;
+        int targetY = targetId & 0xFFFF;
+
+        for (auto& [id, npc]: entityManager.getCityNPCs()) {
+            const Position& pos = npc->getPosition();
+            if (pos.x == targetX && (pos.y == targetY || pos.y - 1 == targetY))
+                return npc.get();
+        }
+
+        // Fallback: buscar por id directo en el EntityManager
+        if (Interactable* npc = entityManager.findInteractable(targetId))
+            return npc;
+    }
+
+    // 2. NPC más cercano dentro del rango de interacción
+    constexpr int INTERACTION_RANGE = 3;
+    Interactable* nearest = nullptr;
+    int minDist = INTERACTION_RANGE;
+
+    for (auto& [id, npc]: entityManager.getCityNPCs()) {
+        int dist = player.getPosition().chebyshev_distance_to(npc->getPosition());
+        if (dist < minDist) {
+            minDist = dist;
+            nearest = npc.get();
+        }
+    }
+    return nearest;
+}
+
+void World::publishInteractionResult(uint32_t dbId, const InteractionResult& res) {
     switch (res.status) {
         case InteractionStatus::SUCCESS:
             eventPublisher.sendTo(dbId, res.msg);
@@ -357,7 +404,7 @@ void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
             eventPublisher.sendTo(dbId, "[INFO] " + res.msg);
             break;
         case InteractionStatus::UNHANDLED:
-            eventPublisher.sendTo(dbId, "El NPC no comprende ese comando.");
+            eventPublisher.sendTo(dbId, "[INFO] El NPC no comprende ese comando.");
             break;
     }
 }

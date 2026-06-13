@@ -2,11 +2,13 @@
 
 #include <algorithm>
 #include <fstream>
+#include <optional>
 #include <string>
-#include <vector>
 
 #include "../animation/CharacterSprites.h"
 #include "../common/GameConstants.h"
+#include "../rendering/NpcVisuals.h"
+#include "../rendering/TileDraw.h"
 #include "../ui/GroundItemLabel.h"
 
 #include "OverlayRegistry.h"
@@ -14,43 +16,25 @@
 namespace GC = GameConstants;
 
 namespace {
-constexpr const char* GROUND_SHEET = "5108.png";
-constexpr int GROUND_SRC_X = 416;
-constexpr int GROUND_SRC_Y = 384;
-constexpr int DARK_GROUND_SRC_X = 512;
-constexpr int DARK_GROUND_SRC_Y = 480;
-constexpr int GROUND_TILE = 32;
-
 constexpr int CHARACTER_FRAME_X = 2;
 constexpr int CHARACTER_FRAME_Y = 4;
 constexpr int CHARACTER_FRAME_W = 24;
 constexpr int CHARACTER_FRAME_H = 44;
 constexpr int CITIZEN_HEAD_OVERLAP = 6;
+constexpr int TREE_TILE_ID = 10;
+constexpr int PALM_TILE_ID = 41;
 
-const char* citizenSheet(const std::string& type) {
-    if (type == "merchant")
-        return "1077.png";
-    if (type == "banker")
-        return "1071.png";
-    if (type == "priest")
-        return "1910.png";
-    return "1200.png";
-}
-
-FrameRect citizenHead(const std::string& type) {
-    if (type == "merchant")
-        return FrameRect{115, 13, 13, 15};
-    if (type == "banker")
-        return FrameRect{142, 13, 13, 15};
-    if (type == "priest")
-        return FrameRect{170, 13, 11, 15};
-    return FrameRect{6, 13, 13, 15};
-}
+bool isTallFlora(int id) { return id == TREE_TILE_ID || id == PALM_TILE_ID; }
 }  // namespace
 
+// ─── Constructor ──────────────────────────────────────────────────────────────
 WorldRenderer::WorldRenderer(TextureManager& textures, SDL2pp::Renderer& renderer,
                              const TileMap& map):
-        textures(textures), renderer(renderer), map(map), worldFont(nullptr) {}
+        textures(textures),
+        renderer(renderer),
+        map(map),
+        worldFont(nullptr),
+        indoorRegions(map.getIndoor()) {}
 
 bool WorldRenderer::cellInSafeZone(int col, int row) const {
     return std::any_of(map.getSafeZones().begin(), map.getSafeZones().end(),
@@ -60,22 +44,94 @@ bool WorldRenderer::cellInSafeZone(int col, int row) const {
                        });
 }
 
+// ─── Terrain ─────────────────────────────────────────────────────────────────
 void WorldRenderer::renderTerrain(const CameraOffset& camera) const {
-    SDL2pp::Texture& ground = textures.get(std::string(GC::RESOURCES_DIR) + GROUND_SHEET);
-    const SDL2pp::Rect groundSrc(GROUND_SRC_X, GROUND_SRC_Y, GROUND_TILE, GROUND_TILE);
-    const SDL2pp::Rect darkGroundSrc(DARK_GROUND_SRC_X, DARK_GROUND_SRC_Y, GROUND_TILE,
-                                     GROUND_TILE);
-
-    for (int row = 0; row < map.getHeight(); ++row) {
-        for (int col = 0; col < map.getWidth(); ++col) {
-            const SDL2pp::Rect dst(col * GC::TILE_SIZE - camera.x, row * GC::TILE_SIZE - camera.y,
-                                   GC::TILE_SIZE, GC::TILE_SIZE);
-            renderer.Copy(ground, cellInSafeZone(col, row) ? darkGroundSrc : groundSrc, dst);
-        }
-    }
+    renderGroundLayer(map.getGround(), camera);
+    renderGroundLayer(map.getGround2(), camera);
     renderer.SetClipRect();
 }
 
+void WorldRenderer::renderDecorationBehind(const CameraOffset& camera, int playerRow) const {
+    const std::vector<std::vector<int>>& grid = map.getDecoration();
+    for (int row = 0; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            if (v <= 0) {
+                continue;
+            }
+            if (isTallFlora(v - 1) && playerRow >= 0 && row > playerRow) {
+                continue;
+            }
+            drawDecorationTile(v - 1, col, row, camera);
+        }
+    }
+}
+
+void WorldRenderer::renderDecorationFront(const CameraOffset& camera, int playerRow) const {
+    if (playerRow < 0) {
+        return;
+    }
+    const std::vector<std::vector<int>>& grid = map.getDecoration();
+    for (int row = playerRow + 1; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            if (v <= 0 || !isTallFlora(v - 1)) {
+                continue;
+            }
+            drawDecorationTile(v - 1, col, row, camera);
+        }
+    }
+}
+
+void WorldRenderer::drawDecorationTile(int id, int col, int row, const CameraOffset& camera) const {
+    SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "decoration/" +
+                                        std::to_string(id) + ".png");
+    TileRect r = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE, camera.x,
+                              camera.y);
+    renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
+                  SDL2pp::Rect(r.x, r.y, r.w, r.h));
+}
+
+void WorldRenderer::renderGroundLayer(const std::vector<std::vector<int>>& grid,
+                                      const CameraOffset& camera) const {
+    for (int row = 0; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            if (v <= 0) {
+                continue;
+            }
+            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "ground/" +
+                                                std::to_string(v - 1) + ".png");
+            renderer.Copy(
+                    tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
+                    SDL2pp::Rect(col * GC::TILE_SIZE - camera.x, row * GC::TILE_SIZE - camera.y,
+                                 tex.GetWidth(), tex.GetHeight()));
+        }
+    }
+}
+
+void WorldRenderer::renderRoofs(const CameraOffset& camera, int playerCol, int playerRow) const {
+    const std::vector<std::vector<int>>& grid = map.getRoofs();
+    for (int row = 0; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            if (v <= 0) {
+                continue;
+            }
+            if (indoorRegions.roofHidden(col, row, playerCol, playerRow)) {
+                continue;
+            }
+            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "decoration/" +
+                                                std::to_string(v - 1) + ".png");
+            TileRect r = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE,
+                                      camera.x, camera.y);
+            renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
+                          SDL2pp::Rect(r.x, r.y, r.w, r.h));
+        }
+    }
+}
+
+// ─── Overlays ────────────────────────────────────────────────────────────────
 void WorldRenderer::renderOverlays(const CameraOffset& camera) const {
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
     for (int row = 0; row < map.getHeight(); ++row) {
@@ -97,6 +153,7 @@ void WorldRenderer::renderOverlays(const CameraOffset& camera) const {
     }
 }
 
+// ─── Ground items ─────────────────────────────────────────────────────────────
 void WorldRenderer::renderGroundItems(const CameraOffset& camera,
                                       const SnapshotDTO& snapshot) const {
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
@@ -121,9 +178,8 @@ void WorldRenderer::renderGroundItems(const CameraOffset& camera,
         const int dstY = item.y * GC::TILE_SIZE + GC::TILE_SIZE - dstH - camera.y;
         renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
 
-        if (auto label = groundAmountLabel(item.amount)) {
+        if (auto label = groundAmountLabel(item.amount))
             drawGroundAmount(*label, item.x, item.y, camera);
-        }
     }
 }
 
@@ -152,25 +208,37 @@ void WorldRenderer::drawGroundAmount(const std::string& text, int tileX, int til
     SDL_DestroyTexture(tex);
 }
 
-void WorldRenderer::renderCitizens(const CameraOffset& camera) const {
+// ─── Citizens ────────────────────────────────────────────────────────────────
+void WorldRenderer::renderCitizens(const CameraOffset& camera,
+                                   std::optional<uint32_t> selectedNpc) const {
     SDL2pp::Texture& headSheet = textures.get(std::string(GC::RESOURCES_DIR) + GC::HEAD_SHEET);
     const SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
                                CHARACTER_FRAME_H);
-    for (const MapCitizen& citizen: map.getCitizens()) {
-        SDL2pp::Texture& body =
-                textures.get(std::string(GC::RESOURCES_DIR) + citizenSheet(citizen.type));
-        const SDL2pp::Rect dstRect(
-                citizen.x * GC::TILE_SIZE - camera.x,
-                citizen.y * GC::TILE_SIZE + GC::TILE_SIZE - GC::CHARACTER_DRAW_H - camera.y,
-                GC::TILE_SIZE, GC::CHARACTER_DRAW_H);
-        renderer.Copy(body, srcRect, dstRect);
 
-        const FrameRect hf = citizenHead(citizen.type);
-        const int headX =
-                citizen.x * GC::TILE_SIZE + GC::TILE_SIZE / 2 - GC::HEAD_DRAW_W / 2 - camera.x;
-        const int headY = citizen.y * GC::TILE_SIZE + GC::TILE_SIZE - GC::CHARACTER_DRAW_H +
-                          CITIZEN_HEAD_OVERLAP - GC::HEAD_DRAW_H - camera.y;
+    for (const MapCitizen& citizen: map.getCitizens()) {
+        const int tilePixelX = citizen.x * GC::TILE_SIZE;
+        const int tilePixelY = citizen.y * GC::TILE_SIZE;
+
+        // Cuerpo
+        SDL2pp::Texture& body =
+                textures.get(std::string(GC::RESOURCES_DIR) + NpcVisuals::bodySheet(citizen.type));
+        renderer.Copy(body, srcRect,
+                      SDL2pp::Rect(tilePixelX - camera.x,
+                                   tilePixelY + GC::TILE_SIZE - GC::CHARACTER_DRAW_H - camera.y,
+                                   GC::TILE_SIZE, GC::CHARACTER_DRAW_H));
+
+        // Cabeza
+        const FrameRect hf = NpcVisuals::headRect(citizen.type);
+        const int headX = tilePixelX + GC::TILE_SIZE / 2 - GC::HEAD_DRAW_W / 2 - camera.x;
+        const int headY = tilePixelY + GC::TILE_SIZE - GC::CHARACTER_DRAW_H + CITIZEN_HEAD_OVERLAP -
+                          GC::HEAD_DRAW_H - camera.y;
         renderer.Copy(headSheet, SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h),
                       SDL2pp::Rect(headX, headY, GC::HEAD_DRAW_W, GC::HEAD_DRAW_H));
+
+        // Anillo de selección (verde)
+        if (selectedNpc && NpcVisuals::matchesFakeId(*selectedNpc, citizen.x, citizen.y)) {
+            NpcVisuals::drawSelectionEllipse(renderer, tilePixelX - camera.x, tilePixelY - camera.y,
+                                             GC::TILE_SIZE, 0, 255, 0);
+        }
     }
 }

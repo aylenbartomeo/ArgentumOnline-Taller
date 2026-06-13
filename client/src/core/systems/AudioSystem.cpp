@@ -26,6 +26,9 @@ AudioSystem::AudioSystem() {
         std::cerr << "[AUDIO] No se pudo cargar la música: " << Mix_GetError() << std::endl;
         return;
     }
+    Mix_PlayMusic(bgMusic, -1);
+    Mix_VolumeMusic(MUSIC_VOLUME);
+    Mix_AllocateChannels(16);
 
     // REGISTRO DE SONIDOS. Nota: se podria leer de un JSON
     const std::unordered_map<SoundEffect, SoundConfig> sfxRegistry = {

@@ -443,12 +443,14 @@ void Protocol::sendNpcCommand(const NpcCommandDTO& dto) {
     sendUint8(static_cast<uint8_t>(OPCODE::NPC_CMD));
     sendUint8(static_cast<uint8_t>(dto.type));
     sendString(dto.arg);
+    sendUint32(dto.npcId);
 }
 
 NpcCommandDTO Protocol::receiveNpcCommandBody() {
     NpcCommandDTO dto;
     dto.type = static_cast<NpcCommandType>(recvUint8());
     dto.arg = recvString();
+    dto.npcId = recvUint32();
     return dto;
 }
 

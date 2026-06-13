@@ -47,7 +47,7 @@ Attackable* EntityManager::findAttackable(uint32_t entityId) {
     return nullptr;
 }
 
-Interactable* EntityManager::findInteractable(uint32_t entityId) {
+Interactable* EntityManager::findInteractable(uint32_t entityId) const {
     auto itNpc = cityNPCs.find(entityId);
     if (itNpc != cityNPCs.end()) {
         return itNpc->second.get();

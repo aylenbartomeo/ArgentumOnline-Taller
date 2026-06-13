@@ -1,5 +1,7 @@
 #include "server/src/model/systems/ClanBonusCalculator.h"
 
+#include <string>
+
 #include "server/src/model/entities/Player.h"
 
 ClanBonusCalculator::ClanBonusCalculator(EntityManager& em, ClanRepository& cr, EventPublisher& ep):

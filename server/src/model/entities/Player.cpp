@@ -289,6 +289,7 @@ PlayerPersistData Player::toPersistData() const {
 void Player::fromPersistData(const PlayerPersistData& data) {
     // Restaurar stats usando el método dedicado de StatsComponent
     stats.restoreFromPersist(data.hp, data.mana, data.exp, data.level);
+    inventory.setGold(data.gold);
 
     // Inventario
     uint8_t slots = std::min<uint8_t>(data.inventorySize, 16);

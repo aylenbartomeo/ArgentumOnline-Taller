@@ -28,6 +28,10 @@ const std::vector<OverlayDef>& getOverlayRegistry() {
             {"102.png", 288, 64, 32, 32, "Escudo de tortuga", 1020, false},
             {"112.png", 578, 128, 28, 32, "Escudo de hierro", 1021, false},
             {"106.png", 0, 384, 32, 32, "Oro", 1, false, true},
+            {"5137.png", 604, 283, 39, 35, "Pared", 0, true},
+            {"5137.png", 604, 283, 39, 35, "Altar", 0, false},
+            {"5137.png", 604, 283, 39, 35, "Mostrador", 0, false},
+            {"5137.png", 604, 283, 39, 35, "Boveda", 0, false},
     };
     return registry;
 }

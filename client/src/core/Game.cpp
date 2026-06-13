@@ -49,7 +49,8 @@ Game::Game(Client& client):
         miniChat(CHAT_FONT_PATH),
         hud(textures, HUD_FONT_PATH),
         manualPanel(HUD_FONT_PATH),
-        chatParser([this]() { return hud.getSelectedSlot(); }),
+        chatParser([this]() { return hud.getSelectedSlot(); },
+                   [this]() { return this->client.getSelectedNpc(); }),
         lastSnapshot(),
         lastStats(),
         audio(),
@@ -134,7 +135,7 @@ void Game::run() {
         inputProcessor.processUiInput(input);
         if (input.toggleMute)
             audio.toggleMute();
-        inputProcessor.sendMoveIfDue(input, lastSnapshot);
+        inputProcessor.sendMoveIfDue(input, lastSnapshot, map);
 
         render(input);
         audio.updateMonsterSounds(lastSnapshot, SDL_GetTicks(), client.getClientId());
@@ -164,6 +165,9 @@ void Game::render(const FrameInput& input) {
     const CameraOffset cam =
             camera.compute(client.getClientId(), lastSnapshot, entityRenderer.getAnimators(), map);
 
+    // Procesar click izq sobre npc
+    inputProcessor.processNpcTargetInput(input, cam, lastSnapshot, map);
+
     const auto combatResult =
             inputProcessor.processCombatInput(input, cam, lastSnapshot, lastStats, map);
     if (combatResult.fx) {
@@ -187,11 +191,32 @@ void Game::render(const FrameInput& input) {
     if (fxSystem.syncProjectileAnimators(now, lastSnapshot))
         audio.playSound(SoundEffect::PROJ_HIT);
 
+    int playerCol = -1;
+    int playerRow = -1;
+    const uint32_t myId = client.getClientId();
+    const auto& animators = entityRenderer.getAnimators();
+    auto ait = animators.find(myId);
+    if (ait != animators.end()) {
+        playerCol = static_cast<int>(ait->second.getVirtualX() + 0.5f);
+        playerRow = static_cast<int>(ait->second.getVirtualY() + 0.5f);
+    } else {
+        const auto it = std::find_if(lastSnapshot.players.begin(), lastSnapshot.players.end(),
+                                     [myId](const EntityDTO& e) { return e.id == myId; });
+        if (it != lastSnapshot.players.end()) {
+            playerCol = it->x;
+            playerRow = it->y;
+        }
+    }
+
     worldRenderer.renderTerrain(cam);
+    worldRenderer.renderDecorationBehind(cam, playerRow);
     worldRenderer.renderOverlays(cam);
     worldRenderer.renderGroundItems(cam, lastSnapshot);
-    worldRenderer.renderCitizens(cam);
-    entityRenderer.render(cam, lastSnapshot, now);
+    worldRenderer.renderGroundItems(cam, lastSnapshot);
+    worldRenderer.renderCitizens(cam, client.getSelectedNpc());
+    entityRenderer.render(cam, lastSnapshot, now, client.getSelectedNpc());
+    worldRenderer.renderDecorationFront(cam, playerRow);
+    worldRenderer.renderRoofs(cam, playerCol, playerRow);
     fxSystem.renderProjectiles(cam, now);
     fxSystem.render(cam, lastSnapshot, entityRenderer.getAnimators());
     fxSystem.renderFullscreen(WINDOW_WIDTH, WINDOW_HEIGHT);

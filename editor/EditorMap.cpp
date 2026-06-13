@@ -4,9 +4,21 @@
 #include <iterator>
 #include <stdexcept>
 
-#include <nlohmann/json.hpp>
-
 #include "OverlayRegistry.h"
+
+namespace {
+constexpr int GRASS = 108;
+
+int overlayIndexForItemId(int itemId) {
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+    for (size_t i = 0; i < registry.size(); ++i) {
+        if (registry[i].itemId == itemId) {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+}  // namespace
 
 EditorMap::EditorMap(int width, int height, int tileSize, const std::string& tileset,
                      int tilesetCols):
@@ -15,7 +27,11 @@ EditorMap::EditorMap(int width, int height, int tileSize, const std::string& til
         tileSize(tileSize),
         tilesetCols(tilesetCols),
         tileset(tileset),
-        tiles(height, std::vector<int>(width, 0)),
+        ground(height, std::vector<int>(width, GRASS)),
+        ground2(height, std::vector<int>(width, 0)),
+        decoration(height, std::vector<int>(width, 0)),
+        roofs(height, std::vector<int>(width, 0)),
+        indoor(height, std::vector<int>(width, 0)),
         spawnPos({0, 0}) {}
 
 EditorMap::EditorMap(const std::string& jsonText) {
@@ -26,14 +42,32 @@ EditorMap::EditorMap(const std::string& jsonText) {
     tileSize = data.at("tileSize").get<int>();
     tilesetCols = data.at("tilesetCols").get<int>();
     tileset = data.at("tileset").get<std::string>();
-    tiles = data.at("tiles").get<std::vector<std::vector<int>>>();
 
-    if (static_cast<int>(tiles.size()) != height) {
-        throw std::runtime_error("EditorMap: la cantidad de filas no coincide con height");
-    }
-    if (std::any_of(tiles.begin(), tiles.end(),
-                    [this](const auto& row) { return static_cast<int>(row.size()) != width; })) {
-        throw std::runtime_error("EditorMap: una fila no coincide con width");
+    auto loadGrid = [&data, this](const char* key, int fallback) {
+        if (data.contains(key)) {
+            auto grid = data.at(key).get<std::vector<std::vector<int>>>();
+            if (static_cast<int>(grid.size()) != height ||
+                std::any_of(grid.begin(), grid.end(), [this](const std::vector<int>& row) {
+                    return static_cast<int>(row.size()) != width;
+                })) {
+                throw std::runtime_error("EditorMap: la capa no coincide con width/height");
+            }
+            return grid;
+        }
+        return std::vector<std::vector<int>>(height, std::vector<int>(width, fallback));
+    };
+    ground = loadGrid("ground", GRASS);
+    ground2 = loadGrid("ground2", 0);
+    decoration = loadGrid("decoration", 0);
+    roofs = loadGrid("roofs", 0);
+    indoor = loadGrid("indoor", 0);
+
+    if (data.contains("obstacles")) {
+        const auto& obsData = data.at("obstacles");
+        std::transform(obsData.begin(), obsData.end(), std::back_inserter(obstacles),
+                       [](const nlohmann::json& obs) {
+                           return std::make_pair(obs.at("x").get<int>(), obs.at("y").get<int>());
+                       });
     }
 
     if (data.contains("spawn")) {
@@ -76,138 +110,157 @@ EditorMap::EditorMap(const std::string& jsonText) {
 
     if (data.contains("items")) {
         for (const auto& item: data.at("items")) {
-            int x = item.at("x").get<int>();
-            int y = item.at("y").get<int>();
-            overlayAmounts[{x, y}] = item.value("amount", 1);
+            int overlayIndex = overlayIndexForItemId(item.at("id").get<int>());
+            if (overlayIndex >= 0) {
+                int x = item.at("x").get<int>();
+                int y = item.at("y").get<int>();
+                items[{x, y}] = PlacedItem{overlayIndex, item.value("amount", 1)};
+            } else {
+                extraItems.push_back(item);
+            }
         }
     }
 }
 
 std::string EditorMap::toJson() const {
     nlohmann::json data;
+    data["width"] = width;
+    data["height"] = height;
     data["tileSize"] = tileSize;
     data["tileset"] = tileset;
     data["tilesetCols"] = tilesetCols;
-    data["width"] = width;
-    data["height"] = height;
     data["spawn"] = {{"x", spawnPos.x}, {"y", spawnPos.y}};
+    data["ground"] = ground;
+    data["ground2"] = ground2;
+    data["decoration"] = decoration;
+    data["roofs"] = roofs;
+    data["indoor"] = indoor;
 
-    if (!safeZones.empty()) {
-        nlohmann::json zonesJson = nlohmann::json::array();
-        for (const auto& zone: safeZones) {
-            nlohmann::json zoneJson = {
-                    {"x", zone.x}, {"y", zone.y}, {"width", zone.width}, {"height", zone.height}};
-            if (!zone.name.empty()) {
-                zoneJson["name"] = zone.name;
-            }
-            zonesJson.push_back(zoneJson);
-        }
-        data["safeZones"] = zonesJson;
-    }
-
-    if (!citizens.empty()) {
-        nlohmann::json citizensJson = nlohmann::json::array();
-        std::transform(citizens.begin(), citizens.end(), std::back_inserter(citizensJson),
-                       [](const CitizenSpawn& citizen) {
-                           return nlohmann::json{
-                                   {"type", citizen.type}, {"x", citizen.x}, {"y", citizen.y}};
-                       });
-        data["npcs"] = citizensJson;
-    }
-
-    if (!monsters.empty()) {
-        nlohmann::json monstersJson = nlohmann::json::array();
-        std::transform(monsters.begin(), monsters.end(), std::back_inserter(monstersJson),
-                       [](const MonsterSpawn& monster) {
-                           return nlohmann::json{
-                                   {"type", monster.type}, {"x", monster.x}, {"y", monster.y}};
-                       });
-        data["monsters"] = monstersJson;
-    }
-
-    nlohmann::json itemsJson = nlohmann::json::array();
     nlohmann::json obstaclesJson = nlohmann::json::array();
-    const std::vector<OverlayDef>& registry = getOverlayRegistry();
-    for (int row = 0; row < height; ++row) {
-        for (int col = 0; col < width; ++col) {
-            int tile = tiles[row][col];
-            if (tile <= 0 || tile > static_cast<int>(registry.size())) {
-                continue;
-            }
-            const OverlayDef& def = registry[tile - 1];
-            if (def.itemId != 0) {
-                auto amtIt = overlayAmounts.find({col, row});
-                int amount = (amtIt != overlayAmounts.end()) ? amtIt->second : 1;
-                itemsJson.push_back(
-                        {{"id", def.itemId}, {"x", col}, {"y", row}, {"amount", amount}});
-            }
-            if (def.solid) {
-                obstaclesJson.push_back({{"x", col}, {"y", row}});
-            }
+    std::transform(obstacles.begin(), obstacles.end(), std::back_inserter(obstaclesJson),
+                   [](const std::pair<int, int>& obs) {
+                       return nlohmann::json{{"x", obs.first}, {"y", obs.second}};
+                   });
+    data["obstacles"] = obstaclesJson;
+
+    nlohmann::json citizensJson = nlohmann::json::array();
+    std::transform(citizens.begin(), citizens.end(), std::back_inserter(citizensJson),
+                   [](const CitizenSpawn& c) {
+                       return nlohmann::json{{"type", c.type}, {"x", c.x}, {"y", c.y}};
+                   });
+    data["npcs"] = citizensJson;
+
+    nlohmann::json monstersJson = nlohmann::json::array();
+    std::transform(monsters.begin(), monsters.end(), std::back_inserter(monstersJson),
+                   [](const MonsterSpawn& m) {
+                       return nlohmann::json{{"type", m.type}, {"x", m.x}, {"y", m.y}};
+                   });
+    data["monsters"] = monstersJson;
+
+    nlohmann::json zonesJson = nlohmann::json::array();
+    for (const EditorSafeZone& zone: safeZones) {
+        nlohmann::json zoneJson = {
+                {"x", zone.x}, {"y", zone.y}, {"width", zone.width}, {"height", zone.height}};
+        if (!zone.name.empty()) {
+            zoneJson["name"] = zone.name;
         }
+        zonesJson.push_back(zoneJson);
     }
+    data["safeZones"] = zonesJson;
+
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+    nlohmann::json itemsJson = nlohmann::json::array();
+    for (const auto& entry: items) {
+        const PlacedItem& item = entry.second;
+        itemsJson.push_back({{"id", registry[item.overlayIndex].itemId},
+                             {"x", entry.first.first},
+                             {"y", entry.first.second},
+                             {"amount", item.amount}});
+    }
+    std::copy(extraItems.begin(), extraItems.end(), std::back_inserter(itemsJson));
     if (!itemsJson.empty()) {
         data["items"] = itemsJson;
     }
-    if (!obstaclesJson.empty()) {
-        data["obstacles"] = obstaclesJson;
-    }
 
-    data["tiles"] = tiles;
     return data.dump(4);
 }
 
-int EditorMap::tileAt(int col, int row) const { return tiles.at(row).at(col); }
-
-int EditorMap::overlayAmountAt(int col, int row) const {
-    auto it = overlayAmounts.find({col, row});
-    return (it != overlayAmounts.end()) ? it->second : 1;
+bool EditorMap::inside(int col, int row) const {
+    return col >= 0 && col < width && row >= 0 && row < height;
 }
 
-void EditorMap::setTile(int col, int row, int tileId) { tiles.at(row).at(col) = tileId; }
+const std::vector<std::vector<int>>& EditorMap::getGround() const { return ground; }
+const std::vector<std::vector<int>>& EditorMap::getGround2() const { return ground2; }
+const std::vector<std::vector<int>>& EditorMap::getDecoration() const { return decoration; }
+const std::vector<std::vector<int>>& EditorMap::getRoofs() const { return roofs; }
+const std::vector<std::vector<int>>& EditorMap::getIndoor() const { return indoor; }
 
-void EditorMap::paintOverlay(int col, int row, int overlayIndex) {
+void EditorMap::setGround(int col, int row, int value) {
+    if (inside(col, row)) {
+        ground[row][col] = value;
+    }
+}
+
+void EditorMap::setDecoration(int col, int row, int value) {
+    if (inside(col, row)) {
+        decoration[row][col] = value;
+    }
+}
+
+void EditorMap::setRoof(int col, int row, int value) {
+    if (inside(col, row)) {
+        roofs[row][col] = value;
+    }
+}
+
+void EditorMap::setIndoor(int col, int row, int value) {
+    if (inside(col, row)) {
+        indoor[row][col] = value;
+    }
+}
+
+void EditorMap::addObstacle(int col, int row) {
+    if (inside(col, row)) {
+        obstacles.emplace_back(col, row);
+    }
+}
+
+bool EditorMap::isBlocked(int col, int row) const {
+    return std::any_of(obstacles.begin(), obstacles.end(),
+                       [col, row](const std::pair<int, int>& obstacle) {
+                           return obstacle.first == col && obstacle.second == row;
+                       });
+}
+
+void EditorMap::paintItem(int col, int row, int overlayIndex) {
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
-    if (overlayIndex < 0 || overlayIndex >= static_cast<int>(registry.size())) {
+    if (!inside(col, row) || overlayIndex < 0 ||
+        overlayIndex >= static_cast<int>(registry.size())) {
         return;
     }
-    int tile = overlayIndex + 1;
-    bool stackable = registry[overlayIndex].stackable;
-    if (stackable && tileAt(col, row) == tile) {
-        overlayAmounts[{col, row}] += 1;
+    auto it = items.find({col, row});
+    if (it != items.end() && it->second.overlayIndex == overlayIndex &&
+        registry[overlayIndex].stackable) {
+        it->second.amount += 1;
     } else {
-        setTile(col, row, tile);
-        if (stackable) {
-            overlayAmounts[{col, row}] = 1;
-        } else {
-            overlayAmounts.erase({col, row});
-        }
+        items[{col, row}] = PlacedItem{overlayIndex, 1};
     }
 }
+
+const PlacedItem* EditorMap::itemAt(int col, int row) const {
+    auto it = items.find({col, row});
+    return (it != items.end()) ? &it->second : nullptr;
+}
+
+void EditorMap::removeItemAt(int col, int row) { items.erase({col, row}); }
+
+const std::map<std::pair<int, int>, PlacedItem>& EditorMap::getItems() const { return items; }
 
 Position EditorMap::getSpawn() const { return spawnPos; }
 
 void EditorMap::setSpawn(int col, int row) {
     spawnPos.x = col;
     spawnPos.y = row;
-}
-
-void EditorMap::resize(int newWidth, int newHeight) {
-    if (newWidth < 1 || newHeight < 1) {
-        throw std::runtime_error("EditorMap: dimensiones inválidas en resize");
-    }
-    tiles.resize(newHeight, std::vector<int>(newWidth, 0));
-    for (auto& row: tiles) {
-        row.resize(newWidth, 0);
-    }
-    width = newWidth;
-    height = newHeight;
-    if (spawnPos.x >= width) {
-        spawnPos.x = width - 1;
-    }
-    if (spawnPos.y >= height) {
-        spawnPos.y = height - 1;
-    }
 }
 
 int EditorMap::getWidth() const { return width; }
@@ -217,6 +270,10 @@ int EditorMap::getTilesetCols() const { return tilesetCols; }
 const std::string& EditorMap::getTileset() const { return tileset; }
 
 const std::vector<EditorSafeZone>& EditorMap::getSafeZones() const { return safeZones; }
+
+void EditorMap::addSafeZone(const std::string& name, int x, int y, int width, int height) {
+    safeZones.push_back({name, x, y, width, height});
+}
 
 const std::vector<CitizenSpawn>& EditorMap::getCitizens() const { return citizens; }
 
