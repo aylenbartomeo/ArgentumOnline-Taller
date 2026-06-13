@@ -26,7 +26,8 @@ CombatResult InstantMeleeDelivery::deliver(Attackable& attacker, Attackable& tar
         if (!playerAttacker) {
             return CombatResult{false};
         }
-        return weapon.getHitEffect()->apply(*playerAttacker, target, modifiers, weapon, combatSystem);
+        return weapon.getHitEffect()->apply(*playerAttacker, target, modifiers, weapon,
+                                            combatSystem);
     }
     return CombatResult{true};
 }

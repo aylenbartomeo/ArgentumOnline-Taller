@@ -26,7 +26,7 @@ TEST(WorldTest, PlayerCannotMoveIntoAnotherPlayer) {
     d1.mana = 15;
     d1.level = 1;
     std::string n1 = "P1";
-    mundo.addPlayer(1, n1, d1);
+    mundo.addPlayer(1, n1, Race::HUMAN, CharacterClass::WARRIOR, d1);
 
     // Player 2 at 3,2
     PlayerPersistData d2{};
@@ -36,7 +36,7 @@ TEST(WorldTest, PlayerCannotMoveIntoAnotherPlayer) {
     d2.mana = 15;
     d2.level = 1;
     std::string n2 = "P2";
-    mundo.addPlayer(2, n2, d2);
+    mundo.addPlayer(2, n2, Race::HUMAN, CharacterClass::WARRIOR, d2);
 
     // Try to move Player 1 right (to 3,2)
     mundo.moveEntity(1, Movement::RIGHT);

@@ -284,7 +284,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsNulloptForUnknownId) {
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsData_AfterAddPlayer) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Arden";
-    ASSERT_TRUE(mundo.addPlayer(1, user));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR));
 
     auto data = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(data.has_value());
@@ -294,7 +294,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsData_AfterAddPlayer) {
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsNullopt_AfterRemovePlayer) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Arden";
-    ASSERT_TRUE(mundo.addPlayer(1, user));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR));
     mundo.removePlayer(1);
 
     EXPECT_FALSE(mundo.getPlayerPersistData(1).has_value());
@@ -305,7 +305,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Position_MatchesCurrentPositio
     std::string user = "Mover";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
-    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, seed));
 
     mundo.moveEntity(1, Movement::RIGHT);
     mundo.moveEntity(1, Movement::DOWN);
@@ -322,7 +322,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Race_MatchesSavedRace) {
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
     seed.race = static_cast<uint8_t>(Race::ELF);
-    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, seed));
 
     auto data = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(data.has_value());
@@ -335,7 +335,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Class_MatchesSavedClass) {
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
     seed.characterClass = static_cast<uint8_t>(CharacterClass::MAGE);
-    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, seed));
 
     auto data = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(data.has_value());
@@ -348,7 +348,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Level_MatchesSavedLevel) {
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
     seed.level = 5;
-    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, seed));
 
     auto data = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(data.has_value());
@@ -361,7 +361,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Gold_MatchesSavedGold) {
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
     seed.gold = 9999;
-    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, seed));
 
     auto data = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(data.has_value());
@@ -374,7 +374,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_GhostState_IsPersisted) {
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
     seed.stateId = 1;  // Ghost
-    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, seed));
 
     auto data = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(data.has_value());
@@ -387,7 +387,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_MeditatingState_IsPersisted) {
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
     seed.stateId = 2;  // Meditating
-    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, seed));
 
     auto data = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(data.has_value());
@@ -399,7 +399,7 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_MeditatingState_IsPersisted) {
 TEST_F(WorldPersistenceTest, RoundTrip_NewPlayer_DefaultsAreConsistent) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Newbie";
-    ASSERT_TRUE(mundo.addPlayer(1, user));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR));
 
     auto data = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(data.has_value());
@@ -415,7 +415,7 @@ TEST_F(WorldPersistenceTest, RoundTrip_Position_IsRestoredAfterReconnect) {
 
     // Primera sesión: añadir y mover
     PlayerPersistData firstSeed = makeFullPersistData(1, 0, 0);
-    ASSERT_TRUE(mundo.addPlayer(1, user, firstSeed));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, firstSeed));
     mundo.moveEntity(1, Movement::RIGHT);
     mundo.moveEntity(1, Movement::RIGHT);
 
@@ -425,7 +425,7 @@ TEST_F(WorldPersistenceTest, RoundTrip_Position_IsRestoredAfterReconnect) {
     mundo.removePlayer(1);
 
     // Segunda sesión: reconectar con datos guardados
-    ASSERT_TRUE(mundo.addPlayer(1, user, saved.value()));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, saved.value()));
 
     auto snap = mundo.generateSnapshot();
     ASSERT_EQ(snap.players.size(), 1u);
@@ -440,13 +440,13 @@ TEST_F(WorldPersistenceTest, RoundTrip_RaceAndClass_SurviveReconnect) {
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
     seed.race = static_cast<uint8_t>(Race::ELF);
     seed.characterClass = static_cast<uint8_t>(CharacterClass::MAGE);
-    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, seed));
 
     auto saved = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(saved.has_value());
     mundo.removePlayer(1);
 
-    ASSERT_TRUE(mundo.addPlayer(1, user, saved.value()));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, saved.value()));
 
     auto after = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(after.has_value());
@@ -461,13 +461,13 @@ TEST_F(WorldPersistenceTest, RoundTrip_Level_SurvivesReconnect) {
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
     seed.level = 5;
     seed.exp = 4000;
-    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, seed));
 
     auto saved = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(saved.has_value());
     mundo.removePlayer(1);
 
-    ASSERT_TRUE(mundo.addPlayer(1, user, saved.value()));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, saved.value()));
 
     auto after = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(after.has_value());
@@ -483,14 +483,14 @@ TEST_F(WorldPersistenceTest, RoundTrip_Equipment_SurvivesReconnect) {
     seed.inventorySize = 1;
     seed.inventory[0] = {1000, 1};
     seed.equippedSlots = (1u << 0);
-    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, seed));
 
     auto saved = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(saved.has_value());
     EXPECT_TRUE(saved->equippedSlots & (1u << 0));
 
     mundo.removePlayer(1);
-    ASSERT_TRUE(mundo.addPlayer(1, user, saved.value()));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, saved.value()));
 
     auto after = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(after.has_value());
@@ -507,7 +507,7 @@ TEST_F(WorldPersistenceTest, RoundTrip_EquipmentWithGap_SurvivesReconnect) {
     seed.inventory[1] = {0, 0};
     seed.inventory[2] = {1010, 1};
     seed.equippedSlots = (1u << 2);
-    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, seed));
 
     auto saved = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(saved.has_value());
@@ -515,7 +515,7 @@ TEST_F(WorldPersistenceTest, RoundTrip_EquipmentWithGap_SurvivesReconnect) {
     EXPECT_TRUE(saved->equippedSlots & (1u << 2));
 
     mundo.removePlayer(1);
-    ASSERT_TRUE(mundo.addPlayer(1, user, saved.value()));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, saved.value()));
 
     auto after = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(after.has_value());
@@ -532,12 +532,12 @@ TEST_F(WorldPersistenceTest, RoundTrip_Inventory_SurvivesReconnect) {
     seed.inventory[0] = {1000, 1};
     seed.inventory[1] = {0, 0};
     seed.inventory[2] = {1010, 2};
-    ASSERT_TRUE(mundo.addPlayer(1, user, seed));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, seed));
 
     auto saved = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(saved.has_value());
     mundo.removePlayer(1);
-    ASSERT_TRUE(mundo.addPlayer(1, user, saved.value()));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, saved.value()));
 
     auto after = mundo.getPlayerPersistData(1);
     ASSERT_TRUE(after.has_value());
@@ -567,7 +567,7 @@ TEST_F(WorldPersistenceTest, RoundTrip_MultipleAllRaces_AllClasses) {
         PlayerPersistData seed = makeFullPersistData(c.id, 0, 0);
         seed.race = static_cast<uint8_t>(c.race);
         seed.characterClass = static_cast<uint8_t>(c.cls);
-        ASSERT_TRUE(mundo.addPlayer(c.id, user, seed));
+        ASSERT_TRUE(mundo.addPlayer(c.id, user, Race::HUMAN, CharacterClass::WARRIOR, seed));
     }
 
     for (auto& c: cases) {
@@ -707,6 +707,64 @@ TEST_F(WorldDataStorePersistenceTest, SaveAndLoad_BankAccounts) {
     EXPECT_EQ(lSlots[0][0].amount, 5);
 }
 
+TEST_F(WorldDataStorePersistenceTest, SaveAndLoad_NpcStates) {
+    WorldDataStore store(testDir);
+    uint32_t worldId = store.createWorld("TestWorld", "maps/test.json");
+
+    std::vector<NpcHeaderPersistData> headers;
+    std::vector<std::vector<NpcStockPersistData>> stocks;
+
+    // Simulamos un Mercader con 2 tipos de ítems en stock
+    NpcHeaderPersistData h1{};
+    h1.entityId = 50;
+    h1.type = 1; // Merchant
+    h1.posX = 15;
+    h1.posY = 30;
+    h1.stockCount = 2;
+    headers.push_back(h1);
+    stocks.push_back({{1001, 10}, {1002, 5}});
+
+    // Simulamos un Sacerdote con 1 ítem en stock
+    NpcHeaderPersistData h2{};
+    h2.entityId = 51;
+    h2.type = 2; // Priest
+    h2.posX = 20;
+    h2.posY = 40;
+    h2.stockCount = 1;
+    headers.push_back(h2);
+    stocks.push_back({{2005, 1}});
+
+    // 1. Guardar el estado transaccional en el archivo .bin
+    store.saveNpcStates(worldId, headers, stocks);
+
+    // 2. Levantar los datos desde el archivo .bin
+    auto [lHeaders, lStocks] = store.loadNpcStates(worldId);
+
+    // Verificaciones de empaquetamiento y tamaños
+    ASSERT_EQ(lHeaders.size(), 2u);
+    ASSERT_EQ(lStocks.size(), 2u);
+
+    // Validar datos recuperados del Mercader (Índice 0)
+    EXPECT_EQ(lHeaders[0].entityId, 50u);
+    EXPECT_EQ(lHeaders[0].type, 1);
+    EXPECT_EQ(lHeaders[0].posX, 15);
+    EXPECT_EQ(lHeaders[0].posY, 30);
+    EXPECT_EQ(lHeaders[0].stockCount, 2u);
+    EXPECT_EQ(lStocks[0].size(), 2u);
+    EXPECT_EQ(lStocks[0][0].itemId, 1001u);
+    EXPECT_EQ(lStocks[0][0].amount, 10);
+    EXPECT_EQ(lStocks[0][1].itemId, 1002u);
+    EXPECT_EQ(lStocks[0][1].amount, 5);
+
+    // Validar datos recuperados del Sacerdote (Índice 1)
+    EXPECT_EQ(lHeaders[1].entityId, 51u);
+    EXPECT_EQ(lHeaders[1].type, 2);
+    EXPECT_EQ(lHeaders[1].stockCount, 1u);
+    EXPECT_EQ(lStocks[1].size(), 1u);
+    EXPECT_EQ(lStocks[1][0].itemId, 2005u);
+    EXPECT_EQ(lStocks[1][0].amount, 1);
+}
+
 // ============================================================================
 // 5. WORLD — Persistence Integration (Clanes, Bank)
 // ============================================================================
@@ -776,4 +834,25 @@ TEST_F(WorldPersistenceTest, World_ClanPersistence_RoundTrip) {
     EXPECT_STREQ(outH[0].name, "Imperio");
     EXPECT_EQ(outM.size(), 1u);
     EXPECT_EQ(outM[0].size(), 2u);
+}
+
+TEST_F(WorldPersistenceTest, World_NpcPersistence_Robustness_RoundTrip) {
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
+
+    std::vector<NpcHeaderPersistData> headers;
+    std::vector<std::vector<NpcStockPersistData>> stocks;
+
+    NpcHeaderPersistData h{};
+    h.entityId = 99;
+    h.type = 1; 
+    h.posX = 10;
+    h.posY = 10;
+    h.stockCount = 1;
+    headers.push_back(h);
+    stocks.push_back({{1001, 50}});
+
+    EXPECT_NO_THROW(mundo.restoreNpcStates(headers, stocks));
+    auto [outHeaders, outStocks] = mundo.getNpcsPersistData();
+    EXPECT_EQ(outHeaders.size(), 0u);
+    EXPECT_EQ(outStocks.size(), 0u);
 }

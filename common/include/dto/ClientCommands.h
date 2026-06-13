@@ -7,6 +7,7 @@
 
 #include "CheatDTO.h"
 #include "ClanCommandDTO.h"
+#include "CreateCharacterDTO.h"
 #include "LoginDTO.h"
 #include "RegisterDTO.h"
 #include "StartMoveDTO.h"
@@ -61,12 +62,14 @@ enum NpcCommandType { RESPAWN, HEAL, BUY, SELL, DEPOSIT, WITHDRAW, LIST };
 struct NpcCommandDTO {
     NpcCommandType type;
     std::string arg;
+    uint32_t npcId;
 };
 
 // Esto es lo que la cola del Servidor va a recibir.
 using CommandVariant =
         std::variant<RegisterDTO, LoginDTO, StartMoveDTO, StopMoveDTO, AttackDTO, UseItemDTO,
                      EquipItemDTO, DropItemDTO, GrabItemDTO, ChatDTO, PrivateChatDTO, SelectNpcDTO,
-                     NpcCommandDTO, ClanCommandDTO, MeditateDTO, ResurrectDTO, CheatDTO, ShootDTO>;
+                     NpcCommandDTO, ClanCommandDTO, MeditateDTO, ResurrectDTO, CheatDTO, ShootDTO,
+                     CreateCharacterDTO>;
 
 #endif  // CLIENT_COMMANDS_H

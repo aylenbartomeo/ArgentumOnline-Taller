@@ -79,8 +79,8 @@ TEST(WorldTest, World_HandlesPlayerLifecycleWithUniquePtr) {
     std::string username2 = "PlayerTwo";
 
     // 2. Se los transferimos al mundo mediante std::move
-    EXPECT_TRUE(mundo.addPlayer(id1, username1));
-    EXPECT_TRUE(mundo.addPlayer(id2, username2));
+    EXPECT_TRUE(mundo.addPlayer(id1, username1, Race::HUMAN, CharacterClass::WARRIOR));
+    EXPECT_TRUE(mundo.addPlayer(id2, username2, Race::HUMAN, CharacterClass::WARRIOR));
 
     EXPECT_EQ(mundo.getPlayerCount(), 2);
     EXPECT_FALSE(mundo.isEmpty());
@@ -89,7 +89,7 @@ TEST(WorldTest, World_HandlesPlayerLifecycleWithUniquePtr) {
     // Intentamos meter otro jugador con un ID que ya existe (100)
     uint32_t id3 = 100;
     std::string username3 = "PlayerThree";
-    EXPECT_FALSE(mundo.addPlayer(id3, username3));
+    EXPECT_FALSE(mundo.addPlayer(id3, username3, Race::HUMAN, CharacterClass::WARRIOR));
     EXPECT_EQ(mundo.getPlayerCount(), 2);  // Sigue teniendo 2 originales
 
     // Remoción y limpieza del mapa
@@ -105,7 +105,7 @@ TEST(WorldTest, World_PlayerCannotMoveOutsideMap) {
     CharacterConfigs configs = getTestConfigs();
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "EdgeWalker";
-    ASSERT_TRUE(mundo.addPlayer(1, user));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR));
 
     mundo.moveEntity(1, Movement::UP);
     mundo.moveEntity(1, Movement::LEFT);
@@ -140,14 +140,14 @@ TEST(WorldTest, World_GenerateSnapshotWithPlayersCorrectly) {
     std::string user1 = "Aoki";
     std::string user2 = "Beren";
 
-    ASSERT_TRUE(mundo.addPlayer(100, user1));
+    ASSERT_TRUE(mundo.addPlayer(100, user1, Race::HUMAN, CharacterClass::WARRIOR));
     // Aoki nace en (0,0) por defecto
     mundo.moveEntity(100, Movement::DOWN);   // y: 0 -> 1
     mundo.moveEntity(100, Movement::RIGHT);  // x: 0 -> 1
     // Ahora Aoki esta en (1,1)
 
     // Agregamos a Beren despues, para que nazca en (0,0) sin superponerse ni estorbar
-    ASSERT_TRUE(mundo.addPlayer(200, user2));
+    ASSERT_TRUE(mundo.addPlayer(200, user2, Race::HUMAN, CharacterClass::WARRIOR));
 
     // 4. Generamos el Snapshot que se le enviaría al cliente
     SnapshotDTO snapshotActual = mundo.generateSnapshot();
@@ -187,7 +187,7 @@ TEST(WorldTest, World_PlayerCannotMoveIntoObstacle) {
     CharacterConfigs configs = getTestConfigs();
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Blocker";
-    ASSERT_TRUE(mundo.addPlayer(1, user));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR));
 
     // El jugador empieza en (0,0). Ponemos obstáculo en (1,0).
     mundo.setObstacleAt(1, 0);
@@ -205,10 +205,10 @@ TEST(WorldTest, World_UpdateTriggersMonsterAttack) {
     CharacterConfigs configs = getTestConfigs();
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR));
 
     // Config de monstruo con rango de ataque suficiente
-    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone", 0, 0};
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, 1, "zone", 0, 0};
     Position mPos = {1, 0};  // Player está en {0, 0}
     mundo.addMonster(NPCType::GOBLIN, mPos, mConfig);
 
@@ -234,10 +234,10 @@ TEST(WorldTest, World_UpdateDoesNotTriggerMonsterAttackIfOutOfRange) {
     CharacterConfigs configs = getTestConfigs();
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR));
 
     // Config de monstruo con rango de ataque pequeño
-    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 1, 1, "zone", 0, 0};
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 1, 1, 1, "zone", 0, 0};
     Position mPos = {3, 0};  // Player está en {0, 0}, dist = 3.
     mundo.addMonster(NPCType::GOBLIN, mPos, mConfig);
 
@@ -267,7 +267,7 @@ TEST(WorldTest, World_AddPlayerSpawnsAtMapSpawn) {
     ASSERT_TRUE(mundo.loadMap(path));
 
     std::string user = "Spawner";
-    ASSERT_TRUE(mundo.addPlayer(1, user));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR));
 
     SnapshotDTO snap = mundo.generateSnapshot();
     ASSERT_EQ(snap.players.size(), 1u);
@@ -282,7 +282,8 @@ TEST(WorldTest, World_AddPlayerWithSavedPositionSpawnsThere) {
 
     std::string user = "SavedPlayer";
     Position savedPos{5, 5};
-    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(savedPos.x, savedPos.y)));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR,
+                                makeSpawnData(savedPos.x, savedPos.y)));
 
     SnapshotDTO snap = mundo.generateSnapshot();
     ASSERT_EQ(snap.players.size(), 1u);
@@ -297,7 +298,8 @@ TEST(WorldTest, World_AddPlayerWithInvalidPositionUsesDefault) {
 
     std::string user = "InvalidPosPlayer";
     Position invalidPos{-1, -1};  // assuming this is out of bounds
-    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(invalidPos.x, invalidPos.y)));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR,
+                                makeSpawnData(invalidPos.x, invalidPos.y)));
 
     SnapshotDTO snap = mundo.generateSnapshot();
     ASSERT_EQ(snap.players.size(), 1u);
@@ -312,7 +314,7 @@ TEST(WorldTest, World_GetPlayerPositionReturnsCurrentPos) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     std::string user = "MovingPlayer";
-    ASSERT_TRUE(mundo.addPlayer(1, user));
+    ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR));
 
     mundo.moveEntity(1, Movement::DOWN);
     mundo.moveEntity(1, Movement::RIGHT);
@@ -329,7 +331,7 @@ TEST(WorldTest, World_GetPlayerUsernameReturnsCorrectName) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     std::string user = "TestUser";
-    ASSERT_TRUE(mundo.addPlayer(42, user));
+    ASSERT_TRUE(mundo.addPlayer(42, user, Race::HUMAN, CharacterClass::WARRIOR));
 
     auto name = mundo.getPlayerUsername(42);
     ASSERT_TRUE(name.has_value());
@@ -344,9 +346,9 @@ TEST(WorldTest, World_GetOnlinePlayerDbIdsReturnsAllActive) {
     std::string u1 = "u1";
     std::string u2 = "u2";
     std::string u3 = "u3";
-    mundo.addPlayer(10, u1);
-    mundo.addPlayer(20, u2);
-    mundo.addPlayer(30, u3);
+    mundo.addPlayer(10, u1, Race::HUMAN, CharacterClass::WARRIOR);
+    mundo.addPlayer(20, u2, Race::HUMAN, CharacterClass::WARRIOR);
+    mundo.addPlayer(30, u3, Race::HUMAN, CharacterClass::WARRIOR);
 
     auto ids = mundo.getOnlinePlayerDbIds();
     EXPECT_EQ(ids.size(), 3u);
@@ -412,11 +414,13 @@ TEST(WorldTest, World_PlayerCannotAttackInSafeZone) {
 
     // Player 1 in safe zone (50, 50)
     std::string p1 = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(50, 50)));
+    ASSERT_TRUE(
+            mundo.addPlayer(1, p1, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(50, 50)));
 
     // Player 2 in safe zone (51, 50)
     std::string p2 = "Player2";
-    ASSERT_TRUE(mundo.addPlayer(2, p2, makeSpawnData(51, 50)));
+    ASSERT_TRUE(
+            mundo.addPlayer(2, p2, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(51, 50)));
 
     // Attack should fail
     mundo.playerAttack(1, 2);
@@ -435,10 +439,11 @@ TEST(WorldTest, World_MonsterCannotAttackInSafeZone) {
 
     // Player 1 in safe zone (50, 50)
     std::string p1 = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(50, 50)));
+    ASSERT_TRUE(
+            mundo.addPlayer(1, p1, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(50, 50)));
 
     // Monster in safe zone (51, 50)
-    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone", 0, 0};
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, 1, "zone", 0, 0};
     mundo.addMonster(NPCType::GOBLIN, Position{51, 50}, mConfig);
 
     // Update should not trigger attack
@@ -458,11 +463,12 @@ TEST(WorldTest, World_MonsterLosesAggroInSafeZone) {
 
     // Player 1 in safe zone (50, 50)
     std::string p1 = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(50, 50)));
+    ASSERT_TRUE(
+            mundo.addPlayer(1, p1, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(50, 50)));
 
     // Monster OUTSIDE safe zone but in detection range (44, 50) -> dist = 6 (range 10)
     // Safe zone is 45 to 54. So 44 is outside.
-    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, "zone", 0, 0};
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 2, 1, 1, "zone", 0, 0};
     mundo.addMonster(NPCType::GOBLIN, Position{44, 50}, mConfig);
 
     mundo.update(1.0f);
@@ -488,7 +494,8 @@ TEST(WorldTest, World_PickUpItemIntoInventory) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
+    ASSERT_TRUE(
+            mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(5, 5)));
 
     // Ponemos ítem en el piso donde está el jugador
     mundo.placeItemOnGround(Position{5, 5}, 202, 10);  // 202 es poción roja
@@ -514,7 +521,8 @@ TEST(WorldTest, World_PickUpItemNothingToPickUp) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
+    ASSERT_TRUE(
+            mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(5, 5)));
 
     // No ponemos nada en el piso
     mundo.pickUpItem(1);
@@ -532,7 +540,8 @@ TEST(WorldTest, World_PickUpItemNoSpaceInInventory) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
+    ASSERT_TRUE(
+            mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(5, 5)));
 
     // Llenamos el inventario del jugador forzadamente droppeándole ítems hasta que no pueda más?
     // En TestWorld no podemos acceder al player directamente, pero podemos darle 20 items de
@@ -570,7 +579,8 @@ TEST(WorldTest, World_DropItemSuccess) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
+    ASSERT_TRUE(
+            mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(5, 5)));
 
     // Agarra un ítem
     mundo.placeItemOnGround(Position{5, 5}, 202, 10);
@@ -591,7 +601,8 @@ TEST(WorldTest, World_DropItemDynamicSearchSucceedsWhenCenterFull) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
+    ASSERT_TRUE(
+            mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(5, 5)));
 
     // El jugador agarra 1 item
     mundo.placeItemOnGround(Position{5, 5}, 202, 10);
@@ -637,7 +648,7 @@ TEST(WorldTest, World_PlayerDeathDropsInventoryItems) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     std::string p1 = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(5, 5)));
+    ASSERT_TRUE(mundo.addPlayer(1, p1, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(5, 5)));
 
     // Le damos ítems a Player 1 (3 items distintos en slots diferentes)
     mundo.placeItemOnGround(Position{5, 5}, 202, 10);  // pocion
@@ -667,9 +678,9 @@ TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Straight) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     std::string p1 = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(5, 5)));
+    ASSERT_TRUE(mundo.addPlayer(1, p1, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(5, 5)));
 
-    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, "zone", 0, 0};  // Rango suficiente
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, 10, "zone", 0, 0};  // Rango suficiente
     uint32_t monsterId = mundo.addMonster(NPCType::GOBLIN, Position{9, 5}, mConfig);
 
     // Obstáculo en medio de la línea recta (7, 5)
@@ -691,9 +702,9 @@ TEST(WorldTest, World_PlayerCannotAttackThroughObstacle_Diagonal) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     std::string p1 = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(5, 5)));
+    ASSERT_TRUE(mundo.addPlayer(1, p1, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(5, 5)));
 
-    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, "zone", 0, 0};  // Rango suficiente
+    MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, 10, "zone", 0, 0};  // Rango suficiente
     uint32_t monsterId = mundo.addMonster(NPCType::GOBLIN, Position{9, 9}, mConfig);
 
     // Obstáculo en medio de la línea diagonal (7, 7)
@@ -715,7 +726,7 @@ TEST(WorldTest, World_PlayerDeathDropsExcessGold) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     std::string p1 = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, p1, makeSpawnData(5, 5)));
+    ASSERT_TRUE(mundo.addPlayer(1, p1, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(5, 5)));
 
     Player* player = mundo.getPlayerById(1);
     ASSERT_NE(player, nullptr);
@@ -742,7 +753,8 @@ TEST(WorldTest, World_PickUpGoldAddsToWallet) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
+    ASSERT_TRUE(
+            mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(5, 5)));
 
     Player* player = mundo.getPlayerById(1);
     ASSERT_NE(player, nullptr);
@@ -768,7 +780,8 @@ TEST(WorldTest, World_MonsterDropsLootOnDeath_AndCleanup) {
     World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
 
     std::string user = "Player1";
-    ASSERT_TRUE(mundo.addPlayer(1, user, makeSpawnData(5, 5)));
+    ASSERT_TRUE(
+            mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(5, 5)));
     mundo.setFairPlayRules(false);
 
     Player* p = mundo.getPlayerById(1);
@@ -782,7 +795,7 @@ TEST(WorldTest, World_MonsterDropsLootOnDeath_AndCleanup) {
 
     bool droppedSomething = false;
     for (int i = 0; i < 500; i++) {
-        MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, "zone", 0, 0};
+        MonsterConfig mConfig = {10, 5, 0, 10, 20, 5, 10, 10, 10, "zone", 0, 0};
         uint32_t mId = mundo.addMonster(NPCType::GOBLIN, Position{5, 6}, mConfig);
 
         mundo.playerAttack(1, mId);

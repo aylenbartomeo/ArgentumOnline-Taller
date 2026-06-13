@@ -42,6 +42,8 @@ void Sender::run() {
                 protocol.sendCheat(std::get<CheatDTO>(cmd));
             } else if (std::holds_alternative<ShootDTO>(cmd)) {
                 protocol.sendShoot(std::get<ShootDTO>(cmd));
+            } else if (std::holds_alternative<CreateCharacterDTO>(cmd)) {
+                protocol.sendCreateCharacter(std::get<CreateCharacterDTO>(cmd));
             }
         }
     } catch (...) {}

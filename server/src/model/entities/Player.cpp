@@ -156,6 +156,7 @@ EntityDTO Player::toEntityDTO() const {
     dto.max_hp = stats.getMaxHp();
     dto.entityTypeId = static_cast<uint8_t>(stats.getRace());
     dto.action = currentAction;
+    dto.level = stats.getLevel();
 
     // Equipamiento visual
     const Weapon* w = equipment.getWeapon();
@@ -288,6 +289,7 @@ PlayerPersistData Player::toPersistData() const {
 void Player::fromPersistData(const PlayerPersistData& data) {
     // Restaurar stats usando el método dedicado de StatsComponent
     stats.restoreFromPersist(data.hp, data.mana, data.exp, data.level);
+    inventory.setGold(data.gold);
 
     // Inventario
     uint8_t slots = std::min<uint8_t>(data.inventorySize, 16);

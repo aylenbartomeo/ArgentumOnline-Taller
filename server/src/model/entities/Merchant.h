@@ -22,6 +22,10 @@ public:
 
     Position getPosition() const override { return pos; }
     uint32_t getId() const override { return id; }
+    std::unordered_map<uint32_t, int> getStock() const { return stock; }
+    void setStock(const std::unordered_map<uint32_t, int>& savedStock) { stock = savedStock; }
     InteractionResult beInteractedBy(Player& player) override;
     InteractionResult handleCommand(Player& player, const NpcCommandDTO& dto) override;
+
+    void initializeStock(const std::unordered_map<uint32_t, int>& initialStock);
 };

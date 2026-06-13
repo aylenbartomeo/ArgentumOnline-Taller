@@ -42,11 +42,12 @@ struct EntityDTO {
     uint16_t helmetItemId = 0;
     uint16_t shieldItemId = 0;
     uint16_t bodyArmorItemId = 0;
+    uint16_t level = 0;
 
     EntityDTO() = default;
     EntityDTO(uint32_t id, EntityType type, uint16_t x, uint16_t y, uint16_t hp, uint16_t m_hp,
               uint8_t entityType, uint8_t action = 0, uint16_t weapon = 0, uint16_t helmet = 0,
-              uint16_t shield = 0, uint16_t armor = 0):
+              uint16_t shield = 0, uint16_t armor = 0, uint16_t lvl = 0):
             id(id),
             type(type),
             x(x),
@@ -58,7 +59,8 @@ struct EntityDTO {
             weaponItemId(weapon),
             helmetItemId(helmet),
             shieldItemId(shield),
-            bodyArmorItemId(armor) {}
+            bodyArmorItemId(armor),
+            level(lvl) {}
 };
 
 

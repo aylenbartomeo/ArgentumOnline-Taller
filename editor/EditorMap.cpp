@@ -63,9 +63,11 @@ EditorMap::EditorMap(const std::string& jsonText) {
     indoor = loadGrid("indoor", 0);
 
     if (data.contains("obstacles")) {
-        for (const auto& obstacle: data.at("obstacles")) {
-            obstacles.emplace_back(obstacle.at("x").get<int>(), obstacle.at("y").get<int>());
-        }
+        const auto& obsData = data.at("obstacles");
+        std::transform(obsData.begin(), obsData.end(), std::back_inserter(obstacles),
+                       [](const nlohmann::json& obs) {
+                           return std::make_pair(obs.at("x").get<int>(), obs.at("y").get<int>());
+                       });
     }
 
     if (data.contains("spawn")) {
@@ -135,21 +137,24 @@ std::string EditorMap::toJson() const {
     data["indoor"] = indoor;
 
     nlohmann::json obstaclesJson = nlohmann::json::array();
-    for (const auto& obstacle: obstacles) {
-        obstaclesJson.push_back({{"x", obstacle.first}, {"y", obstacle.second}});
-    }
+    std::transform(obstacles.begin(), obstacles.end(), std::back_inserter(obstaclesJson),
+                   [](const std::pair<int, int>& obs) {
+                       return nlohmann::json{{"x", obs.first}, {"y", obs.second}};
+                   });
     data["obstacles"] = obstaclesJson;
 
     nlohmann::json citizensJson = nlohmann::json::array();
-    for (const CitizenSpawn& citizen: citizens) {
-        citizensJson.push_back({{"type", citizen.type}, {"x", citizen.x}, {"y", citizen.y}});
-    }
+    std::transform(citizens.begin(), citizens.end(), std::back_inserter(citizensJson),
+                   [](const CitizenSpawn& c) {
+                       return nlohmann::json{{"type", c.type}, {"x", c.x}, {"y", c.y}};
+                   });
     data["npcs"] = citizensJson;
 
     nlohmann::json monstersJson = nlohmann::json::array();
-    for (const MonsterSpawn& monster: monsters) {
-        monstersJson.push_back({{"type", monster.type}, {"x", monster.x}, {"y", monster.y}});
-    }
+    std::transform(monsters.begin(), monsters.end(), std::back_inserter(monstersJson),
+                   [](const MonsterSpawn& m) {
+                       return nlohmann::json{{"type", m.type}, {"x", m.x}, {"y", m.y}};
+                   });
     data["monsters"] = monstersJson;
 
     nlohmann::json zonesJson = nlohmann::json::array();
@@ -172,9 +177,7 @@ std::string EditorMap::toJson() const {
                              {"y", entry.first.second},
                              {"amount", item.amount}});
     }
-    for (const auto& extra: extraItems) {
-        itemsJson.push_back(extra);
-    }
+    std::copy(extraItems.begin(), extraItems.end(), std::back_inserter(itemsJson));
     if (!itemsJson.empty()) {
         data["items"] = itemsJson;
     }

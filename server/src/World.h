@@ -79,7 +79,7 @@ public:
     void playerCheat(uint32_t dbId, CheatType type);
 
     // Métodos lógicos: Entrar y salir del mundo virtual
-    bool addPlayer(uint32_t playerId, std::string& username,
+    bool addPlayer(uint32_t dbId, std::string& username, Race race, CharacterClass cls,
                    const std::optional<PlayerPersistData>& savedData = std::nullopt);
 
     // Extrae la data completa de un jugador para persistencia
@@ -119,6 +119,10 @@ public:
     std::vector<GroundItemPersistData> getGroundItemsPersistData() const;
     void restoreMonsters(const std::vector<MonsterPersistData>& data,
                          const MonsterConfigs& configs);
+    std::pair<std::vector<NpcHeaderPersistData>, std::vector<std::vector<NpcStockPersistData>>>
+            getNpcsPersistData() const;
+    void restoreNpcStates(const std::vector<NpcHeaderPersistData>& headers,
+                          const std::vector<std::vector<NpcStockPersistData>>& allStocks);
     void restoreGroundItems(const std::vector<GroundItemPersistData>& data);
 
     // Persistencia de clanes
@@ -186,6 +190,11 @@ public:
 
     // Obtener una referencia al Player según su ID de base de datos
     Player* getPlayerById(uint32_t dbId);
+
+    Interactable* resolveNpcTarget(uint32_t targetId, const Player& player) const;
+
+    void publishInteractionResult(uint32_t dbId, const InteractionResult& res);
+
 
     ~World() override = default;
 };

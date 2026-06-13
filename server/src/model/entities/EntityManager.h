@@ -37,7 +37,7 @@ public:
 
     // Búsqueda polimórfica (por EntityId)
     Attackable* findAttackable(uint32_t entityId);
-    Interactable* findInteractable(uint32_t entityId);
+    Interactable* findInteractable(uint32_t entityId) const;
 
     // --- CRUD Players ---
     void registerPlayer(uint32_t entityId, uint32_t dbId, std::unique_ptr<Player> player);

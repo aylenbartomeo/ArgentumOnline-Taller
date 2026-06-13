@@ -130,9 +130,11 @@ struct Builder {
         for (const CityCell& c: prefab.obstacles) {
             block(ox + c.dx, oy + c.dy);
         }
-        for (const CityNpc& n: prefab.npcs) {
-            npcs.push_back({{"type", n.type}, {"x", ox + n.dx}, {"y", oy + n.dy}});
-        }
+        std::transform(
+                prefab.npcs.begin(), prefab.npcs.end(), std::back_inserter(npcs),
+                [ox, oy](const CityNpc& n) {
+                    return nlohmann::json{{"type", n.type}, {"x", ox + n.dx}, {"y", oy + n.dy}};
+                });
         safeZones.push_back({{"name", name},
                              {"x", ox},
                              {"y", oy},
@@ -156,15 +158,14 @@ int main() {
 
     const int palms[][2] = {{42, 40}, {54, 40}, {32, 46}, {32, 53},
                             {64, 45}, {64, 53}, {44, 65}, {56, 65}};
-    for (const auto& p : palms) {
+    for (const int* p: palms) {
         b.tree(p[0], p[1], PALM);
     }
-    const int forest[][2] = {
-            {8, 40},  {12, 52}, {18, 45}, {27, 59}, {33, 40}, {48, 38}, {52, 68},
-            {58, 40}, {70, 58}, {76, 42}, {82, 52}, {88, 46}, {92, 58}, {8, 70},
-            {14, 82}, {10, 92}, {20, 75}, {76, 70}, {82, 85}, {88, 72}, {92, 90},
-            {74, 92}};
-    for (const auto& t : forest) {
+    const int forest[][2] = {{8, 40},  {12, 52}, {18, 45}, {27, 59}, {33, 40}, {48, 38},
+                             {52, 68}, {58, 40}, {70, 58}, {76, 42}, {82, 52}, {88, 46},
+                             {92, 58}, {8, 70},  {14, 82}, {10, 92}, {20, 75}, {76, 70},
+                             {82, 85}, {88, 72}, {92, 90}, {74, 92}};
+    for (const int* t: forest) {
         b.tree(t[0], t[1], TREE);
     }
 

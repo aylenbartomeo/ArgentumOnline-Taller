@@ -2,11 +2,13 @@
 #define CLIENT_H
 
 #include <cstdint>
+#include <optional>
 #include <string>
 
 #include "../network/Receiver.h"
 #include "../network/Sender.h"
 #include "common/include/dto/ClientCommands.h"
+#include "common/include/dto/JoinResponseDTO.h"
 #include "common/include/dto/PlayerStatsDTO.h"
 #include "common/include/dto/Snapshot.h"
 #include "common/include/queue.h"
@@ -22,11 +24,15 @@ private:
     Queue<SnapshotDTO> snapshotQueue;
     Queue<ChatDTO> chatQueue;
     Queue<PlayerStatsDTO> statsQueue;
+    Queue<JoinResponseDTO> joinResponseQueue;
     Queue<CommandVariant> commandQueue;
 
     Receiver receiver;
     Sender sender;
     bool wasStarted;
+
+    std::optional<uint32_t> selectedNpcId;
+    std::string selectedNpcType = "dynamic";
 
 public:
     explicit Client(const char* hostname, const char* servname);
@@ -43,7 +49,18 @@ public:
     void pushPlayerStats(const PlayerStatsDTO& stats);
     bool tryPopPlayerStats(PlayerStatsDTO& out);
 
+    void pushJoinResponse(const JoinResponseDTO& dto);
+    bool tryPopJoinResponse(JoinResponseDTO& out);
+
     void sendCommand(const CommandVariant& cmd);
+
+    void setSelectedNpc(std::optional<uint32_t> id, const std::string& type = "dynamic") {
+        selectedNpcId = id;
+        selectedNpcType = type;
+    }
+
+    std::optional<uint32_t> getSelectedNpc() const { return selectedNpcId; }
+    std::string getSelectedNpcType() const { return selectedNpcType; }
 
     uint32_t getClientId() const;
 

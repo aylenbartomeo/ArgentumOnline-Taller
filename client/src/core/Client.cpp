@@ -12,6 +12,7 @@ Client::Client(const char* hostname, const char* servname):
         skt(hostname, servname),
         protocol(skt),
         snapshotQueue(),
+        joinResponseQueue(),
         commandQueue(),
         receiver(protocol, *this),
         sender(protocol, commandQueue),
@@ -72,6 +73,7 @@ void Client::stop() {
         skt.close();
     } catch (...) {}
     snapshotQueue.close();
+    joinResponseQueue.close();
     commandQueue.close();
     receiver.stop();
     sender.stop();
@@ -91,6 +93,12 @@ bool Client::tryPopChatMessage(ChatDTO& out) { return this->chatQueue.try_pop(ou
 void Client::pushPlayerStats(const PlayerStatsDTO& stats) { this->statsQueue.push(stats); }
 
 bool Client::tryPopPlayerStats(PlayerStatsDTO& out) { return this->statsQueue.try_pop(out); }
+
+void Client::pushJoinResponse(const JoinResponseDTO& dto) { this->joinResponseQueue.push(dto); }
+
+bool Client::tryPopJoinResponse(JoinResponseDTO& out) {
+    return this->joinResponseQueue.try_pop(out);
+}
 
 void Client::sendCommand(const CommandVariant& cmd) {
     try {

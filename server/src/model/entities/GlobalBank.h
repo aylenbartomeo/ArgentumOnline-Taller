@@ -106,9 +106,9 @@ public:
     }
 
     const std::vector<BankSlot>& getBankSlots(uint32_t playerId) {
-        // Sigue el mismo patrón de getBankGold: si no existe la cuenta, 
+        // Sigue el mismo patrón de getBankGold: si no existe la cuenta,
         // accounts[playerId] la inicializa por defecto con los 40 slots vacíos.
-        return accounts[playerId].slots; 
+        return accounts[playerId].slots;
     }
 
     // --- PERSISTENCIA ---
