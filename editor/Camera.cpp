@@ -1,7 +1,26 @@
 #include "Camera.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <utility>
+
+namespace {
+const int ZOOM_LEVELS[] = {12, 16, 24, 32, 48};
+const int ZOOM_COUNT = 5;
+
+int nearestZoomIndex(int tileSize) {
+    int best = 0;
+    int bestDist = std::abs(ZOOM_LEVELS[0] - tileSize);
+    for (int i = 1; i < ZOOM_COUNT; ++i) {
+        int d = std::abs(ZOOM_LEVELS[i] - tileSize);
+        if (d < bestDist) {
+            bestDist = d;
+            best = i;
+        }
+    }
+    return best;
+}
+}  // namespace
 
 Camera::Camera(int viewportWidth, int viewportHeight, int tileScreenSize, int mapCols, int mapRows):
         viewportWidth(viewportWidth),
@@ -41,3 +60,28 @@ Position Camera::cellToScreen(int col, int row) const {
 
 int Camera::getOffsetX() const { return offsetX; }
 int Camera::getOffsetY() const { return offsetY; }
+
+void Camera::setTileSizePreservingCenter(int newTileSize) {
+    double centerCol = (offsetX + viewportWidth / 2.0) / tileScreenSize;
+    double centerRow = (offsetY + viewportHeight / 2.0) / tileScreenSize;
+    tileScreenSize = newTileSize;
+    offsetX = static_cast<int>(centerCol * tileScreenSize - viewportWidth / 2.0);
+    offsetY = static_cast<int>(centerRow * tileScreenSize - viewportHeight / 2.0);
+    clamp();
+}
+
+void Camera::zoomIn() {
+    int idx = nearestZoomIndex(tileScreenSize);
+    if (idx < ZOOM_COUNT - 1) {
+        setTileSizePreservingCenter(ZOOM_LEVELS[idx + 1]);
+    }
+}
+
+void Camera::zoomOut() {
+    int idx = nearestZoomIndex(tileScreenSize);
+    if (idx > 0) {
+        setTileSizePreservingCenter(ZOOM_LEVELS[idx - 1]);
+    }
+}
+
+int Camera::getTileSize() const { return tileScreenSize; }
