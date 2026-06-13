@@ -30,6 +30,8 @@ GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
             mConfigs = MonsterConfigLoader::loadMonsterConfigs("config/monsters.toml");
         } catch (...) {}
         world.restoreMonsters(worldDataStore.loadMonsters(worldConfig.worldId), mConfigs);
+        auto [npcHeaders, npcStocks] = worldDataStore.loadNpcStates(worldConfig.worldId);
+        world.restoreNpcStates(npcHeaders, npcStocks);
         world.restoreGroundItems(worldDataStore.loadGroundItems(worldConfig.worldId));
 
         auto [clanHeaders, clanMembers, clanPending, clanBanned] =
@@ -296,7 +298,8 @@ void GameLoop::persistWorldState() {
     persistOnlinePlayers();
     worldDataStore.saveMonsters(worldConfig.worldId, world.getMonstersPersistData());
     worldDataStore.saveGroundItems(worldConfig.worldId, world.getGroundItemsPersistData());
-
+    auto [npcHeaders, npcStocks] = world.getNpcsPersistData();
+    worldDataStore.saveNpcStates(worldConfig.worldId, npcHeaders, npcStocks);
     auto clanData = world.getClansPersistData();
     worldDataStore.saveClans(worldConfig.worldId, clanData.headers, clanData.members,
                              clanData.pending, clanData.banned);
