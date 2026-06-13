@@ -119,6 +119,10 @@ public:
     std::vector<GroundItemPersistData> getGroundItemsPersistData() const;
     void restoreMonsters(const std::vector<MonsterPersistData>& data,
                          const MonsterConfigs& configs);
+    std::pair<std::vector<NpcHeaderPersistData>, std::vector<std::vector<NpcStockPersistData>>>
+            getNpcsPersistData() const;
+    void restoreNpcStates(const std::vector<NpcHeaderPersistData>& headers,
+                          const std::vector<std::vector<NpcStockPersistData>>& allStocks);
     void restoreGroundItems(const std::vector<GroundItemPersistData>& data);
 
     // Persistencia de clanes

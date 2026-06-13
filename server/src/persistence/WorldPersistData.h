@@ -29,6 +29,26 @@ struct MonsterPersistData {
 static_assert(sizeof(MonsterPersistData) == 20, "MonsterPersistData must be 20 bytes");
 
 #pragma pack(push, 1)
+struct NpcHeaderPersistData {
+    uint32_t entityId;
+    uint8_t type;
+    uint8_t _pad[3];
+    int32_t posX;
+    int32_t posY;
+    uint32_t stockCount;
+};
+#pragma pack(pop)
+static_assert(sizeof(NpcHeaderPersistData) == 20, "NpcHeaderPersistData must be 20 bytes");
+
+#pragma pack(push, 1)
+struct NpcStockPersistData {
+    uint32_t itemId;
+    int32_t amount;
+};
+#pragma pack(pop)
+static_assert(sizeof(NpcStockPersistData) == 8, "NpcStockPersistData must be 8 bytes");
+
+#pragma pack(push, 1)
 struct GroundItemPersistData {
     int32_t posX;
     int32_t posY;

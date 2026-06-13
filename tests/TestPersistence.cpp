@@ -707,6 +707,64 @@ TEST_F(WorldDataStorePersistenceTest, SaveAndLoad_BankAccounts) {
     EXPECT_EQ(lSlots[0][0].amount, 5);
 }
 
+TEST_F(WorldDataStorePersistenceTest, SaveAndLoad_NpcStates) {
+    WorldDataStore store(testDir);
+    uint32_t worldId = store.createWorld("TestWorld", "maps/test.json");
+
+    std::vector<NpcHeaderPersistData> headers;
+    std::vector<std::vector<NpcStockPersistData>> stocks;
+
+    // Simulamos un Mercader con 2 tipos de ítems en stock
+    NpcHeaderPersistData h1{};
+    h1.entityId = 50;
+    h1.type = 1; // Merchant
+    h1.posX = 15;
+    h1.posY = 30;
+    h1.stockCount = 2;
+    headers.push_back(h1);
+    stocks.push_back({{1001, 10}, {1002, 5}});
+
+    // Simulamos un Sacerdote con 1 ítem en stock
+    NpcHeaderPersistData h2{};
+    h2.entityId = 51;
+    h2.type = 2; // Priest
+    h2.posX = 20;
+    h2.posY = 40;
+    h2.stockCount = 1;
+    headers.push_back(h2);
+    stocks.push_back({{2005, 1}});
+
+    // 1. Guardar el estado transaccional en el archivo .bin
+    store.saveNpcStates(worldId, headers, stocks);
+
+    // 2. Levantar los datos desde el archivo .bin
+    auto [lHeaders, lStocks] = store.loadNpcStates(worldId);
+
+    // Verificaciones de empaquetamiento y tamaños
+    ASSERT_EQ(lHeaders.size(), 2u);
+    ASSERT_EQ(lStocks.size(), 2u);
+
+    // Validar datos recuperados del Mercader (Índice 0)
+    EXPECT_EQ(lHeaders[0].entityId, 50u);
+    EXPECT_EQ(lHeaders[0].type, 1);
+    EXPECT_EQ(lHeaders[0].posX, 15);
+    EXPECT_EQ(lHeaders[0].posY, 30);
+    EXPECT_EQ(lHeaders[0].stockCount, 2u);
+    EXPECT_EQ(lStocks[0].size(), 2u);
+    EXPECT_EQ(lStocks[0][0].itemId, 1001u);
+    EXPECT_EQ(lStocks[0][0].amount, 10);
+    EXPECT_EQ(lStocks[0][1].itemId, 1002u);
+    EXPECT_EQ(lStocks[0][1].amount, 5);
+
+    // Validar datos recuperados del Sacerdote (Índice 1)
+    EXPECT_EQ(lHeaders[1].entityId, 51u);
+    EXPECT_EQ(lHeaders[1].type, 2);
+    EXPECT_EQ(lHeaders[1].stockCount, 1u);
+    EXPECT_EQ(lStocks[1].size(), 1u);
+    EXPECT_EQ(lStocks[1][0].itemId, 2005u);
+    EXPECT_EQ(lStocks[1][0].amount, 1);
+}
+
 // ============================================================================
 // 5. WORLD — Persistence Integration (Clanes, Bank)
 // ============================================================================
@@ -776,4 +834,25 @@ TEST_F(WorldPersistenceTest, World_ClanPersistence_RoundTrip) {
     EXPECT_STREQ(outH[0].name, "Imperio");
     EXPECT_EQ(outM.size(), 1u);
     EXPECT_EQ(outM[0].size(), 2u);
+}
+
+TEST_F(WorldPersistenceTest, World_NpcPersistence_Robustness_RoundTrip) {
+    World mundo(1, "Tester", registry, configs, getTestInventoryConfig());
+
+    std::vector<NpcHeaderPersistData> headers;
+    std::vector<std::vector<NpcStockPersistData>> stocks;
+
+    NpcHeaderPersistData h{};
+    h.entityId = 99;
+    h.type = 1; 
+    h.posX = 10;
+    h.posY = 10;
+    h.stockCount = 1;
+    headers.push_back(h);
+    stocks.push_back({{1001, 50}});
+
+    EXPECT_NO_THROW(mundo.restoreNpcStates(headers, stocks));
+    auto [outHeaders, outStocks] = mundo.getNpcsPersistData();
+    EXPECT_EQ(outHeaders.size(), 0u);
+    EXPECT_EQ(outStocks.size(), 0u);
 }
