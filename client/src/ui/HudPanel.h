@@ -15,7 +15,8 @@ public:
     ~HudPanel();
 
     void renderBackground(SDL2pp::Renderer& renderer);
-    void render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats);
+    void render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats,
+                uint32_t lastStatsReceiveTimeMs = 0);
 
     int slotAtPosition(int x, int y) const;
     bool isManualButtonClicked(int x, int y) const;
@@ -31,14 +32,18 @@ public:
 private:
     TextureManager& textures;
     TTF_Font* font;
+    TTF_Font* smallFont;
     int selectedSlot = -1;
 
     void drawBars(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats);
-    void drawText(SDL2pp::Renderer& renderer, const std::string& text, int x, int y);
+    void drawText(SDL2pp::Renderer& renderer, const std::string& text, int x, int y,
+                  SDL_Color color = {255, 255, 255, 255}, bool rightAlign = false,
+                  bool useSmallFont = false);
     void drawItemSprite(SDL2pp::Renderer& renderer, uint32_t itemId, int x, int y, int w, int h);
     void drawInventory(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats);
     void drawEquipment(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats);
     void drawSlotHighlight(SDL2pp::Renderer& renderer, int slotIndex);
+    void drawItemTooltip(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats);
 };
 
 #endif

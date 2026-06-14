@@ -1,6 +1,9 @@
 #include "InventoryComponent.h"
 
 #include <algorithm>
+#include <string>
+
+#include "server/src/model/items/ItemRegistry.h"
 
 #include "EquipmentComponent.h"
 
@@ -136,11 +139,45 @@ uint32_t InventoryComponent::dropExcessGold() {
 }
 
 std::vector<InventorySlotDTO> InventoryComponent::getInventoryDTO(
-        const EquipmentComponent& equipment) const {
+        const EquipmentComponent& equipment, const ItemRegistry* registry) const {
     std::vector<InventorySlotDTO> dtos;
     for (uint8_t i = 0; i < slots.size(); ++i) {
         if (slots[i].item_id != 0 && slots[i].amount > 0) {
-            dtos.emplace_back(i, slots[i].item_id, slots[i].amount, equipment.isSlotEquipped(i));
+            std::string desc;
+            if (registry) {
+                if (auto* w = registry->get_weapon(slots[i].item_id)) {
+                    desc = w->getName() + " - Dano: " + std::to_string(w->getMinDamage()) + "-" +
+                           std::to_string(w->getMaxDamage());
+                    if (w->getManaCost() > 0) {
+                        desc += ", Mana: " + std::to_string(w->getManaCost());
+                    }
+                } else if (auto* a = registry->get_armor(slots[i].item_id)) {
+                    desc = a->getName() + " - Def: " + std::to_string(a->getMinDefense()) + "-" +
+                           std::to_string(a->getMaxDefense());
+                } else if (auto* c = registry->get_consumable(slots[i].item_id)) {
+                    desc = c->getName();
+                    switch (c->getConsumableType()) {
+                        case ConsumableType::HEALTH:
+                            desc += " - Cura: " + std::to_string(c->getEffectValue()) + " HP";
+                            break;
+                        case ConsumableType::MANA:
+                            desc += " - Restaura: " + std::to_string(c->getEffectValue()) + " MP";
+                            break;
+                        case ConsumableType::BOOST_STR:
+                            desc += " - +" + std::to_string(c->getEffectValue()) + " FUE (" +
+                                    std::to_string(c->getDurationMs() / 1000) + "s)";
+                            break;
+                        case ConsumableType::BOOST_AGI:
+                            desc += " - +" + std::to_string(c->getEffectValue()) + " AGI (" +
+                                    std::to_string(c->getDurationMs() / 1000) + "s)";
+                            break;
+                    }
+                } else if (auto* i_obj = registry->get_item(slots[i].item_id)) {
+                    desc = i_obj->getName();
+                }
+            }
+            dtos.emplace_back(i, slots[i].item_id, slots[i].amount, equipment.isSlotEquipped(i),
+                              desc);
         }
     }
     return dtos;

@@ -38,7 +38,7 @@ TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
     Player player = makeTestPlayer();
     player.addGold(500);
 
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "2000");
+    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "Espada");
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
@@ -69,7 +69,7 @@ TEST(MerchantTest, Merchant_BuyWithFullInventoryDoesNotStealGold) {
         player.addItem(1000u + i, 1);  // IDs distintos para ocupar cada slot
     }
 
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "2000");
+    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "Espada");
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES CRÍTICAS:
@@ -90,7 +90,7 @@ TEST(MerchantTest, Merchant_RejectsMagicItemsBasedOnName) {
 
     player.addGold(300);
 
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "2022");  // Baculo nudoso
+    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "Baculo nudoso");  // Baculo nudoso
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // 0. Verificamos que la compra fue rechazada por filtro de magia
@@ -120,7 +120,7 @@ TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
     EXPECT_EQ(player.getGold(), 0u);  // Arranca seco
 
     // Ejecutamos el comando de venta de la armadura
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::SELL, "1000");
+    NpcCommandDTO cmd = createTestCommand(NpcCommandType::SELL, "Armadura de cuero");
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES:
@@ -154,10 +154,10 @@ TEST(MerchantTest, Merchant_ListStockSuccessfully) {
 
     // Verificamos que el mensaje contenga palabras claves del catálogo formateado
     EXPECT_NE(res.msg.find("--- CATÁLOGO DISPONIBLE ---"), std::string::npos);
-    EXPECT_NE(res.msg.find("Cantidad:"), std::string::npos);
+    EXPECT_NE(res.msg.find("Disp:"), std::string::npos);
     EXPECT_NE(res.msg.find("Compra:"), std::string::npos);
 
     // Verificamos que al menos uno de los ítems hardcodeados del stock inicial esté presente en el
-    // texto El stock inicial del Merchant posee el ID 2000u y 1000u
-    EXPECT_NE(res.msg.find("[ID: 2000]"), std::string::npos);
+    // texto El stock inicial del Merchant posee la Espada y la Armadura de cuero
+    EXPECT_NE(res.msg.find("Espada"), std::string::npos);
 }

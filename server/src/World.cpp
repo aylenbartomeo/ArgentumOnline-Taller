@@ -879,24 +879,24 @@ void World::restoreMonsters(const std::vector<MonsterPersistData>& data,
 }
 
 std::pair<std::vector<NpcHeaderPersistData>, std::vector<std::vector<NpcStockPersistData>>>
-World::getNpcsPersistData() const {
+        World::getNpcsPersistData() const {
     std::vector<NpcHeaderPersistData> headers;
     std::vector<std::vector<NpcStockPersistData>> allStocks;
 
     // Recorremos los NPCs de la ciudad indexados por el EntityManager
-    for (const auto& [id, npc] : entityManager.getCityNPCs()) {
+    for (const auto& [id, npc]: entityManager.getCityNPCs()) {
         // Intentamos castear a las clases que manejan stock dinámico
         std::unordered_map<uint32_t, int> currentStock;
-        uint8_t npcType = 0; 
+        uint8_t npcType = 0;
 
-        if (auto* merchant = dynamic_cast<Merchant*>(npc.get())) {
+        if (const auto* merchant = dynamic_cast<const Merchant*>(npc.get())) {
             currentStock = merchant->getStock();
-            npcType = 1; // ID de tipo para Merchant
-        } else if (auto* priest = dynamic_cast<Priest*>(npc.get())) {
+            npcType = 1;  // ID de tipo para Merchant
+        } else if (const auto* priest = dynamic_cast<const Priest*>(npc.get())) {
             currentStock = priest->getStock();
-            npcType = 2; // ID de tipo para Priest
+            npcType = 2;  // ID de tipo para Priest
         } else {
-            continue; // Si es un Banker u otro interactuable sin stock transaccional, salteamos
+            continue;  // Si es un Banker u otro interactuable sin stock transaccional, salteamos
         }
 
         NpcHeaderPersistData header{};
@@ -907,7 +907,7 @@ World::getNpcsPersistData() const {
         header.stockCount = static_cast<uint32_t>(currentStock.size());
 
         std::vector<NpcStockPersistData> stockData;
-        for (const auto& [itemId, amount] : currentStock) {
+        for (const auto& [itemId, amount]: currentStock) {
             stockData.push_back(NpcStockPersistData{itemId, amount});
         }
 
@@ -920,19 +920,19 @@ World::getNpcsPersistData() const {
 
 void World::restoreNpcStates(const std::vector<NpcHeaderPersistData>& headers,
                              const std::vector<std::vector<NpcStockPersistData>>& allStocks) {
-    
+
     for (size_t i = 0; i < headers.size(); ++i) {
         const auto& header = headers[i];
         const auto& stockData = allStocks[i];
 
         // Reconstruimos el mapa de stock binario a unordered_map
         std::unordered_map<uint32_t, int> restoredStock;
-        for (const auto& item : stockData) {
+        for (const auto& item: stockData) {
             restoredStock[item.itemId] = item.amount;
         }
 
         // Buscamos cuál de los NPCs recién spawneados por el mapa coincide en posición
-        for (auto& [id, npc] : entityManager.getCityNPCs()) {
+        for (auto& [id, npc]: entityManager.getCityNPCs()) {
             if (npc->getPosition().x == header.posX && npc->getPosition().y == header.posY) {
                 if (header.type == 1) {
                     if (auto* merchant = dynamic_cast<Merchant*>(npc.get())) {

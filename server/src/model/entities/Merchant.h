@@ -18,8 +18,8 @@ private:
     std::unordered_map<NpcCommandType, std::unique_ptr<NpcCommandHandler>> commandHandlers;
 
 public:
-    Merchant(uint32_t id, Position pos, const ItemRegistry& registry, 
-        std::unordered_map<uint32_t, int> initialStock);
+    Merchant(uint32_t id, Position pos, const ItemRegistry& registry,
+             std::unordered_map<uint32_t, int> initialStock);
 
     Position getPosition() const override { return pos; }
     uint32_t getId() const override { return id; }

@@ -142,7 +142,11 @@ PlayerStatsDTO Player::getStatsDTO() const {
     dto.level = stats.getLevel();
     dto.expIntoLevel = stats.getExpIntoCurrentLevel();
     dto.expForLevel = stats.getExpForCurrentLevel();
-    dto.inventory = inventory.getInventoryDTO(equipment);
+    dto.race = stats.getRace();
+    dto.characterClass = stats.getCharacterClass();
+    dto.agilityBuffTimeLeftMs = stats.getAgilityBoostTimeLeft();
+    dto.strengthBuffTimeLeftMs = stats.getStrengthBoostTimeLeft();
+    dto.inventory = inventory.getInventoryDTO(equipment, itemRegistry);
     return dto;
 }
 
@@ -150,6 +154,7 @@ EntityDTO Player::toEntityDTO() const {
     EntityDTO dto;
     dto.id = dbId;
     dto.type = EntityType::PLAYER;
+    dto.name = this->name;
     dto.x = pos.x;
     dto.y = pos.y;
     dto.current_hp = stats.getHp();

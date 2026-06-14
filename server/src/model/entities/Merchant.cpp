@@ -1,13 +1,17 @@
 #include "Merchant.h"
 
+#include <algorithm>
+#include <sstream>
+#include <utility>
+
 #include "../handlers/ListStockHandler.h"
 #include "../handlers/TradeHandler.h"
 #include "model/entities/Player.h"
 
-Merchant::Merchant(uint32_t id, Position pos, const ItemRegistry& registry, 
-        std::unordered_map<uint32_t, int> initialStock):
+Merchant::Merchant(uint32_t id, Position pos, const ItemRegistry& registry,
+                   std::unordered_map<uint32_t, int> initialStock):
         id(id), pos(pos), stock(std::move(initialStock)) {
-            
+
     auto merchantFilter = [](const Item* item) {
         return !item->isMagic();  // Si es Weapon MAGIC, retorna false
     };

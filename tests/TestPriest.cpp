@@ -96,7 +96,7 @@ TEST(PriestTest, Priest_AllowsBuyingItemsInStock) {
     player.addGold(500);
 
     // Compra directa de la Armadura 1001 usando la firma 'dto.arg'
-    NpcCommandDTO cmd = createPriestTestCommand(NpcCommandType::BUY, "1001");
+    NpcCommandDTO cmd = createPriestTestCommand(NpcCommandType::BUY, "Armadura de placas");
 
     // CAPTURAMOS EL RESULTADO
     InteractionResult res = sacerdote.handleCommand(player, cmd);
@@ -127,7 +127,7 @@ TEST(PriestTest, Priest_DeadPlayerCannotTrade) {
 
     ASSERT_TRUE(player.isDead());
 
-    NpcCommandDTO cmd = createPriestTestCommand(NpcCommandType::BUY, "1001");
+    NpcCommandDTO cmd = createPriestTestCommand(NpcCommandType::BUY, "Armadura de placas");
 
     // CAPTURAMOS EL RESULTADO
     InteractionResult res = sacerdote.handleCommand(player, cmd);
@@ -164,6 +164,6 @@ TEST(PriestTest, Priest_ListStockSuccessfully) {
     EXPECT_NE(res.msg.find("--- CATÁLOGO DISPONIBLE ---"), std::string::npos);
 
     // El Sacerdote inicia con ítems específicos en su stock (1001u y 1002u)
-    EXPECT_NE(res.msg.find("[ID: 1001]"), std::string::npos);
-    EXPECT_NE(res.msg.find("[ID: 1002]"), std::string::npos);
+    EXPECT_NE(res.msg.find("Armadura de placas"), std::string::npos);
+    EXPECT_NE(res.msg.find("Tunica azul"), std::string::npos);
 }
