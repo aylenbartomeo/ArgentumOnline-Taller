@@ -49,11 +49,18 @@ HudPanel::HudPanel(TextureManager& textures, const std::string& fontPath): textu
     if (!font) {
         throw std::runtime_error(std::string("HudPanel font: ") + TTF_GetError());
     }
+    smallFont = TTF_OpenFont(fontPath.c_str(), 10);
+    if (!smallFont) {
+        throw std::runtime_error(std::string("HudPanel smallFont: ") + TTF_GetError());
+    }
 }
 
 HudPanel::~HudPanel() {
     if (font) {
         TTF_CloseFont(font);
+    }
+    if (smallFont) {
+        TTF_CloseFont(smallFont);
     }
 }
 
@@ -117,13 +124,18 @@ void HudPanel::drawBars(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats)
     }
 }
 
-void HudPanel::drawText(SDL2pp::Renderer& renderer, const std::string& text, int x, int y) {
-    SDL_Surface* surf = TTF_RenderUTF8_Blended(font, text.c_str(), WHITE);
+void HudPanel::drawText(SDL2pp::Renderer& renderer, const std::string& text, int x, int y,
+                        SDL_Color color, bool rightAlign, bool useSmallFont) {
+    TTF_Font* f = useSmallFont ? smallFont : font;
+    SDL_Surface* surf = TTF_RenderUTF8_Blended(f, text.c_str(), color);
     if (!surf) {
         return;
     }
     SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer.Get(), surf);
     SDL_Rect dst{x, y, surf->w, surf->h};
+    if (rightAlign) {
+        dst.x -= surf->w;
+    }
     SDL_FreeSurface(surf);
     if (!tex) {
         return;
@@ -221,16 +233,52 @@ void HudPanel::drawItemTooltip(SDL2pp::Renderer& renderer, const PlayerStatsDTO&
     drawText(renderer, desc, 775, 398);
 }
 
-void HudPanel::render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats) {
+void HudPanel::render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats,
+                      uint32_t lastStatsReceiveTimeMs) {
     drawBars(renderer, stats);
     drawInventory(renderer, stats);
     drawEquipment(renderer, stats);
     drawItemTooltip(renderer, stats);
-    drawText(renderer, "Nivel " + std::to_string(stats.level), LEVEL_X, LEVEL_Y);
-    drawText(renderer, "Oro " + std::to_string(stats.gold), GOLD_X, GOLD_Y);
+    drawText(renderer, "Nivel: " + std::to_string(stats.level), LEVEL_X, LEVEL_Y);
+    drawText(renderer, "Oro: " + std::to_string(stats.gold), GOLD_X, GOLD_Y);
     drawText(renderer,
-             "Exp " + std::to_string(stats.expIntoLevel) + "/" + std::to_string(stats.expForLevel),
+             "Exp: " + std::to_string(stats.expIntoLevel) + "/" + std::to_string(stats.expForLevel),
              LEVEL_X, LEVEL_Y + 18);
+
+    drawText(renderer, "Raza: " + getRaceName(stats.race), LEVEL_X, LEVEL_Y + 36);
+    drawText(renderer, "Clase: " + getClassName(stats.characterClass), LEVEL_X, LEVEL_Y + 52);
+
+    int buffX = 1010;  // Margen derecho del recuadro
+    int buffY = LEVEL_Y;
+    uint32_t elapsed = SDL_GetTicks() - lastStatsReceiveTimeMs;
+    uint32_t ticks = SDL_GetTicks();
+
+    if (stats.strengthBuffTimeLeftMs > elapsed) {
+        uint32_t leftMs = stats.strengthBuffTimeLeftMs - elapsed;
+        uint32_t leftSecs = leftMs / 1000;
+        bool visible = true;
+        if (leftSecs <= 10) {
+            visible = (ticks / 250) % 2 == 0;  // Blink every 250ms
+        }
+        if (visible) {
+            drawText(renderer, "+Fuerza (" + std::to_string(leftSecs) + "s)", buffX, buffY,
+                     {255, 50, 50, 255}, true, true);
+        }
+        buffY += 14;
+    }
+
+    if (stats.agilityBuffTimeLeftMs > elapsed) {
+        uint32_t leftMs = stats.agilityBuffTimeLeftMs - elapsed;
+        uint32_t leftSecs = leftMs / 1000;
+        bool visible = true;
+        if (leftSecs <= 10) {
+            visible = (ticks / 250) % 2 == 0;  // Blink every 250ms
+        }
+        if (visible) {
+            drawText(renderer, "+Agilidad (" + std::to_string(leftSecs) + "s)", buffX, buffY,
+                     {100, 200, 255, 255}, true, true);
+        }
+    }
 
     drawText(renderer, std::to_string(stats.currentHp) + "/" + std::to_string(stats.maxHp),
              HP_X + 78, HP_Y + 1);
