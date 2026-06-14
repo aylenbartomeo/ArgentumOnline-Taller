@@ -2,6 +2,7 @@
 #define SNAPSHOT_H
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 /* ACA va toda la informacion que necesite el cliente
@@ -43,6 +44,7 @@ struct EntityDTO {
     uint16_t shieldItemId = 0;
     uint16_t bodyArmorItemId = 0;
     uint16_t level = 0;
+    std::string name = "";
 
     EntityDTO() = default;
     EntityDTO(uint32_t id, EntityType type, uint16_t x, uint16_t y, uint16_t hp, uint16_t m_hp,

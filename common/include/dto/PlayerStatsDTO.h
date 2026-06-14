@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 
+#include "../../utils/types.h"
+
 struct InventorySlotDTO {
     uint8_t slot{0};
     uint32_t itemId{0};
@@ -33,6 +35,12 @@ struct PlayerStatsDTO {
     uint16_t level = 0;
     uint32_t expIntoLevel = 0;
     uint32_t expForLevel = 0;
+
+    Race race = Race::HUMAN;
+    CharacterClass characterClass = CharacterClass::MAGE;
+
+    uint32_t agilityBuffTimeLeftMs = 0;
+    uint32_t strengthBuffTimeLeftMs = 0;
 
     std::vector<InventorySlotDTO> inventory;
 
