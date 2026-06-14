@@ -131,6 +131,7 @@ void Game::run() {
         inputProcessor.processCheats(input);
         inputProcessor.processEquipInput(input);
         inputProcessor.processUseInput(input, audio);
+        inputProcessor.processGrabDropInput(input);
         inputProcessor.processSelectSlotInput(input);
         inputProcessor.processUiInput(input);
         if (input.toggleMute)
