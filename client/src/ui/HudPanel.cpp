@@ -193,10 +193,39 @@ void HudPanel::drawEquipment(SDL2pp::Renderer& renderer, const PlayerStatsDTO& s
     }
 }
 
+void HudPanel::drawItemTooltip(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats) {
+    if (selectedSlot < 0) {
+        return;
+    }
+
+    std::string desc;
+    auto it = std::find_if(
+            stats.inventory.begin(), stats.inventory.end(),
+            [this](const InventorySlotDTO& item) { return item.slot == selectedSlot; });
+    if (it != stats.inventory.end()) {
+        desc = it->description;
+    }
+
+    if (desc.empty()) {
+        return;
+    }
+
+    // Dibujamos un fondo negro semi-transparente debajo del inventario
+    // El inventario termina en INV_ORIGIN_Y + 5 * (INV_CELL + INV_GAP) = 172 + 5 * 42 = 382
+    // Dejamos un margen de 10px -> Y = 392
+    SDL_SetRenderDrawBlendMode(renderer.Get(), SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer.Get(), 0, 0, 0, 180);
+    SDL_Rect bgRect{770, 392, 240, 25};
+    SDL_RenderFillRect(renderer.Get(), &bgRect);
+
+    drawText(renderer, desc, 775, 398);
+}
+
 void HudPanel::render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats) {
     drawBars(renderer, stats);
     drawInventory(renderer, stats);
     drawEquipment(renderer, stats);
+    drawItemTooltip(renderer, stats);
     drawText(renderer, "Nivel " + std::to_string(stats.level), LEVEL_X, LEVEL_Y);
     drawText(renderer, "Oro " + std::to_string(stats.gold), GOLD_X, GOLD_Y);
     drawText(renderer,

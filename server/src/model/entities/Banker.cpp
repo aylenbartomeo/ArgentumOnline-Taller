@@ -8,7 +8,8 @@ Banker::Banker(uint32_t id, Position pos, GlobalBank& bankInstance, const ItemRe
         id(id), pos(pos) {
     commandHandlers[NpcCommandType::DEPOSIT] =
             std::make_unique<BankDepositHandler>(bankInstance, registry);
-    commandHandlers[NpcCommandType::WITHDRAW] = std::make_unique<BankWithdrawHandler>(bankInstance);
+    commandHandlers[NpcCommandType::WITHDRAW] =
+            std::make_unique<BankWithdrawHandler>(bankInstance, registry);
     commandHandlers[NpcCommandType::LIST] =
             std::make_unique<BankListHandler>(bankInstance, registry);
 }

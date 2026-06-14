@@ -10,6 +10,7 @@
 #include "../config/InventoryConfig.h"
 
 class EquipmentComponent;
+class ItemRegistry;
 
 // Representa un casillero individual dentro de la grilla del inventario.
 struct Slot {
@@ -95,7 +96,8 @@ public:
     const std::vector<Slot>& getSlots() const { return slots; }
 
     // Retorna la lista de DTOs para enviar por red
-    std::vector<InventorySlotDTO> getInventoryDTO(const EquipmentComponent& equipment) const;
+    std::vector<InventorySlotDTO> getInventoryDTO(const EquipmentComponent& equipment,
+                                                  const ItemRegistry* registry = nullptr) const;
     uint8_t getSize() const { return static_cast<uint8_t>(slots.size()); }
 };
 

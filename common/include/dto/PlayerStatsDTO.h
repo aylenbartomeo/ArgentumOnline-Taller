@@ -2,6 +2,8 @@
 #define PLAYER_STATS_DTO_H
 
 #include <cstdint>
+#include <string>
+#include <utility>
 #include <vector>
 
 struct InventorySlotDTO {
@@ -9,10 +11,16 @@ struct InventorySlotDTO {
     uint32_t itemId{0};
     uint16_t amount{0};
     bool isEquipped{false};
+    std::string description;
 
     InventorySlotDTO() = default;
-    InventorySlotDTO(uint8_t slot, uint32_t itemId, uint16_t amount, bool isEquipped):
-            slot(slot), itemId(itemId), amount(amount), isEquipped(isEquipped) {}
+    InventorySlotDTO(uint8_t slot, uint32_t itemId, uint16_t amount, bool isEquipped,
+                     std::string description = ""):
+            slot(slot),
+            itemId(itemId),
+            amount(amount),
+            isEquipped(isEquipped),
+            description(std::move(description)) {}
 };
 
 struct PlayerStatsDTO {

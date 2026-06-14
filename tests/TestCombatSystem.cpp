@@ -99,7 +99,7 @@ TEST(CombatSystemTest, ApplyDamageEffectWithDefense) {
     Player victimNoArmor = makeTestPlayer(3);
 
     // Armadura con defensa fija min==max==10 para valores deterministas
-    BodyArmor armor(1001, "Plates", 10, 10);
+    BodyArmor armor(1001, "Plates", 0, 10, 10);
     victimWithArmor.equipBodyArmor(&armor);
 
     AttackParams params{5, 5, 10, 0, false, 1.0f, 1.0f};

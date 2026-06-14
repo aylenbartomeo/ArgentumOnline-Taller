@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <string>
 #include <unordered_map>
 
 #include "server/src/model/items/Armor.h"
@@ -37,6 +38,10 @@ public:
 
     // Obtiene la definición inmutable de un ítem genérico en O(1).
     const Item* get_item(int item_id) const;
+
+    // Obtiene un item por su nombre (búsqueda case-insensitive).
+    // Retorna nullptr si no se encuentra.
+    const Item* getItemByName(const std::string& name) const;
 
     // Retorna el ítem casteado de forma segura a Weapon.
     const Weapon* get_weapon(int item_id) const;

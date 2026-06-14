@@ -66,23 +66,17 @@ public:
             return result;
         }
 
-        // Usamos 'subComando' para asegurarnos de parsear solo el token numérico aislado
-        uint32_t itemId = 0;
-        try {
-            itemId = std::stoul(subComando);
-        } catch (...) {
+        // Usamos la frase completa a partir del primer argumento
+        // Si no es "oro", asumimos que todo el arg es el nombre del item
+        const Item* itemDef = registry.getItemByName(dto.arg);
+        if (!itemDef) {
             result.status = InteractionStatus::FAILURE;
-            result.msg = "Argumento inválido. Uso: /depositar oro <cant> o /depositar <itemId>";
+            result.msg = "No se encontró ningún artículo con ese nombre. Uso: /depositar oro "
+                         "<cant> o /depositar <nombreItem>";
             return result;
         }
 
-        // Validamos contra el registro que el ítem realmente exista
-        const Item* itemDef = registry.get_item(itemId);
-        if (!itemDef) {
-            result.status = InteractionStatus::FAILURE;
-            result.msg = "El artículo especificado no existe en el registro.";
-            return result;
-        }
+        uint32_t itemId = itemDef->getId();
 
         // Buscamos si el jugador efectivamente posee el ítem en su inventario
         int playerSlot = -1;

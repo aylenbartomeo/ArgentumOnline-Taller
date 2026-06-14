@@ -24,12 +24,11 @@ public:
     std::vector<MonsterPersistData> loadMonsters(uint32_t worldId) const;
 
     // Persistencia del estado dinámico de los NPCs
-    void saveNpcStates(uint32_t worldId,
-                   const std::vector<NpcHeaderPersistData>& headers,
-                   const std::vector<std::vector<NpcStockPersistData>>& allStocks);
+    void saveNpcStates(uint32_t worldId, const std::vector<NpcHeaderPersistData>& headers,
+                       const std::vector<std::vector<NpcStockPersistData>>& allStocks);
 
     std::pair<std::vector<NpcHeaderPersistData>, std::vector<std::vector<NpcStockPersistData>>>
-        loadNpcStates(uint32_t worldId) const;
+            loadNpcStates(uint32_t worldId) const;
 
     void saveGroundItems(uint32_t worldId, const std::vector<GroundItemPersistData>& items);
     std::vector<GroundItemPersistData> loadGroundItems(uint32_t worldId) const;

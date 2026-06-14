@@ -1,9 +1,13 @@
 #pragma once
 
+#include <algorithm>
 #include <functional>
 #include <iomanip>
 #include <sstream>
+#include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "../items/ItemRegistry.h"
 
@@ -46,24 +50,70 @@ public:
         std::stringstream ss;
         ss << "--- CATÁLOGO DISPONIBLE ---\n";
 
+        std::vector<std::pair<const Item*, int>> potions;
+        std::vector<std::pair<const Item*, int>> weapons;
+        std::vector<std::pair<const Item*, int>> armors;
+        std::vector<std::pair<const Item*, int>> others;
+
         for (const auto& [itemId, quantity]: npcStock) {
             if (quantity <= 0)
-                continue;  // Saltamos si no hay stock
+                continue;
 
             const Item* itemDef = registry.get_item(itemId);
             if (!itemDef || !isItemPermitted(itemDef))
                 continue;
 
-            uint32_t buyPrice = itemDef->getPrice();
-
-            ss << "- " << itemDef->getName() << " [ID: " << itemId << "]"
-               << " | Cantidad: " << quantity << " | Compra: " << buyPrice << "g";
-
-            if (allowsSell) {
-                ss << " | Venta: " << (buyPrice / 2) << "g";
+            if (registry.get_consumable(itemId)) {
+                potions.emplace_back(itemDef, quantity);
+            } else if (registry.get_weapon(itemId)) {
+                weapons.emplace_back(itemDef, quantity);
+            } else if (registry.get_armor(itemId)) {
+                armors.emplace_back(itemDef, quantity);
+            } else {
+                others.emplace_back(itemDef, quantity);
             }
-            ss << "\n";
         }
+
+        auto sortItems = [](std::vector<std::pair<const Item*, int>>& items) {
+            std::sort(items.begin(), items.end(), [](const auto& a, const auto& b) {
+                if (a.first->getPrice() != b.first->getPrice()) {
+                    return a.first->getPrice() < b.first->getPrice();
+                }
+                return a.first->getName() < b.first->getName();
+            });
+        };
+
+        sortItems(potions);
+        sortItems(weapons);
+        sortItems(armors);
+        sortItems(others);
+
+        auto formatItems = [&](const std::string& title,
+                               const std::vector<std::pair<const Item*, int>>& items) {
+            if (items.empty())
+                return;
+            ss << "\n[" << title << "]\n\n";
+            for (const auto& [itemDef, quantity]: items) {
+                uint32_t buyPrice = itemDef->getPrice();
+                std::string name = itemDef->getName();
+
+                int padLength = 25 - static_cast<int>(name.length());
+                if (padLength < 3)
+                    padLength = 3;
+                std::string paddedName = name + " " + std::string(padLength, '.');
+
+                ss << "- " << paddedName << " Compra: " << buyPrice << "g";
+                if (allowsSell) {
+                    ss << " | Venta: " << (buyPrice / 2) << "g";
+                }
+                ss << " | Disp: " << quantity << "\n";
+            }
+        };
+
+        formatItems("POCIONES", potions);
+        formatItems("ARMAS", weapons);
+        formatItems("ARMADURAS", armors);
+        formatItems("OTROS", others);
 
         result.status = InteractionStatus::SUCCESS;
         result.msg = ss.str();

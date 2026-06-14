@@ -163,6 +163,7 @@ void Protocol::sendPlayerStats(const PlayerStatsDTO& stats) {
         sendUint32(item.itemId);
         sendUint16(item.amount);
         sendUint8(item.isEquipped ? 1 : 0);
+        sendString(item.description);
     }
 }
 
@@ -354,6 +355,7 @@ PlayerStatsDTO Protocol::receivePlayerStatsBody() {
         item.itemId = recvUint32();
         item.amount = recvUint16();
         item.isEquipped = (recvUint8() == 1);
+        item.description = recvString();
         stats.inventory.push_back(item);
     }
 

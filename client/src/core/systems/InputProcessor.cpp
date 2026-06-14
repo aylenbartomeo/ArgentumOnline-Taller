@@ -146,6 +146,22 @@ void InputProcessor::processUseInput(const FrameInput& input, AudioSystem& audio
     }
 }
 
+void InputProcessor::processGrabDropInput(const FrameInput& input) {
+    if (input.grabKeyPressed) {
+        client.sendCommand(GrabItemDTO{});
+    }
+
+    if (input.dropKeyPressed) {
+        const int slot = hud.getSelectedSlot();
+        if (slot >= 0) {
+            // Amount 0 implies dropping the whole stack by default in /tirar behavior if args empty
+            client.sendCommand(DropItemDTO{static_cast<uint8_t>(slot), 0});
+        } else {
+            miniChat.pushMessage("[Info] Selecciona un slot del inventario primero.");
+        }
+    }
+}
+
 void InputProcessor::processSelectSlotInput(const FrameInput& input) {
     if (!input.mouseLeftJustPressed || input.equipPressed)
         return;

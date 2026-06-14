@@ -142,7 +142,7 @@ PlayerStatsDTO Player::getStatsDTO() const {
     dto.level = stats.getLevel();
     dto.expIntoLevel = stats.getExpIntoCurrentLevel();
     dto.expForLevel = stats.getExpForCurrentLevel();
-    dto.inventory = inventory.getInventoryDTO(equipment);
+    dto.inventory = inventory.getInventoryDTO(equipment, itemRegistry);
     return dto;
 }
 

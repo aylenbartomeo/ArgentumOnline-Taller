@@ -42,7 +42,7 @@ const EditorSafeZone* zoneContaining(const EditorMap& map, int col, int row) {
     });
     return (it != zones.end()) ? &(*it) : nullptr;
 }
-}
+}  // namespace
 
 std::string cityStampError(const EditorMap& map, int originX, int originY) {
     const CityPrefab& prefab = getCityPrefab();

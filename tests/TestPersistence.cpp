@@ -717,7 +717,7 @@ TEST_F(WorldDataStorePersistenceTest, SaveAndLoad_NpcStates) {
     // Simulamos un Mercader con 2 tipos de ítems en stock
     NpcHeaderPersistData h1{};
     h1.entityId = 50;
-    h1.type = 1; // Merchant
+    h1.type = 1;  // Merchant
     h1.posX = 15;
     h1.posY = 30;
     h1.stockCount = 2;
@@ -727,7 +727,7 @@ TEST_F(WorldDataStorePersistenceTest, SaveAndLoad_NpcStates) {
     // Simulamos un Sacerdote con 1 ítem en stock
     NpcHeaderPersistData h2{};
     h2.entityId = 51;
-    h2.type = 2; // Priest
+    h2.type = 2;  // Priest
     h2.posX = 20;
     h2.posY = 40;
     h2.stockCount = 1;
@@ -844,7 +844,7 @@ TEST_F(WorldPersistenceTest, World_NpcPersistence_Robustness_RoundTrip) {
 
     NpcHeaderPersistData h{};
     h.entityId = 99;
-    h.type = 1; 
+    h.type = 1;
     h.posX = 10;
     h.posY = 10;
     h.stockCount = 1;
