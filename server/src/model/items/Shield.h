@@ -9,7 +9,7 @@ class EquipmentComponent;
 
 class Shield final: public Armor {
 public:
-    Shield(int id, std::string name, int minDefense, int maxDefense, int price = 0);
+    Shield(int id, std::string name, int price, int minDefense, int maxDefense);
 
     int getDefense() const override;
 

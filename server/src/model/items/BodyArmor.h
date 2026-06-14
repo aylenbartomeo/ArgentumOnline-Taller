@@ -9,7 +9,7 @@ class EquipmentComponent;
 
 class BodyArmor final: public Armor {
 public:
-    BodyArmor(int id, std::string name, int minDefense, int maxDefense, int price = 0);
+    BodyArmor(int id, std::string name, int price, int minDefense, int maxDefense);
 
     int getDefense() const override;
 

@@ -1,5 +1,8 @@
 #include "server/src/model/items/ItemRegistry.h"
 
+#include <algorithm>
+#include <cctype>
+#include <string>
 #include <vector>
 
 #include "server/src/config/ItemConfigLoader.h"
@@ -52,6 +55,33 @@ const Item* ItemRegistry::get_item(int item_id) const {
     if (it != items.end()) {
         return it->second.get();
     }
+    return nullptr;
+}
+
+const Item* ItemRegistry::getItemByName(const std::string& name) const {
+    // Helper lambda to compare strings case-insensitively
+    auto iequals = [](const std::string& a, const std::string& b) {
+        return std::equal(a.begin(), a.end(), b.begin(), b.end(),
+                          [](char a, char b) { return tolower(a) == tolower(b); });
+    };
+
+    for (const auto& [id, w]: weapons) {
+        if (iequals(w->getName(), name))
+            return w.get();
+    }
+    for (const auto& [id, a]: armors) {
+        if (iequals(a->getName(), name))
+            return a.get();
+    }
+    for (const auto& [id, c]: consumables) {
+        if (iequals(c->getName(), name))
+            return c.get();
+    }
+    for (const auto& [id, i]: items) {
+        if (iequals(i->getName(), name))
+            return i.get();
+    }
+
     return nullptr;
 }
 
