@@ -39,6 +39,7 @@ private:
     void drawInventory(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats);
     void drawEquipment(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats);
     void drawSlotHighlight(SDL2pp::Renderer& renderer, int slotIndex);
+    void drawItemTooltip(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats);
 };
 
 #endif
