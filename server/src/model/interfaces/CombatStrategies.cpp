@@ -20,16 +20,14 @@ CombatResult InstantMeleeDelivery::deliver(Attackable& attacker, Attackable& tar
         return CombatResult{false};
     }
 
-    // Como es cuerpo a cuerpo inmediato, el impacto se ejecuta en este mismo frame/tick
-    if (weapon.getHitEffect()) {
-        Player* playerAttacker = dynamic_cast<Player*>(&attacker);
-        if (!playerAttacker) {
-            return CombatResult{false};
-        }
-        return weapon.getHitEffect()->apply(*playerAttacker, target, modifiers, weapon,
-                                            combatSystem);
+    Player* playerAttacker = dynamic_cast<Player*>(&attacker);
+    if (playerAttacker) {
+        return weapon.applyEffect(*playerAttacker, target, modifiers, combatSystem);
     }
-    return CombatResult{true};
+
+    CombatResult defaultResult;
+    defaultResult.attackHappened = true;
+    return defaultResult;
 }
 
 CombatResult ProjectileDelivery::deliver(Attackable& attacker, Attackable& target,
