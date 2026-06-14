@@ -98,7 +98,7 @@ TEST(CitizenPlacementTest, PriestRejectedOnAWall) {
 TEST(CitizenPlacementTest, BankerGoesInsideTheBank) {
     EditorMap map = emptyMap();
     applyCityPrefab(map, 10, 20, "Pueblo");
-    EXPECT_EQ(citizenPlacementError(map, "banker", 10 + 30, 20 + 10), "");
+    EXPECT_EQ(citizenPlacementError(map, "banker", 10 + 30, 20 + 13), "");
 }
 
 TEST(CitizenPlacementTest, BankerRejectedInsideTheChurch) {

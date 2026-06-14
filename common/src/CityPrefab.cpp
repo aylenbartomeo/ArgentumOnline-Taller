@@ -26,21 +26,23 @@ struct Recorder {
     void block(int x, int y) { prefab.obstacles.push_back({x, y, 1}); }
 
     void building(int ax, int ay, int decoVal, int roofVal, int wT, int hT, int doorHalf,
-                  int floorTile, const std::string& zoneName, const std::string& npcType, int npcX,
-                  int npcY) {
+                  int backWallTiles, int floorTile, const std::string& zoneName,
+                  const std::string& npcType, int npcX, int npcY) {
         prefab.decoration.push_back({ax, ay, decoVal});
         int x1 = ax + wT - 1;
         int y0 = ay - hT + 1;
         floorRect(ax, y0, x1, ay, floorTile);
         int cx = ax + wT / 2;
         for (int x = ax; x <= x1; ++x) {
-            block(x, y0);
+            for (int wy = y0; wy < y0 + backWallTiles; ++wy) {
+                block(x, wy);
+            }
             bool door = (x >= cx - doorHalf && x <= cx + doorHalf);
             if (!door) {
                 block(x, ay);
             }
         }
-        for (int y = y0; y <= ay; ++y) {
+        for (int y = y0 + backWallTiles; y <= ay; ++y) {
             block(ax, y);
             block(x1, y);
         }
@@ -72,8 +74,8 @@ CityPrefab buildPrefab() {
     r.prefab.width = 44;
     r.prefab.height = 34;
     r.path(1, 23, 42, 33);
-    r.building(2, 22, CHURCH, CHURCH_ROOF, 15, 18, 1, STONE, "church", "priest", 9, 14);
-    r.building(20, 18, BANK, BANK_ROOF, 20, 11, 1, WOOD, "bank", "banker", 30, 10);
+    r.building(2, 22, CHURCH, CHURCH_ROOF, 15, 18, 1, 6, STONE, "church", "priest", 9, 14);
+    r.building(20, 18, BANK, BANK_ROOF, 20, 11, 1, 4, WOOD, "bank", "banker", 30, 13);
     r.path(29, 19, 31, 23);
     r.stall(16, 30, 9, "store", "merchant", 20, 32);
     return r.prefab;

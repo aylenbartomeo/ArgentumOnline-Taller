@@ -26,6 +26,7 @@ public:
     void renderOverlays(const CameraOffset& camera) const;
     void renderGroundItems(const CameraOffset& camera, const SnapshotDTO& snapshot) const;
     void renderRoofs(const CameraOffset& camera, int playerCol, int playerRow) const;
+    void renderBuildingFronts(const CameraOffset& camera, int playerCol, int playerRow) const;
     void renderCitizens(const CameraOffset& camera,
                         std::optional<uint32_t> selectedNpc = std::nullopt) const;
 

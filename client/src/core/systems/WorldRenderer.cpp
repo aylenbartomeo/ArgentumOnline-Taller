@@ -12,6 +12,7 @@
 #include "../ui/GroundItemLabel.h"
 
 #include "OverlayRegistry.h"
+#include "../rendering/BuildingFronts.h"
 
 namespace GC = GameConstants;
 
@@ -125,8 +126,33 @@ void WorldRenderer::renderRoofs(const CameraOffset& camera, int playerCol, int p
                                                 std::to_string(v - 1) + ".png");
             TileRect r = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE,
                                       camera.x, camera.y);
+            r.y += roofDropPixels(v);
             renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
                           SDL2pp::Rect(r.x, r.y, r.w, r.h));
+        }
+    }
+}
+
+void WorldRenderer::renderBuildingFronts(const CameraOffset& camera, int playerCol,
+                                         int playerRow) const {
+    const std::vector<std::vector<int>>& grid = map.getDecoration();
+    for (int row = 0; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            std::optional<int> bandTiles = buildingFrontTiles(v);
+            if (!bandTiles) {
+                continue;
+            }
+            if (!indoorRegions.sameRegion(col, row, playerCol, playerRow)) {
+                continue;
+            }
+            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "decoration/" +
+                                                std::to_string(v - 1) + ".png");
+            TileRect full = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE,
+                                         camera.x, camera.y);
+            TileRect band = bottomBandRect(full, *bandTiles, GC::TILE_SIZE);
+            renderer.Copy(tex, SDL2pp::Rect(0, tex.GetHeight() - band.h, tex.GetWidth(), band.h),
+                          SDL2pp::Rect(band.x, band.y, band.w, band.h));
         }
     }
 }

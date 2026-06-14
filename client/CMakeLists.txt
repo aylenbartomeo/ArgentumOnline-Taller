@@ -45,6 +45,7 @@ target_sources(lib_client
     src/rendering/IndoorRegions.cpp
     src/rendering/Viewport.cpp
     src/rendering/TextureManager.cpp
+    src/rendering/BuildingFronts.cpp
 
     # animation
     src/animation/CharacterAnimator.cpp
@@ -96,6 +97,7 @@ target_sources(lib_client
     src/rendering/Viewport.h
     src/rendering/TextureManager.h
     src/rendering/NpcVisuals.h
+    src/rendering/BuildingFronts.h
 
     # animation
     src/animation/CharacterAnimator.h

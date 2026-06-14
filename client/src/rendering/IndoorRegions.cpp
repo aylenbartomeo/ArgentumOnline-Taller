@@ -47,10 +47,14 @@ int IndoorRegions::regionAt(int col, int row) const {
     return region[row][col];
 }
 
-bool IndoorRegions::roofHidden(int roofCol, int roofRow, int playerCol, int playerRow) const {
+bool IndoorRegions::sameRegion(int col, int row, int playerCol, int playerRow) const {
     int playerRegion = regionAt(playerCol, playerRow);
     if (playerRegion < 0) {
         return false;
     }
-    return regionAt(roofCol, roofRow) == playerRegion;
+    return regionAt(col, row) == playerRegion;
+}
+
+bool IndoorRegions::roofHidden(int roofCol, int roofRow, int playerCol, int playerRow) const {
+    return sameRegion(roofCol, roofRow, playerCol, playerRow);
 }

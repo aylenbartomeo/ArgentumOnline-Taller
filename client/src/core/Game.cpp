@@ -215,6 +215,7 @@ void Game::render(const FrameInput& input) {
     worldRenderer.renderGroundItems(cam, lastSnapshot);
     worldRenderer.renderCitizens(cam, client.getSelectedNpc());
     entityRenderer.render(cam, lastSnapshot, now, client.getSelectedNpc());
+    worldRenderer.renderBuildingFronts(cam, playerCol, playerRow);
     worldRenderer.renderDecorationFront(cam, playerRow);
     worldRenderer.renderRoofs(cam, playerCol, playerRow);
     fxSystem.renderProjectiles(cam, now);

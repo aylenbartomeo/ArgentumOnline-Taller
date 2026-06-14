@@ -35,7 +35,7 @@ TEST(CityPrefabTest, HasThreeNpcsAtTheirBuildings) {
     const CityNpc* banker = npcOfType(prefab, "banker");
     ASSERT_NE(banker, nullptr);
     EXPECT_EQ(banker->dx, 30);
-    EXPECT_EQ(banker->dy, 10);
+    EXPECT_EQ(banker->dy, 13);
 
     const CityNpc* merchant = npcOfType(prefab, "merchant");
     ASSERT_NE(merchant, nullptr);
@@ -111,4 +111,20 @@ TEST(CityPrefabTest, HasBuildingZonesForChurchBankAndStore) {
     EXPECT_EQ(store->dy, 27);
     EXPECT_EQ(store->width, 13);
     EXPECT_EQ(store->height, 6);
+}
+
+TEST(CityPrefabTest, ChurchBackWallBandIsBlocked) {
+    const CityPrefab& prefab = getCityPrefab();
+    for (int y = 5; y <= 10; ++y) {
+        EXPECT_TRUE(hasObstacle(prefab, 9, y)) << "iglesia fila " << y;
+    }
+    EXPECT_FALSE(hasObstacle(prefab, 9, 11));
+}
+
+TEST(CityPrefabTest, BankBackWallBandIsBlocked) {
+    const CityPrefab& prefab = getCityPrefab();
+    for (int y = 8; y <= 11; ++y) {
+        EXPECT_TRUE(hasObstacle(prefab, 30, y)) << "banco fila " << y;
+    }
+    EXPECT_FALSE(hasObstacle(prefab, 30, 12));
 }
