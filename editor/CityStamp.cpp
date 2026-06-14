@@ -88,7 +88,8 @@ void applyCityPrefab(EditorMap& map, int originX, int originY, const std::string
     for (const CityNpc& npc: prefab.npcs) {
         map.addCitizen(npc.type, originX + npc.dx, originY + npc.dy);
     }
-    map.addSafeZone(name, originX, originY, prefab.width, prefab.height);
+    map.addSafeZone(name, originX + prefab.safeDx, originY + prefab.safeDy, prefab.safeW,
+                    prefab.safeH);
 }
 
 void clearCity(EditorMap& map, int originX, int originY) {
@@ -109,7 +110,7 @@ void clearCity(EditorMap& map, int originX, int originY) {
         map.removeObstacle(originX + c.dx, originY + c.dy);
     }
     map.removeCitizensInRect(originX, originY, prefab.width, prefab.height);
-    map.removeSafeZoneAt(originX, originY);
+    map.removeSafeZoneAt(originX + prefab.safeDx, originY + prefab.safeDy);
 }
 
 bool cityZoneFor(const EditorSafeZone& zone, const std::string& citizenType, CellRect& out) {
@@ -123,7 +124,7 @@ bool cityZoneFor(const EditorSafeZone& zone, const std::string& citizenType, Cel
     if (it == prefab.buildings.end()) {
         return false;
     }
-    out = {zone.x + it->dx, zone.y + it->dy, it->width, it->height};
+    out = {zone.x - prefab.safeDx + it->dx, zone.y - prefab.safeDy + it->dy, it->width, it->height};
     return true;
 }
 

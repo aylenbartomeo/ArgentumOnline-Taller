@@ -2,7 +2,7 @@
 
 namespace {
 constexpr int STONE = 17;
-constexpr int WOOD = 106;
+constexpr int DIRT = 106;
 constexpr int CHURCH = 201;
 constexpr int BANK = 202;
 constexpr int STALL = 203;
@@ -73,10 +73,17 @@ CityPrefab buildPrefab() {
     Recorder r;
     r.prefab.width = 44;
     r.prefab.height = 34;
-    r.path(1, 23, 42, 33);
+    r.prefab.safeDx = 1;
+    r.prefab.safeDy = 5;
+    r.prefab.safeW = 36;
+    r.prefab.safeH = 29;
+    r.floorRect(1, 5, 36, 33, DIRT);
     r.building(2, 22, CHURCH, CHURCH_ROOF, 15, 18, 1, 6, STONE, "church", "priest", 9, 14);
-    r.building(20, 18, BANK, BANK_ROOF, 15, 11, 1, 4, WOOD, "bank", "banker", 30, 13);
-    r.path(26, 19, 28, 23);
+    r.building(20, 18, BANK, BANK_ROOF, 15, 11, 1, 4, STONE, "bank", "banker", 30, 13);
+    r.path(9, 23, 27, 23);
+    r.path(27, 18, 27, 23);
+    r.path(9, 22, 9, 23);
+    r.path(20, 23, 20, 31);
     r.stall(16, 30, 9, "store", "merchant", 20, 32);
     return r.prefab;
 }

@@ -13,8 +13,8 @@ TEST(CityStampTest, ApplyStampsAllLayersWithOffset) {
     EditorMap map = emptyMap();
     applyCityPrefab(map, 10, 20, "Pueblo");
 
-    EXPECT_EQ(map.getGround()[20 + 23][10 + 1], 17);
-    EXPECT_EQ(map.getGround()[20 + 18][10 + 20], 106);
+    EXPECT_EQ(map.getGround()[20 + 23][10 + 1], 106);
+    EXPECT_EQ(map.getGround()[20 + 18][10 + 20], 17);
     EXPECT_EQ(map.getDecoration()[20 + 22][10 + 2], 201);
     EXPECT_EQ(map.getDecoration()[20 + 18][10 + 20], 202);
     EXPECT_EQ(map.getDecoration()[20 + 30][10 + 16], 203);
@@ -31,10 +31,10 @@ TEST(CityStampTest, ApplyStampsAllLayersWithOffset) {
 
     ASSERT_EQ(map.getSafeZones().size(), 1u);
     EXPECT_EQ(map.getSafeZones()[0].name, "Pueblo");
-    EXPECT_EQ(map.getSafeZones()[0].x, 10);
-    EXPECT_EQ(map.getSafeZones()[0].y, 20);
-    EXPECT_EQ(map.getSafeZones()[0].width, 44);
-    EXPECT_EQ(map.getSafeZones()[0].height, 34);
+    EXPECT_EQ(map.getSafeZones()[0].x, 11);
+    EXPECT_EQ(map.getSafeZones()[0].y, 25);
+    EXPECT_EQ(map.getSafeZones()[0].width, 36);
+    EXPECT_EQ(map.getSafeZones()[0].height, 29);
 }
 
 TEST(CityStampTest, RejectsWhenOutOfBounds) {
