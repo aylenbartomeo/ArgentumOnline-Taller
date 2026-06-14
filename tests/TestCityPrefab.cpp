@@ -69,7 +69,7 @@ TEST(CityPrefabTest, ChurchDoorIsOpenAndWallsAreBlocked) {
     EXPECT_TRUE(hasObstacle(prefab, 2, 5));
 }
 
-TEST(CityPrefabTest, GroundHasDirtBaseStoneFloorsAndPath) {
+TEST(CityPrefabTest, GroundHasLawnBaseWoodFloorsAndStonePath) {
     const CityPrefab& prefab = getCityPrefab();
     auto groundAt = [&prefab](int dx, int dy) {
         int v = 0;
@@ -80,10 +80,10 @@ TEST(CityPrefabTest, GroundHasDirtBaseStoneFloorsAndPath) {
         }
         return v;
     };
-    EXPECT_EQ(groundAt(20, 18), 17);
-    EXPECT_EQ(groundAt(9, 22), 17);
+    EXPECT_EQ(groundAt(20, 18), 166);
+    EXPECT_EQ(groundAt(5, 10), 166);
     EXPECT_EQ(groundAt(20, 23), 17);
-    EXPECT_EQ(groundAt(18, 6), 106);
+    EXPECT_EQ(groundAt(18, 6), 219);
 }
 
 TEST(CityPrefabTest, HasBuildingZonesForChurchBankAndStore) {
