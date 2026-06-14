@@ -75,8 +75,8 @@ CityPrefab buildPrefab() {
     r.prefab.height = 34;
     r.path(1, 23, 42, 33);
     r.building(2, 22, CHURCH, CHURCH_ROOF, 15, 18, 1, 6, STONE, "church", "priest", 9, 14);
-    r.building(20, 18, BANK, BANK_ROOF, 20, 11, 1, 4, WOOD, "bank", "banker", 30, 13);
-    r.path(29, 19, 31, 23);
+    r.building(20, 18, BANK, BANK_ROOF, 15, 11, 1, 4, WOOD, "bank", "banker", 30, 13);
+    r.path(26, 19, 28, 23);
     r.stall(16, 30, 9, "store", "merchant", 20, 32);
     return r.prefab;
 }

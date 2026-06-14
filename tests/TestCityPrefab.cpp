@@ -56,7 +56,7 @@ TEST(CityPrefabTest, HasRoofAnchorsForChurchAndBank) {
 
 TEST(CityPrefabTest, IndoorCoversBothBuildingFootprints) {
     const CityPrefab& prefab = getCityPrefab();
-    EXPECT_EQ(prefab.indoor.size(), static_cast<size_t>(15 * 18 + 20 * 11));
+    EXPECT_EQ(prefab.indoor.size(), static_cast<size_t>(15 * 18 + 15 * 11));
 }
 
 TEST(CityPrefabTest, ChurchDoorIsOpenAndWallsAreBlocked) {
@@ -102,7 +102,7 @@ TEST(CityPrefabTest, HasBuildingZonesForChurchBankAndStore) {
     ASSERT_NE(bank, nullptr);
     EXPECT_EQ(bank->dx, 20);
     EXPECT_EQ(bank->dy, 8);
-    EXPECT_EQ(bank->width, 20);
+    EXPECT_EQ(bank->width, 15);
     EXPECT_EQ(bank->height, 11);
 
     const CityZone* store = zoneNamed("store");

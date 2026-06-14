@@ -127,6 +127,7 @@ void WorldRenderer::renderRoofs(const CameraOffset& camera, int playerCol, int p
             TileRect r = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE,
                                       camera.x, camera.y);
             r.y += roofDropPixels(v);
+            r.x += roofShiftX(v);
             renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
                           SDL2pp::Rect(r.x, r.y, r.w, r.h));
         }

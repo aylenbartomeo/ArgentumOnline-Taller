@@ -7,4 +7,6 @@ std::optional<int> buildingFrontTiles(int decorationSpriteId);
 
 int roofDropPixels(int roofSpriteId);
 
+int roofShiftX(int roofSpriteId);
+
 #endif
