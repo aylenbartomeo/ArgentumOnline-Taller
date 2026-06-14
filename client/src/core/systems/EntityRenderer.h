@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include <SDL2pp/SDL2pp.hh>
+#include <SDL_ttf.h>
 
 #include "../animation/CharacterAnimator.h"
 #include "../rendering/TextureManager.h"
@@ -15,6 +16,8 @@
 class EntityRenderer {
 public:
     EntityRenderer(TextureManager& textures, SDL2pp::Renderer& renderer, uint32_t myId);
+
+    void setFont(TTF_Font* f) { font = f; }
 
     // Dibuja todos los jugadores y monstruos. Purga animators obsoletos.
     void render(const CameraOffset& camera, const SnapshotDTO& snapshot, uint32_t nowMs,
@@ -32,6 +35,7 @@ private:
     TextureManager& textures;
     SDL2pp::Renderer& renderer;
     uint32_t myId;
+    TTF_Font* font;
 
     std::unordered_map<uint32_t, CharacterAnimator> animators;
 };

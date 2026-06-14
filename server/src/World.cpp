@@ -86,7 +86,7 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
 std::string World::getCreatorPlayerName() const { return this->creatorPlayerName; }
 int World::getWorldId() const { return this->worldId; }
 
-bool World::addPlayer(uint32_t dbId, std::string& username,
+bool World::addPlayer(uint32_t dbId, std::string& username, Race race, CharacterClass cls,
                       const std::optional<PlayerPersistData>& savedData) {
     if (entityManager.resolveEntityId(dbId) != 0) {
         return false;
@@ -95,8 +95,8 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
     uint32_t entityId = entityManager.allocateEntityId();
 
     PlayerConfig baseConfig = characterConfigs.player;
-    Race savedRace = Race::HUMAN;
-    CharacterClass savedClass = CharacterClass::WARRIOR;
+    Race savedRace = race;
+    CharacterClass savedClass = cls;
 
     RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
     CharacterClassConfig classConfig = {1.0f, 1.0f, 1.0f, false};
@@ -128,7 +128,6 @@ bool World::addPlayer(uint32_t dbId, std::string& username,
 
         baseConfig.startingLevel = d.level;
         baseConfig.startingExperience = d.exp;
-        baseConfig.startingGold = d.gold;
 
         savedRace = static_cast<Race>(d.race);
         savedClass = static_cast<CharacterClass>(d.characterClass);
@@ -876,6 +875,77 @@ void World::restoreMonsters(const std::vector<MonsterPersistData>& data,
 
         entityManager.addMonster(std::move(monster));
         map.setEntityCollision(pos.x, pos.y, true);
+    }
+}
+
+std::pair<std::vector<NpcHeaderPersistData>, std::vector<std::vector<NpcStockPersistData>>>
+World::getNpcsPersistData() const {
+    std::vector<NpcHeaderPersistData> headers;
+    std::vector<std::vector<NpcStockPersistData>> allStocks;
+
+    // Recorremos los NPCs de la ciudad indexados por el EntityManager
+    for (const auto& [id, npc] : entityManager.getCityNPCs()) {
+        // Intentamos castear a las clases que manejan stock dinámico
+        std::unordered_map<uint32_t, int> currentStock;
+        uint8_t npcType = 0; 
+
+        if (auto* merchant = dynamic_cast<Merchant*>(npc.get())) {
+            currentStock = merchant->getStock();
+            npcType = 1; // ID de tipo para Merchant
+        } else if (auto* priest = dynamic_cast<Priest*>(npc.get())) {
+            currentStock = priest->getStock();
+            npcType = 2; // ID de tipo para Priest
+        } else {
+            continue; // Si es un Banker u otro interactuable sin stock transaccional, salteamos
+        }
+
+        NpcHeaderPersistData header{};
+        header.entityId = npc->getId();
+        header.type = npcType;
+        header.posX = npc->getPosition().x;
+        header.posY = npc->getPosition().y;
+        header.stockCount = static_cast<uint32_t>(currentStock.size());
+
+        std::vector<NpcStockPersistData> stockData;
+        for (const auto& [itemId, amount] : currentStock) {
+            stockData.push_back(NpcStockPersistData{itemId, amount});
+        }
+
+        headers.push_back(header);
+        allStocks.push_back(stockData);
+    }
+
+    return {headers, allStocks};
+}
+
+void World::restoreNpcStates(const std::vector<NpcHeaderPersistData>& headers,
+                             const std::vector<std::vector<NpcStockPersistData>>& allStocks) {
+    
+    for (size_t i = 0; i < headers.size(); ++i) {
+        const auto& header = headers[i];
+        const auto& stockData = allStocks[i];
+
+        // Reconstruimos el mapa de stock binario a unordered_map
+        std::unordered_map<uint32_t, int> restoredStock;
+        for (const auto& item : stockData) {
+            restoredStock[item.itemId] = item.amount;
+        }
+
+        // Buscamos cuál de los NPCs recién spawneados por el mapa coincide en posición
+        for (auto& [id, npc] : entityManager.getCityNPCs()) {
+            if (npc->getPosition().x == header.posX && npc->getPosition().y == header.posY) {
+                if (header.type == 1) {
+                    if (auto* merchant = dynamic_cast<Merchant*>(npc.get())) {
+                        merchant->setStock(restoredStock);
+                    }
+                } else if (header.type == 2) {
+                    if (auto* priest = dynamic_cast<Priest*>(npc.get())) {
+                        priest->setStock(restoredStock);
+                    }
+                }
+                break;
+            }
+        }
     }
 }
 

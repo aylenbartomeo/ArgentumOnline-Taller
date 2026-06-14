@@ -1,0 +1,23 @@
+#ifndef CITY_STAMP_H
+#define CITY_STAMP_H
+
+#include <string>
+
+#include "EditorMap.h"
+
+struct CellRect {
+    int x;
+    int y;
+    int width;
+    int height;
+};
+
+bool cityZoneFor(const EditorSafeZone& zone, const std::string& citizenType, CellRect& out);
+std::string citizenPlacementError(const EditorMap& map, const std::string& citizenType, int col,
+                                  int row);
+
+std::string cityStampError(const EditorMap& map, int originX, int originY);
+void applyCityPrefab(EditorMap& map, int originX, int originY, const std::string& name);
+void clearCity(EditorMap& map, int originX, int originY);
+
+#endif

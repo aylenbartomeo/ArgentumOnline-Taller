@@ -7,6 +7,8 @@
 #include <utility>
 #include <vector>
 
+#include "CityStamp.h"
+
 namespace {
 constexpr int WINDOW_WIDTH = 800;
 constexpr int WINDOW_HEIGHT = 600;
@@ -14,22 +16,24 @@ constexpr int PANEL_WIDTH = 200;
 constexpr int STATUS_HEIGHT = 40;
 constexpr int CANVAS_WIDTH = WINDOW_WIDTH - PANEL_WIDTH;
 constexpr int CANVAS_HEIGHT = WINDOW_HEIGHT - STATUS_HEIGHT;
-constexpr int TILE_SCREEN = 32;
+constexpr int TILE_NATIVE = 32;
 constexpr int PANEL_X = CANVAS_WIDTH;
 constexpr int CAMERA_STEP = 32;
 
 constexpr int BTN_W = PANEL_WIDTH - 20;
 constexpr int BTN_H = 34;
 constexpr int BTN_X = PANEL_X + 10;
-constexpr int OVERLAY_BTN_Y = 10;
-constexpr int MONSTER_BTN_Y = 50;
-constexpr int CITIZEN_BTN_Y = 90;
-constexpr int ERASER_BTN_Y = 130;
-constexpr int SPAWN_BTN_Y = 170;
-constexpr int SAVE_Y = 214;
+constexpr int OVERLAY_BTN_Y = 6;
+constexpr int MONSTER_BTN_Y = 44;
+constexpr int CITIZEN_BTN_Y = 82;
+constexpr int CITY_BTN_Y = 120;
+constexpr int CITY_ERASE_BTN_Y = 158;
+constexpr int ERASER_BTN_Y = 196;
+constexpr int SPAWN_BTN_Y = 234;
+constexpr int SAVE_Y = 274;
 
 constexpr int PALETTE_X = PANEL_X + 10;
-constexpr int PALETTE_Y = 260;
+constexpr int PALETTE_Y = 318;
 constexpr int PALETTE_TILE = 32;
 constexpr int PALETTE_COLS = 5;
 
@@ -40,8 +44,6 @@ constexpr SDL_Color LABEL_COLOR = {240, 240, 240, 255};
 constexpr const char* GRASS_SHEET_PATH = "resources/5108.png";
 constexpr int GRASS_SRC_X = 416;
 constexpr int GRASS_SRC_Y = 384;
-constexpr int DARK_GRASS_SRC_X = 512;
-constexpr int DARK_GRASS_SRC_Y = 480;
 constexpr int GRASS_SRC_SIZE = 32;
 constexpr const char* CHARACTER_SHEET_PATH = "resources/1500.png";
 constexpr int CHARACTER_FRAME_X = 2;
@@ -69,12 +71,27 @@ std::string labelForTool(Tool tool) {
             return "Monstruo";
         case Tool::CITIZEN:
             return "Citizen";
+        case Tool::CITY:
+            return "Ciudad";
+        case Tool::CITY_ERASE:
+            return "Borrar ciudad";
         case Tool::ERASER:
             return "Goma";
         case Tool::SPAWN:
             return "Spawn";
     }
     return "";
+}
+
+std::vector<int> buildItemOverlays() {
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+    std::vector<int> indices;
+    for (size_t i = 0; i < registry.size(); ++i) {
+        if (registry[i].itemId != 0) {
+            indices.push_back(static_cast<int>(i));
+        }
+    }
+    return indices;
 }
 }  // namespace
 
@@ -85,9 +102,10 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
         renderer(window, -1, SDL_RENDERER_ACCELERATED),
         textures(renderer),
         map(std::move(initialMap)),
-        camera(CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SCREEN, map.getWidth(), map.getHeight()),
-        overlayPalette(PALETTE_X, PALETTE_Y, PALETTE_TILE, PALETTE_COLS,
-                       static_cast<int>(getOverlayRegistry().size())),
+        camera(CANVAS_WIDTH, CANVAS_HEIGHT, TILE_NATIVE, map.getWidth(), map.getHeight()),
+        itemOverlays(buildItemOverlays()),
+        itemPalette(PALETTE_X, PALETTE_Y, PALETTE_TILE, PALETTE_COLS,
+                    static_cast<int>(itemOverlays.size())),
         monsterPalette(PALETTE_X, PALETTE_Y, PALETTE_TILE, PALETTE_COLS,
                        static_cast<int>(getMonsterCatalog().size())),
         citizenPalette(PALETTE_X, PALETTE_Y, PALETTE_TILE, PALETTE_COLS,
@@ -105,6 +123,8 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
     toolbar.addToolButton(BTN_X, OVERLAY_BTN_Y, BTN_W, BTN_H, Tool::OVERLAY);
     toolbar.addToolButton(BTN_X, MONSTER_BTN_Y, BTN_W, BTN_H, Tool::MONSTER);
     toolbar.addToolButton(BTN_X, CITIZEN_BTN_Y, BTN_W, BTN_H, Tool::CITIZEN);
+    toolbar.addToolButton(BTN_X, CITY_BTN_Y, BTN_W, BTN_H, Tool::CITY);
+    toolbar.addToolButton(BTN_X, CITY_ERASE_BTN_Y, BTN_W, BTN_H, Tool::CITY_ERASE);
     toolbar.addToolButton(BTN_X, ERASER_BTN_Y, BTN_W, BTN_H, Tool::ERASER);
     toolbar.addToolButton(BTN_X, SPAWN_BTN_Y, BTN_W, BTN_H, Tool::SPAWN);
     toolbar.addActionButton(BTN_X, SAVE_Y, BTN_W, BTN_H, ToolbarAction::SAVE);
@@ -145,6 +165,13 @@ void Editor::handleEvent(const SDL_Event& event, bool& running) {
             lastMouseX = event.motion.x;
             lastMouseY = event.motion.y;
         }
+    } else if (event.type == SDL_MOUSEWHEEL) {
+        int mouseX = 0;
+        int mouseY = 0;
+        SDL_GetMouseState(&mouseX, &mouseY);
+        if (mouseX >= PANEL_X) {
+            activePalette().scroll(-event.wheel.y);
+        }
     } else if (event.type == SDL_KEYDOWN) {
         switch (event.key.keysym.sym) {
             case SDLK_LEFT:
@@ -158,6 +185,15 @@ void Editor::handleEvent(const SDL_Event& event, bool& running) {
                 break;
             case SDLK_DOWN:
                 camera.move(0, CAMERA_STEP);
+                break;
+            case SDLK_PLUS:
+            case SDLK_EQUALS:
+            case SDLK_KP_PLUS:
+                camera.zoomIn();
+                break;
+            case SDLK_MINUS:
+            case SDLK_KP_MINUS:
+                camera.zoomOut();
                 break;
             case SDLK_s:
                 save();
@@ -174,22 +210,55 @@ void Editor::handleLeftClick(int x, int y) {
         if (cell.x >= 0 && cell.x < map.getWidth() && cell.y >= 0 && cell.y < map.getHeight()) {
             switch (toolbar.getActiveTool()) {
                 case Tool::OVERLAY:
-                    map.paintOverlay(cell.x, cell.y, overlayPalette.getSelectedTile());
+                    map.paintItem(cell.x, cell.y, itemOverlays[itemPalette.getSelectedTile()]);
+                    statusMsg = "";
                     break;
                 case Tool::MONSTER:
                     map.addMonster(getMonsterCatalog()[monsterPalette.getSelectedTile()].type,
                                    cell.x, cell.y);
+                    statusMsg = "";
                     break;
-                case Tool::CITIZEN:
-                    map.addCitizen(getCitizenCatalog()[citizenPalette.getSelectedTile()].type,
-                                   cell.x, cell.y);
+                case Tool::CITIZEN: {
+                    const std::string type =
+                            getCitizenCatalog()[citizenPalette.getSelectedTile()].type;
+                    std::string error = citizenPlacementError(map, type, cell.x, cell.y);
+                    if (error.empty()) {
+                        map.addCitizen(type, cell.x, cell.y);
+                        statusMsg = "";
+                    } else {
+                        statusMsg = error;
+                    }
                     break;
+                }
+                case Tool::CITY: {
+                    std::string error = cityStampError(map, cell.x, cell.y);
+                    if (error.empty()) {
+                        applyCityPrefab(map, cell.x, cell.y,
+                                        "Ciudad " + std::to_string(map.getSafeZones().size() + 1));
+                        statusMsg = "";
+                    } else {
+                        statusMsg = error;
+                    }
+                    break;
+                }
+                case Tool::CITY_ERASE: {
+                    const EditorSafeZone* zone = safeZoneAt(cell.x, cell.y);
+                    if (zone != nullptr) {
+                        clearCity(map, zone->x, zone->y);
+                        statusMsg = "";
+                    } else {
+                        statusMsg = "ahi no hay ninguna ciudad";
+                    }
+                    break;
+                }
                 case Tool::ERASER:
-                    map.setTile(cell.x, cell.y, 0);
                     map.removeEntitiesAt(cell.x, cell.y);
+                    map.removeItemAt(cell.x, cell.y);
+                    statusMsg = "";
                     break;
                 case Tool::SPAWN:
                     map.setSpawn(cell.x, cell.y);
+                    statusMsg = "";
                     break;
             }
             dirty = true;
@@ -207,6 +276,7 @@ void Editor::handlePanelClick(int x, int y) {
             save();
             break;
         case ToolbarAction::TOOL_CHANGED:
+            statusMsg = "";
             break;
         case ToolbarAction::NONE:
             activePalette().selectFromClick(x, y);
@@ -244,14 +314,25 @@ Palette& Editor::activePalette() {
         case Tool::CITIZEN:
             return citizenPalette;
         case Tool::OVERLAY:
+        case Tool::CITY:
+        case Tool::CITY_ERASE:
         case Tool::ERASER:
         case Tool::SPAWN:
         default:
-            return overlayPalette;
+            return itemPalette;
     }
 }
 
 const Palette& Editor::activePalette() const { return const_cast<Editor*>(this)->activePalette(); }
+
+const EditorSafeZone* Editor::safeZoneAt(int col, int row) const {
+    const auto& zones = map.getSafeZones();
+    auto it = std::find_if(zones.begin(), zones.end(), [col, row](const EditorSafeZone& zone) {
+        return col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
+               row < zone.y + zone.height;
+    });
+    return (it != zones.end()) ? &(*it) : nullptr;
+}
 
 void Editor::drawGrass(int dstX, int dstY, int dstSize) {
     SDL2pp::Texture& tex = textures.get(GRASS_SHEET_PATH);
@@ -260,19 +341,52 @@ void Editor::drawGrass(int dstX, int dstY, int dstSize) {
     renderer.Copy(tex, srcRect, dstRect);
 }
 
-void Editor::drawDarkGrass(int dstX, int dstY, int dstSize) {
-    SDL2pp::Texture& tex = textures.get(GRASS_SHEET_PATH);
-    const SDL2pp::Rect srcRect(DARK_GRASS_SRC_X, DARK_GRASS_SRC_Y, GRASS_SRC_SIZE, GRASS_SRC_SIZE);
-    const SDL2pp::Rect dstRect(dstX, dstY, dstSize, dstSize);
-    renderer.Copy(tex, srcRect, dstRect);
+void Editor::drawGroundLayer(const std::vector<std::vector<int>>& grid) {
+    const int ts = camera.getTileSize();
+    for (int row = 0; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            if (v <= 0) {
+                continue;
+            }
+            SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + "ground/" +
+                                                std::to_string(v - 1) + ".png");
+            Position screen = camera.cellToScreen(col, row);
+            const int dstW = tex.GetWidth() * ts / TILE_NATIVE;
+            const int dstH = tex.GetHeight() * ts / TILE_NATIVE;
+            if (screen.x + dstW <= 0 || screen.x >= CANVAS_WIDTH || screen.y + dstH <= 0 ||
+                screen.y >= CANVAS_HEIGHT) {
+                continue;
+            }
+            renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
+                          SDL2pp::Rect(screen.x, screen.y, dstW, dstH));
+        }
+    }
 }
 
-bool Editor::cellInSafeZone(int col, int row) const {
-    const auto& zones = map.getSafeZones();
-    return std::any_of(zones.begin(), zones.end(), [col, row](const EditorSafeZone& zone) {
-        return col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
-               row < zone.y + zone.height;
-    });
+void Editor::drawDecorationLayer() {
+    const int ts = camera.getTileSize();
+    const std::vector<std::vector<int>>& grid = map.getDecoration();
+    for (int row = 0; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            if (v <= 0) {
+                continue;
+            }
+            SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + "decoration/" +
+                                                std::to_string(v - 1) + ".png");
+            Position screen = camera.cellToScreen(col, row);
+            const int dstW = tex.GetWidth() * ts / TILE_NATIVE;
+            const int dstH = tex.GetHeight() * ts / TILE_NATIVE;
+            const int dstY = screen.y + ts - dstH;
+            if (screen.x + dstW <= 0 || screen.x >= CANVAS_WIDTH || dstY + dstH <= 0 ||
+                dstY >= CANVAS_HEIGHT) {
+                continue;
+            }
+            renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
+                          SDL2pp::Rect(screen.x, dstY, dstW, dstH));
+        }
+    }
 }
 
 void Editor::drawOverlay(const OverlayDef& def, int cellX, int cellY, int cellSize) {
@@ -306,10 +420,10 @@ void Editor::drawMonsterFromCatalog(const MonsterCatalogEntry& entry, int cellX,
 
     if (entry.drawHead) {
         SDL2pp::Texture& headTex = textures.get(std::string(RESOURCES_DIR) + entry.headSheet);
-        const int headW = HEAD_DRAW_W * cellSize / TILE_SCREEN;
-        const int headH = HEAD_DRAW_H * cellSize / TILE_SCREEN;
+        const int headW = HEAD_DRAW_W * cellSize / TILE_NATIVE;
+        const int headH = HEAD_DRAW_H * cellSize / TILE_NATIVE;
         const int headX = cellX + (cellSize - headW) / 2;
-        const int headY = dstY + entry.headOverlap * cellSize / TILE_SCREEN - headH;
+        const int headY = dstY + entry.headOverlap * cellSize / TILE_NATIVE - headH;
         renderer.Copy(headTex, SDL2pp::Rect(entry.headX, entry.headY, entry.headW, entry.headH),
                       SDL2pp::Rect(headX, headY, headW, headH));
     }
@@ -326,10 +440,10 @@ void Editor::drawCitizenFromCatalog(const CitizenCatalogEntry& entry, int cellX,
     renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
 
     SDL2pp::Texture& headTex = textures.get(std::string(RESOURCES_DIR) + entry.headSheet);
-    const int headW = HEAD_DRAW_W * cellSize / TILE_SCREEN;
-    const int headH = HEAD_DRAW_H * cellSize / TILE_SCREEN;
+    const int headW = HEAD_DRAW_W * cellSize / TILE_NATIVE;
+    const int headH = HEAD_DRAW_H * cellSize / TILE_NATIVE;
     const int headX = cellX + (cellSize - headW) / 2;
-    const int headY = dstY + entry.headOverlap * cellSize / TILE_SCREEN - headH;
+    const int headY = dstY + entry.headOverlap * cellSize / TILE_NATIVE - headH;
     renderer.Copy(headTex, SDL2pp::Rect(entry.headX, entry.headY, entry.headW, entry.headH),
                   SDL2pp::Rect(headX, headY, headW, headH));
 }
@@ -346,7 +460,9 @@ void Editor::render() {
     renderer.SetDrawColor(30, 30, 30, 255);
     renderer.Clear();
     renderTerrain();
-    renderOverlays();
+    renderSafeZones();
+    renderCitizenZones();
+    renderItems();
     renderMonsters();
     renderCitizens();
     renderSpawn();
@@ -357,49 +473,68 @@ void Editor::render() {
 
 void Editor::renderTerrain() {
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
-    for (int row = 0; row < map.getHeight(); ++row) {
-        for (int col = 0; col < map.getWidth(); ++col) {
-            Position screen = camera.cellToScreen(col, row);
-            if (screen.x + TILE_SCREEN <= 0 || screen.x >= CANVAS_WIDTH ||
-                screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
-                continue;
-            }
-            if (cellInSafeZone(col, row)) {
-                drawDarkGrass(screen.x, screen.y, TILE_SCREEN);
-            } else {
-                drawGrass(screen.x, screen.y, TILE_SCREEN);
-            }
-        }
+    drawGroundLayer(map.getGround());
+    drawGroundLayer(map.getGround2());
+    drawDecorationLayer();
+    renderer.SetClipRect();
+}
+
+void Editor::renderSafeZones() {
+    const int ts = camera.getTileSize();
+    renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
+    renderer.SetDrawColor(0, 220, 220, 255);
+    for (const EditorSafeZone& zone: map.getSafeZones()) {
+        Position screen = camera.cellToScreen(zone.x, zone.y);
+        renderer.DrawRect(SDL2pp::Rect(screen.x, screen.y, zone.width * ts, zone.height * ts));
     }
     renderer.SetClipRect();
 }
 
-void Editor::renderOverlays() {
-    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+void Editor::renderCitizenZones() {
+    if (toolbar.getActiveTool() != Tool::CITIZEN) {
+        return;
+    }
+    const int ts = camera.getTileSize();
+    const std::string type = getCitizenCatalog()[citizenPalette.getSelectedTile()].type;
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
-    for (int row = 0; row < map.getHeight(); ++row) {
-        for (int col = 0; col < map.getWidth(); ++col) {
-            int tileId = map.tileAt(col, row);
-            if (tileId <= 0 || tileId > static_cast<int>(registry.size())) {
-                continue;
-            }
-            Position screen = camera.cellToScreen(col, row);
-            if (screen.x + TILE_SCREEN <= 0 || screen.x >= CANVAS_WIDTH ||
-                screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
-                continue;
-            }
-            const OverlayDef& def = registry[tileId - 1];
-            drawOverlay(def, screen.x, screen.y, TILE_SCREEN);
-            if (def.stackable) {
-                int amount = map.overlayAmountAt(col, row);
-                if (amount > 1) {
-                    const std::string text = std::to_string(amount);
-                    const SDL_Color black{0, 0, 0, 255};
-                    const SDL_Color white{255, 255, 255, 255};
-                    font.drawString(text, screen.x + 3, screen.y + 3, black);
-                    font.drawString(text, screen.x + 2, screen.y + 2, white);
-                }
-            }
+    renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+    for (const EditorSafeZone& zone: map.getSafeZones()) {
+        CellRect rect;
+        if (!cityZoneFor(zone, type, rect)) {
+            continue;
+        }
+        Position screen = camera.cellToScreen(rect.x, rect.y);
+        SDL2pp::Rect dst(screen.x, screen.y, rect.width * ts, rect.height * ts);
+        renderer.SetDrawColor(80, 220, 120, 60);
+        renderer.FillRect(dst);
+        renderer.SetDrawColor(80, 220, 120, 200);
+        renderer.DrawRect(dst);
+    }
+    renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
+    renderer.SetClipRect();
+}
+
+void Editor::renderItems() {
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+    const int ts = camera.getTileSize();
+    renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
+    for (const auto& entry: map.getItems()) {
+        int col = entry.first.first;
+        int row = entry.first.second;
+        const PlacedItem& item = entry.second;
+        Position screen = camera.cellToScreen(col, row);
+        if (screen.x + ts <= 0 || screen.x >= CANVAS_WIDTH || screen.y + ts <= 0 ||
+            screen.y >= CANVAS_HEIGHT) {
+            continue;
+        }
+        const OverlayDef& def = registry[item.overlayIndex];
+        drawOverlay(def, screen.x, screen.y, ts);
+        if (def.stackable && item.amount > 1) {
+            const std::string text = std::to_string(item.amount);
+            const SDL_Color black{0, 0, 0, 255};
+            const SDL_Color white{255, 255, 255, 255};
+            font.drawString(text, screen.x + 3, screen.y + 3, black);
+            font.drawString(text, screen.x + 2, screen.y + 2, white);
         }
     }
     renderer.SetClipRect();
@@ -407,6 +542,7 @@ void Editor::renderOverlays() {
 
 void Editor::renderMonsters() {
     const auto& catalog = getMonsterCatalog();
+    const int ts = camera.getTileSize();
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
     for (const MonsterSpawn& spawn: map.getMonsters()) {
         auto it = std::find_if(catalog.begin(), catalog.end(),
@@ -417,17 +553,18 @@ void Editor::renderMonsters() {
         if (!entry)
             continue;
         Position screen = camera.cellToScreen(spawn.x, spawn.y);
-        if (screen.x + TILE_SCREEN <= 0 || screen.x >= CANVAS_WIDTH ||
-            screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
+        if (screen.x + ts <= 0 || screen.x >= CANVAS_WIDTH || screen.y + ts <= 0 ||
+            screen.y >= CANVAS_HEIGHT) {
             continue;
         }
-        drawMonsterFromCatalog(*entry, screen.x, screen.y, TILE_SCREEN);
+        drawMonsterFromCatalog(*entry, screen.x, screen.y, ts);
     }
     renderer.SetClipRect();
 }
 
 void Editor::renderCitizens() {
     const auto& catalog = getCitizenCatalog();
+    const int ts = camera.getTileSize();
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
     for (const CitizenSpawn& spawn: map.getCitizens()) {
         auto it = std::find_if(catalog.begin(), catalog.end(),
@@ -438,34 +575,38 @@ void Editor::renderCitizens() {
         if (!entry)
             continue;
         Position screen = camera.cellToScreen(spawn.x, spawn.y);
-        if (screen.x + TILE_SCREEN <= 0 || screen.x >= CANVAS_WIDTH ||
-            screen.y + TILE_SCREEN <= 0 || screen.y >= CANVAS_HEIGHT) {
+        if (screen.x + ts <= 0 || screen.x >= CANVAS_WIDTH || screen.y + ts <= 0 ||
+            screen.y >= CANVAS_HEIGHT) {
             continue;
         }
-        drawCitizenFromCatalog(*entry, screen.x, screen.y, TILE_SCREEN);
+        drawCitizenFromCatalog(*entry, screen.x, screen.y, ts);
     }
     renderer.SetClipRect();
 }
 
 void Editor::renderSpawn() {
+    const int ts = camera.getTileSize();
     renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
     Position spawn = map.getSpawn();
     Position screen = camera.cellToScreen(spawn.x, spawn.y);
-    const int charH = TILE_SCREEN * 3 / 2;
-    drawCharacter(screen.x, screen.y + TILE_SCREEN - charH, TILE_SCREEN, charH);
+    const int charH = ts * 3 / 2;
+    drawCharacter(screen.x, screen.y + ts - charH, ts, charH);
 
     SDL2pp::Texture& headTex = textures.get(HEAD_SHEET_PATH);
     SDL2pp::Rect headSrc(HEAD_FRAME_X, HEAD_FRAME_Y, HEAD_FRAME_W, HEAD_FRAME_H);
-    const int headX = screen.x + TILE_SCREEN / 2 - HEAD_DRAW_W / 2;
-    const int headY = screen.y + TILE_SCREEN - charH + HEAD_OVERLAP - HEAD_DRAW_H;
-    renderer.Copy(headTex, headSrc, SDL2pp::Rect(headX, headY, HEAD_DRAW_W, HEAD_DRAW_H));
+    const int headW = HEAD_DRAW_W * ts / TILE_NATIVE;
+    const int headH = HEAD_DRAW_H * ts / TILE_NATIVE;
+    const int headOverlap = HEAD_OVERLAP * ts / TILE_NATIVE;
+    const int headX = screen.x + ts / 2 - headW / 2;
+    const int headY = screen.y + ts - charH + headOverlap - headH;
+    renderer.Copy(headTex, headSrc, SDL2pp::Rect(headX, headY, headW, headH));
 
     renderer.SetDrawColor(255, 235, 0, 255);
-    const int cx = screen.x + TILE_SCREEN / 2 - MARKER_SHIFT_X;
-    const int cy = screen.y + TILE_SCREEN - 4;
+    const int cx = screen.x + ts / 2 - MARKER_SHIFT_X;
+    const int cy = screen.y + ts - 4;
     for (int t = -1; t <= 1; ++t) {
-        const int rx = TILE_SCREEN / 2 - 2 + t;
-        const int ry = TILE_SCREEN / 5 + t;
+        const int rx = ts / 2 - 2 + t;
+        const int ry = ts / 5 + t;
         for (int i = 0; i < MARKER_SEGMENTS; ++i) {
             const double a0 = TAU * i / MARKER_SEGMENTS;
             const double a1 = TAU * (i + 1) / MARKER_SEGMENTS;
@@ -534,8 +675,8 @@ void Editor::renderPanel() {
                 switch (b.tool) {
                     case Tool::OVERLAY:
                         drawGrass(b.x + 4, b.y + 2, b.h - 4);
-                        drawOverlay(overlayReg[overlayPalette.getSelectedTile()], b.x + 4, b.y + 2,
-                                    b.h - 4);
+                        drawOverlay(overlayReg[itemOverlays[itemPalette.getSelectedTile()]],
+                                    b.x + 4, b.y + 2, b.h - 4);
                         break;
                     case Tool::MONSTER:
                         drawGrass(b.x + 4, b.y + 2, b.h - 4);
@@ -547,6 +688,10 @@ void Editor::renderPanel() {
                         drawCitizenFromCatalog(citizenCat[citizenPalette.getSelectedTile()],
                                                b.x + 4, b.y + 2, b.h - 4);
                         break;
+                    case Tool::CITY:
+                        drawGrass(b.x + 4, b.y + 2, b.h - 4);
+                        break;
+                    case Tool::CITY_ERASE:
                     case Tool::ERASER:
                         drawEraserIcon(b);
                         break;
@@ -570,7 +715,10 @@ void Editor::renderPanel() {
     int count = pal.getTileCount();
     for (int i = 0; i < count; ++i) {
         int col = i % pal.getCols();
-        int row = i / pal.getCols();
+        int row = i / pal.getCols() - pal.getScrollRow();
+        if (row < 0) {
+            continue;
+        }
         int dx = pal.getPanelX() + col * pal.getTileDrawSize();
         int dy = pal.getPanelY() + row * pal.getTileDrawSize();
         if (dy + pal.getTileDrawSize() > CANVAS_HEIGHT) {
@@ -585,10 +733,12 @@ void Editor::renderPanel() {
                 drawCitizenFromCatalog(citizenCat[i], dx, dy, pal.getTileDrawSize());
                 break;
             case Tool::OVERLAY:
+            case Tool::CITY:
+            case Tool::CITY_ERASE:
             case Tool::ERASER:
             case Tool::SPAWN:
             default:
-                drawOverlay(overlayReg[i], dx, dy, pal.getTileDrawSize());
+                drawOverlay(overlayReg[itemOverlays[i]], dx, dy, pal.getTileDrawSize());
                 break;
         }
         if (i == pal.getSelectedTile()) {
@@ -633,16 +783,23 @@ void Editor::renderStatusBar() {
             drawCitizenFromCatalog(citizenCat[citizenPalette.getSelectedTile()], x0, y0, iconSize);
             selectedName = citizenCat[citizenPalette.getSelectedTile()].type;
             break;
+        case Tool::CITY:
+        case Tool::CITY_ERASE:
+            drawGrass(x0, y0, iconSize);
+            break;
         case Tool::OVERLAY:
         default:
             drawGrass(x0, y0, iconSize);
-            drawOverlay(overlayReg[overlayPalette.getSelectedTile()], x0, y0, iconSize);
-            selectedName = overlayReg[overlayPalette.getSelectedTile()].name;
+            drawOverlay(overlayReg[itemOverlays[itemPalette.getSelectedTile()]], x0, y0, iconSize);
+            selectedName = overlayReg[itemOverlays[itemPalette.getSelectedTile()]].name;
             break;
     }
     std::string status = labelForTool(active);
     if (!selectedName.empty()) {
         status += ": " + selectedName;
+    }
+    if (!statusMsg.empty()) {
+        status += "  |  " + statusMsg;
     }
     font.drawString(status, x0 + iconSize + 8, y0 + (iconSize - LABEL_FONT_SIZE) / 2 - 2,
                     LABEL_COLOR);

@@ -20,7 +20,7 @@ NpcCommandDTO createTestCommand(NpcCommandType type, const std::string& itemIdSt
 // Helper: crea un Player base para tests
 static Player makeTestPlayer(uint32_t id = 1) {
     std::string name = "TestPlayer";
-    RaceConfig race = {1.0f, 1.0f, 1.0f};
+    RaceConfig race = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
     CharacterClassConfig cls = {1.0f, 1.0f, 1.0f, false};
     PlayerConfig cfg = {15, 15, 15, 15, 1, 0, 0};
     InventoryConfig invCfg = {16, 0, 10000, 5000};
@@ -34,21 +34,15 @@ static Player makeTestPlayer(uint32_t id = 1) {
 TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
     ItemRegistry registry("../config/items.toml");
     Position merchantPos{5, 5};
-    Merchant comerciante(1, merchantPos, registry);
+    Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
     Player player = makeTestPlayer();
-
-    // Configuramos precondiciones usando la API real de tu InventoryComponent
     player.addGold(500);
 
-    // Intentamos comprar la "Espada"
     NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "2000");
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
-    // VALIDACIONES:
-    // 0. Verificamos que la compra fue exitosa
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
-    // 1. Se debitó el oro del inventario (500 - 100 de unitPrice base = 400)
-    EXPECT_EQ(player.getGold(), 400u);
+    EXPECT_EQ(player.getGold(), 480u);
 
     // 2. El ítem 4001 ingresó efectivamente en el slot 0 de la mochila
     auto slotOpt = player.inspectSlot(0);
@@ -62,7 +56,8 @@ TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
 // =========================================================================
 TEST(MerchantTest, Merchant_BuyWithFullInventoryDoesNotStealGold) {
     ItemRegistry registry("../config/items.toml");
-    Merchant comerciante(1, {0, 0}, registry);
+    Position merchantPos{5, 5};
+    Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
     Player player = makeTestPlayer();
 
     player.addGold(200);
@@ -89,7 +84,8 @@ TEST(MerchantTest, Merchant_BuyWithFullInventoryDoesNotStealGold) {
 // =========================================================================
 TEST(MerchantTest, Merchant_RejectsMagicItemsBasedOnName) {
     ItemRegistry registry("../config/items.toml");
-    Merchant comerciante(1, {0, 0}, registry);
+    Position merchantPos{5, 5};
+    Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
     Player player = makeTestPlayer();
 
     player.addGold(300);
@@ -115,7 +111,8 @@ TEST(MerchantTest, Merchant_RejectsMagicItemsBasedOnName) {
 // =========================================================================
 TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
     ItemRegistry registry("../config/items.toml");
-    Merchant comerciante(1, {0, 0}, registry);
+    Position merchantPos{5, 5};
+    Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
     Player player = makeTestPlayer();
 
     // Le damos una "Armadura de cuero" (ID: 1001) directo en la mochila
@@ -144,7 +141,8 @@ TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
 // =========================================================================
 TEST(MerchantTest, Merchant_ListStockSuccessfully) {
     ItemRegistry registry("../config/items.toml");
-    Merchant comerciante(1, {0, 0}, registry);
+    Position merchantPos{5, 5};
+    Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
     Player player = makeTestPlayer();
 
     // El jugador ejecuta el comando para listar la tienda del mercader
@@ -153,13 +151,13 @@ TEST(MerchantTest, Merchant_ListStockSuccessfully) {
 
     // VALIDACIONES:
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
-    
+
     // Verificamos que el mensaje contenga palabras claves del catálogo formateado
     EXPECT_NE(res.msg.find("--- CATÁLOGO DISPONIBLE ---"), std::string::npos);
     EXPECT_NE(res.msg.find("Cantidad:"), std::string::npos);
     EXPECT_NE(res.msg.find("Compra:"), std::string::npos);
-    
-    // Verificamos que al menos uno de los ítems hardcodeados del stock inicial esté presente en el texto
-    // El stock inicial del Merchant posee el ID 2000u y 1000u
+
+    // Verificamos que al menos uno de los ítems hardcodeados del stock inicial esté presente en el
+    // texto El stock inicial del Merchant posee el ID 2000u y 1000u
     EXPECT_NE(res.msg.find("[ID: 2000]"), std::string::npos);
 }

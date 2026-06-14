@@ -16,6 +16,8 @@ void Sender::run() {
                 protocol.sendChat(std::get<ChatDTO>(msg));
             } else if (std::holds_alternative<PlayerStatsDTO>(msg)) {
                 protocol.sendPlayerStats(std::get<PlayerStatsDTO>(msg));
+            } else if (std::holds_alternative<JoinResponseDTO>(msg)) {
+                protocol.sendJoinResponse(std::get<JoinResponseDTO>(msg));
             }
         }
     } catch (const ClosedQueue& e) {

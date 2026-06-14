@@ -148,6 +148,72 @@ std::vector<MonsterPersistData> WorldDataStore::loadMonsters(uint32_t worldId) c
     return monsters;
 }
 
+void WorldDataStore::saveNpcStates(uint32_t worldId,
+                                   const std::vector<NpcHeaderPersistData>& headers,
+                                   const std::vector<std::vector<NpcStockPersistData>>& allStocks) {
+    std::string path = getWorldDir(worldId) + "npc_states.bin";
+    std::ofstream ofs(path, std::ios::binary | std::ios::trunc);
+    if (!ofs.is_open())
+        return;
+
+    uint32_t count = headers.size();
+    ofs.write(reinterpret_cast<const char*>(&count), sizeof(uint32_t));
+
+    for (size_t i = 0; i < count; ++i) {
+        ofs.write(reinterpret_cast<const char*>(&headers[i]), sizeof(NpcHeaderPersistData));
+        
+        if (headers[i].stockCount > 0) {
+            ofs.write(reinterpret_cast<const char*>(allStocks[i].data()),
+                      headers[i].stockCount * sizeof(NpcStockPersistData));
+        }
+    }
+
+    auto metaOpt = loadWorldMetadata(worldId);
+    if (metaOpt) {
+        WorldMetadata meta = metaOpt.value();
+        auto now = std::chrono::system_clock::now();
+        meta.lastSavedAt =
+                std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
+        std::ofstream metaOfs(getWorldDir(worldId) + "world_meta.bin",
+                              std::ios::binary | std::ios::trunc);
+        if (metaOfs.is_open()) {
+            metaOfs.write(reinterpret_cast<const char*>(&meta), sizeof(WorldMetadata));
+        }
+    }
+}
+
+std::pair<std::vector<NpcHeaderPersistData>, std::vector<std::vector<NpcStockPersistData>>>
+WorldDataStore::loadNpcStates(uint32_t worldId) const {
+    std::vector<NpcHeaderPersistData> headers;
+    std::vector<std::vector<NpcStockPersistData>> allStocks;
+
+    std::string path = getWorldDir(worldId) + "npc_states.bin";
+    if (!fs::exists(path))
+        return {headers, allStocks};
+
+    std::ifstream ifs(path, std::ios::binary);
+    if (!ifs.is_open())
+        return {headers, allStocks};
+
+    uint32_t count = 0;
+    if (ifs.read(reinterpret_cast<char*>(&count), sizeof(uint32_t)) && count > 0) {
+        headers.resize(count);
+        allStocks.resize(count);
+
+        for (uint32_t i = 0; i < count; ++i) {
+            ifs.read(reinterpret_cast<char*>(&headers[i]), sizeof(NpcHeaderPersistData));
+
+            if (headers[i].stockCount > 0) {
+                allStocks[i].resize(headers[i].stockCount);
+                ifs.read(reinterpret_cast<char*>(allStocks[i].data()),
+                         headers[i].stockCount * sizeof(NpcStockPersistData));
+            }
+        }
+    }
+
+    return {headers, allStocks};
+}
+
 void WorldDataStore::saveGroundItems(uint32_t worldId,
                                      const std::vector<GroundItemPersistData>& items) {
     std::string path = getWorldDir(worldId) + "ground_items.bin";

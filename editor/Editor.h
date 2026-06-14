@@ -2,6 +2,7 @@
 #define EDITOR_H
 
 #include <string>
+#include <vector>
 
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
@@ -24,12 +25,14 @@ private:
     TextureManager textures;
     EditorMap map;
     Camera camera;
-    Palette overlayPalette;
+    std::vector<int> itemOverlays;
+    Palette itemPalette;
     Palette monsterPalette;
     Palette citizenPalette;
     Font font;
     Toolbar toolbar;
     std::string mapPath;
+    std::string statusMsg;
     bool rightDragging;
     int lastMouseX;
     int lastMouseY;
@@ -44,15 +47,18 @@ private:
 
     void render();
     void renderTerrain();
-    void renderOverlays();
+    void renderSafeZones();
+    void renderCitizenZones();
+    void renderItems();
     void renderMonsters();
     void renderCitizens();
     void renderSpawn();
     void renderPanel();
     void renderStatusBar();
+    const EditorSafeZone* safeZoneAt(int col, int row) const;
+    void drawGroundLayer(const std::vector<std::vector<int>>& grid);
+    void drawDecorationLayer();
     void drawGrass(int dstX, int dstY, int dstSize);
-    void drawDarkGrass(int dstX, int dstY, int dstSize);
-    bool cellInSafeZone(int col, int row) const;
     void drawOverlay(const OverlayDef& def, int cellX, int cellY, int cellSize);
     void drawMonsterFromCatalog(const MonsterCatalogEntry& entry, int cellX, int cellY,
                                 int cellSize);

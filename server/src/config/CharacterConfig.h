@@ -19,6 +19,9 @@ struct PlayerConfig {
 struct RaceConfig {
     float lifeFactor;
     float manaFactor;
+    float strengthFactor;
+    float agilityFactor;
+    float intelligenceFactor;
     float recoveryFactor;
 };
 

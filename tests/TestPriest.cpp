@@ -35,7 +35,7 @@ static Player makePriestTestPlayer(uint32_t id = 1) {
 // =========================================================================
 TEST(PriestTest, Priest_ResurrectsDeadPlayerSuccessfully) {
     ItemRegistry registry("../config/items.toml");
-    Priest sacerdote(1, {0, 0}, registry);
+    Priest sacerdote(1, {0, 0}, registry, {});
     Player player = makePriestTestPlayer();
 
     // Gatillamos la muerte usando tu método sobreescrito de la interfaz
@@ -60,7 +60,7 @@ TEST(PriestTest, Priest_ResurrectsDeadPlayerSuccessfully) {
 // =========================================================================
 TEST(PriestTest, Priest_HealsHpAndManaToMaximum) {
     ItemRegistry registry("../config/items.toml");
-    Priest sacerdote(1, {0, 0}, registry);
+    Priest sacerdote(1, {0, 0}, registry, {});
     Player player = makePriestTestPlayer();
 
     // Le hacemos daño para drenar estadísticas
@@ -87,7 +87,7 @@ TEST(PriestTest, Priest_HealsHpAndManaToMaximum) {
 // =========================================================================
 TEST(PriestTest, Priest_AllowsBuyingItemsInStock) {
     ItemRegistry registry("../config/items.toml");
-    Priest sacerdote(1, {0, 0}, registry);
+    Priest sacerdote(1, {0, 0}, registry, {{1001u, 5}});
     Player player = makePriestTestPlayer();
 
     // Nota: Asegurate de que en el constructor de Priest se añada el ítem 1001 al mapa stock,
@@ -119,7 +119,7 @@ TEST(PriestTest, Priest_AllowsBuyingItemsInStock) {
 // =========================================================================
 TEST(PriestTest, Priest_DeadPlayerCannotTrade) {
     ItemRegistry registry("../config/items.toml");
-    Priest sacerdote(1, {0, 0}, registry);
+    Priest sacerdote(1, {0, 0}, registry, {{1001u, 5}});
     Player player = makePriestTestPlayer();
 
     player.addGold(500);
@@ -150,7 +150,7 @@ TEST(PriestTest, Priest_DeadPlayerCannotTrade) {
 // =========================================================================
 TEST(PriestTest, Priest_ListStockSuccessfully) {
     ItemRegistry registry("../config/items.toml");
-    Priest sacerdote(1, {0, 0}, registry);
+    Priest sacerdote(1, {0, 0}, registry, {{1001u, 5}, {1002u, 5}});
     Player player = makePriestTestPlayer();
 
     // El jugador ejecuta el comando de listado ante el sacerdote
@@ -159,10 +159,10 @@ TEST(PriestTest, Priest_ListStockSuccessfully) {
 
     // VALIDACIONES:
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
-    
+
     // El mensaje debe estructurar el catálogo básico
     EXPECT_NE(res.msg.find("--- CATÁLOGO DISPONIBLE ---"), std::string::npos);
-    
+
     // El Sacerdote inicia con ítems específicos en su stock (1001u y 1002u)
     EXPECT_NE(res.msg.find("[ID: 1001]"), std::string::npos);
     EXPECT_NE(res.msg.find("[ID: 1002]"), std::string::npos);

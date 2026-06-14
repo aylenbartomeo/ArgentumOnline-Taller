@@ -26,8 +26,10 @@ class WeaponFactory {
 private:
     std::unordered_map<std::string, WeaponConfig> configs;
 
-    std::unique_ptr<IAttackDelivery> createDelivery(const std::string& deliveryName, WeaponType type) const;
-    std::unique_ptr<IHitEffect> createHitEffect(const std::string& hitEffectName, WeaponType type) const;
+    std::unique_ptr<IAttackDelivery> createDelivery(const std::string& deliveryName,
+                                                    WeaponType type) const;
+    std::unique_ptr<IHitEffect> createHitEffect(const std::string& hitEffectName,
+                                                WeaponType type) const;
 
 public:
     explicit WeaponFactory(std::unordered_map<std::string, WeaponConfig> configs);

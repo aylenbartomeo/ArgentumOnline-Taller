@@ -4,11 +4,11 @@
 #include <fstream>
 #include <optional>
 #include <string>
-#include <vector>
 
 #include "../animation/CharacterSprites.h"
 #include "../common/GameConstants.h"
 #include "../rendering/NpcVisuals.h"
+#include "../rendering/TileDraw.h"
 #include "../ui/GroundItemLabel.h"
 
 #include "OverlayRegistry.h"
@@ -16,26 +16,26 @@
 namespace GC = GameConstants;
 
 namespace {
-constexpr const char* GROUND_SHEET = "5108.png";
-constexpr int GROUND_SRC_X = 416;
-constexpr int GROUND_SRC_Y = 384;
-constexpr int DARK_GROUND_SRC_X = 512;
-constexpr int DARK_GROUND_SRC_Y = 480;
-constexpr int GROUND_TILE = 32;
-
 constexpr int CHARACTER_FRAME_X = 2;
 constexpr int CHARACTER_FRAME_Y = 4;
 constexpr int CHARACTER_FRAME_W = 24;
 constexpr int CHARACTER_FRAME_H = 44;
 constexpr int CITIZEN_HEAD_OVERLAP = 6;
+constexpr int TREE_TILE_ID = 10;
+constexpr int PALM_TILE_ID = 41;
+
+bool isTallFlora(int id) { return id == TREE_TILE_ID || id == PALM_TILE_ID; }
 }  // namespace
 
 // ─── Constructor ──────────────────────────────────────────────────────────────
 WorldRenderer::WorldRenderer(TextureManager& textures, SDL2pp::Renderer& renderer,
-                             const TileMap& map, TTF_Font* worldFont):
-        textures(textures), renderer(renderer), map(map), worldFont(worldFont) {}
+                             const TileMap& map):
+        textures(textures),
+        renderer(renderer),
+        map(map),
+        worldFont(nullptr),
+        indoorRegions(map.getIndoor()) {}
 
-// ─── Helpers privados ─────────────────────────────────────────────────────────
 bool WorldRenderer::cellInSafeZone(int col, int row) const {
     return std::any_of(map.getSafeZones().begin(), map.getSafeZones().end(),
                        [col, row](const SafeZoneRect& zone) {
@@ -46,19 +46,89 @@ bool WorldRenderer::cellInSafeZone(int col, int row) const {
 
 // ─── Terrain ─────────────────────────────────────────────────────────────────
 void WorldRenderer::renderTerrain(const CameraOffset& camera) const {
-    SDL2pp::Texture& ground = textures.get(std::string(GC::RESOURCES_DIR) + GROUND_SHEET);
-    const SDL2pp::Rect groundSrc(GROUND_SRC_X, GROUND_SRC_Y, GROUND_TILE, GROUND_TILE);
-    const SDL2pp::Rect darkGroundSrc(DARK_GROUND_SRC_X, DARK_GROUND_SRC_Y, GROUND_TILE,
-                                     GROUND_TILE);
+    renderGroundLayer(map.getGround(), camera);
+    renderGroundLayer(map.getGround2(), camera);
+    renderer.SetClipRect();
+}
 
+void WorldRenderer::renderDecorationBehind(const CameraOffset& camera, int playerRow) const {
+    const std::vector<std::vector<int>>& grid = map.getDecoration();
     for (int row = 0; row < map.getHeight(); ++row) {
         for (int col = 0; col < map.getWidth(); ++col) {
-            const SDL2pp::Rect dst(col * GC::TILE_SIZE - camera.x, row * GC::TILE_SIZE - camera.y,
-                                   GC::TILE_SIZE, GC::TILE_SIZE);
-            renderer.Copy(ground, cellInSafeZone(col, row) ? darkGroundSrc : groundSrc, dst);
+            int v = grid[row][col];
+            if (v <= 0) {
+                continue;
+            }
+            if (isTallFlora(v - 1) && playerRow >= 0 && row > playerRow) {
+                continue;
+            }
+            drawDecorationTile(v - 1, col, row, camera);
         }
     }
-    renderer.SetClipRect();
+}
+
+void WorldRenderer::renderDecorationFront(const CameraOffset& camera, int playerRow) const {
+    if (playerRow < 0) {
+        return;
+    }
+    const std::vector<std::vector<int>>& grid = map.getDecoration();
+    for (int row = playerRow + 1; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            if (v <= 0 || !isTallFlora(v - 1)) {
+                continue;
+            }
+            drawDecorationTile(v - 1, col, row, camera);
+        }
+    }
+}
+
+void WorldRenderer::drawDecorationTile(int id, int col, int row, const CameraOffset& camera) const {
+    SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "decoration/" +
+                                        std::to_string(id) + ".png");
+    TileRect r = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE, camera.x,
+                              camera.y);
+    renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
+                  SDL2pp::Rect(r.x, r.y, r.w, r.h));
+}
+
+void WorldRenderer::renderGroundLayer(const std::vector<std::vector<int>>& grid,
+                                      const CameraOffset& camera) const {
+    for (int row = 0; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            if (v <= 0) {
+                continue;
+            }
+            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "ground/" +
+                                                std::to_string(v - 1) + ".png");
+            renderer.Copy(
+                    tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
+                    SDL2pp::Rect(col * GC::TILE_SIZE - camera.x, row * GC::TILE_SIZE - camera.y,
+                                 tex.GetWidth(), tex.GetHeight()));
+        }
+    }
+}
+
+void WorldRenderer::renderRoofs(const CameraOffset& camera, int playerCol, int playerRow) const {
+    const std::vector<std::vector<int>>& grid = map.getRoofs();
+    for (int row = 0; row < map.getHeight(); ++row) {
+        for (int col = 0; col < map.getWidth(); ++col) {
+            int v = grid[row][col];
+            if (v <= 0) {
+                continue;
+            }
+            if (indoorRegions.roofHidden(col, row, playerCol, playerRow)) {
+                continue;
+            }
+            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "decoration/" +
+                                                std::to_string(v - 1) + ".png");
+            TileRect r = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE,
+                                      camera.x, camera.y);
+            renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
+                          SDL2pp::Rect(r.x, r.y, r.w, r.h));
+        }
+    }
 }
 
 // ─── Overlays ────────────────────────────────────────────────────────────────

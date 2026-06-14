@@ -105,6 +105,7 @@ void Protocol::sendSnapshot(const SnapshotDTO& snap) {
         sendUint16(entity.helmetItemId);
         sendUint16(entity.shieldItemId);
         sendUint16(entity.bodyArmorItemId);
+        sendUint16(entity.level);
     }
 
     sendUint16(static_cast<uint16_t>(snap.monsters.size()));
@@ -121,6 +122,7 @@ void Protocol::sendSnapshot(const SnapshotDTO& snap) {
         sendUint16(entity.helmetItemId);
         sendUint16(entity.shieldItemId);
         sendUint16(entity.bodyArmorItemId);
+        sendUint16(entity.level);
     }
 
     sendUint16(static_cast<uint16_t>(snap.groundItems.size()));
@@ -220,6 +222,53 @@ LoginResponseDTO Protocol::recvRegisterResponse() {
     }
 }
 
+void Protocol::sendJoinResponse(const JoinResponseDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::JOIN_RESPONSE));
+    sendUint8(dto.needsCreation ? 1 : 0);
+
+    if (dto.needsCreation) {
+        sendUint32(dto.baseStrength);
+        sendUint32(dto.baseAgility);
+        sendUint32(dto.baseIntelligence);
+        sendUint32(dto.baseConstitution);
+
+        sendUint16(static_cast<uint16_t>(dto.raceFactors.size()));
+        for (float f: dto.raceFactors) {
+            sendFloat(f);
+        }
+
+        sendUint16(static_cast<uint16_t>(dto.classFactors.size()));
+        for (float f: dto.classFactors) {
+            sendFloat(f);
+        }
+    }
+}
+
+JoinResponseDTO Protocol::receiveJoinResponseBody() {
+
+    JoinResponseDTO dto;
+    dto.needsCreation = (recvUint8() == 1);
+
+    if (dto.needsCreation) {
+        dto.baseStrength = recvUint32();
+        dto.baseAgility = recvUint32();
+        dto.baseIntelligence = recvUint32();
+        dto.baseConstitution = recvUint32();
+
+        uint16_t raceFactorsSize = recvUint16();
+        for (uint16_t i = 0; i < raceFactorsSize; ++i) {
+            dto.raceFactors.push_back(recvFloat());
+        }
+
+        uint16_t classFactorsSize = recvUint16();
+        for (uint16_t i = 0; i < classFactorsSize; ++i) {
+            dto.classFactors.push_back(recvFloat());
+        }
+    }
+
+    return dto;
+}
+
 SnapshotDTO Protocol::receiveSnapshotBody() {
     SnapshotDTO snap;
 
@@ -238,6 +287,7 @@ SnapshotDTO Protocol::receiveSnapshotBody() {
         entity.helmetItemId = recvUint16();
         entity.shieldItemId = recvUint16();
         entity.bodyArmorItemId = recvUint16();
+        entity.level = recvUint16();
         snap.players.push_back(entity);
     }
 
@@ -256,6 +306,7 @@ SnapshotDTO Protocol::receiveSnapshotBody() {
         entity.helmetItemId = recvUint16();
         entity.shieldItemId = recvUint16();
         entity.bodyArmorItemId = recvUint16();
+        entity.level = recvUint16();
         snap.monsters.push_back(entity);
     }
 
@@ -392,12 +443,14 @@ void Protocol::sendNpcCommand(const NpcCommandDTO& dto) {
     sendUint8(static_cast<uint8_t>(OPCODE::NPC_CMD));
     sendUint8(static_cast<uint8_t>(dto.type));
     sendString(dto.arg);
+    sendUint32(dto.npcId);
 }
 
 NpcCommandDTO Protocol::receiveNpcCommandBody() {
     NpcCommandDTO dto;
     dto.type = static_cast<NpcCommandType>(recvUint8());
     dto.arg = recvString();
+    dto.npcId = recvUint32();
     return dto;
 }
 
@@ -432,6 +485,12 @@ void Protocol::sendShoot(const ShootDTO& dto) {
     sendUint8(static_cast<uint8_t>(OPCODE::SHOOT));
     sendFloat(dto.targetX);
     sendFloat(dto.targetY);
+}
+
+void Protocol::sendCreateCharacter(const CreateCharacterDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::CREATE_CHARACTER));
+    sendUint8(dto.race);
+    sendUint8(dto.characterClass);
 }
 
 // =======================================================
@@ -518,6 +577,12 @@ CommandVariant Protocol::receive_command() {
             ShootDTO dto;
             dto.targetX = recvFloat();
             dto.targetY = recvFloat();
+            return dto;
+        }
+        case OPCODE::CREATE_CHARACTER: {
+            CreateCharacterDTO dto;
+            dto.race = recvUint8();
+            dto.characterClass = recvUint8();
             return dto;
         }
         default:

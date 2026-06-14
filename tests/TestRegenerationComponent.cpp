@@ -7,7 +7,7 @@
 class RegenerationComponentTest: public ::testing::Test {
 protected:
     // Humano mago: recoveryFactor=2, meditationFactor=3, canUseMagic=true
-    RaceConfig humanRace{1.0f, 1.0f, 2.0f};
+    RaceConfig humanRace{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 2.0f};
     CharacterClassConfig mageClass{0.7f, 1.5f, 3.0f, true};
 
     // Guerrero: canUseMagic=false, meditationFactor=0

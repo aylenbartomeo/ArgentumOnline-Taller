@@ -3,7 +3,7 @@
 
 #include <vector>
 
-enum class Tool { OVERLAY, MONSTER, CITIZEN, ERASER, SPAWN };
+enum class Tool { OVERLAY, MONSTER, CITIZEN, CITY, CITY_ERASE, ERASER, SPAWN };
 
 enum class ToolbarAction { NONE, TOOL_CHANGED, SAVE };
 

@@ -8,31 +8,40 @@
 #include "Game.h"
 
 int main(int argc, char* argv[]) try {
-    std::unique_ptr<Client> activeClient = nullptr;
-    {
-        QApplication app(argc, argv);
-        Launcher launcher;
-        launcher.show();
+    QApplication app(argc, argv);
 
-        app.exec();
+    while (true) {
+        std::unique_ptr<Client> activeClient = nullptr;
+        {
+            Launcher launcher;
+            launcher.show();
 
-        if (!launcher.isAuthenticated()) {
-            std::cout << "Launcher closure" << std::endl;
-            return 0;
+            app.exec();
+
+            if (!launcher.isAuthenticated()) {
+                std::cout << "Launcher closure" << std::endl;
+                return 0;
+            }
+
+            activeClient = launcher.releaseClient();
         }
 
-        activeClient = launcher.releaseClient();
-    }
+        if (activeClient) {
+            std::cout << "Starting game graphics engine (SDL)..." << std::endl;
 
-    if (activeClient) {
-        std::cout << "Starting game graphics engine (SDL)..." << std::endl;
+            activeClient->start();
 
-        activeClient->start();
+            Game game(*activeClient);
+            bool goToLogin = game.runStartupAndCreation();
 
-        Game game(*activeClient);
-        game.run();
+            activeClient->stop();
 
-        activeClient->stop();
+            if (!goToLogin) {
+                break;
+            }
+        } else {
+            break;
+        }
     }
 
     return 0;

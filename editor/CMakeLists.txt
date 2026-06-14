@@ -10,6 +10,7 @@ target_sources(lib_editor
     SpawnCatalogs.cpp
     Font.cpp
     Editor.cpp
+    CityStamp.cpp
     PUBLIC
     # .h files
     EditorMap.h
@@ -19,6 +20,7 @@ target_sources(lib_editor
     SpawnCatalogs.h
     Font.h
     Editor.h
+    CityStamp.h
     )
 
 # Exponemos los directorios de inclusión del editor públicamente
@@ -45,3 +47,13 @@ set_target_properties(argentum_online_editor PROPERTIES
 target_link_libraries(argentum_online_editor PRIVATE lib_editor)
 
 set_project_warnings(argentum_online_editor ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
+
+add_executable(argentum_map_builder MapBuilder.cpp)
+
+set_target_properties(argentum_map_builder PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+target_link_libraries(argentum_map_builder PRIVATE lib_editor)
+
+set_project_warnings(argentum_map_builder ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)

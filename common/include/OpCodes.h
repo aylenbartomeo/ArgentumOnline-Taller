@@ -22,6 +22,7 @@ enum class OPCODE : uint8_t {
     RESURRECT = 0x14,
     OPCODE_CHEAT = 0x15,
     SHOOT = 0x16,
+    CREATE_CHARACTER = 0x17,
 
     // --- SERVIDOR A CLIENTE ---
     SNAPSHOT = 0x82,
@@ -31,6 +32,7 @@ enum class OPCODE : uint8_t {
     LOGIN_FAILED = 0x86,
     REGISTER_SUCCESS = 0x87,
     REGISTER_FAILED = 0x88,
+    JOIN_RESPONSE = 0x89,
 };
 
 #endif

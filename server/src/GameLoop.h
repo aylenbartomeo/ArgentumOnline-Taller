@@ -5,6 +5,7 @@
 #include <chrono>
 #include <string>
 #include <thread>
+#include <unordered_map>
 
 #include "../../common/include/dto/ClientCommands.h"
 #include "../../common/include/queue.h"
@@ -41,6 +42,8 @@ private:
     WorldConfig worldConfig;
     WorldDataStore worldDataStore;
     World world;
+
+    std::unordered_map<uint32_t, std::string> pendingCreations;
 
     // Timer para guardado periódico
     static constexpr float SAVE_INTERVAL_SECONDS = 30.0f;
