@@ -42,7 +42,6 @@ void ChatCommandParser::registerHandlers() {
     // Comandos sin argumentos
     registerNoArgCommand("/tomar", GrabItemDTO{});
     registerNoArgCommand("/meditar", MeditateDTO{});
-    registerNoArgCommand("/resucitar", ResurrectDTO{});
     registerNoArgCommand("/listar", NpcCommandDTO{LIST, ""});
 
     // Comandos NPC
@@ -51,6 +50,7 @@ void ChatCommandParser::registerHandlers() {
     registerNpcCommand("/vender", SELL);
     registerNpcCommand("/depositar", DEPOSIT);
     registerNpcCommand("/retirar", WITHDRAW);
+    registerNpcCommand("/resucitar", RESPAWN);
 
     // Comandos de Clan
     registerClanCommand("/fundar-clan", ClanCommandType::FOUND);

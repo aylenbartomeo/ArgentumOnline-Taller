@@ -18,6 +18,7 @@ constexpr int CHARACTER_FRAME_W = 24;
 constexpr int CHARACTER_FRAME_H = 44;
 constexpr const char* HEALTHBAR_SHEET = "en_barradevida.bmp";
 constexpr const char* SKULL_SHEET = "106.png";
+
 }  // namespace
 
 // ─── Constructor / accesors ───────────────────────────────────────────────────
@@ -65,15 +66,24 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     const int py = static_cast<int>(anim.getVirtualY() * GC::TILE_SIZE);
 
     if (isDead(entity.current_hp)) {
-        SDL2pp::Texture& skull = textures.get(std::string(GC::RESOURCES_DIR) + SKULL_SHEET);
-        const FrameRect sf = skullFrameRect();
-        renderer.Copy(skull, SDL2pp::Rect(sf.x, sf.y, sf.w, sf.h),
-                      SDL2pp::Rect(px - camera.x, py - camera.y, GC::TILE_SIZE, GC::TILE_SIZE));
-        return;
+        if (entity.type == EntityType::PLAYER && isGhost(entity.stateId)) {
+            // Continuar para usar el sistema de CharacterSprites con la hoja de fantasma
+        } else {
+            SDL2pp::Texture& skull = textures.get(std::string(GC::RESOURCES_DIR) + SKULL_SHEET);
+            const FrameRect sf = skullFrameRect();
+            renderer.Copy(skull, SDL2pp::Rect(sf.x, sf.y, sf.w, sf.h),
+                          SDL2pp::Rect(px - camera.x, py - camera.y, GC::TILE_SIZE, GC::TILE_SIZE));
+            return;
+        }
     }
 
-    const EntitySprite sprite = spriteForEntity(entity.type, entity.entityTypeId, entity.id);
+    const EntitySprite sprite = spriteForEntity(entity.type, entity.entityTypeId, entity.id, entity.stateId);
     SDL2pp::Texture& body = textures.get(std::string(GC::RESOURCES_DIR) + sprite.bodySheet);
+
+    if (entity.type == EntityType::PLAYER && isGhost(entity.stateId)) {
+        body.SetBlendMode(SDL_BLENDMODE_BLEND);
+        body.SetAlphaMod(180);
+    }
 
     const Movement facing = anim.getFacing();
     const int frameCol = (static_cast<EntityAction>(entity.action) == EntityAction::WALKING) ?
@@ -93,6 +103,10 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     renderer.Copy(body, SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h),
                   SDL2pp::Rect(px + (GC::TILE_SIZE - bodyDstW) / 2 - camera.x,
                                py + GC::TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH));
+
+    if (entity.type == EntityType::PLAYER && isGhost(entity.stateId)) {
+        body.SetAlphaMod(255);
+    }
 
     if (sprite.drawHead) {
         const FrameRect hf = headFrameRect(facing);

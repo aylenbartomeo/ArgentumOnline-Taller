@@ -44,12 +44,14 @@ struct EntityDTO {
     uint16_t shieldItemId = 0;
     uint16_t bodyArmorItemId = 0;
     uint16_t level = 0;
+    uint8_t stateId = 0;
     std::string name = "";
 
     EntityDTO() = default;
     EntityDTO(uint32_t id, EntityType type, uint16_t x, uint16_t y, uint16_t hp, uint16_t m_hp,
               uint8_t entityType, uint8_t action = 0, uint16_t weapon = 0, uint16_t helmet = 0,
-              uint16_t shield = 0, uint16_t armor = 0, uint16_t lvl = 0):
+              uint16_t shield = 0, uint16_t armor = 0, uint16_t lvl = 0, uint8_t stateId = 0,
+              const std::string& name = ""):
             id(id),
             type(type),
             x(x),
@@ -62,7 +64,9 @@ struct EntityDTO {
             helmetItemId(helmet),
             shieldItemId(shield),
             bodyArmorItemId(armor),
-            level(lvl) {}
+            level(lvl),
+            stateId(stateId),
+            name(name) {}
 };
 
 

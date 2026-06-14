@@ -194,7 +194,7 @@ CombatResult CombatSystem::processAttack(Player& attacker, Attackable& target, f
 
     CombatModifiers modifiers{attackBonus, defenseBonus};
 
-    CombatResult res = weapon->getDelivery()->deliver(attacker, target, modifiers, *weapon, *this);
+    CombatResult res = weapon->deliver(attacker, target, modifiers, *this);
 
     if (!res.attackHappened || res.isPending)
         return res;
