@@ -20,6 +20,7 @@ target_sources(argentum_online_tests
     TestTileMap.cpp
     TestTileDraw.cpp
     TestIndoorRegions.cpp
+    TestBuildingFronts.cpp
     TestCityPrefab.cpp
     TestCityStamp.cpp
     TestMerchant.cpp

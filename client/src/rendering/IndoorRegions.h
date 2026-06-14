@@ -13,6 +13,7 @@ public:
     explicit IndoorRegions(const std::vector<std::vector<int>>& indoor);
 
     int regionAt(int col, int row) const;
+    bool sameRegion(int col, int row, int playerCol, int playerRow) const;
     bool roofHidden(int roofCol, int roofRow, int playerCol, int playerRow) const;
 };
 

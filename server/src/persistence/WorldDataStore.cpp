@@ -161,7 +161,7 @@ void WorldDataStore::saveNpcStates(uint32_t worldId,
 
     for (size_t i = 0; i < count; ++i) {
         ofs.write(reinterpret_cast<const char*>(&headers[i]), sizeof(NpcHeaderPersistData));
-        
+
         if (headers[i].stockCount > 0) {
             ofs.write(reinterpret_cast<const char*>(allStocks[i].data()),
                       headers[i].stockCount * sizeof(NpcStockPersistData));
@@ -183,7 +183,7 @@ void WorldDataStore::saveNpcStates(uint32_t worldId,
 }
 
 std::pair<std::vector<NpcHeaderPersistData>, std::vector<std::vector<NpcStockPersistData>>>
-WorldDataStore::loadNpcStates(uint32_t worldId) const {
+        WorldDataStore::loadNpcStates(uint32_t worldId) const {
     std::vector<NpcHeaderPersistData> headers;
     std::vector<std::vector<NpcStockPersistData>> allStocks;
 

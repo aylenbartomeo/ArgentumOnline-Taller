@@ -106,6 +106,7 @@ void Protocol::sendSnapshot(const SnapshotDTO& snap) {
         sendUint16(entity.shieldItemId);
         sendUint16(entity.bodyArmorItemId);
         sendUint16(entity.level);
+        sendString(entity.name);
     }
 
     sendUint16(static_cast<uint16_t>(snap.monsters.size()));
@@ -157,12 +158,18 @@ void Protocol::sendPlayerStats(const PlayerStatsDTO& stats) {
     sendUint32(stats.expIntoLevel);
     sendUint32(stats.expForLevel);
 
+    sendUint8(static_cast<uint8_t>(stats.race));
+    sendUint8(static_cast<uint8_t>(stats.characterClass));
+    sendUint32(stats.agilityBuffTimeLeftMs);
+    sendUint32(stats.strengthBuffTimeLeftMs);
+
     sendUint16(static_cast<uint16_t>(stats.inventory.size()));
     for (const auto& item: stats.inventory) {
         sendUint8(item.slot);
         sendUint32(item.itemId);
         sendUint16(item.amount);
         sendUint8(item.isEquipped ? 1 : 0);
+        sendString(item.description);
     }
 }
 
@@ -288,6 +295,7 @@ SnapshotDTO Protocol::receiveSnapshotBody() {
         entity.shieldItemId = recvUint16();
         entity.bodyArmorItemId = recvUint16();
         entity.level = recvUint16();
+        entity.name = recvString();
         snap.players.push_back(entity);
     }
 
@@ -347,6 +355,11 @@ PlayerStatsDTO Protocol::receivePlayerStatsBody() {
     stats.expIntoLevel = recvUint32();
     stats.expForLevel = recvUint32();
 
+    stats.race = static_cast<Race>(recvUint8());
+    stats.characterClass = static_cast<CharacterClass>(recvUint8());
+    stats.agilityBuffTimeLeftMs = recvUint32();
+    stats.strengthBuffTimeLeftMs = recvUint32();
+
     uint16_t items_count = recvUint16();
     for (uint16_t i = 0; i < items_count; ++i) {
         InventorySlotDTO item;
@@ -354,6 +367,7 @@ PlayerStatsDTO Protocol::receivePlayerStatsBody() {
         item.itemId = recvUint32();
         item.amount = recvUint16();
         item.isEquipped = (recvUint8() == 1);
+        item.description = recvString();
         stats.inventory.push_back(item);
     }
 

@@ -64,7 +64,7 @@ Game::Game(Client& client):
     window.getRenderer().SetLogicalSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     worldFont = TTF_OpenFont(HUD_FONT_PATH, 12);
-    entityFont = TTF_OpenFont(HUD_FONT_PATH, 9);  // Font más pequeño para LVL
+    entityFont = TTF_OpenFont(HUD_FONT_PATH, 11);  // Font para nombres y nivel
     if (!worldFont) {
         std::cerr << "No pude abrir la fuente del texto del mundo: " << TTF_GetError() << std::endl;
     } else {
@@ -131,6 +131,7 @@ void Game::run() {
         inputProcessor.processCheats(input);
         inputProcessor.processEquipInput(input);
         inputProcessor.processUseInput(input, audio);
+        inputProcessor.processGrabDropInput(input);
         inputProcessor.processSelectSlotInput(input);
         inputProcessor.processUiInput(input);
         if (input.toggleMute)
@@ -149,7 +150,10 @@ void Game::render(const FrameInput& input) {
     PlayerStatsDTO previousStats = lastStats;
 
     while (client.tryPopSnapshot(incomingSnap)) lastSnapshot = incomingSnap;
-    while (client.tryPopPlayerStats(incomingStats)) lastStats = incomingStats;
+    while (client.tryPopPlayerStats(incomingStats)) {
+        lastStats = incomingStats;
+        lastStatsReceiveTimeMs = SDL_GetTicks();
+    }
 
     StateAudioTrigger audioTrigger;
     StateChanges changes = audioTrigger.checkAndTrigger(previousStats, lastStats, audio);
@@ -215,6 +219,7 @@ void Game::render(const FrameInput& input) {
     worldRenderer.renderGroundItems(cam, lastSnapshot);
     worldRenderer.renderCitizens(cam, client.getSelectedNpc());
     entityRenderer.render(cam, lastSnapshot, now, client.getSelectedNpc());
+    worldRenderer.renderBuildingFronts(cam, playerCol, playerRow);
     worldRenderer.renderDecorationFront(cam, playerRow);
     worldRenderer.renderRoofs(cam, playerCol, playerRow);
     fxSystem.renderProjectiles(cam, now);
@@ -224,7 +229,7 @@ void Game::render(const FrameInput& input) {
     miniChat.render(renderer.Get(), VIEW_X + VIEW_W, VIEW_Y + VIEW_H, input.chatInputActive,
                     input.chatText);
     hud.renderBackground(renderer);
-    hud.render(renderer, lastStats);
+    hud.render(renderer, lastStats, lastStatsReceiveTimeMs);
     manualPanel.render(renderer.Get(), WINDOW_WIDTH, WINDOW_HEIGHT);
 
     renderer.Present();

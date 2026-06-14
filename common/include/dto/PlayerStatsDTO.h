@@ -2,17 +2,27 @@
 #define PLAYER_STATS_DTO_H
 
 #include <cstdint>
+#include <string>
+#include <utility>
 #include <vector>
+
+#include "../../utils/types.h"
 
 struct InventorySlotDTO {
     uint8_t slot{0};
     uint32_t itemId{0};
     uint16_t amount{0};
     bool isEquipped{false};
+    std::string description;
 
     InventorySlotDTO() = default;
-    InventorySlotDTO(uint8_t slot, uint32_t itemId, uint16_t amount, bool isEquipped):
-            slot(slot), itemId(itemId), amount(amount), isEquipped(isEquipped) {}
+    InventorySlotDTO(uint8_t slot, uint32_t itemId, uint16_t amount, bool isEquipped,
+                     std::string description = ""):
+            slot(slot),
+            itemId(itemId),
+            amount(amount),
+            isEquipped(isEquipped),
+            description(std::move(description)) {}
 };
 
 struct PlayerStatsDTO {
@@ -25,6 +35,12 @@ struct PlayerStatsDTO {
     uint16_t level = 0;
     uint32_t expIntoLevel = 0;
     uint32_t expForLevel = 0;
+
+    Race race = Race::HUMAN;
+    CharacterClass characterClass = CharacterClass::MAGE;
+
+    uint32_t agilityBuffTimeLeftMs = 0;
+    uint32_t strengthBuffTimeLeftMs = 0;
 
     std::vector<InventorySlotDTO> inventory;
 

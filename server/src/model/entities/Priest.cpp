@@ -1,6 +1,9 @@
 #include "Priest.h"
 
+#include <algorithm>
 #include <iostream>
+#include <sstream>
+#include <utility>
 
 #include "../World.h"
 #include "../handlers/HealHandler.h"
@@ -10,9 +13,9 @@
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
 
-Priest::Priest(uint32_t id, Position pos, const ItemRegistry& registry, 
-        std::unordered_map<uint32_t, int> initialStock): id(id), pos(pos), 
-        stock(std::move(initialStock)) {
+Priest::Priest(uint32_t id, Position pos, const ItemRegistry& registry,
+               std::unordered_map<uint32_t, int> initialStock):
+        id(id), pos(pos), stock(std::move(initialStock)) {
     commandHandlers[NpcCommandType::RESPAWN] = std::make_unique<ResurrectHandler>();
     commandHandlers[NpcCommandType::HEAL] = std::make_unique<HealHandler>();
 

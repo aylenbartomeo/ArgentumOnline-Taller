@@ -35,7 +35,7 @@ TEST(CityPrefabTest, HasThreeNpcsAtTheirBuildings) {
     const CityNpc* banker = npcOfType(prefab, "banker");
     ASSERT_NE(banker, nullptr);
     EXPECT_EQ(banker->dx, 30);
-    EXPECT_EQ(banker->dy, 10);
+    EXPECT_EQ(banker->dy, 13);
 
     const CityNpc* merchant = npcOfType(prefab, "merchant");
     ASSERT_NE(merchant, nullptr);
@@ -56,7 +56,7 @@ TEST(CityPrefabTest, HasRoofAnchorsForChurchAndBank) {
 
 TEST(CityPrefabTest, IndoorCoversBothBuildingFootprints) {
     const CityPrefab& prefab = getCityPrefab();
-    EXPECT_EQ(prefab.indoor.size(), static_cast<size_t>(15 * 18 + 20 * 11));
+    EXPECT_EQ(prefab.indoor.size(), static_cast<size_t>(15 * 18 + 15 * 11));
 }
 
 TEST(CityPrefabTest, ChurchDoorIsOpenAndWallsAreBlocked) {
@@ -69,16 +69,21 @@ TEST(CityPrefabTest, ChurchDoorIsOpenAndWallsAreBlocked) {
     EXPECT_TRUE(hasObstacle(prefab, 2, 5));
 }
 
-TEST(CityPrefabTest, GroundHasPlazaAndBankFloor) {
+TEST(CityPrefabTest, GroundHasLawnBaseWoodFloorsAndStonePath) {
     const CityPrefab& prefab = getCityPrefab();
-    bool plaza = std::any_of(prefab.ground.begin(), prefab.ground.end(), [](const CityCell& c) {
-        return c.dx == 1 && c.dy == 23 && c.value == 17;
-    });
-    bool bankFloor = std::any_of(prefab.ground.begin(), prefab.ground.end(), [](const CityCell& c) {
-        return c.dx == 20 && c.dy == 18 && c.value == 106;
-    });
-    EXPECT_TRUE(plaza);
-    EXPECT_TRUE(bankFloor);
+    auto groundAt = [&prefab](int dx, int dy) {
+        int v = 0;
+        for (const CityCell& c: prefab.ground) {
+            if (c.dx == dx && c.dy == dy) {
+                v = c.value;
+            }
+        }
+        return v;
+    };
+    EXPECT_EQ(groundAt(20, 18), 166);
+    EXPECT_EQ(groundAt(5, 10), 166);
+    EXPECT_EQ(groundAt(20, 23), 17);
+    EXPECT_EQ(groundAt(18, 6), 219);
 }
 
 TEST(CityPrefabTest, HasBuildingZonesForChurchBankAndStore) {
@@ -102,7 +107,7 @@ TEST(CityPrefabTest, HasBuildingZonesForChurchBankAndStore) {
     ASSERT_NE(bank, nullptr);
     EXPECT_EQ(bank->dx, 20);
     EXPECT_EQ(bank->dy, 8);
-    EXPECT_EQ(bank->width, 20);
+    EXPECT_EQ(bank->width, 15);
     EXPECT_EQ(bank->height, 11);
 
     const CityZone* store = zoneNamed("store");
@@ -111,4 +116,20 @@ TEST(CityPrefabTest, HasBuildingZonesForChurchBankAndStore) {
     EXPECT_EQ(store->dy, 27);
     EXPECT_EQ(store->width, 13);
     EXPECT_EQ(store->height, 6);
+}
+
+TEST(CityPrefabTest, ChurchBackWallBandIsBlocked) {
+    const CityPrefab& prefab = getCityPrefab();
+    for (int y = 5; y <= 10; ++y) {
+        EXPECT_TRUE(hasObstacle(prefab, 9, y)) << "iglesia fila " << y;
+    }
+    EXPECT_FALSE(hasObstacle(prefab, 9, 11));
+}
+
+TEST(CityPrefabTest, BankBackWallBandIsBlocked) {
+    const CityPrefab& prefab = getCityPrefab();
+    for (int y = 8; y <= 11; ++y) {
+        EXPECT_TRUE(hasObstacle(prefab, 30, y)) << "banco fila " << y;
+    }
+    EXPECT_FALSE(hasObstacle(prefab, 30, 12));
 }

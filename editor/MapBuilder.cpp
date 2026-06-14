@@ -136,10 +136,10 @@ struct Builder {
                     return nlohmann::json{{"type", n.type}, {"x", ox + n.dx}, {"y", oy + n.dy}};
                 });
         safeZones.push_back({{"name", name},
-                             {"x", ox},
-                             {"y", oy},
-                             {"width", prefab.width},
-                             {"height", prefab.height}});
+                             {"x", ox + prefab.safeDx},
+                             {"y", oy + prefab.safeDy},
+                             {"width", prefab.safeW},
+                             {"height", prefab.safeH}});
     }
 };
 }  // namespace

@@ -27,6 +27,10 @@ struct CityZone {
 struct CityPrefab {
     int width;
     int height;
+    int safeDx = 0;
+    int safeDy = 0;
+    int safeW = 0;
+    int safeH = 0;
     std::vector<CityCell> ground;
     std::vector<CityCell> decoration;
     std::vector<CityCell> roofs;

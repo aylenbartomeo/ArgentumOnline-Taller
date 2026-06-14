@@ -25,3 +25,14 @@ TEST(IndoorRegionsTest, HidesRoofsOfPlayersRegionOnly) {
     EXPECT_FALSE(r.roofHidden(4, 0, 0, 0));
     EXPECT_FALSE(r.roofHidden(0, 0, 2, 0));
 }
+
+TEST(IndoorRegionsTest, SameRegionMatchesPlayersRegionOnly) {
+    std::vector<std::vector<int>> indoor = {
+            {1, 1, 0, 0, 1},
+            {1, 0, 0, 0, 1},
+    };
+    IndoorRegions r(indoor);
+    EXPECT_TRUE(r.sameRegion(1, 0, 0, 0));
+    EXPECT_FALSE(r.sameRegion(4, 0, 0, 0));
+    EXPECT_FALSE(r.sameRegion(0, 0, 2, 0));
+}

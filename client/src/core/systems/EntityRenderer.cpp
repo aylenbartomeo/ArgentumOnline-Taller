@@ -124,6 +124,54 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         NpcVisuals::drawSelectionEllipse(renderer, px - camera.x, py - camera.y, GC::TILE_SIZE, 255,
                                          235, 0);
     }
+
+    // Dibujar nombre de los jugadores (si no están muertos)
+    if (entity.type == EntityType::PLAYER && font && !entity.name.empty() &&
+        !isDead(entity.current_hp)) {
+        SDL_Color color = (entity.id == myId) ?
+                                  SDL_Color{255, 255, 255, 255} :
+                                  SDL_Color{255, 165, 0, 255};  // Blanco local, Naranja otros
+        SDL_Color black = {0, 0, 0, 255};
+
+        // Render black outline
+        SDL_Surface* surfBg = TTF_RenderUTF8_Blended(font, entity.name.c_str(), black);
+        if (surfBg) {
+            SDL_Texture* texBg = SDL_CreateTextureFromSurface(renderer.Get(), surfBg);
+            int textW = surfBg->w;
+            int textH = surfBg->h;
+            SDL_FreeSurface(surfBg);
+            if (texBg) {
+                int textX = px - camera.x + (GC::TILE_SIZE - textW) / 2;
+                int textY = py - camera.y + GC::TILE_SIZE + 2;
+                // Draw 4 offsets for outline
+                SDL_Rect dst1{textX - 1, textY - 1, textW, textH};
+                SDL_Rect dst2{textX + 1, textY - 1, textW, textH};
+                SDL_Rect dst3{textX - 1, textY + 1, textW, textH};
+                SDL_Rect dst4{textX + 1, textY + 1, textW, textH};
+                SDL_RenderCopy(renderer.Get(), texBg, nullptr, &dst1);
+                SDL_RenderCopy(renderer.Get(), texBg, nullptr, &dst2);
+                SDL_RenderCopy(renderer.Get(), texBg, nullptr, &dst3);
+                SDL_RenderCopy(renderer.Get(), texBg, nullptr, &dst4);
+                SDL_DestroyTexture(texBg);
+            }
+        }
+
+        // Render actual text
+        SDL_Surface* surf = TTF_RenderUTF8_Blended(font, entity.name.c_str(), color);
+        if (surf) {
+            SDL_Texture* textTex = SDL_CreateTextureFromSurface(renderer.Get(), surf);
+            int textW = surf->w;
+            int textH = surf->h;
+            SDL_FreeSurface(surf);
+            if (textTex) {
+                int textX = px - camera.x + (GC::TILE_SIZE - textW) / 2;
+                int textY = py - camera.y + GC::TILE_SIZE + 2;  // Abajo del personaje
+                SDL_Rect dst{textX, textY, textW, textH};
+                SDL_RenderCopy(renderer.Get(), textTex, nullptr, &dst);
+                SDL_DestroyTexture(textTex);
+            }
+        }
+    }
 }
 
 // ─── drawHealthBar ────────────────────────────────────────────────────────────
@@ -136,7 +184,39 @@ void EntityRenderer::drawHealthBar(const EntityDTO& entity, const CameraOffset& 
 
     if (font) {
         std::string lvlText = "LVL " + std::to_string(entity.level);
-        SDL_Color color = {255, 255, 0, 255};  // Amarillo
+        SDL_Color color;
+        if (entity.type == EntityType::MONSTER) {
+            color = {255, 50, 50, 255};  // Rojo
+        } else {
+            color = (entity.id == myId) ?
+                            SDL_Color{0, 255, 255, 255} :
+                            SDL_Color{255, 165, 0, 255};  // Celeste local, Naranja otros
+        }
+        SDL_Color black = {0, 0, 0, 255};
+
+        // Render black outline
+        SDL_Surface* surfBg = TTF_RenderUTF8_Blended(font, lvlText.c_str(), black);
+        if (surfBg) {
+            SDL_Texture* texBg = SDL_CreateTextureFromSurface(renderer.Get(), surfBg);
+            int textW = surfBg->w;
+            int textH = surfBg->h;
+            SDL_FreeSurface(surfBg);
+            if (texBg) {
+                int textX = px - camera.x + (GC::TILE_SIZE - textW) / 2;
+                int textY = py - camera.y - 36 - textH - 2;
+                SDL_Rect dst1{textX - 1, textY - 1, textW, textH};
+                SDL_Rect dst2{textX + 1, textY - 1, textW, textH};
+                SDL_Rect dst3{textX - 1, textY + 1, textW, textH};
+                SDL_Rect dst4{textX + 1, textY + 1, textW, textH};
+                SDL_RenderCopy(renderer.Get(), texBg, nullptr, &dst1);
+                SDL_RenderCopy(renderer.Get(), texBg, nullptr, &dst2);
+                SDL_RenderCopy(renderer.Get(), texBg, nullptr, &dst3);
+                SDL_RenderCopy(renderer.Get(), texBg, nullptr, &dst4);
+                SDL_DestroyTexture(texBg);
+            }
+        }
+
+        // Render actual text
         SDL_Surface* surf = TTF_RenderUTF8_Blended(font, lvlText.c_str(), color);
         if (surf) {
             SDL_Texture* textTex = SDL_CreateTextureFromSurface(renderer.Get(), surf);

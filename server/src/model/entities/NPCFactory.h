@@ -2,12 +2,17 @@
 #define NPC_FACTORY_H
 
 #include <cstdint>
+#include <filesystem>
 #include <functional>
+#include <iostream>
 #include <memory>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
-#include "../interfaces/Interactable.h"
 #include "../config/NpcStockLoader.h"
+#include "../interfaces/Interactable.h"
+
 #include "Banker.h"
 #include "Merchant.h"
 #include "Priest.h"
@@ -18,18 +23,22 @@ private:
             creators;
     std::unordered_map<uint32_t, int> merchantInitialStock;
     std::unordered_map<uint32_t, int> priestInitialStock;
+
 public:
     NPCFactory(const ItemRegistry& registry, GlobalBank& globalBank) {
         std::string merchantPath = "config/stockMerchant.toml";
-        if (!std::filesystem::exists(merchantPath)) merchantPath = "../../config/stockMerchant.toml";
+        if (!std::filesystem::exists(merchantPath))
+            merchantPath = "../../config/stockMerchant.toml";
         std::string priestPath = "config/stockPriest.toml";
-        if (!std::filesystem::exists(priestPath)) priestPath = "../../config/stockPriest.toml";
+        if (!std::filesystem::exists(priestPath))
+            priestPath = "../../config/stockPriest.toml";
 
         try {
             merchantInitialStock = NpcStockLoader::loadStock(merchantPath);
             priestInitialStock = NpcStockLoader::loadStock(priestPath);
         } catch (const std::exception& e) {
-            std::cerr << "[ERROR Factory] No se pudo cargar la configuración de stocks: " << e.what() << std::endl;
+            std::cerr << "[ERROR Factory] No se pudo cargar la configuración de stocks: "
+                      << e.what() << std::endl;
         }
 
         creators[NPCType::MERCHANT] = [this, &registry](uint32_t id, Position pos) {

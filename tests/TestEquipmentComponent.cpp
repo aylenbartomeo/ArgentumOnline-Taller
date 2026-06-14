@@ -14,10 +14,10 @@
 class EquipmentComponentTest: public ::testing::Test {
 protected:
     // Armaduras (min == max â†’ rollDefense() siempre devuelve el mismo valor)
-    BodyArmor armor{1001, "Armadura de cuero", 5, 5};
-    BodyArmor armor2{1002, "Armadura de placas", 20, 20};
-    Helmet helmet{2001, "Casco de hierro", 6, 6};
-    Shield shield{3001, "Escudo de tortuga", 2, 2};
+    BodyArmor armor{1001, "Armadura de cuero", 0, 5, 5};
+    BodyArmor armor2{1002, "Armadura de placas", 0, 20, 20};
+    Helmet helmet{2001, "Casco de hierro", 0, 6, 6};
+    Shield shield{3001, "Escudo de tortuga", 0, 2, 2};
 
     // Armas
     Weapon sword{4001,
