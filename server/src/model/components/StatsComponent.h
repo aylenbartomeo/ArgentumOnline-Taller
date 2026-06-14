@@ -145,4 +145,18 @@ public:
             }
         }
     }
+
+    uint32_t getAgilityBoostTimeLeft() const {
+        auto it =
+                std::find_if(activeBoosts.begin(), activeBoosts.end(),
+                             [](const TemporaryBoost& b) { return b.type == BoostType::AGILITY; });
+        return it != activeBoosts.end() ? it->timeLeftMs : 0;
+    }
+
+    uint32_t getStrengthBoostTimeLeft() const {
+        auto it =
+                std::find_if(activeBoosts.begin(), activeBoosts.end(),
+                             [](const TemporaryBoost& b) { return b.type == BoostType::STRENGTH; });
+        return it != activeBoosts.end() ? it->timeLeftMs : 0;
+    }
 };

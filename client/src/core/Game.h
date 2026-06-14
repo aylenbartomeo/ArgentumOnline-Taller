@@ -65,6 +65,7 @@ private:
     // State
     SnapshotDTO lastSnapshot;
     PlayerStatsDTO lastStats;
+    uint32_t lastStatsReceiveTimeMs = 0;
 
     // Systems (order matches render pipeline)
     AudioSystem audio;
