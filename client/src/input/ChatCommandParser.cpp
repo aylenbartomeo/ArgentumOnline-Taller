@@ -42,7 +42,6 @@ void ChatCommandParser::registerHandlers() {
     // Comandos sin argumentos
     registerNoArgCommand("/tomar", GrabItemDTO{});
     registerNoArgCommand("/meditar", MeditateDTO{});
-    registerNoArgCommand("/resucitar", ResurrectDTO{});
     registerNoArgCommand("/listar", NpcCommandDTO{LIST, ""});
 
     // Comandos NPC
@@ -94,6 +93,14 @@ void ChatCommandParser::registerHandlers() {
             return ChatDTO{"__INVALID_AMOUNT_PARSE__"};
         }
         return dto;
+    };
+
+    // Comando /resucitar — Requiere target seleccionado (el Sacerdote)
+    handlers["/resucitar"] = [this](const std::string&) -> CommandVariant {
+        std::optional<uint32_t> npcTarget = targetProvider();
+        if (!npcTarget)
+            return ChatDTO{"__INVALID_NO_PRIEST_TARGET__"};
+        return NpcCommandDTO{NpcCommandType::RESPAWN, "", *npcTarget};
     };
 }
 

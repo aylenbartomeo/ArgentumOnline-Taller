@@ -73,6 +73,7 @@ void CharacterAnimator::update(int x, int y, uint32_t nowMs) {
         virtX = next.x;
         virtY = next.y;
     }
+
     lastUpdateMs = nowMs;
     lastX = x;
     lastY = y;

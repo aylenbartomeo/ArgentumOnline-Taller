@@ -230,6 +230,16 @@ void World::moveEntity(uint32_t dbId, Movement direction) {
     Position oldPos = p->getPosition();
     Position candidate = p->tryMove(direction);
 
+    if (p->isDead()) {
+        if (candidate.x < 0 || candidate.x >= map.widthLimit() || candidate.y < 0 || candidate.y >= map.heightLimit())
+            return;
+        
+        p->setPosition(candidate);
+        p->setAction(static_cast<uint8_t>(EntityAction::WALKING), 200.0f);
+        interactionService.endInteraction(entityManager.resolveEntityId(dbId));
+        return;
+    }
+
     if (!map.canMoveTo(candidate))
         return;
 
@@ -750,6 +760,7 @@ void World::handlePlayerDeath(uint32_t dbId) {
         return;
 
     Position pos = p->getPosition();
+    map.setEntityCollision(pos.x, pos.y, false);
 
     p->onActionStarted();
 

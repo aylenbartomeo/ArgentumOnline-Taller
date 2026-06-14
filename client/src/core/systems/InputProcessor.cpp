@@ -173,8 +173,6 @@ void InputProcessor::sendMoveIfDue(const FrameInput& input, const SnapshotDTO& s
     if (input.chatInputActive)
         return;
     const EntityDTO* localPlayer = findEntityById(snapshot, client.getClientId());
-    if (localPlayer && isDead(localPlayer->current_hp))
-        return;
 
     const Uint32 now = SDL_GetTicks();
     if (now - lastMoveSentMs < MOVE_INTERVAL_MS)
