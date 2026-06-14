@@ -12,9 +12,11 @@
 class BankWithdrawHandler: public NpcCommandHandler {
 private:
     GlobalBank& bankInstance;
+    const ItemRegistry& registry;
 
 public:
-    explicit BankWithdrawHandler(GlobalBank& bankInstance): bankInstance(bankInstance) {}
+    explicit BankWithdrawHandler(GlobalBank& bankInstance, const ItemRegistry& registry):
+            bankInstance(bankInstance), registry(registry) {}
 
     InteractionResult execute(Player& player, const NpcCommandDTO& dto) override {
         InteractionResult result;
@@ -58,16 +60,16 @@ public:
             return result;
         }
 
-        // En lugar de usar dto.arg completo, usamos 'subComando' que ya tiene la primera palabra
-        // aislada
-        uint32_t itemId = 0;
-        try {
-            itemId = std::stoul(subComando);
-        } catch (...) {
+        // Asumimos que todo el arg es el nombre del item
+        const Item* itemDef = registry.getItemByName(dto.arg);
+        if (!itemDef) {
             result.status = InteractionStatus::FAILURE;
-            result.msg = "Argumento inválido. Uso: /retirar oro <cant> o /retirar <itemId>";
+            result.msg = "No se encontró ningún artículo con ese nombre. Uso: /retirar oro <cant> "
+                         "o /retirar <nombreItem>";
             return result;
         }
+
+        uint32_t itemId = itemDef->getId();
 
         // Intentamos extraer una unidad del banco
         uint16_t withdrawnAmount = bankInstance.withdrawItemById(playerId, itemId, 1);

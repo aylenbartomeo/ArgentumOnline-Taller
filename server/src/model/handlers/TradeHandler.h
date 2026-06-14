@@ -31,16 +31,14 @@ public:
             return result;
         }
 
-        uint32_t itemId = 0;
-        try {
-            itemId = std::stoul(dto.arg);
-        } catch (...) {
+        const Item* itemDef = registry.getItemByName(dto.arg);
+        if (!itemDef) {
+            result.status = InteractionStatus::FAILURE;
+            result.msg = "No se encontró ningún artículo con ese nombre.";
             return result;
         }
 
-        const Item* itemDef = registry.get_item(itemId);
-        if (!itemDef)
-            return result;
+        uint32_t itemId = itemDef->getId();
 
         if (!isItemPermitted(itemDef)) {
             result.status = InteractionStatus::FAILURE;
