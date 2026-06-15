@@ -219,7 +219,7 @@ void Launcher::render() {
         renderTextBox(passBox);
 
         if (!errorMessage.empty()) {
-            renderTextCenter(errorMessage, 400, 565, {220, 180, 50, 255});
+            renderTextCenter(errorMessage, 400, 570, {220, 180, 50, 255});
         }
     }
 
