@@ -8,6 +8,7 @@
 #include "../animation/CharacterSprites.h"
 #include "../animation/Death.h"
 #include "../common/GameConstants.h"
+#include "../common/WeaponHelper.h"
 #include "../rendering/NpcVisuals.h"
 #include "../ui/HealthBar.h"
 
@@ -36,10 +37,11 @@ std::unordered_map<uint32_t, CharacterAnimator>& EntityRenderer::getAnimators() 
 
 // ─── Render ───────────────────────────────────────────────────────────────────
 void EntityRenderer::render(const CameraOffset& camera, const SnapshotDTO& snapshot, uint32_t nowMs,
-                            std::optional<uint32_t> selectedNpc) {
-    for (const EntityDTO& player: snapshot.players) drawEntity(player, camera, nowMs, selectedNpc);
+                            std::optional<uint32_t> selectedNpc, const PlayerStatsDTO* localStats) {
+    for (const EntityDTO& player: snapshot.players)
+        drawEntity(player, camera, nowMs, selectedNpc, localStats);
     for (const EntityDTO& monster: snapshot.monsters)
-        drawEntity(monster, camera, nowMs, selectedNpc);
+        drawEntity(monster, camera, nowMs, selectedNpc, localStats);
 
     // Purgar animators huérfanos
     for (auto it = animators.begin(); it != animators.end();) {
@@ -59,13 +61,15 @@ void EntityRenderer::render(const CameraOffset& camera, const SnapshotDTO& snaps
 
 // ─── drawEntity ───────────────────────────────────────────────────────────────
 void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& camera, uint32_t nowMs,
-                                std::optional<uint32_t> selectedNpc) {
+                                std::optional<uint32_t> selectedNpc,
+                                const PlayerStatsDTO* localStats) {
     CharacterAnimator& anim = animators[entity.id];
     anim.update(entity.x, entity.y, nowMs);
     const int px = static_cast<int>(anim.getVirtualX() * GC::TILE_SIZE);
     const int py = static_cast<int>(anim.getVirtualY() * GC::TILE_SIZE);
 
-    const EntitySprite sprite = spriteForEntity(entity.type, entity.entityTypeId, entity.id, entity.stateId);
+    const EntitySprite sprite =
+            spriteForEntity(entity.type, entity.entityTypeId, entity.id, entity.stateId);
     SDL2pp::Texture& body = textures.get(std::string(GC::RESOURCES_DIR) + sprite.bodySheet);
 
     const Movement facing = anim.getFacing();
@@ -94,7 +98,32 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
                                py + GC::TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH));
 
     if (isGhostPlayer) {
-        body.SetAlphaMod(255); // Restaurar opacidad del cuerpo
+        body.SetAlphaMod(255);  // Restaurar opacidad del cuerpo
+    }
+
+    if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr &&
+        !isDead(entity.current_hp)) {
+        std::string weaponSheet;
+        if (WeaponHelper::hasSword(*localStats))
+            weaponSheet = "items/espada-mov.png";
+        else if (WeaponHelper::hasAxe(*localStats))
+            weaponSheet = "items/hacha-mov.png";
+        else if (WeaponHelper::hasHammer(*localStats))
+            weaponSheet = "items/martillo-mov.png";
+
+        if (!weaponSheet.empty()) {
+            SDL2pp::Texture& weaponTex = textures.get(std::string(GC::RESOURCES_DIR) + weaponSheet);
+            if (isGhostPlayer)
+                weaponTex.SetAlphaMod(100);
+
+            renderer.Copy(
+                    weaponTex, SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h),
+                    SDL2pp::Rect(px + (GC::TILE_SIZE - bodyDstW) / 2 - camera.x,
+                                 py + GC::TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH));
+
+            if (isGhostPlayer)
+                weaponTex.SetAlphaMod(255);
+        }
     }
 
     if (sprite.drawHead) {
@@ -105,12 +134,12 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         const int headY = py + GC::TILE_SIZE - GC::CHARACTER_DRAW_H + sprite.headOverlap -
                           GC::HEAD_DRAW_H - camera.y;
         if (isGhostPlayer) {
-            headSheet.SetAlphaMod(100); // Aplicar transparencia a la cabeza
+            headSheet.SetAlphaMod(100);  // Aplicar transparencia a la cabeza
         }
         renderer.Copy(headSheet, SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h),
                       SDL2pp::Rect(headX, headY, GC::HEAD_DRAW_W, GC::HEAD_DRAW_H));
         if (isGhostPlayer) {
-            headSheet.SetAlphaMod(255); // Restaurar opacidad de la cabeza
+            headSheet.SetAlphaMod(255);  // Restaurar opacidad de la cabeza
         }
     }
 
