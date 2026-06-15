@@ -2,10 +2,6 @@
 
 InteractionResult InteractionService::startInteraction(uint32_t playerEntityId, Player& player,
                                                        Interactable* npc) {
-    if (player.isDead()) {
-        return {InteractionStatus::FAILURE, "No puedes interactuar estando muerto."};
-    }
-
     if (!npc) {
         return {InteractionStatus::FAILURE, "El NPC no existe."};
     }
@@ -20,10 +16,6 @@ InteractionResult InteractionService::startInteraction(uint32_t playerEntityId, 
 
 InteractionResult InteractionService::executeCommand(uint32_t playerEntityId, Player& player,
                                                      const NpcCommandDTO& dto) {
-    if (player.isDead()) {
-        return {InteractionStatus::FAILURE, "No puedes hacer eso siendo un fantasma."};
-    }
-
     auto it = activeInteractions.find(playerEntityId);
     if (it == activeInteractions.end()) {
         return {InteractionStatus::FAILURE, "Debes seleccionar un NPC primero."};

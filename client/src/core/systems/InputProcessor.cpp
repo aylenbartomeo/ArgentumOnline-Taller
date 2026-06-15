@@ -56,9 +56,6 @@ static bool handleParseErrors(const CommandVariant& cmd, MiniChat& miniChat) {
 }
 
 bool InputProcessor::validateAndAnnotateNpcCommand(NpcCommandDTO& npcCmd) {
-    if (npcCmd.type == LIST)
-        return true;  // LIST no requiere NPC seleccionado
-
     auto target = client.getSelectedNpc();
     if (!target) {
         miniChat.pushMessage("[INFO] Debes de seleccionar un NPC primero.");
@@ -189,8 +186,6 @@ void InputProcessor::sendMoveIfDue(const FrameInput& input, const SnapshotDTO& s
     if (input.chatInputActive)
         return;
     const EntityDTO* localPlayer = findEntityById(snapshot, client.getClientId());
-    if (localPlayer && isDead(localPlayer->current_hp))
-        return;
 
     const Uint32 now = SDL_GetTicks();
     if (now - lastMoveSentMs < MOVE_INTERVAL_MS)

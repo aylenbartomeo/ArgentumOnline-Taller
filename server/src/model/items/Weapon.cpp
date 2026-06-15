@@ -57,4 +57,23 @@ bool Weapon::isMagic() const {
     return false;
 }
 
+CombatResult Weapon::deliver(Attackable& attacker, Attackable& target,
+                             const CombatModifiers& modifiers, CombatSystem& combatSystem) const {
+    if (!deliveryStrategy) {
+        return CombatResult();
+    }
+    return deliveryStrategy->deliver(attacker, target, modifiers, *this, combatSystem);
+}
+
+CombatResult Weapon::applyEffect(Player& attacker, Attackable& target,
+                                 const CombatModifiers& modifiers, CombatSystem& combatSystem) const {
+    if (!hitEffectStrategy) {
+        CombatResult defaultRes;
+        defaultRes.attackHappened = true;
+        return defaultRes;
+    }
+    
+    return hitEffectStrategy->apply(attacker, target, modifiers, *this, combatSystem);
+}
+
 Weapon::~Weapon() = default;

@@ -42,8 +42,8 @@ void ChatCommandParser::registerHandlers() {
     // Comandos sin argumentos
     registerNoArgCommand("/tomar", GrabItemDTO{});
     registerNoArgCommand("/meditar", MeditateDTO{});
-    registerNoArgCommand("/resucitar", ResurrectDTO{});
     registerNoArgCommand("/listar", NpcCommandDTO{LIST, ""});
+    registerNoArgCommand("/resucitar", ResurrectDTO{});
 
     // Comandos NPC
     registerNpcCommand("/curar", HEAL);

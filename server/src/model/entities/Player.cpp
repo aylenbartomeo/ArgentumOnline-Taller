@@ -162,7 +162,7 @@ EntityDTO Player::toEntityDTO() const {
     dto.entityTypeId = static_cast<uint8_t>(stats.getRace());
     dto.action = currentAction;
     dto.level = stats.getLevel();
-
+    dto.stateId = state.isGhost() ? 1 : 0;
     // Equipamiento visual
     const Weapon* w = equipment.getWeapon();
     dto.weaponItemId = w ? static_cast<uint16_t>(w->getId()) : 0;

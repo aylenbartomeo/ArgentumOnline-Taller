@@ -8,6 +8,7 @@
 #include "../animation/CharacterSprites.h"
 #include "../animation/Death.h"
 #include "../common/GameConstants.h"
+#include "../common/WeaponHelper.h"
 #include "../rendering/NpcVisuals.h"
 #include "../ui/HealthBar.h"
 
@@ -18,6 +19,7 @@ constexpr int CHARACTER_FRAME_W = 24;
 constexpr int CHARACTER_FRAME_H = 44;
 constexpr const char* HEALTHBAR_SHEET = "en_barradevida.bmp";
 constexpr const char* SKULL_SHEET = "106.png";
+
 }  // namespace
 
 // ─── Constructor / accesors ───────────────────────────────────────────────────
@@ -35,10 +37,11 @@ std::unordered_map<uint32_t, CharacterAnimator>& EntityRenderer::getAnimators() 
 
 // ─── Render ───────────────────────────────────────────────────────────────────
 void EntityRenderer::render(const CameraOffset& camera, const SnapshotDTO& snapshot, uint32_t nowMs,
-                            std::optional<uint32_t> selectedNpc) {
-    for (const EntityDTO& player: snapshot.players) drawEntity(player, camera, nowMs, selectedNpc);
+                            std::optional<uint32_t> selectedNpc, const PlayerStatsDTO* localStats) {
+    for (const EntityDTO& player: snapshot.players)
+        drawEntity(player, camera, nowMs, selectedNpc, localStats);
     for (const EntityDTO& monster: snapshot.monsters)
-        drawEntity(monster, camera, nowMs, selectedNpc);
+        drawEntity(monster, camera, nowMs, selectedNpc, localStats);
 
     // Purgar animators huérfanos
     for (auto it = animators.begin(); it != animators.end();) {
@@ -58,21 +61,15 @@ void EntityRenderer::render(const CameraOffset& camera, const SnapshotDTO& snaps
 
 // ─── drawEntity ───────────────────────────────────────────────────────────────
 void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& camera, uint32_t nowMs,
-                                std::optional<uint32_t> selectedNpc) {
+                                std::optional<uint32_t> selectedNpc,
+                                const PlayerStatsDTO* localStats) {
     CharacterAnimator& anim = animators[entity.id];
     anim.update(entity.x, entity.y, nowMs);
     const int px = static_cast<int>(anim.getVirtualX() * GC::TILE_SIZE);
     const int py = static_cast<int>(anim.getVirtualY() * GC::TILE_SIZE);
 
-    if (isDead(entity.current_hp)) {
-        SDL2pp::Texture& skull = textures.get(std::string(GC::RESOURCES_DIR) + SKULL_SHEET);
-        const FrameRect sf = skullFrameRect();
-        renderer.Copy(skull, SDL2pp::Rect(sf.x, sf.y, sf.w, sf.h),
-                      SDL2pp::Rect(px - camera.x, py - camera.y, GC::TILE_SIZE, GC::TILE_SIZE));
-        return;
-    }
-
-    const EntitySprite sprite = spriteForEntity(entity.type, entity.entityTypeId, entity.id);
+    const EntitySprite sprite =
+            spriteForEntity(entity.type, entity.entityTypeId, entity.id, entity.stateId);
     SDL2pp::Texture& body = textures.get(std::string(GC::RESOURCES_DIR) + sprite.bodySheet);
 
     const Movement facing = anim.getFacing();
@@ -90,9 +87,73 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
                                              bf.h * GC::CHARACTER_DRAW_H / CHARACTER_FRAME_H *
                                                      sprite.bodyScale / 100;
 
+    // Si el jugador está muerto (fantasma), se aplica transparencia
+    bool isGhostPlayer = (entity.type == EntityType::PLAYER && isGhost(entity.stateId));
+    if (isGhostPlayer) {
+        body.SetAlphaMod(100);
+    }
+
     renderer.Copy(body, SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h),
                   SDL2pp::Rect(px + (GC::TILE_SIZE - bodyDstW) / 2 - camera.x,
                                py + GC::TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH));
+
+    if (isGhostPlayer) {
+        body.SetAlphaMod(255);  // Restaurar opacidad del cuerpo
+    }
+
+    if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr &&
+        !isDead(entity.current_hp)) {
+        std::string weaponSheet;
+
+        // Armas Cuerpo a Cuerpo
+        if (WeaponHelper::hasSword(*localStats))
+            weaponSheet = "items/espada-mov.png";
+        else if (WeaponHelper::hasAxe(*localStats))
+            weaponSheet = "items/hacha-mov.png";
+        else if (WeaponHelper::hasHammer(*localStats))
+            weaponSheet = "items/martillo-mov.png";
+
+        // Armas de Rango
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_SIMPLE_ID))
+            weaponSheet = "items/arco-simple-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_COMPUESTO_ID))
+            weaponSheet = "items/arco-comp-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::VARA_FRESNO_WEAPON_ID))
+            weaponSheet = "items/vara-fresno-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, 2022))
+            weaponSheet = "items/baculo-nudoso-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, 2023))
+            weaponSheet = "items/baculo-engarzado-mov.png";
+
+        if (!weaponSheet.empty()) {
+            SDL2pp::Texture& weaponTex = textures.get(std::string(GC::RESOURCES_DIR) + weaponSheet);
+            if (isGhostPlayer)
+                weaponTex.SetAlphaMod(100);
+
+            const float cellW = static_cast<float>(weaponTex.GetWidth()) / 5.0f;
+            const float cellH = static_cast<float>(weaponTex.GetHeight()) / 4.0f;
+
+            const int wSrcX = static_cast<int>((frameCol % 5) * cellW);
+            const int wSrcY = static_cast<int>(rowForFacing(facing) * cellH);
+            const int wFrameW = static_cast<int>(cellW);
+            const int wFrameH = static_cast<int>(cellH);
+
+            const float scaleX = static_cast<float>(bodyDstW) / bf.w;
+            const float scaleY = static_cast<float>(bodyDstH) / bf.h;
+            const int wDstW = static_cast<int>(wFrameW * scaleX);
+            const int wDstH = static_cast<int>(wFrameH * scaleY);
+
+            const int wDstX = px + (GC::TILE_SIZE - wDstW) / 2 - camera.x;
+            const int wDstY = py + GC::TILE_SIZE - wDstH - camera.y;
+
+            renderer.Copy(weaponTex, SDL2pp::Rect(wSrcX, wSrcY, wFrameW, wFrameH),
+                          SDL2pp::Rect(wDstX, wDstY, wDstW, wDstH));
+
+            if (isGhostPlayer)
+                weaponTex.SetAlphaMod(255);
+        }
+    }
+
 
     if (sprite.drawHead) {
         const FrameRect hf = headFrameRect(facing);
@@ -101,8 +162,14 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         const int headX = px + GC::TILE_SIZE / 2 - GC::HEAD_DRAW_W / 2 - camera.x;
         const int headY = py + GC::TILE_SIZE - GC::CHARACTER_DRAW_H + sprite.headOverlap -
                           GC::HEAD_DRAW_H - camera.y;
+        if (isGhostPlayer) {
+            headSheet.SetAlphaMod(100);  // Aplicar transparencia a la cabeza
+        }
         renderer.Copy(headSheet, SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h),
                       SDL2pp::Rect(headX, headY, GC::HEAD_DRAW_W, GC::HEAD_DRAW_H));
+        if (isGhostPlayer) {
+            headSheet.SetAlphaMod(255);  // Restaurar opacidad de la cabeza
+        }
     }
 
     // Anillo amarillo del jugador local

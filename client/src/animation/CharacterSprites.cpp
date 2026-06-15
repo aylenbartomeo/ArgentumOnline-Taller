@@ -2,7 +2,8 @@
 
 #include "common/utils/types.h"
 
-EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t entityId) {
+EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t entityId,
+                             uint8_t stateId) {
     switch (type) {
         case EntityType::PLAYER:
             return EntitySprite{"1500.png", true, 6, "420.png", 6, 13, 13, 15, 2, 4, 24, 44};

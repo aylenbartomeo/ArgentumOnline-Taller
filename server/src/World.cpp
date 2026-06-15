@@ -750,6 +750,7 @@ void World::handlePlayerDeath(uint32_t dbId) {
         return;
 
     Position pos = p->getPosition();
+    map.setEntityCollision(pos.x, pos.y, false);
 
     p->onActionStarted();
 
