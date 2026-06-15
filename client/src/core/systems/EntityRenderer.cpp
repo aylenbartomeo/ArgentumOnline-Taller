@@ -104,6 +104,8 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr &&
         !isDead(entity.current_hp)) {
         std::string weaponSheet;
+
+        // Armas Cuerpo a Cuerpo
         if (WeaponHelper::hasSword(*localStats))
             weaponSheet = "items/espada-mov.png";
         else if (WeaponHelper::hasAxe(*localStats))
@@ -111,20 +113,47 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         else if (WeaponHelper::hasHammer(*localStats))
             weaponSheet = "items/martillo-mov.png";
 
+        // Armas de Rango
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_SIMPLE_ID))
+            weaponSheet = "items/arco-simple-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_COMPUESTO_ID))
+            weaponSheet = "items/arco-comp-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::VARA_FRESNO_WEAPON_ID))
+            weaponSheet = "items/vara-fresno-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, 2022))
+            weaponSheet = "items/baculo-nudoso-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, 2023))
+            weaponSheet = "items/baculo-engarzado-mov.png";
+
         if (!weaponSheet.empty()) {
             SDL2pp::Texture& weaponTex = textures.get(std::string(GC::RESOURCES_DIR) + weaponSheet);
             if (isGhostPlayer)
                 weaponTex.SetAlphaMod(100);
 
-            renderer.Copy(
-                    weaponTex, SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h),
-                    SDL2pp::Rect(px + (GC::TILE_SIZE - bodyDstW) / 2 - camera.x,
-                                 py + GC::TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH));
+            const float cellW = static_cast<float>(weaponTex.GetWidth()) / 5.0f;
+            const float cellH = static_cast<float>(weaponTex.GetHeight()) / 4.0f;
+
+            const int wSrcX = static_cast<int>((frameCol % 5) * cellW);
+            const int wSrcY = static_cast<int>(rowForFacing(facing) * cellH);
+            const int wFrameW = static_cast<int>(cellW);
+            const int wFrameH = static_cast<int>(cellH);
+
+            const float scaleX = static_cast<float>(bodyDstW) / bf.w;
+            const float scaleY = static_cast<float>(bodyDstH) / bf.h;
+            const int wDstW = static_cast<int>(wFrameW * scaleX);
+            const int wDstH = static_cast<int>(wFrameH * scaleY);
+
+            const int wDstX = px + (GC::TILE_SIZE - wDstW) / 2 - camera.x;
+            const int wDstY = py + GC::TILE_SIZE - wDstH - camera.y;
+
+            renderer.Copy(weaponTex, SDL2pp::Rect(wSrcX, wSrcY, wFrameW, wFrameH),
+                          SDL2pp::Rect(wDstX, wDstY, wDstW, wDstH));
 
             if (isGhostPlayer)
                 weaponTex.SetAlphaMod(255);
         }
     }
+
 
     if (sprite.drawHead) {
         const FrameRect hf = headFrameRect(facing);

@@ -19,12 +19,25 @@ EquipSlot equipSlotForItem(uint32_t itemId) {
 }
 
 const char* iconForItem(uint32_t itemId) {
+    // --- CUERPO A CUERPO ---
     if (itemId == WeaponHelper::SWORD_WEAPON_ID)
         return "resources/items/espada-item.png";
     if (itemId == WeaponHelper::HACHA_WEAPON_ID)
         return "resources/items/hacha-item.png";
     if (itemId == WeaponHelper::MARTILLO_WEAPON_ID)
         return "resources/items/martillo-item.png";
+
+    // --- ARMAS DE RANGO ---
+    if (itemId == WeaponHelper::ARCO_SIMPLE_ID)
+        return "resources/items/arco-simple-item.png";
+    if (itemId == WeaponHelper::ARCO_COMPUESTO_ID)
+        return "resources/items/arco-comp-item.png";
+    if (itemId == WeaponHelper::VARA_FRESNO_WEAPON_ID)
+        return "resources/items/vara-fresno-item.png";
+    if (itemId == 2022)
+        return "resources/items/baculo-nudoso-item.png";
+    if (itemId == 2023)
+        return "resources/items/baculo-engarzado-item.png";
     switch (equipSlotForItem(itemId)) {
         case EquipSlot::WEAPON:
             return "resources/icon_weapon.png";
