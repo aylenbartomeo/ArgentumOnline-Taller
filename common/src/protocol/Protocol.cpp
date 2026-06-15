@@ -106,7 +106,7 @@ void Protocol::sendSnapshot(const SnapshotDTO& snap) {
         sendUint16(entity.shieldItemId);
         sendUint16(entity.bodyArmorItemId);
         sendUint16(entity.level);
-        sendUint8(entity.stateId); // ID de estado del jugador (vivo, fantasma, meditando)
+        sendUint8(entity.stateId);  // ID de estado del jugador (vivo, fantasma, meditando)
         sendString(entity.name);
     }
 
@@ -296,7 +296,7 @@ SnapshotDTO Protocol::receiveSnapshotBody() {
         entity.shieldItemId = recvUint16();
         entity.bodyArmorItemId = recvUint16();
         entity.level = recvUint16();
-        entity.stateId = recvUint8(); // ID de estado del jugador (vivo, fantasma, meditando)
+        entity.stateId = recvUint8();  // ID de estado del jugador (vivo, fantasma, meditando)
         entity.name = recvString();
         snap.players.push_back(entity);
     }

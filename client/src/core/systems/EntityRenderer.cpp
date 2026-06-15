@@ -65,7 +65,8 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     const int px = static_cast<int>(anim.getVirtualX() * GC::TILE_SIZE);
     const int py = static_cast<int>(anim.getVirtualY() * GC::TILE_SIZE);
 
-    const EntitySprite sprite = spriteForEntity(entity.type, entity.entityTypeId, entity.id, entity.stateId);
+    const EntitySprite sprite =
+            spriteForEntity(entity.type, entity.entityTypeId, entity.id, entity.stateId);
     SDL2pp::Texture& body = textures.get(std::string(GC::RESOURCES_DIR) + sprite.bodySheet);
 
     const Movement facing = anim.getFacing();
@@ -94,7 +95,7 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
                                py + GC::TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH));
 
     if (isGhostPlayer) {
-        body.SetAlphaMod(255); // Restaurar opacidad del cuerpo
+        body.SetAlphaMod(255);  // Restaurar opacidad del cuerpo
     }
 
     if (sprite.drawHead) {
@@ -105,12 +106,12 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         const int headY = py + GC::TILE_SIZE - GC::CHARACTER_DRAW_H + sprite.headOverlap -
                           GC::HEAD_DRAW_H - camera.y;
         if (isGhostPlayer) {
-            headSheet.SetAlphaMod(100); // Aplicar transparencia a la cabeza
+            headSheet.SetAlphaMod(100);  // Aplicar transparencia a la cabeza
         }
         renderer.Copy(headSheet, SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h),
                       SDL2pp::Rect(headX, headY, GC::HEAD_DRAW_W, GC::HEAD_DRAW_H));
         if (isGhostPlayer) {
-            headSheet.SetAlphaMod(255); // Restaurar opacidad de la cabeza
+            headSheet.SetAlphaMod(255);  // Restaurar opacidad de la cabeza
         }
     }
 

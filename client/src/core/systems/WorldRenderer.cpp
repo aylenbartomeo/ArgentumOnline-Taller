@@ -7,12 +7,12 @@
 
 #include "../animation/CharacterSprites.h"
 #include "../common/GameConstants.h"
+#include "../rendering/BuildingFronts.h"
 #include "../rendering/NpcVisuals.h"
 #include "../rendering/TileDraw.h"
 #include "../ui/GroundItemLabel.h"
 
 #include "OverlayRegistry.h"
-#include "../rendering/BuildingFronts.h"
 
 namespace GC = GameConstants;
 
