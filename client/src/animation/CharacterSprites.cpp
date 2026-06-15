@@ -6,19 +6,6 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                              uint8_t stateId) {
     switch (type) {
         case EntityType::PLAYER:
-            if (stateId == 1) {
-                return EntitySprite{.bodySheet = "ghost.png",
-                                    .drawHead = false,
-                                    .bodySrcX = 0,
-                                    .bodySrcY = 0,
-                                    .bodySrcW = 128,
-                                    .bodySrcH = 128,
-                                    .bodyScale = 35,
-                                    .customGrid = true,
-                                    .bodyStrideX = 128,
-                                    .bodyStrideY = 128,
-                                    .bodyCols = 4};
-            }
             return EntitySprite{"1500.png", true, 6, "420.png", 6, 13, 13, 15, 2, 4, 24, 44};
         case EntityType::NPC:
             return EntitySprite{"1200.png", true, 15, "420.png", 6, 13, 13, 15, 2, 4, 24, 44};

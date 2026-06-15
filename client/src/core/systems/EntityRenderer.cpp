@@ -65,25 +65,8 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     const int px = static_cast<int>(anim.getVirtualX() * GC::TILE_SIZE);
     const int py = static_cast<int>(anim.getVirtualY() * GC::TILE_SIZE);
 
-    if (isDead(entity.current_hp)) {
-        if (entity.type == EntityType::PLAYER && isGhost(entity.stateId)) {
-            // Continuar para usar el sistema de CharacterSprites con la hoja de fantasma
-        } else {
-            SDL2pp::Texture& skull = textures.get(std::string(GC::RESOURCES_DIR) + SKULL_SHEET);
-            const FrameRect sf = skullFrameRect();
-            renderer.Copy(skull, SDL2pp::Rect(sf.x, sf.y, sf.w, sf.h),
-                          SDL2pp::Rect(px - camera.x, py - camera.y, GC::TILE_SIZE, GC::TILE_SIZE));
-            return;
-        }
-    }
-
     const EntitySprite sprite = spriteForEntity(entity.type, entity.entityTypeId, entity.id, entity.stateId);
     SDL2pp::Texture& body = textures.get(std::string(GC::RESOURCES_DIR) + sprite.bodySheet);
-
-    if (entity.type == EntityType::PLAYER && isGhost(entity.stateId)) {
-        body.SetBlendMode(SDL_BLENDMODE_BLEND);
-        body.SetAlphaMod(180);
-    }
 
     const Movement facing = anim.getFacing();
     const int frameCol = (static_cast<EntityAction>(entity.action) == EntityAction::WALKING) ?
@@ -100,12 +83,18 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
                                              bf.h * GC::CHARACTER_DRAW_H / CHARACTER_FRAME_H *
                                                      sprite.bodyScale / 100;
 
+    // Si el jugador está muerto (fantasma), se aplica transparencia
+    bool isGhostPlayer = (entity.type == EntityType::PLAYER && isGhost(entity.stateId));
+    if (isGhostPlayer) {
+        body.SetAlphaMod(100);
+    }
+
     renderer.Copy(body, SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h),
                   SDL2pp::Rect(px + (GC::TILE_SIZE - bodyDstW) / 2 - camera.x,
                                py + GC::TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH));
 
-    if (entity.type == EntityType::PLAYER && isGhost(entity.stateId)) {
-        body.SetAlphaMod(255);
+    if (isGhostPlayer) {
+        body.SetAlphaMod(255); // Restaurar opacidad del cuerpo
     }
 
     if (sprite.drawHead) {
@@ -115,8 +104,14 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         const int headX = px + GC::TILE_SIZE / 2 - GC::HEAD_DRAW_W / 2 - camera.x;
         const int headY = py + GC::TILE_SIZE - GC::CHARACTER_DRAW_H + sprite.headOverlap -
                           GC::HEAD_DRAW_H - camera.y;
+        if (isGhostPlayer) {
+            headSheet.SetAlphaMod(100); // Aplicar transparencia a la cabeza
+        }
         renderer.Copy(headSheet, SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h),
                       SDL2pp::Rect(headX, headY, GC::HEAD_DRAW_W, GC::HEAD_DRAW_H));
+        if (isGhostPlayer) {
+            headSheet.SetAlphaMod(255); // Restaurar opacidad de la cabeza
+        }
     }
 
     // Anillo amarillo del jugador local

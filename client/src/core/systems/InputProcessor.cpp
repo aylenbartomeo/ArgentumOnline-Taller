@@ -56,9 +56,6 @@ static bool handleParseErrors(const CommandVariant& cmd, MiniChat& miniChat) {
 }
 
 bool InputProcessor::validateAndAnnotateNpcCommand(NpcCommandDTO& npcCmd) {
-    if (npcCmd.type == LIST)
-        return true;  // LIST no requiere NPC seleccionado
-
     auto target = client.getSelectedNpc();
     if (!target) {
         miniChat.pushMessage("[INFO] Debes de seleccionar un NPC primero.");
