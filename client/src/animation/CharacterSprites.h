@@ -27,7 +27,8 @@ struct EntitySprite {
     int bodyCols = 1;
 };
 
-EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t entityId = 0, uint8_t stateId = 0);
+EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t entityId = 0,
+                             uint8_t stateId = 0);
 
 FrameRect bodyFrameRectFor(const EntitySprite& sprite, Movement facing, int col);
 

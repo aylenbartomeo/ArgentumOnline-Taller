@@ -21,7 +21,7 @@ bool Receiver::authenticatePlayer() {
         if (std::holds_alternative<LoginDTO>(cmd)) {
             LoginDTO login_data = std::get<LoginDTO>(cmd);
             if (login_data.username.empty()) {
-                this->protocolo.sendLoginFailed("The username cannot be empty.");
+                this->protocolo.sendLoginFailed("El usuario no puede estar vacío.");
                 return false;
             }
 
@@ -31,8 +31,7 @@ bool Receiver::authenticatePlayer() {
                 uint32_t targetId = authResult.value();
 
                 if (this->monitor.isClientConnected(targetId)) {
-                    this->protocolo.sendLoginFailed(
-                            "The user is already connected in another session.");
+                    this->protocolo.sendLoginFailed("El usuario ya está conectado en otra sesión.");
                     return false;
                 }
 
@@ -46,13 +45,13 @@ bool Receiver::authenticatePlayer() {
                 this->gameQueue.push(joinEvent);
                 return true;
             } else {
-                this->protocolo.sendLoginFailed("Incorrect password or user does not exist.");
+                this->protocolo.sendLoginFailed("Contraseña incorrecta o el usuario no existe.");
                 return false;
             }
         } else if (std::holds_alternative<RegisterDTO>(cmd)) {
             RegisterDTO register_data = std::get<RegisterDTO>(cmd);
             if (register_data.username.empty()) {
-                this->protocolo.sendRegisterFailed("The username cannot be empty.");
+                this->protocolo.sendRegisterFailed("El usuario no puede estar vacío.");
                 return false;
             }
 
@@ -69,14 +68,21 @@ bool Receiver::authenticatePlayer() {
                 this->gameQueue.push(joinEvent);
                 return true;
             } else {
-                this->protocolo.sendRegisterFailed("The user already exists.");
+                this->protocolo.sendRegisterFailed("El usuario ya existe.");
                 return false;
             }
         } else {
             return false;
         }
     } catch (const std::exception& e) {
-        std::cerr << "[SERVER] Error during authentication: " << e.what() << std::endl;
+        std::string errStr = e.what();
+        if (errStr == "Unknown command received in-game" ||
+            errStr == "Comando desconocido recibido en el juego") {
+            std::cout << "[SERVIDOR] Cliente desconectado en pantalla de autenticación."
+                      << std::endl;
+        } else {
+            std::cerr << "[SERVIDOR] Error en autenticación: " << e.what() << std::endl;
+        }
         this->stop();
         return false;
     }

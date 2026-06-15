@@ -72,13 +72,9 @@ TEST(CityPrefabTest, ChurchDoorIsOpenAndWallsAreBlocked) {
 TEST(CityPrefabTest, GroundHasLawnBaseWoodFloorsAndStonePath) {
     const CityPrefab& prefab = getCityPrefab();
     auto groundAt = [&prefab](int dx, int dy) {
-        int v = 0;
-        for (const CityCell& c: prefab.ground) {
-            if (c.dx == dx && c.dy == dy) {
-                v = c.value;
-            }
-        }
-        return v;
+        auto it = std::find_if(prefab.ground.rbegin(), prefab.ground.rend(),
+                               [dx, dy](const CityCell& c) { return c.dx == dx && c.dy == dy; });
+        return (it != prefab.ground.rend()) ? it->value : 0;
     };
     EXPECT_EQ(groundAt(20, 18), 166);
     EXPECT_EQ(groundAt(5, 10), 166);

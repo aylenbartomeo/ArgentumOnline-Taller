@@ -66,13 +66,14 @@ CombatResult Weapon::deliver(Attackable& attacker, Attackable& target,
 }
 
 CombatResult Weapon::applyEffect(Player& attacker, Attackable& target,
-                                 const CombatModifiers& modifiers, CombatSystem& combatSystem) const {
+                                 const CombatModifiers& modifiers,
+                                 CombatSystem& combatSystem) const {
     if (!hitEffectStrategy) {
         CombatResult defaultRes;
         defaultRes.attackHappened = true;
         return defaultRes;
     }
-    
+
     return hitEffectStrategy->apply(attacker, target, modifiers, *this, combatSystem);
 }
 

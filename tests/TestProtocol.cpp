@@ -220,7 +220,7 @@ TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
     entity1.helmetItemId = 2;
     entity1.shieldItemId = 3;
     entity1.bodyArmorItemId = 4;
-    entity1.stateId = 1; // 1 = Fantasma / Muerto
+    entity1.stateId = 1;  // 1 = Fantasma / Muerto
 
     EntityDTO entity2;
     entity2.id = 200;
@@ -261,7 +261,7 @@ TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
     EXPECT_EQ(received_snap.players[0].helmetItemId, 2);
     EXPECT_EQ(received_snap.players[0].shieldItemId, 3);
     EXPECT_EQ(received_snap.players[0].bodyArmorItemId, 4);
-    EXPECT_EQ(received_snap.players[0].stateId, 1); // Validar que se reciba el estado de fantasma
+    EXPECT_EQ(received_snap.players[0].stateId, 1);  // Validar que se reciba el estado de fantasma
 
     ASSERT_EQ(received_snap.monsters.size(), 1u);
     EXPECT_EQ(received_snap.monsters[0].id, 200);

@@ -7,8 +7,9 @@
 #include <utility>
 #include <vector>
 
-#include "CityStamp.h"
 #include "loop/ConstantRateLoop.h"
+
+#include "CityStamp.h"
 
 namespace {
 constexpr int FRAME_DURATION_MS = 16;

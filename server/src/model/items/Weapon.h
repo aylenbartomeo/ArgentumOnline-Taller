@@ -12,8 +12,8 @@ class IAttackDelivery;
 class IHitEffect;
 class Player;
 class Attackable;
-class CombatSystem; 
-struct CombatResult; 
+class CombatSystem;
+struct CombatResult;
 struct CombatModifiers;
 
 enum class WeaponType { MELEE, RANGED, MAGIC };

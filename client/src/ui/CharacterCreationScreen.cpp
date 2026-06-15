@@ -9,7 +9,7 @@
 namespace {
 constexpr int MENU_FRAME_DURATION_MS = 33;
 constexpr const char* FONT_PATH = "resources/DejaVuSans-Bold.ttf";
-constexpr const char* BACKGROUND = "resources/CREAR-PERSONAJE.png";
+constexpr const char* BACKGROUND = "resources/pantallas/CREAR-PERSONAJE.png";
 
 const std::vector<std::string> RACE_NAMES = {"Humano", "Elfo", "Enano", "Gnomo"};
 const std::vector<std::string> CLASS_NAMES = {"Mago", "Guerrero", "Paladín", "Clérigo"};
