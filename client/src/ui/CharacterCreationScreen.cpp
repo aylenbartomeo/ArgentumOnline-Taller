@@ -4,7 +4,10 @@
 
 #include <SDL2/SDL.h>
 
+#include "loop/ConstantRateLoop.h"
+
 namespace {
+constexpr int MENU_FRAME_DURATION_MS = 33;
 constexpr const char* FONT_PATH = "resources/DejaVuSans-Bold.ttf";
 constexpr const char* BACKGROUND = "resources/CREAR-PERSONAJE.png";
 
@@ -234,11 +237,12 @@ void CharacterCreationScreen::render() {
 }
 
 CharacterCreationScreen::CreationResult CharacterCreationScreen::run() {
-    SDL_Event event;
     bool running = true;
     CreationResult result = {false, 0, 0};
 
-    while (running) {
+    ConstantRateLoop loop(MENU_FRAME_DURATION_MS);
+    loop.run([&](int64_t) -> bool {
+        SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = false;
@@ -290,8 +294,8 @@ CharacterCreationScreen::CreationResult CharacterCreationScreen::run() {
             }
         }
         render();
-        SDL_Delay(33);
-    }
+        return running;
+    });
 
     return result;
 }

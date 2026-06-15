@@ -8,6 +8,8 @@
 namespace WeaponHelper {
 
 constexpr uint32_t SWORD_WEAPON_ID = 2000;
+constexpr uint32_t HACHA_WEAPON_ID = 2001;
+constexpr uint32_t MARTILLO_WEAPON_ID = 2002;
 constexpr uint32_t STAFF_WEAPON_ID = 203;
 constexpr uint32_t VARA_FRESNO_WEAPON_ID = 2020;
 constexpr uint32_t FLAUTA_WEAPON_ID = 2021;
@@ -22,6 +24,10 @@ inline bool hasEquipped(const PlayerStatsDTO& stats, uint32_t itemId) {
 }
 
 inline bool hasSword(const PlayerStatsDTO& stats) { return hasEquipped(stats, SWORD_WEAPON_ID); }
+inline bool hasAxe(const PlayerStatsDTO& stats) { return hasEquipped(stats, HACHA_WEAPON_ID); }
+inline bool hasHammer(const PlayerStatsDTO& stats) {
+    return hasEquipped(stats, MARTILLO_WEAPON_ID);
+}
 inline bool hasStaff(const PlayerStatsDTO& stats) { return hasEquipped(stats, STAFF_WEAPON_ID); }
 inline bool hasVaraFresno(const PlayerStatsDTO& stats) {
     return hasEquipped(stats, VARA_FRESNO_WEAPON_ID);

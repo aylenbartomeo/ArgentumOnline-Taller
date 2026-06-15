@@ -8,6 +8,7 @@
 #include "../animation/CharacterSprites.h"
 #include "../animation/Death.h"
 #include "../common/GameConstants.h"
+#include "../common/WeaponHelper.h"
 #include "../rendering/NpcVisuals.h"
 #include "../ui/HealthBar.h"
 
@@ -36,10 +37,11 @@ std::unordered_map<uint32_t, CharacterAnimator>& EntityRenderer::getAnimators() 
 
 // ─── Render ───────────────────────────────────────────────────────────────────
 void EntityRenderer::render(const CameraOffset& camera, const SnapshotDTO& snapshot, uint32_t nowMs,
-                            std::optional<uint32_t> selectedNpc) {
-    for (const EntityDTO& player: snapshot.players) drawEntity(player, camera, nowMs, selectedNpc);
+                            std::optional<uint32_t> selectedNpc, const PlayerStatsDTO* localStats) {
+    for (const EntityDTO& player: snapshot.players)
+        drawEntity(player, camera, nowMs, selectedNpc, localStats);
     for (const EntityDTO& monster: snapshot.monsters)
-        drawEntity(monster, camera, nowMs, selectedNpc);
+        drawEntity(monster, camera, nowMs, selectedNpc, localStats);
 
     // Purgar animators huérfanos
     for (auto it = animators.begin(); it != animators.end();) {
@@ -59,7 +61,8 @@ void EntityRenderer::render(const CameraOffset& camera, const SnapshotDTO& snaps
 
 // ─── drawEntity ───────────────────────────────────────────────────────────────
 void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& camera, uint32_t nowMs,
-                                std::optional<uint32_t> selectedNpc) {
+                                std::optional<uint32_t> selectedNpc,
+                                const PlayerStatsDTO* localStats) {
     CharacterAnimator& anim = animators[entity.id];
     anim.update(entity.x, entity.y, nowMs);
     const int px = static_cast<int>(anim.getVirtualX() * GC::TILE_SIZE);
@@ -97,6 +100,60 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     if (isGhostPlayer) {
         body.SetAlphaMod(255);  // Restaurar opacidad del cuerpo
     }
+
+    if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr &&
+        !isDead(entity.current_hp)) {
+        std::string weaponSheet;
+
+        // Armas Cuerpo a Cuerpo
+        if (WeaponHelper::hasSword(*localStats))
+            weaponSheet = "items/espada-mov.png";
+        else if (WeaponHelper::hasAxe(*localStats))
+            weaponSheet = "items/hacha-mov.png";
+        else if (WeaponHelper::hasHammer(*localStats))
+            weaponSheet = "items/martillo-mov.png";
+
+        // Armas de Rango
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_SIMPLE_ID))
+            weaponSheet = "items/arco-simple-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_COMPUESTO_ID))
+            weaponSheet = "items/arco-comp-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::VARA_FRESNO_WEAPON_ID))
+            weaponSheet = "items/vara-fresno-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, 2022))
+            weaponSheet = "items/baculo-nudoso-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, 2023))
+            weaponSheet = "items/baculo-engarzado-mov.png";
+
+        if (!weaponSheet.empty()) {
+            SDL2pp::Texture& weaponTex = textures.get(std::string(GC::RESOURCES_DIR) + weaponSheet);
+            if (isGhostPlayer)
+                weaponTex.SetAlphaMod(100);
+
+            const float cellW = static_cast<float>(weaponTex.GetWidth()) / 5.0f;
+            const float cellH = static_cast<float>(weaponTex.GetHeight()) / 4.0f;
+
+            const int wSrcX = static_cast<int>((frameCol % 5) * cellW);
+            const int wSrcY = static_cast<int>(rowForFacing(facing) * cellH);
+            const int wFrameW = static_cast<int>(cellW);
+            const int wFrameH = static_cast<int>(cellH);
+
+            const float scaleX = static_cast<float>(bodyDstW) / bf.w;
+            const float scaleY = static_cast<float>(bodyDstH) / bf.h;
+            const int wDstW = static_cast<int>(wFrameW * scaleX);
+            const int wDstH = static_cast<int>(wFrameH * scaleY);
+
+            const int wDstX = px + (GC::TILE_SIZE - wDstW) / 2 - camera.x;
+            const int wDstY = py + GC::TILE_SIZE - wDstH - camera.y;
+
+            renderer.Copy(weaponTex, SDL2pp::Rect(wSrcX, wSrcY, wFrameW, wFrameH),
+                          SDL2pp::Rect(wDstX, wDstY, wDstW, wDstH));
+
+            if (isGhostPlayer)
+                weaponTex.SetAlphaMod(255);
+        }
+    }
+
 
     if (sprite.drawHead) {
         const FrameRect hf = headFrameRect(facing);

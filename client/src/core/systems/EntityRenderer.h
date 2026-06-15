@@ -11,6 +11,7 @@
 #include "../animation/CharacterAnimator.h"
 #include "../rendering/TextureManager.h"
 #include "../rendering/Viewport.h"
+#include "common/include/dto/PlayerStatsDTO.h"
 #include "common/include/dto/Snapshot.h"
 
 class EntityRenderer {
@@ -21,7 +22,8 @@ public:
 
     // Dibuja todos los jugadores y monstruos. Purga animators obsoletos.
     void render(const CameraOffset& camera, const SnapshotDTO& snapshot, uint32_t nowMs,
-                std::optional<uint32_t> selectedNpc = std::nullopt);
+                std::optional<uint32_t> selectedNpc = std::nullopt,
+                const PlayerStatsDTO* localStats = nullptr);
 
     // Acceso a animators (necesario para FxSystem y CameraSystem).
     const std::unordered_map<uint32_t, CharacterAnimator>& getAnimators() const;
@@ -29,7 +31,8 @@ public:
 
 private:
     void drawEntity(const EntityDTO& entity, const CameraOffset& camera, uint32_t nowMs,
-                    std::optional<uint32_t> selectedNpc);
+                    std::optional<uint32_t> selectedNpc, const PlayerStatsDTO* localStats);
+
     void drawHealthBar(const EntityDTO& entity, const CameraOffset& camera);
 
     TextureManager& textures;
