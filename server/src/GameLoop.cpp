@@ -7,6 +7,7 @@
 #include "../include/ServerEvents.h"
 #include "config/MonsterConfigLoader.h"
 #include "dto/ClanCommandDTO.h"
+#include "loop/ConstantRateLoop.h"
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
                    const std::filesystem::path& configDir, const WorldConfig& wConfig):
@@ -45,10 +46,13 @@ GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
 
 void GameLoop::run() {
     const int MS_PER_FRAME = 33;
+    ConstantRateLoop loop(MS_PER_FRAME);
 
     try {
-        while (isRunning) {
-            auto start_time = std::chrono::steady_clock::now();
+        loop.run([this, MS_PER_FRAME](int64_t) {
+            if (!isRunning) {
+                return false;
+            }
 
             processInputs();
             dispatchWorldEvents();
@@ -64,15 +68,8 @@ void GameLoop::run() {
                 timeSinceLastSave = 0.0f;
             }
 
-            auto end_time = std::chrono::steady_clock::now();
-            auto elapsed =
-                    std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time)
-                            .count();
-
-            if (elapsed < MS_PER_FRAME) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(MS_PER_FRAME - elapsed));
-            }
-        }
+            return isRunning.load();
+        });
         persistWorldState();  // Guardado final al salir
     } catch (const std::exception& e) {
         std::cerr << "[GAMELOOP] Error: " << e.what() << std::endl;
