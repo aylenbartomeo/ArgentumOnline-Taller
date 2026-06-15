@@ -2,14 +2,8 @@ find_package(SDL2_ttf REQUIRED)
 
 add_library(lib_client STATIC)
 
-# Crucial para Qt5: Activamos el procesado automático de UI y Meta-Objetos en la lib
-set_target_properties(lib_client PROPERTIES
-    AUTOMOC ON
-    AUTOUIC ON
-    AUTORCC ON
-)
 
-set_property(TARGET lib_client APPEND PROPERTY AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/ui")
+
 
 target_sources(lib_client
     PRIVATE
@@ -59,7 +53,6 @@ target_sources(lib_client
     src/input/EventHandler.cpp
     src/input/ChatCommandParser.cpp
 
-    ui/launcher.ui
 
     PUBLIC
     # core
@@ -136,7 +129,6 @@ target_link_libraries(lib_client PUBLIC
     SDL2::SDL2
     SDL2_ttf::SDL2_ttf
     SDL2_mixer::SDL2_mixer
-    Qt5::Widgets 
     nlohmann_json::nlohmann_json
     pthread
 )

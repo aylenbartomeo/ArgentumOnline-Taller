@@ -1,4 +1,3 @@
-#include <QApplication>
 #include <iostream>
 #include <memory>
 
@@ -6,17 +5,14 @@
 
 #include "Client.h"
 #include "Game.h"
-
 int main(int argc, char* argv[]) try {
-    QApplication app(argc, argv);
-
+    (void)argc;
+    (void)argv;
     while (true) {
         std::unique_ptr<Client> activeClient = nullptr;
         {
             Launcher launcher;
-            launcher.show();
-
-            app.exec();
+            launcher.run();
 
             if (!launcher.isAuthenticated()) {
                 std::cout << "Launcher closure" << std::endl;
