@@ -1,5 +1,7 @@
 #include "ItemIcons.h"
 
+#include "../core/common/WeaponHelper.h"
+
 EquipSlot equipSlotForItem(uint32_t itemId) {
     if (itemId >= 1001 && itemId <= 1009) {
         return EquipSlot::ARMOR;
@@ -17,6 +19,12 @@ EquipSlot equipSlotForItem(uint32_t itemId) {
 }
 
 const char* iconForItem(uint32_t itemId) {
+    if (itemId == WeaponHelper::SWORD_WEAPON_ID)
+        return "resources/items/espada-item.png";
+    if (itemId == WeaponHelper::HACHA_WEAPON_ID)
+        return "resources/items/hacha-item.png";
+    if (itemId == WeaponHelper::MARTILLO_WEAPON_ID)
+        return "resources/items/martillo-item.png";
     switch (equipSlotForItem(itemId)) {
         case EquipSlot::WEAPON:
             return "resources/icon_weapon.png";
