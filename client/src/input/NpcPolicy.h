@@ -27,6 +27,8 @@ inline std::optional<Rule> validate(const std::string& npcType, NpcCommandType c
                 return Rule{"[INFO] Comprando artículos sagrados..."};
             case RESPAWN:
                 return Rule{"[INFO] Solicitando resurrección..."};
+            case LIST:
+                return Rule{"[INFO] Te muestro las ofrendas disponibles..."};
             default:
                 return std::nullopt;
         }
@@ -37,6 +39,8 @@ inline std::optional<Rule> validate(const std::string& npcType, NpcCommandType c
                 return Rule{"[INFO] Comprando mercancía..."};
             case SELL:
                 return Rule{"[INFO] Vendiendo mercancía..."};
+            case LIST:
+                return Rule{"[INFO] Te muestro mi mercadería..."};
             default:
                 return std::nullopt;
         }
@@ -47,6 +51,8 @@ inline std::optional<Rule> validate(const std::string& npcType, NpcCommandType c
                 return Rule{"[INFO] Depositando en tu bóveda..."};
             case WITHDRAW:
                 return Rule{"[INFO] Retirando de tu bóveda..."};
+            case LIST:
+                return Rule{"[INFO] Revisando tu bóveda..."};
             default:
                 return std::nullopt;
         }
