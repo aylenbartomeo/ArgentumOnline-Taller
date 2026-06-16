@@ -151,10 +151,33 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
             const int dstW = static_cast<int>(frameW * scaleX);
             const int dstH = static_cast<int>(frameH * scaleY);
 
-            // ARMOR_OFFSET_X: corre la capa de armadura/escudo horizontalmente
-            constexpr int ARMOR_OFFSET_X = -3;
-            const int dstX = px + (GC::TILE_SIZE - dstW) / 2 - camera.x + ARMOR_OFFSET_X;
-            const int dstY = py + GC::TILE_SIZE - dstH - camera.y;
+            // --- AJUSTES INDIVIDUALES POR DIRECCIÓN ---
+            int offsetX = -4;
+            int offsetY = 0;
+
+            if (frameCol > 0) {
+                switch (facing) {
+                    case Movement::DOWN:
+                        offsetX = -8;
+                        offsetY = 0;
+                        break;
+                    case Movement::UP:
+                        offsetX = -8;
+                        offsetY = 0;
+                        break;
+                    case Movement::LEFT:
+                        offsetX = -5;
+                        offsetY = 0;
+                        break;
+                    case Movement::RIGHT:
+                        offsetX = -14;
+                        offsetY = 0;
+                        break;
+                }
+            }
+
+            const int dstX = bodyDstX - (dstW - bodyDstW) / 2 + offsetX;
+            const int dstY = bodyDstY - (dstH - bodyDstH) + offsetY;
 
             renderer.Copy(layerTex, SDL2pp::Rect(srcX, srcY, frameW, frameH),
                           SDL2pp::Rect(dstX, dstY, dstW, dstH));
@@ -163,6 +186,7 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
                 layerTex.SetAlphaMod(255);
         };
 
+        // Armadura se dibuja antes que el escudo para que el escudo quede al frente.
         drawArmorLayer(armorInfo);
         drawArmorLayer(shieldInfo);
     }
