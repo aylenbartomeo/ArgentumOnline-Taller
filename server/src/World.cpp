@@ -798,7 +798,7 @@ void World::playerResurrect(uint32_t dbId) {
             int dist = p->getPosition().distance_to(pos);
             if (dist < minDistance) minDistance = dist;
         }
-        int delayMs = minDistance * 200;
+        int delayMs = minDistance * resurrectionService.getDelayFactor();
 
         p->immobilizeForResurrection(static_cast<float>(delayMs));
     }
