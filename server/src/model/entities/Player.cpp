@@ -14,15 +14,12 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race r
         dbId(dbId),
         name(name),
         pos(spawn),
-        // Stats ahora solo maneja combate (sin max_gold)
         stats(race, cls, raceConfig, classConfig, playerBase),
-        // Inventario ahora absorbe la economía: 20 slots, 5000 seguro, 100000 tope máximo
         inventory(inventoryConfig),
         equipment(),
         state(),
         regeneration(stats, state, raceConfig, classConfig),
         itemRegistry(&itemRegistry) {
-    // Restauramos el oro inicial que arregló el test
     this->addGold(playerBase.startingGold);
 }
 
@@ -270,7 +267,6 @@ void Player::updateResurrectionTimer(float deltaTimeMs) {
     }
 }
 
-// Exporta el estado completo del jugador a un struct de persistencia binaria
 PlayerPersistData Player::toPersistData() const {
     PlayerPersistData d{};
     d.dbId = this->dbId;
@@ -296,7 +292,7 @@ PlayerPersistData Player::toPersistData() const {
 
     // Inventario
     const auto& slots = inventory.getSlots();
-    d.inventorySize = static_cast<uint8_t>(std::min(slots.size(), size_t(16)));
+    d.inventorySize = static_cast<uint8_t>(std::min(slots.size(), size_t(32)));
     for (uint8_t i = 0; i < d.inventorySize; ++i) {
         d.inventory[i].item_id = slots[i].item_id;
         d.inventory[i].amount = slots[i].amount;
@@ -312,14 +308,11 @@ PlayerPersistData Player::toPersistData() const {
     return d;
 }
 
-// Restaura el estado del jugador desde un struct de persistencia binaria
 void Player::fromPersistData(const PlayerPersistData& data) {
-    // Restaurar stats usando el método dedicado de StatsComponent
     stats.restoreFromPersist(data.hp, data.mana, data.exp, data.level);
     inventory.setGold(data.gold);
 
-    // Inventario
-    uint8_t slots = std::min<uint8_t>(data.inventorySize, 16);
+    uint8_t slots = std::min<uint8_t>(data.inventorySize, 32);
     for (uint8_t i = 0; i < slots; ++i) {
         inventory.restoreSlot(i, data.inventory[i].item_id, data.inventory[i].amount);
     }
@@ -330,7 +323,6 @@ void Player::fromPersistData(const PlayerPersistData& data) {
         }
     }
 
-    // Estado
     if (data.stateId == 1)
         handleDeath();
     else if (data.stateId == 2)
