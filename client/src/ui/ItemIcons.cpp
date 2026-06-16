@@ -21,23 +21,46 @@ EquipSlot equipSlotForItem(uint32_t itemId) {
 const char* iconForItem(uint32_t itemId) {
     // --- CUERPO A CUERPO ---
     if (itemId == WeaponHelper::SWORD_WEAPON_ID)
-        return "resources/items/espada-item.png";
+        return "resources/items/espada.png";
     if (itemId == WeaponHelper::HACHA_WEAPON_ID)
-        return "resources/items/hacha-item.png";
+        return "resources/items/hacha.png";
     if (itemId == WeaponHelper::MARTILLO_WEAPON_ID)
-        return "resources/items/martillo-item.png";
+        return "resources/items/martillo.png";
 
     // --- ARMAS DE RANGO ---
     if (itemId == WeaponHelper::ARCO_SIMPLE_ID)
-        return "resources/items/arco-simple-item.png";
+        return "resources/items/arco-simple.png";
     if (itemId == WeaponHelper::ARCO_COMPUESTO_ID)
-        return "resources/items/arco-comp-item.png";
+        return "resources/items/arco-compuesto.png";
     if (itemId == WeaponHelper::VARA_FRESNO_WEAPON_ID)
-        return "resources/items/vara-fresno-item.png";
+        return "resources/items/vara-fresno.png";
     if (itemId == 2022)
-        return "resources/items/baculo-nudoso-item.png";
+        return "resources/items/baculo-nudoso.png";
     if (itemId == 2023)
-        return "resources/items/baculo-engarzado-item.png";
+        return "resources/items/baculo-engarzado.png";
+
+    // --- ARMADURAS ---
+    if (itemId == 1000)
+        return "resources/armor/armadura-cuero.png";
+    if (itemId == 1001)
+        return "resources/armor/armadura-placas.png";
+    if (itemId == 1002)
+        return "resources/armor/tunica-azul.png";
+
+    // --- ESCUDOS ---
+    if (itemId == 1020)
+        return "resources/armor/escudo-tortuga.png";
+    if (itemId == 1021)
+        return "resources/armor/escudo-hierro.png";
+
+    // --- CASCOS Y SOMBREROS ---
+    if (itemId == 1010)
+        return "resources/armor/capucha.png";
+    if (itemId == 1011)
+        return "resources/armor/casco-hierro.png";
+    if (itemId == 1012)
+        return "resources/armor/sombrero-magico.png";
+
     switch (equipSlotForItem(itemId)) {
         case EquipSlot::WEAPON:
             return "resources/icon_weapon.png";
@@ -50,6 +73,7 @@ const char* iconForItem(uint32_t itemId) {
         case EquipSlot::NONE:
             break;
     }
+
     if (itemId >= 3000 && itemId <= 3099) {
         return "resources/icon_potion.png";
     }

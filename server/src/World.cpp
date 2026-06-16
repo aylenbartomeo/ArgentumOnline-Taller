@@ -62,16 +62,17 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         } else {
             eventPublisher.sendTo(dbId, "[CHEAT] Ya estás muerto.");
         }
-    } else if (type == CheatType::GIVE_RANGED_WEAPONS) {
-        Player* p = entityManager.getPlayer(dbId);
-        if (p) {
-            p->addItem(2010, 1);
-            p->addItem(2011, 1);
-            p->addItem(2020, 1);
-            p->addItem(2021, 1);
-            p->addItem(2022, 1);
-            p->addItem(2023, 1);
-        }
+    } else if (type == CheatType::GIVE_WEAPONS) {
+        player->addItem(2000, 1);
+        player->addItem(2001, 1);
+        player->addItem(2002, 1);
+        player->addItem(2010, 1);
+        player->addItem(2011, 1);
+        player->addItem(2020, 1);
+        player->addItem(2021, 1);
+        player->addItem(2022, 1);
+        player->addItem(2023, 1);
+
         eventPublisher.sendTo(
                 dbId, "[CHEAT] Armas de rango agregados al inventario. Equipalo con doble click.");
     } else if (type == CheatType::INFINITE_MANA) {
@@ -81,6 +82,17 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
     } else if (type == CheatType::GIVE_GOLD) {
         player->addGold(1000);
         eventPublisher.sendTo(dbId, "[CHEAT] +1.000 de oro agregados.");
+    } else if (type == CheatType::GIVE_ARMORS) {
+        player->addItem(1000, 1);
+        player->addItem(1001, 1);
+        player->addItem(1002, 1);
+        player->addItem(1010, 1);
+        player->addItem(1011, 1);
+        player->addItem(1012, 1);
+        player->addItem(1020, 1);
+        player->addItem(1021, 1);
+
+        eventPublisher.sendTo(dbId, "[CHEAT] Todas las armaduras agregadas.");
     }
 }
 
