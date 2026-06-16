@@ -8,6 +8,18 @@
 #include "model/entities/Player.h"
 #include "model/items/Consumable.h"
 
+static ServerConfig getTestServerConfig() {
+    ServerConfig config;
+    int port;
+    config.worldName = "";
+    config.mapPath + "";
+    config.clanBonusRange = 5;
+    config.criticalProbability = 0.10f;
+    config.clanAttackBonusPerMember = 0.05f;
+    config.clanDefenseBonusPerMember = 0.05f;
+    return config;
+}
+
 TEST(GameLoopTest, GameLoop_RunsAndProcessesEventsAsynchronously) {
     // 1. Inicializamos la cola de eventos y el monitor
     Queue<GameEvent> gameQueue;
@@ -15,7 +27,7 @@ TEST(GameLoopTest, GameLoop_RunsAndProcessesEventsAsynchronously) {
 
     // Creación del GameLoop (nace con isRunning = true pero sin morder el hilo aún)
     WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
-    GameLoop loop(gameQueue, monitor, "../config", wConfig);
+    GameLoop loop(gameQueue, monitor, "../config", wConfig, getTestServerConfig());
 
     // 2. Preparamos los datos de prueba: un JoinEvent y un comando de movimiento
     JoinEvent join;
@@ -61,7 +73,7 @@ TEST(GameLoopTest, GameLoop_StopsCleanlyEvenWithEmptyQueue) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
     WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
-    GameLoop loop(gameQueue, monitor, "../config", wConfig);
+    GameLoop loop(gameQueue, monitor, "../config", wConfig, getTestServerConfig());
 
     // Lanzamos con la cola vacía
     std::thread hiloGameLoop(&GameLoop::run, &loop);
@@ -88,7 +100,7 @@ TEST(GameLoopTest, GameLoop_ConsumablesStopAffectingStatsAfterDuration) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
     WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
-    GameLoop loop(gameQueue, monitor, "../config", wConfig);
+    GameLoop loop(gameQueue, monitor, "../config", wConfig, getTestServerConfig());
 
     // 1. Unimos un jugador al mundo
     JoinEvent join;

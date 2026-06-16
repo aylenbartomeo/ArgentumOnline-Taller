@@ -18,6 +18,7 @@
 #include "model/items/ItemRegistry.h"
 #include "persistence/PlayerDataStore.h"
 #include "persistence/WorldDataStore.h"
+#include "server/src/config/ServerConfigLoader.h"
 
 #include "ConnectionMonitor.h"
 #include "World.h"
@@ -58,7 +59,8 @@ private:
 
 public:
     GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
-             const std::filesystem::path& configDir, const WorldConfig& wConfig);
+             const std::filesystem::path& configDir, const WorldConfig& wConfig,
+             const ServerConfig& serverConfig);
 
     void run() override;
     void stop() override;

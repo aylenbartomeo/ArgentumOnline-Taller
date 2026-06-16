@@ -44,6 +44,17 @@ static Monster makeTestMonster(uint32_t id = 2) {
     return Monster(id, NPCType::GOBLIN, pos, mConfig);
 }
 
+static ServerConfig getTestServerConfig() {
+    ServerConfig config;
+    config.worldName = "";
+    config.mapPath = "";
+    config.clanBonusRange = 5;
+    config.criticalProbability = 0.10f;
+    config.clanAttackBonusPerMember = 0.05f;
+    config.clanDefenseBonusPerMember = 0.05f;
+    return config;
+}
+
 // =========================================================================
 // TEST 1: CombatSystem::applyDamageEffect Básico sin defensa
 // =========================================================================
@@ -57,7 +68,7 @@ TEST(CombatSystemTest, ApplyDamageEffectBasicNoDefense) {
     ClanRepository cr;
     EventPublisher ep;
     DummyCombatCallback cb;
-    CombatSystem combatSystem(map, em, cr, ep, cb, false);
+    CombatSystem combatSystem(map, em, cr, ep, cb, false, getTestServerConfig());
 
     Player attacker = makeTestPlayer(1);
     Player victim = makeTestPlayer(2);
@@ -92,7 +103,7 @@ TEST(CombatSystemTest, ApplyDamageEffectWithDefense) {
     ClanRepository cr;
     EventPublisher ep;
     DummyCombatCallback cb;
-    CombatSystem combatSystem(map, em, cr, ep, cb, false);
+    CombatSystem combatSystem(map, em, cr, ep, cb, false, getTestServerConfig());
 
     Player attacker = makeTestPlayer(1);
     Player victimWithArmor = makeTestPlayer(2);
@@ -140,7 +151,7 @@ TEST(CombatSystemTest, ApplyHealEffectBasic) {
     ClanRepository cr;
     EventPublisher ep;
     DummyCombatCallback cb;
-    CombatSystem combatSystem(map, em, cr, ep, cb, false);
+    CombatSystem combatSystem(map, em, cr, ep, cb, false, getTestServerConfig());
 
     Player victim = makeTestPlayer(1);
     victim.receiveDamage(10);
@@ -164,7 +175,7 @@ TEST(CombatSystemTest, MeleeDamageEffectBasic) {
     ClanRepository cr;
     EventPublisher ep;
     DummyCombatCallback cb;
-    CombatSystem combatSystem(map, em, cr, ep, cb, false);
+    CombatSystem combatSystem(map, em, cr, ep, cb, false, getTestServerConfig());
 
     Player attacker = makeTestPlayer(1);
     Player victim = makeTestPlayer(2);
@@ -201,7 +212,7 @@ TEST(CombatSystemTest, MagicDamageEffectSufficientMana) {
     ClanRepository cr;
     EventPublisher ep;
     DummyCombatCallback cb;
-    CombatSystem combatSystem(map, em, cr, ep, cb, false);
+    CombatSystem combatSystem(map, em, cr, ep, cb, false, getTestServerConfig());
 
     Player attacker = makeTestPlayer(1);
     Player victim = makeTestPlayer(2);
@@ -241,7 +252,7 @@ TEST(CombatSystemTest, MagicDamageEffectInsufficientMana) {
     ClanRepository cr;
     EventPublisher ep;
     DummyCombatCallback cb;
-    CombatSystem combatSystem(map, em, cr, ep, cb, false);
+    CombatSystem combatSystem(map, em, cr, ep, cb, false, getTestServerConfig());
 
     Player attacker = makeTestPlayer(1);
     Player victim = makeTestPlayer(2);
@@ -273,7 +284,7 @@ TEST(CombatSystemTest, MagicHealEffectSuccess) {
     ClanRepository cr;
     EventPublisher ep;
     DummyCombatCallback cb;
-    CombatSystem combatSystem(map, em, cr, ep, cb, false);
+    CombatSystem combatSystem(map, em, cr, ep, cb, false, getTestServerConfig());
 
     Player attacker = makeTestPlayer(1);
     Player victim = makeTestPlayer(2);
@@ -308,7 +319,7 @@ TEST(CombatSystemTest, MagicHealEffectTargetNotPlayer) {
     ClanRepository cr;
     EventPublisher ep;
     DummyCombatCallback cb;
-    CombatSystem combatSystem(map, em, cr, ep, cb, false);
+    CombatSystem combatSystem(map, em, cr, ep, cb, false, getTestServerConfig());
 
     Player attacker = makeTestPlayer(1);
     Monster monster = makeTestMonster(2);

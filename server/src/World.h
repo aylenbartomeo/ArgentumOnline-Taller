@@ -30,6 +30,7 @@
 #include "model/systems/SpawnSystem.h"
 #include "persistence/PlayerDataStore.h"
 #include "persistence/WorldPersistData.h"
+#include "server/src/config/ServerConfigLoader.h"
 
 #include "Map.h"
 #include "queue.h"
@@ -68,12 +69,11 @@ private:
 
     // Mueve al monstruo hacia el objetivo (si está en cooldown no hace nada)
     void moveMonsterTowards(Monster& monster, const Position& targetPos);
-    void monsterAttack(const Monster& monster, Player& target);
 
 public:
     explicit World(int worldId, const std::string& creatorPlayerName,
                    const ItemRegistry& itemRegistry, const CharacterConfigs& configs,
-                   const InventoryConfig& inventoryConfig);
+                   const InventoryConfig& inventoryConfig, const ServerConfig& config);
 
     // Metodos de cheat para testing
     void playerCheat(uint32_t dbId, CheatType type);

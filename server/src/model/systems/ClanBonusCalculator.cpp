@@ -4,8 +4,14 @@
 
 #include "server/src/model/entities/Player.h"
 
-ClanBonusCalculator::ClanBonusCalculator(EntityManager& em, ClanRepository& cr, EventPublisher& ep):
-        entityManager(em), clanRepo(cr), eventPublisher(ep) {}
+ClanBonusCalculator::ClanBonusCalculator(EntityManager& em, ClanRepository& cr, EventPublisher& ep,
+                                         const ServerConfig& config):
+        entityManager(em),
+        clanRepo(cr),
+        eventPublisher(ep),
+        CLAN_BONUS_RANGE(config.clanBonusRange),
+        CLAN_ATTACK_BONUS_PER_MEMBER(config.clanAttackBonusPerMember),
+        CLAN_DEFENSE_BONUS_PER_MEMBER(config.clanDefenseBonusPerMember) {}
 
 bool ClanBonusCalculator::areClanmates(uint32_t dbId1, uint32_t dbId2) const {
     if (dbId1 == dbId2)

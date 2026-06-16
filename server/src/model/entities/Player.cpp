@@ -124,6 +124,7 @@ bool Player::canEngageInCombatWith(const Attackable& other) const {
 void Player::handleDeath() {
     state.die();
     stats.takeDamage(stats.getHp());
+    stats.loseExperienceUponDeath();
 }
 
 void Player::resurrect() {
@@ -217,10 +218,15 @@ uint32_t Player::dropExcessGold() { return this->inventory.dropExcessGold(); }
 void Player::onActionStarted() { state.stopMeditating(); }
 
 void Player::receiveDamage(int amount) {
+    if (isDead())
+        return;
     onActionStarted();
     if (amount < 0)
         return;
     stats.takeDamage(static_cast<uint16_t>(amount));
+    if (stats.getHp() == 0) {
+        handleDeath();
+    }
 }
 
 Position Player::tryMove(Movement direction) const {

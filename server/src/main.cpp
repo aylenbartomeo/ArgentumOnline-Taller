@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 
+#include "config/ServerConfigLoader.h"
 #include "persistence/WorldDataStore.h"
 
 #include "Server.h"
@@ -27,7 +28,17 @@ int main(int argc, char* argv[]) try {
 
     WorldDataStore wds("worlds/");
     WorldConfig wConfig;
+    ServerConfig serverConfig;
+    try {
+        std::string configPath = "config/config.toml";
+        serverConfig = loadServerConfig(configPath);
 
+    } catch (const std::exception& e) {
+        std::cerr << "[ERROR] No se pudo cargar config.toml en el inicio: " << e.what()
+                  << std::endl;
+    }
+
+    std::string portStr = std::to_string(serverConfig.port);
     std::string port = argv[1];
     std::string command = argv[2];
     std::string worldName = argv[3];
@@ -79,7 +90,7 @@ int main(int argc, char* argv[]) try {
         return EXIT_FAILURE;
     }
 
-    Server server(port.c_str(), wConfig);
+    Server server(std::to_string(serverConfig.port).c_str(), wConfig, serverConfig);
     server.run();
 
     return EXIT_SUCCESS;

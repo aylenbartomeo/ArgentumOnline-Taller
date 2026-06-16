@@ -10,14 +10,16 @@
 #include "FormulaEngine.h"
 
 CombatSystem::CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, EventPublisher& ep,
-                           ICombatEventCallback& cb, bool enforceFairPlay):
+                           ICombatEventCallback& cb, bool enforceFairPlay,
+                           const ServerConfig& config):
         map(map),
         entityManager(em),
         clanRepo(cr),
         eventPublisher(ep),
         callback(cb),
         enforceFairPlay(enforceFairPlay),
-        clanBonusCalc(em, cr, ep),
+        criticalProbability(config.criticalProbability),
+        clanBonusCalc(em, cr, ep, config),
         notifier(ep, cb) {}
 
 void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
@@ -138,8 +140,7 @@ CombatResult CombatSystem::applyDamageEffect(const Attackable& attacker, Attacka
     rawDamage = static_cast<uint16_t>(rawDamage * params.attackBonus);
 
     // 2. Chequear crítico
-    const float CRITICAL_PROB = 0.05f;
-    res.critical = FormulaEngine::getInstance().is_critical_attack(CRITICAL_PROB);
+    res.critical = FormulaEngine::getInstance().is_critical_attack(criticalProbability);
     if (res.critical) {
         rawDamage *= 2;
     }

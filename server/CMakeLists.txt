@@ -21,6 +21,7 @@ add_library(lib_server STATIC)
 target_sources(lib_server
     PRIVATE
     # Config
+    src/config/ServerConfigLoader.cpp
     src/config/CharacterConfigLoader.cpp
     src/config/ItemConfigLoader.cpp
     src/config/MonsterConfigLoader.cpp
@@ -96,6 +97,7 @@ target_sources(lib_server
     PUBLIC
     # Headers para visualización en IDEs y exposición pública
     src/config/TomlConfigHelper.h
+    src/config/ServerConfigLoader.h
     src/config/CharacterConfig.h
     src/config/CharacterConfigLoader.h
     src/config/ItemConfigLoader.h

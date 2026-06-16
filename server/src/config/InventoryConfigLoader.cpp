@@ -1,4 +1,5 @@
 #include "server/src/config/InventoryConfigLoader.h"
+
 #include "server/src/config/TomlConfigHelper.h"
 
 namespace {
