@@ -114,31 +114,25 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     // ── Weapon overlay ────────────────────────────────────────────────────────────
     if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr &&
         !isDead(entity.current_hp)) {
-
-        // Sprites combinados (movimiento + ícono de ítem al final).
-        // yStart: fila DOWN no arranca en y=0 para hacha y martillo.
-        // WEAPON_STRIDE=48 evita samplear el ícono de ítem que vive en y≥210.
         WeaponSheetInfo weaponInfo{"", 0};
         if (WeaponHelper::hasSword(*localStats))
             weaponInfo = {"items/espada.png", 0};
         else if (WeaponHelper::hasAxe(*localStats))
-            // yStart: sube/baja el sprite del hacha en su hoja. Subir este valor
-            // BAJA la posición dibujada (recorta más arriba en la imagen fuente,
-            // que cae más abajo en el cuerpo). Si sigue a nivel del cuello, probar
-            // subiendo de a 4-8px (ej: 48 -> 52, 56...) hasta que coincida con el brazo.
             weaponInfo = {"items/hacha.png", 48};
         else if (WeaponHelper::hasHammer(*localStats))
             weaponInfo = {"items/martillo.png", 0};
-        // else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_SIMPLE_ID))
-        //     weaponInfo = {"items/arco-simple-mov.png", 0};
-        // else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_COMPUESTO_ID))
-        //     weaponInfo = {"items/arco-comp-mov.png", 0};
-        // else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::VARA_FRESNO_WEAPON_ID))
-        //     weaponInfo = {"items/vara-fresno-mov.png", 0};
-        // else if (WeaponHelper::hasEquipped(*localStats, 2022))
-        //     weaponInfo = {"items/baculo-nudoso-mov.png", 0};
-        // else if (WeaponHelper::hasEquipped(*localStats, 2023))
-        //     weaponInfo = {"items/baculo-engarzado-mov.png", 0};
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_SIMPLE_ID))
+            weaponInfo = {"items/arco-simple.png", 0};
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_COMPUESTO_ID))
+            weaponInfo = {"items/arco-compuesto.png", 0};
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::VARA_FRESNO_WEAPON_ID))
+            weaponInfo = {
+                    "items/vara-fresno.png",
+            };
+        else if (WeaponHelper::hasEquipped(*localStats, 2022))
+            weaponInfo = {"items/baculo-nudoso.png", 0};
+        else if (WeaponHelper::hasEquipped(*localStats, 2023))
+            weaponInfo = {"items/baculo-engarzado.png", 0};
 
         if (weaponInfo.sheet[0] != '\0') {
             SDL2pp::Texture& weaponTex =
@@ -157,9 +151,6 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
             const float scaleY = static_cast<float>(bodyDstH) / bf.h;
             const int wDstW = static_cast<int>(wFrameW * scaleX);
             const int wDstH = static_cast<int>(wFrameH * scaleY);
-            // Offset horizontal solo al mirar a la derecha, para corregir el
-            // desfase/doble animación. El "4" es el valor a ajustar: subirlo
-            // mueve el arma más a la izquierda, bajarlo la acerca al centro.
             const int wDstX = px + (GC::TILE_SIZE - wDstW) / 2 - camera.x -
                               (facing == Movement::RIGHT ? 8 : 0);
             const int wDstY = py + GC::TILE_SIZE - wDstH - camera.y;

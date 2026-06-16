@@ -28,16 +28,17 @@ const char* iconForItem(uint32_t itemId) {
         return "resources/items/martillo.png";
 
     // --- ARMAS DE RANGO ---
-    // if (itemId == WeaponHelper::ARCO_SIMPLE_ID)
-    //     return "resources/items/arco-simple-item.png";
-    // if (itemId == WeaponHelper::ARCO_COMPUESTO_ID)
-    //     return "resources/items/arco-comp-item.png";
-    // if (itemId == WeaponHelper::VARA_FRESNO_WEAPON_ID)
-    //     return "resources/items/vara-fresno-item.png";
-    // if (itemId == 2022)
-    //     return "resources/items/baculo-nudoso-item.png";
-    // if (itemId == 2023)
-    //     return "resources/items/baculo-engarzado-item.png";
+    if (itemId == WeaponHelper::ARCO_SIMPLE_ID)
+        return "resources/items/arco-simple.png";
+    if (itemId == WeaponHelper::ARCO_COMPUESTO_ID)
+        return "resources/items/arco-compuesto.png";
+    if (itemId == WeaponHelper::VARA_FRESNO_WEAPON_ID)
+        return "resources/items/vara-fresno.png";
+    if (itemId == 2022)
+        return "resources/items/baculo-nudoso.png";
+    if (itemId == 2023)
+        return "resources/items/baculo-engarzado.png";
+
     switch (equipSlotForItem(itemId)) {
         case EquipSlot::WEAPON:
             return "resources/icon_weapon.png";
