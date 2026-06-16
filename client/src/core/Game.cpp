@@ -29,6 +29,7 @@ using GameConstants::WINDOW_WIDTH;
 namespace {
 constexpr const char* HUD_FONT_PATH = "resources/fonts/DejaVuSans.ttf";
 constexpr const char* CHAT_FONT_PATH = "resources/fonts/DejaVuSans.ttf";
+constexpr const char* MANUAL_PATH = "resources/MANUAL_JUGADOR.md";
 constexpr int FRAME_DURATION_MS = 16;
 
 std::string readWholeFile(const std::string& path) {
@@ -76,7 +77,7 @@ Game::Game(Client& client):
         entityRenderer.setFont(entityFont);
     }
 
-    manualPanel.loadManual("../MANUAL_JUGADOR.md");
+    manualPanel.loadManual(MANUAL_PATH);
 }
 
 Game::~Game() {
