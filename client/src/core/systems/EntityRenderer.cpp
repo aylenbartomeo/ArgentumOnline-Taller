@@ -19,8 +19,15 @@ constexpr int CHARACTER_FRAME_W = 24;
 constexpr int CHARACTER_FRAME_H = 44;
 constexpr const char* HEALTHBAR_SHEET = "en_barradevida.bmp";
 constexpr const char* SKULL_SHEET = "106.png";
-
+constexpr int WEAPON_COLS = 5;
+constexpr int WEAPON_CELL_W = 51;
+constexpr int WEAPON_STRIDE = 48;
 }  // namespace
+
+struct WeaponSheetInfo {
+    const char* sheet;
+    int yStart;
+};
 
 // ─── Constructor / accesors ───────────────────────────────────────────────────
 
@@ -83,66 +90,69 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     const int bodyDstW = sprite.customGrid ?
                                  bf.w * sprite.bodyScale / 100 :
                                  bf.w * GC::TILE_SIZE / CHARACTER_FRAME_W * sprite.bodyScale / 100;
+
     const int bodyDstH = sprite.customGrid ? bf.h * sprite.bodyScale / 100 :
                                              bf.h * GC::CHARACTER_DRAW_H / CHARACTER_FRAME_H *
                                                      sprite.bodyScale / 100;
 
-    // Si el jugador está muerto (fantasma), se aplica transparencia
-    bool isGhostPlayer = (entity.type == EntityType::PLAYER && isGhost(entity.stateId));
-    if (isGhostPlayer) {
+    const int bodyDstX = px + (GC::TILE_SIZE - bodyDstW) / 2 - camera.x;
+    const int bodyDstY = py + GC::TILE_SIZE - bodyDstH - camera.y;
+
+    // ── Ghost ─────────────────────────────────────────────────────────────────────
+    const bool isGhostPlayer = (entity.type == EntityType::PLAYER && isGhost(entity.stateId));
+    if (isGhostPlayer)
         body.SetAlphaMod(100);
-    }
 
     renderer.Copy(body, SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h),
-                  SDL2pp::Rect(px + (GC::TILE_SIZE - bodyDstW) / 2 - camera.x,
-                               py + GC::TILE_SIZE - bodyDstH - camera.y, bodyDstW, bodyDstH));
+                  SDL2pp::Rect(bodyDstX, bodyDstY, bodyDstW, bodyDstH));
 
-    if (isGhostPlayer) {
-        body.SetAlphaMod(255);  // Restaurar opacidad del cuerpo
-    }
+    if (isGhostPlayer)
+        body.SetAlphaMod(255);
 
+
+    // ── Weapon overlay (bloque original sin cambios) ──────────────────────────────
+    // ── Weapon overlay ────────────────────────────────────────────────────────────
     if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr &&
         !isDead(entity.current_hp)) {
-        std::string weaponSheet;
 
-        // Armas Cuerpo a Cuerpo
+        // Sprites combinados (movimiento + ícono de ítem al final).
+        // yStart: fila DOWN no arranca en y=0 para hacha y martillo.
+        // WEAPON_STRIDE=48 evita samplear el ícono de ítem que vive en y≥210.
+        WeaponSheetInfo weaponInfo{"", 0};
         if (WeaponHelper::hasSword(*localStats))
-            weaponSheet = "items/espada-mov.png";
+            weaponInfo = {"items/espada.png", 0};
         else if (WeaponHelper::hasAxe(*localStats))
-            weaponSheet = "items/hacha-mov.png";
+            weaponInfo = {"items/hacha.png", 17};
         else if (WeaponHelper::hasHammer(*localStats))
-            weaponSheet = "items/martillo-mov.png";
-
-        // Armas de Rango
+            weaponInfo = {"items/martillo.png", 16};
         else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_SIMPLE_ID))
-            weaponSheet = "items/arco-simple-mov.png";
+            weaponInfo = {"items/arco-simple-mov.png", 0};
         else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_COMPUESTO_ID))
-            weaponSheet = "items/arco-comp-mov.png";
+            weaponInfo = {"items/arco-comp-mov.png", 0};
         else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::VARA_FRESNO_WEAPON_ID))
-            weaponSheet = "items/vara-fresno-mov.png";
+            weaponInfo = {"items/vara-fresno-mov.png", 0};
         else if (WeaponHelper::hasEquipped(*localStats, 2022))
-            weaponSheet = "items/baculo-nudoso-mov.png";
+            weaponInfo = {"items/baculo-nudoso-mov.png", 0};
         else if (WeaponHelper::hasEquipped(*localStats, 2023))
-            weaponSheet = "items/baculo-engarzado-mov.png";
+            weaponInfo = {"items/baculo-engarzado-mov.png", 0};
 
-        if (!weaponSheet.empty()) {
-            SDL2pp::Texture& weaponTex = textures.get(std::string(GC::RESOURCES_DIR) + weaponSheet);
+        if (weaponInfo.sheet[0] != '\0') {
+            SDL2pp::Texture& weaponTex =
+                    textures.get(std::string(GC::RESOURCES_DIR) + weaponInfo.sheet);
+
             if (isGhostPlayer)
                 weaponTex.SetAlphaMod(100);
 
-            const float cellW = static_cast<float>(weaponTex.GetWidth()) / 5.0f;
-            const float cellH = static_cast<float>(weaponTex.GetHeight()) / 4.0f;
-
-            const int wSrcX = static_cast<int>((frameCol % 5) * cellW);
-            const int wSrcY = static_cast<int>(rowForFacing(facing) * cellH);
-            const int wFrameW = static_cast<int>(cellW);
-            const int wFrameH = static_cast<int>(cellH);
+            const int col = frameCol % WEAPON_COLS;
+            const int wSrcX = col * WEAPON_CELL_W;
+            const int wSrcY = weaponInfo.yStart + rowForFacing(facing) * WEAPON_STRIDE;
+            const int wFrameW = WEAPON_CELL_W;
+            const int wFrameH = WEAPON_STRIDE;
 
             const float scaleX = static_cast<float>(bodyDstW) / bf.w;
             const float scaleY = static_cast<float>(bodyDstH) / bf.h;
             const int wDstW = static_cast<int>(wFrameW * scaleX);
             const int wDstH = static_cast<int>(wFrameH * scaleY);
-
             const int wDstX = px + (GC::TILE_SIZE - wDstW) / 2 - camera.x;
             const int wDstY = py + GC::TILE_SIZE - wDstH - camera.y;
 
@@ -154,7 +164,7 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         }
     }
 
-
+    // ── Head (sin cambios) ────────────────────────────────────────────────────────
     if (sprite.drawHead) {
         const FrameRect hf = headFrameRect(facing);
         SDL2pp::Texture& headSheet =
@@ -162,14 +172,12 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         const int headX = px + GC::TILE_SIZE / 2 - GC::HEAD_DRAW_W / 2 - camera.x;
         const int headY = py + GC::TILE_SIZE - GC::CHARACTER_DRAW_H + sprite.headOverlap -
                           GC::HEAD_DRAW_H - camera.y;
-        if (isGhostPlayer) {
-            headSheet.SetAlphaMod(100);  // Aplicar transparencia a la cabeza
-        }
+        if (isGhostPlayer)
+            headSheet.SetAlphaMod(100);
         renderer.Copy(headSheet, SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h),
                       SDL2pp::Rect(headX, headY, GC::HEAD_DRAW_W, GC::HEAD_DRAW_H));
-        if (isGhostPlayer) {
-            headSheet.SetAlphaMod(255);  // Restaurar opacidad de la cabeza
-        }
+        if (isGhostPlayer)
+            headSheet.SetAlphaMod(255);
     }
 
     // Anillo amarillo del jugador local
