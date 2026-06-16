@@ -1,116 +1,40 @@
 #include "server/src/config/CharacterConfigLoader.h"
 
-#include <cstdint>
-#include <limits>
-#include <optional>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-
-#include <toml++/toml.hpp>
+#include "server/src/config/TomlConfigHelper.h"
 
 namespace {
 
-toml::table parseConfigFile(const std::filesystem::path& configPath) {
-    try {
-        return toml::parse_file(configPath.string());
-    } catch (const toml::parse_error& error) {
-        throw std::runtime_error("Could not parse character TOML config: " +
-                                 std::string(error.what()));
-    }
-}
-
-const toml::table& requiredTable(const toml::table& table, std::string_view fieldName) {
-    const toml::table* child = table[fieldName].as_table();
-    if (child == nullptr) {
-        throw std::runtime_error("Missing character config table: " + std::string(fieldName));
-    }
-
-    return *child;
-}
-
-int requiredInt(const toml::table& table, std::string_view fieldName) {
-    const std::optional<int64_t> value = table[fieldName].value<int64_t>();
-    if (!value.has_value()) {
-        throw std::runtime_error("Missing character integer field: " + std::string(fieldName));
-    }
-
-    if (*value < std::numeric_limits<int>::min() || *value > std::numeric_limits<int>::max()) {
-        throw std::runtime_error("Character integer field out of range: " + std::string(fieldName));
-    }
-
-    return static_cast<int>(*value);
-}
-
-uint16_t requiredUInt16(const toml::table& table, std::string_view fieldName) {
-    const int value = requiredInt(table, fieldName);
-    if (value < 0 || value > std::numeric_limits<uint16_t>::max()) {
-        throw std::runtime_error("Character uint16 field out of range: " + std::string(fieldName));
-    }
-
-    return static_cast<uint16_t>(value);
-}
-
-uint32_t requiredUInt32(const toml::table& table, std::string_view fieldName) {
-    const std::optional<int64_t> value = table[fieldName].value<int64_t>();
-    if (!value.has_value()) {
-        throw std::runtime_error("Missing character uint32 field: " + std::string(fieldName));
-    }
-
-    if (*value < 0 || *value > std::numeric_limits<uint32_t>::max()) {
-        throw std::runtime_error("Character uint32 field out of range: " + std::string(fieldName));
-    }
-
-    return static_cast<uint32_t>(*value);
-}
-
-float requiredFloat(const toml::table& table, std::string_view fieldName) {
-    const std::optional<double> value = table[fieldName].value<double>();
-    if (!value.has_value()) {
-        throw std::runtime_error("Missing character float field: " + std::string(fieldName));
-    }
-
-    return static_cast<float>(*value);
-}
-
-bool requiredBool(const toml::table& table, std::string_view fieldName) {
-    const std::optional<bool> value = table[fieldName].value<bool>();
-    if (!value.has_value()) {
-        throw std::runtime_error("Missing character bool field: " + std::string(fieldName));
-    }
-
-    return *value;
-}
+constexpr std::string_view CTX = "character";
 
 PlayerConfig parsePlayerConfig(const toml::table& playerTable) {
     return PlayerConfig{
-            requiredInt(playerTable, "base_strength"),
-            requiredInt(playerTable, "base_intelligence"),
-            requiredInt(playerTable, "base_agility"),
-            requiredInt(playerTable, "base_constitution"),
-            requiredUInt16(playerTable, "starting_level"),
-            requiredUInt32(playerTable, "starting_experience"),
-            requiredUInt32(playerTable, "starting_gold"),
+            TomlHelper::requiredInt(playerTable, "base_strength", CTX),
+            TomlHelper::requiredInt(playerTable, "base_intelligence", CTX),
+            TomlHelper::requiredInt(playerTable, "base_agility", CTX),
+            TomlHelper::requiredInt(playerTable, "base_constitution", CTX),
+            TomlHelper::requiredUInt16(playerTable, "starting_level", CTX),
+            TomlHelper::requiredUInt32(playerTable, "starting_experience", CTX),
+            TomlHelper::requiredUInt32(playerTable, "starting_gold", CTX),
     };
 }
 
 RaceConfig parseRaceConfig(const toml::table& raceTable) {
     return RaceConfig{
-            requiredFloat(raceTable, "life_factor"),
-            requiredFloat(raceTable, "mana_factor"),
-            requiredFloat(raceTable, "strength_factor"),
-            requiredFloat(raceTable, "agility_factor"),
-            requiredFloat(raceTable, "intelligence_factor"),
-            requiredFloat(raceTable, "recovery_factor"),
+            TomlHelper::requiredFloat(raceTable, "life_factor", CTX),
+            TomlHelper::requiredFloat(raceTable, "mana_factor", CTX),
+            TomlHelper::requiredFloat(raceTable, "strength_factor", CTX),
+            TomlHelper::requiredFloat(raceTable, "agility_factor", CTX),
+            TomlHelper::requiredFloat(raceTable, "intelligence_factor", CTX),
+            TomlHelper::requiredFloat(raceTable, "recovery_factor", CTX),
     };
 }
 
 CharacterClassConfig parseClassConfig(const toml::table& classTable) {
     return CharacterClassConfig{
-            requiredFloat(classTable, "life_factor"),
-            requiredFloat(classTable, "mana_factor"),
-            requiredFloat(classTable, "meditation_factor"),
-            requiredBool(classTable, "can_use_magic"),
+            TomlHelper::requiredFloat(classTable, "life_factor", CTX),
+            TomlHelper::requiredFloat(classTable, "mana_factor", CTX),
+            TomlHelper::requiredFloat(classTable, "meditation_factor", CTX),
+            TomlHelper::requiredBool(classTable, "can_use_magic", CTX),
     };
 }
 
@@ -118,23 +42,27 @@ CharacterClassConfig parseClassConfig(const toml::table& classTable) {
 
 CharacterConfigs CharacterConfigLoader::loadCharacterConfigs(
         const std::filesystem::path& configPath) {
-    const toml::table config = parseConfigFile(configPath);
-    const toml::table& races = requiredTable(config, "races");
-    const toml::table& classes = requiredTable(config, "classes");
+    const toml::table config = TomlHelper::parseConfigFile(configPath, CTX);
+    const toml::table& races = TomlHelper::requiredTable(config, "races", CTX);
+    const toml::table& classes = TomlHelper::requiredTable(config, "classes", CTX);
 
     return CharacterConfigs{
-            parsePlayerConfig(requiredTable(config, "player")),
+            parsePlayerConfig(TomlHelper::requiredTable(config, "player", CTX)),
             {
-                    {Race::HUMAN, parseRaceConfig(requiredTable(races, "human"))},
-                    {Race::ELF, parseRaceConfig(requiredTable(races, "elf"))},
-                    {Race::DWARF, parseRaceConfig(requiredTable(races, "dwarf"))},
-                    {Race::GNOME, parseRaceConfig(requiredTable(races, "gnome"))},
+                    {Race::HUMAN, parseRaceConfig(TomlHelper::requiredTable(races, "human", CTX))},
+                    {Race::ELF, parseRaceConfig(TomlHelper::requiredTable(races, "elf", CTX))},
+                    {Race::DWARF, parseRaceConfig(TomlHelper::requiredTable(races, "dwarf", CTX))},
+                    {Race::GNOME, parseRaceConfig(TomlHelper::requiredTable(races, "gnome", CTX))},
             },
             {
-                    {CharacterClass::MAGE, parseClassConfig(requiredTable(classes, "mage"))},
-                    {CharacterClass::WARRIOR, parseClassConfig(requiredTable(classes, "warrior"))},
-                    {CharacterClass::PALADIN, parseClassConfig(requiredTable(classes, "paladin"))},
-                    {CharacterClass::CLERIC, parseClassConfig(requiredTable(classes, "cleric"))},
+                    {CharacterClass::MAGE,
+                     parseClassConfig(TomlHelper::requiredTable(classes, "mage", CTX))},
+                    {CharacterClass::WARRIOR,
+                     parseClassConfig(TomlHelper::requiredTable(classes, "warrior", CTX))},
+                    {CharacterClass::PALADIN,
+                     parseClassConfig(TomlHelper::requiredTable(classes, "paladin", CTX))},
+                    {CharacterClass::CLERIC,
+                     parseClassConfig(TomlHelper::requiredTable(classes, "cleric", CTX))},
             },
     };
 }
