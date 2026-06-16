@@ -42,11 +42,11 @@ public:
 
     void move(const Position& new_pos);
     void setPosition(const Position& newPos);
-    int get_detection_range() const;
-    int get_attack_range() const;
+    int getDetectionRange() const;
+    int getAttackRange() const;
     int getAttackMin() const;
     int getAttackMax() const;
-    const std::string& get_zone() const;
+    const std::string& getZone() const;
 
     void update(float deltaMs);
     bool canAttack() const;

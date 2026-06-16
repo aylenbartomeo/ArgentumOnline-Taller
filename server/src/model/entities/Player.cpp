@@ -104,13 +104,13 @@ bool Player::canEngageInCombatWith(const Attackable& other) const {
     }
 
     // Regla 1: newbie no puede atacar ni ser atacado por jugadores
-    if (FormulaEngine::getInstance().is_newbie(this->stats.getLevel()) ||
-        FormulaEngine::getInstance().is_newbie(otherPlayer->stats.getLevel())) {
+    if (FormulaEngine::getInstance().isNewbie(this->stats.getLevel()) ||
+        FormulaEngine::getInstance().isNewbie(otherPlayer->stats.getLevel())) {
         return false;
     }
 
     // Regla 2: diferencia de nivel máxima de 10
-    if (!FormulaEngine::getInstance().is_pvp_level_valid(this->stats.getLevel(),
+    if (!FormulaEngine::getInstance().isPvpLevelValid(this->stats.getLevel(),
                                                          otherPlayer->stats.getLevel())) {
         return false;
     }

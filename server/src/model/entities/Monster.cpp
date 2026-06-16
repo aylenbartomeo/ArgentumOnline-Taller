@@ -68,11 +68,11 @@ void Monster::setPosition(const Position& newPos) { this->pos = newPos; }
 uint16_t Monster::getStrength() const { return this->strength; }
 uint16_t Monster::getIntelligence() const { return 0; }  // Monsters don't use magic yet
 
-int Monster::get_detection_range() const { return this->detection_range; }
+int Monster::getDetectionRange() const { return this->detection_range; }
 
-int Monster::get_attack_range() const { return this->attack_range; }
+int Monster::getAttackRange() const { return this->attack_range; }
 
-const std::string& Monster::get_zone() const { return this->zone; }
+const std::string& Monster::getZone() const { return this->zone; }
 
 std::string Monster::getName() const {
     switch (this->type) {

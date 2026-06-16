@@ -51,7 +51,7 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         return;
 
     if (type == CheatType::LEVEL_UP) {
-        uint32_t needed = FormulaEngine::getInstance().calculate_level_up_limit(player->getLevel());
+        uint32_t needed = FormulaEngine::getInstance().calculateLevelUpLimit(player->getLevel());
         player->addExperience(needed);
         eventPublisher.sendTo(dbId, "[CHEAT] ¡Has subido de nivel mágicamente!");
     } else if (type == CheatType::DIE) {
@@ -491,7 +491,7 @@ void World::update(float delta_time) {
 
         monster->update(delta_time);
 
-        Player* target = findNearestPlayer(*monster, monster->get_detection_range());
+        Player* target = findNearestPlayer(*monster, monster->getDetectionRange());
         if (!target) {
             monster->setTargetId(0);
             continue;
@@ -505,7 +505,7 @@ void World::update(float delta_time) {
 
         int dist = monster->distance_to(*target);
 
-        if (dist <= monster->get_attack_range()) {
+        if (dist <= monster->getAttackRange()) {
             if (monster->canAttack()) {
                 combatSystem.monsterAttack(*monster, *target);
                 monster->resetAttackCooldown();

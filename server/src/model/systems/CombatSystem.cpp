@@ -134,19 +134,19 @@ CombatResult CombatSystem::applyDamageEffect(const Attackable& attacker, Attacka
     res.attackHappened = true;
 
     // 1. Calcular daño bruto usando la Fuerza y aplicar bonificación de ataque del clan
-    uint16_t rawDamage = FormulaEngine::getInstance().calculate_base_damage(
+    uint16_t rawDamage = FormulaEngine::getInstance().calculateBaseDamage(
             attacker.getStrength(), params.minDamage, params.maxDamage);
 
     rawDamage = static_cast<uint16_t>(rawDamage * params.attackBonus);
 
     // 2. Chequear crítico
-    res.critical = FormulaEngine::getInstance().is_critical_attack(criticalProbability);
+    res.critical = FormulaEngine::getInstance().isCriticalAttack(criticalProbability);
     if (res.critical) {
         rawDamage *= 2;
     }
 
     // 3. Chequear esquive (si no fue crítico, no se puede esquivar)
-    if (!res.critical && FormulaEngine::getInstance().is_attack_eluded(target.getAgility())) {
+    if (!res.critical && FormulaEngine::getInstance().isAttackEluded(target.getAgility())) {
         res.evaded = true;
         return res;
     }
@@ -172,7 +172,7 @@ CombatResult CombatSystem::applyHealEffect(Player& target) {
 
 CombatResult CombatSystem::processAttack(const Monster& attacker, Attackable& target) {
     AttackParams params{static_cast<uint16_t>(attacker.getAttackMin()),
-                        static_cast<uint16_t>(attacker.getAttackMax()), attacker.get_attack_range(),
+                        static_cast<uint16_t>(attacker.getAttackMax()), attacker.getAttackRange(),
                         0, false};
 
     CombatResult res = resolveCombat(attacker, target, params);
@@ -202,7 +202,7 @@ CombatResult CombatSystem::processAttack(Player& attacker, Attackable& target, f
 
     if (target.isDead()) {
         target.handleDeath();
-        uint32_t killXp = FormulaEngine::getInstance().calculate_kill_xp_gain(
+        uint32_t killXp = FormulaEngine::getInstance().calculateKillXpGain(
                 target.getMaxHp(), attacker.getLevel(), target.getLevel());
         attacker.addExperience(killXp);
     }
@@ -224,7 +224,7 @@ void CombatSystem::onProjectileHit(Player& attacker, Attackable& target, IHitEff
 
     if (target.isDead()) {
         target.handleDeath();
-        uint32_t killXp = FormulaEngine::getInstance().calculate_kill_xp_gain(
+        uint32_t killXp = FormulaEngine::getInstance().calculateKillXpGain(
                 target.getMaxHp(), attacker.getLevel(), target.getLevel());
         attacker.addExperience(killXp);
     }
