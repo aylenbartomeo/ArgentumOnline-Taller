@@ -39,6 +39,20 @@ const char* iconForItem(uint32_t itemId) {
     if (itemId == 2023)
         return "resources/items/baculo-engarzado.png";
 
+    // --- ARMADURAS ---
+    if (itemId == 1000)
+        return "resources/armor/armadura-cuero.png";
+    if (itemId == 1001)
+        return "resources/armor/armadura-placas.png";
+    if (itemId == 1002)
+        return "resources/armor/tunica-azul.png";
+
+    // --- ESCUDOS ---
+    if (itemId == 1020)
+        return "resources/armor/escudo-tortuga.png";
+    if (itemId == 1021)
+        return "resources/armor/escudo-hierro.png";
+
     switch (equipSlotForItem(itemId)) {
         case EquipSlot::WEAPON:
             return "resources/icon_weapon.png";
@@ -51,6 +65,7 @@ const char* iconForItem(uint32_t itemId) {
         case EquipSlot::NONE:
             break;
     }
+
     if (itemId >= 3000 && itemId <= 3099) {
         return "resources/icon_potion.png";
     }

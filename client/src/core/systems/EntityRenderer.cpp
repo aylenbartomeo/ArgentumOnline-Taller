@@ -29,6 +29,11 @@ struct WeaponSheetInfo {
     int yStart;
 };
 
+struct ArmorSheetInfo {
+    const char* sheet;
+    int yStart;
+};
+
 // ─── Constructor / accesors ───────────────────────────────────────────────────
 
 EntityRenderer::EntityRenderer(TextureManager& textures, SDL2pp::Renderer& renderer, uint32_t myId):
@@ -161,6 +166,63 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
             if (isGhostPlayer)
                 weaponTex.SetAlphaMod(255);
         }
+    }
+
+    // ── Armor/Shield overlay ──────────────────────────────────────────────────────
+    // Mismo patrón que weapon overlay: sprites combinados (movimiento + icono al
+    // final), yStart=0 salvo offset si la fila DOWN no arranca en y=0.
+    if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr &&
+        !isDead(entity.current_hp)) {
+
+        ArmorSheetInfo armorInfo{"", 0};
+        if (WeaponHelper::hasEquipped(*localStats, 1000))
+            armorInfo = {"armor/armadura-cuero.png", 0};
+        else if (WeaponHelper::hasEquipped(*localStats, 1001))
+            armorInfo = {"armor/armadura-placas.png", 0};
+        else if (WeaponHelper::hasEquipped(*localStats, 1002))
+            armorInfo = {"armor/tunica-azul.png", 0};
+
+        ArmorSheetInfo shieldInfo{"", 0};
+        if (WeaponHelper::hasEquipped(*localStats, 1020))
+            shieldInfo = {"armor/escudo-tortuga.png", 0};
+        else if (WeaponHelper::hasEquipped(*localStats, 1021))
+            shieldInfo = {"armor/escudo-hierro.png", 0};
+
+        auto drawArmorLayer = [&](const ArmorSheetInfo& info) {
+            if (info.sheet[0] == '\0')
+                return;
+            SDL2pp::Texture& layerTex = textures.get(std::string(GC::RESOURCES_DIR) + info.sheet);
+
+            if (isGhostPlayer)
+                layerTex.SetAlphaMod(100);
+
+            const int col = frameCol % WEAPON_COLS;
+            const int srcX = col * WEAPON_CELL_W;
+            const int srcY = info.yStart + rowForFacing(facing) * WEAPON_STRIDE;
+            const int frameW = WEAPON_CELL_W;
+            const int frameH = WEAPON_STRIDE;
+
+            const float scaleX = static_cast<float>(bodyDstW) / bf.w;
+            const float scaleY = static_cast<float>(bodyDstH) / bf.h;
+            const int dstW = static_cast<int>(frameW * scaleX);
+            const int dstH = static_cast<int>(frameH * scaleY);
+
+            // ARMOR_OFFSET_X: corre la capa de armadura/escudo horizontalmente
+            // Valor negativo = mover a la izquierda.
+            constexpr int ARMOR_OFFSET_X = -3;
+            const int dstX = px + (GC::TILE_SIZE - dstW) / 2 - camera.x + ARMOR_OFFSET_X;
+            const int dstY = py + GC::TILE_SIZE - dstH - camera.y;
+
+            renderer.Copy(layerTex, SDL2pp::Rect(srcX, srcY, frameW, frameH),
+                          SDL2pp::Rect(dstX, dstY, dstW, dstH));
+
+            if (isGhostPlayer)
+                layerTex.SetAlphaMod(255);
+        };
+
+        // Armadura se dibuja antes que el escudo para que el escudo quede al frente.
+        drawArmorLayer(armorInfo);
+        drawArmorLayer(shieldInfo);
     }
 
     // ── Head (sin cambios) ────────────────────────────────────────────────────────
