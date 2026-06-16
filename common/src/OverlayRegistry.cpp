@@ -14,6 +14,7 @@ const std::vector<OverlayDef>& getOverlayRegistry() {
             {"items/vara-fresno.png", 0, 224, 32, 32, "Vara de fresno", 2020, false},
             {"items/baculo-nudoso.png", 0, 224, 32, 32, "Baculo nudoso", 2022, false},
             {"items/baculo-engarzado.png", 0, 224, 32, 32, "Baculo engarzado", 2023, false},
+            {"111.png", 422, 67, 20, 26, "Flauta elfica", 2021, false},
             {"101.png", 458, 38, 11, 21, "Pocion de vida", 3010, false},
             {"101.png", 423, 36, 19, 23, "Pocion de mana", 3000, false},
             {"101.png", 135, 67, 17, 25, "Pocion de agilidad", 3030, false},
