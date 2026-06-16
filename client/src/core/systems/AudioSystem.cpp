@@ -105,6 +105,7 @@ void AudioSystem::toggleMute() {
     if (isMuted) {
         lastVolume = Mix_VolumeMusic(-1);
         Mix_VolumeMusic(0);
+        Mix_HaltChannel(-1);
     } else {
         Mix_VolumeMusic(lastVolume);
     }
@@ -140,6 +141,8 @@ static int volumeForDistance(float dist) {
 }
 
 void AudioSystem::updateMonsterSounds(const SnapshotDTO& snapshot, uint32_t nowMs, uint32_t myId) {
+    if (isMuted)
+        return;
     const auto playerIt = std::find_if(snapshot.players.begin(), snapshot.players.end(),
                                        [myId](const EntityDTO& p) { return p.id == myId; });
 
