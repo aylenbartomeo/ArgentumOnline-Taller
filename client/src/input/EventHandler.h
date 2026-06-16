@@ -45,6 +45,7 @@ struct FrameInput {
     bool cheatGiveRanged = false;
     bool cheatInfiniteMana = false;
     bool cheatGiveGold = false;
+    bool cheatGiveArmors = false;
 
     // --- Shoot ---
     bool shootPressed = false;

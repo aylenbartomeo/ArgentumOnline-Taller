@@ -116,6 +116,8 @@ void InputProcessor::processCheats(const FrameInput& input) {
     }
     if (input.cheatGiveGold)
         client.sendCommand(CheatDTO{CheatType::GIVE_GOLD});
+    if (input.cheatGiveArmors)
+        client.sendCommand(CheatDTO{CheatType::GIVE_ARMORS});
 }
 
 // ─── Equip / Use / Slot / UI ──────────────────────────────────────────────────
