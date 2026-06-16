@@ -108,8 +108,20 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     if (isGhostPlayer)
         body.SetAlphaMod(100);
 
-    renderer.Copy(body, SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h),
-                  SDL2pp::Rect(bodyDstX, bodyDstY, bodyDstW, bodyDstH));
+    // Solo dibujamos el cuerpo base si NO es un jugador local con armadura equipada.
+    bool drawBaseBody = true;
+    if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr) {
+        if (WeaponHelper::hasEquipped(*localStats, 1000) ||
+            WeaponHelper::hasEquipped(*localStats, 1001) ||
+            WeaponHelper::hasEquipped(*localStats, 1002)) {
+            drawBaseBody = false;
+        }
+    }
+
+    if (drawBaseBody) {
+        renderer.Copy(body, SDL2pp::Rect(bf.x, bf.y, bf.w, bf.h),
+                      SDL2pp::Rect(bodyDstX, bodyDstY, bodyDstW, bodyDstH));
+    }
 
     if (isGhostPlayer)
         body.SetAlphaMod(255);
@@ -152,13 +164,13 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
             const int dstH = static_cast<int>(frameH * scaleY);
 
             // --- AJUSTES INDIVIDUALES POR DIRECCIÓN ---
-            int offsetX = -4;
+            int offsetX = -1;
             int offsetY = 0;
 
             if (frameCol > 0) {
                 switch (facing) {
                     case Movement::DOWN:
-                        offsetX = -8;
+                        offsetX = -7;
                         offsetY = 0;
                         break;
                     case Movement::UP:
@@ -170,7 +182,7 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
                         offsetY = 0;
                         break;
                     case Movement::RIGHT:
-                        offsetX = -14;
+                        offsetX = -12;
                         offsetY = 0;
                         break;
                 }
@@ -179,19 +191,28 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
             const int dstX = bodyDstX - (dstW - bodyDstW) / 2 + offsetX;
             const int dstY = bodyDstY - (dstH - bodyDstH) + offsetY;
 
-            renderer.Copy(layerTex, SDL2pp::Rect(srcX, srcY, frameW, frameH),
-                          SDL2pp::Rect(dstX, dstY, dstW, dstH));
+            // Cantidad de píxeles a recortar del lado izquierdo
+            constexpr int TRIM_LEFT = 5;
+            constexpr int EXTRA_RIGHT = 2;
+
+            // Movemos el punto de inicio hacia la derecha y reducimos el ancho
+            const int safeSrcX = srcX + TRIM_LEFT;
+            const int safeSrcW = frameW - TRIM_LEFT + EXTRA_RIGHT;
+
+            const int finalDstW = dstW + EXTRA_RIGHT;
+
+            renderer.Copy(layerTex, SDL2pp::Rect(safeSrcX, srcY, safeSrcW, frameH),
+                          SDL2pp::Rect(dstX, dstY, finalDstW, dstH));
 
             if (isGhostPlayer)
                 layerTex.SetAlphaMod(255);
         };
 
-        // Armadura se dibuja antes que el escudo para que el escudo quede al frente.
         drawArmorLayer(armorInfo);
         drawArmorLayer(shieldInfo);
     }
 
-    // ── Weapon overlay (SEGUNDO) ──────────────────────────────────────────────────
+    // ── Weapon overlay ──────────────────────────────────────────────────
     if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr &&
         !isDead(entity.current_hp)) {
         WeaponSheetInfo weaponInfo{"", 0};
@@ -246,9 +267,56 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         const FrameRect hf = headFrameRect(facing);
         SDL2pp::Texture& headSheet =
                 textures.get(std::string(GC::RESOURCES_DIR) + sprite.headSheet);
-        const int headX = px + GC::TILE_SIZE / 2 - GC::HEAD_DRAW_W / 2 - camera.x;
+
+        // --- AJUSTES INDIVIDUALES DE LA CABEZA ---
+        int headOffsetX = 0;
+        int headOffsetY = 0;
+
+        if (frameCol == 0) {
+            // Ajuste cuando el personaje está QUIETO
+            headOffsetX = -2;
+            headOffsetY = 0;
+        } else {
+            // Ajustes de dirección cuando el personaje está EN MOVIMIENTO
+            switch (facing) {
+                case Movement::UP:
+                    headOffsetX = -2;
+                    break;
+                case Movement::RIGHT:
+                    headOffsetX = -2;
+                    break;
+                case Movement::DOWN:
+                    headOffsetX = 0;
+                    break;
+                case Movement::LEFT:
+                    headOffsetX = 0;
+                    break;
+            }
+
+            // Animación de "cabeceo" según el paso
+            switch (frameCol) {
+                case 1:
+                    headOffsetY = 1;
+                    break;
+                case 2:
+                    headOffsetY = 0;
+                    break;
+                case 3:
+                    headOffsetY = 1;
+                    break;
+                case 4:
+                    headOffsetY = 0;
+                    break;
+                default:
+                    headOffsetY = 0;
+                    break;
+            }
+        }
+
+        const int headX = px + GC::TILE_SIZE / 2 - GC::HEAD_DRAW_W / 2 - camera.x + headOffsetX;
         const int headY = py + GC::TILE_SIZE - GC::CHARACTER_DRAW_H + sprite.headOverlap -
-                          GC::HEAD_DRAW_H - camera.y;
+                          GC::HEAD_DRAW_H - camera.y + headOffsetY;
+
         if (isGhostPlayer)
             headSheet.SetAlphaMod(100);
         renderer.Copy(headSheet, SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h),
@@ -272,7 +340,7 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
                 helmFrameH = 15;
             } else if (WeaponHelper::hasEquipped(*localStats, 1012)) {
                 helmetSheet = "armor/sombrero-magico.png";
-                helmFrameH = 25;  // Sombrero alto
+                helmFrameH = 25;
             }
 
             if (helmetSheet != nullptr) {
