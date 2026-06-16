@@ -239,6 +239,73 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
                       SDL2pp::Rect(headX, headY, GC::HEAD_DRAW_W, GC::HEAD_DRAW_H));
         if (isGhostPlayer)
             headSheet.SetAlphaMod(255);
+
+        // ── Helmet overlay ──────────────────────────────────────────────────────
+        if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr &&
+            !isDead(entity.current_hp)) {
+            const char* helmetSheet = nullptr;
+            int helmFrameW = 17;
+            int helmFrameH = 15;
+
+            // Asignamos el sprite y la altura exacta según el ítem equipado
+            if (WeaponHelper::hasEquipped(*localStats, 1010)) {
+                helmetSheet = "armor/capucha.png";
+                helmFrameH = 16;
+            } else if (WeaponHelper::hasEquipped(*localStats, 1011)) {
+                helmetSheet = "armor/casco-hierro.png";
+                helmFrameH = 15;
+            } else if (WeaponHelper::hasEquipped(*localStats, 1012)) {
+                helmetSheet = "armor/sombrero-magico.png";
+                helmFrameH = 25;  // Sombrero alto
+            }
+
+            if (helmetSheet != nullptr) {
+                SDL2pp::Texture& helmTex =
+                        textures.get(std::string(GC::RESOURCES_DIR) + helmetSheet);
+
+                if (isGhostPlayer)
+                    helmTex.SetAlphaMod(100);
+
+                int helmCol = 0;
+                switch (facing) {
+                    case Movement::DOWN:
+                        helmCol = 0;
+                        break;
+                    case Movement::RIGHT:
+                        helmCol = 1;
+                        break;
+                    case Movement::LEFT:
+                        helmCol = 2;
+                        break;
+                    case Movement::UP:
+                        helmCol = 3;
+                        break;
+                    default:
+                        helmCol = 0;
+                        break;
+                }
+                const int srcX = helmCol * helmFrameW;
+
+                const float scaleX = static_cast<float>(GC::HEAD_DRAW_W) / 13.0f;
+                const float scaleY = static_cast<float>(GC::HEAD_DRAW_H) / 15.0f;
+
+                const int dstW = static_cast<int>(helmFrameW * scaleX);
+                const int dstH = static_cast<int>(helmFrameH * scaleY);
+
+                const int dstX = headX + (GC::HEAD_DRAW_W - dstW) / 2;
+
+                const int dstY = headY + GC::HEAD_DRAW_H - dstH;
+
+                SDL_Rect srcRect{srcX, 0, helmFrameW, helmFrameH};
+                SDL_Rect dstRect{dstX, dstY, dstW, dstH};
+
+                SDL_RenderCopyEx(renderer.Get(), helmTex.Get(), &srcRect, &dstRect, 0.0, nullptr,
+                                 SDL_FLIP_NONE);
+
+                if (isGhostPlayer)
+                    helmTex.SetAlphaMod(255);
+            }
+        }
     }
 
     // Anillo amarillo del jugador local

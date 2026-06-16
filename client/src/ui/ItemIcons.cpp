@@ -53,6 +53,14 @@ const char* iconForItem(uint32_t itemId) {
     if (itemId == 1021)
         return "resources/armor/escudo-hierro.png";
 
+    // --- CASCOS Y SOMBREROS ---
+    if (itemId == 1010)
+        return "resources/armor/capucha.png";
+    if (itemId == 1011)
+        return "resources/armor/casco-hierro.png";
+    if (itemId == 1012)
+        return "resources/armor/sombrero-magico.png";
+
     switch (equipSlotForItem(itemId)) {
         case EquipSlot::WEAPON:
             return "resources/icon_weapon.png";
