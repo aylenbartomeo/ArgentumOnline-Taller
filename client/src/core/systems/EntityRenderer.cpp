@@ -89,8 +89,7 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
                                  anim.frameColumn(nowMs) :
                                  0;
 
-    const FrameRect bf = sprite.customGrid ? bodyFrameRectFor(sprite, facing, frameCol) :
-                                             bodyFrameRect(facing, frameCol);
+    const FrameRect bf = bodyFrameRectFor(sprite, facing, frameCol);
 
     const int bodyDstW = sprite.customGrid ?
                                  bf.w * sprite.bodyScale / 100 :
@@ -264,7 +263,10 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
 
     // ── Head ────────────────────────────────────────────────────────
     if (sprite.drawHead) {
-        const FrameRect hf = headFrameRect(facing);
+        static constexpr int HEAD_DIR_TO_COL[4] = {0, 3, 2, 1};  // DOWN, UP, LEFT, RIGHT -> col
+        const int headCol = HEAD_DIR_TO_COL[rowForFacing(facing)];
+        FrameRect hf{sprite.headSrcX + headCol * sprite.headStrideX, sprite.headSrcY,
+                     sprite.headSrcW, sprite.headSrcH};
         SDL2pp::Texture& headSheet =
                 textures.get(std::string(GC::RESOURCES_DIR) + sprite.headSheet);
 
@@ -273,23 +275,35 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         int headOffsetY = 0;
 
         if (frameCol == 0) {
-            // Ajuste cuando el personaje está QUIETO
-            headOffsetX = -2;
+            switch (facing) {
+                case Movement::UP:
+                    headOffsetX = -4;
+                    break;
+                case Movement::RIGHT:
+                    headOffsetX = -3;
+                    break;
+                case Movement::DOWN:
+                    headOffsetX = -2;
+                    break;
+                case Movement::LEFT:
+                    headOffsetX = -3;
+                    break;
+            }
             headOffsetY = 0;
         } else {
             // Ajustes de dirección cuando el personaje está EN MOVIMIENTO
             switch (facing) {
                 case Movement::UP:
-                    headOffsetX = -2;
+                    headOffsetX = -5;
                     break;
                 case Movement::RIGHT:
                     headOffsetX = -2;
                     break;
                 case Movement::DOWN:
-                    headOffsetX = 0;
+                    headOffsetX = -1;
                     break;
                 case Movement::LEFT:
-                    headOffsetX = 0;
+                    headOffsetX = -6;
                     break;
             }
 
@@ -317,10 +331,29 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         const int headY = py + GC::TILE_SIZE - GC::CHARACTER_DRAW_H + sprite.headOverlap -
                           GC::HEAD_DRAW_H - camera.y + headOffsetY;
 
+        int renderHeadX = headX;
+        int renderHeadW = GC::HEAD_DRAW_W;
+
+        if (entity.type == EntityType::PLAYER && entity.entityTypeId == 1 &&
+            facing == Movement::UP) {
+            int trimLeft = 2;
+
+            hf.x += trimLeft;
+            hf.w -= trimLeft;
+
+            float scaleX = static_cast<float>(GC::HEAD_DRAW_W) / sprite.headSrcW;
+            int renderTrim = static_cast<int>(trimLeft * scaleX);
+
+            renderHeadX += renderTrim;
+            renderHeadW -= renderTrim;
+        }
+
         if (isGhostPlayer)
             headSheet.SetAlphaMod(100);
+
         renderer.Copy(headSheet, SDL2pp::Rect(hf.x, hf.y, hf.w, hf.h),
-                      SDL2pp::Rect(headX, headY, GC::HEAD_DRAW_W, GC::HEAD_DRAW_H));
+                      SDL2pp::Rect(renderHeadX, headY, renderHeadW, GC::HEAD_DRAW_H));
+
         if (isGhostPlayer)
             headSheet.SetAlphaMod(255);
 
