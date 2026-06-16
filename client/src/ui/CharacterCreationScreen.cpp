@@ -131,50 +131,99 @@ void CharacterCreationScreen::drawSelector(const std::string& title, const std::
 }
 
 void CharacterCreationScreen::drawPreview(int x, int y) {
-    std::string folder;
+    int srcHx, srcHy, srcHw, srcHh;
     switch (selectedRace) {
         case 0:
-            folder = "resources/humano/";
+            srcHx = 0;
+            srcHy = 0;
+            srcHw = 16;
+            srcHh = 16;
+            break;  // Humano
+        case 1:
+            srcHx = 0;
+            srcHy = 0;
+            srcHw = 17;
+            srcHh = 20;
+            break;  // Elfo
+        case 2:
+            srcHx = 2;
+            srcHy = 2;
+            srcHw = 13;
+            srcHh = 19;
+            break;  // Enano
+        case 3:
+            srcHx = 2;
+            srcHy = 2;
+            srcHw = 10;
+            srcHh = 11;
+            break;  // Gnomo
+        default:
+            srcHx = 0;
+            srcHy = 0;
+            srcHw = 16;
+            srcHh = 16;
+            break;
+    }
+
+    std::string bodySheet;
+    std::string headSheet;
+    switch (selectedRace) {
+        case 0:
+            bodySheet = "resources/race/human/human-body.png";
+            headSheet = "resources/race/human/human-head.png";
             break;
         case 1:
-            folder = "resources/elfo/";
+            bodySheet = "resources/race/elf/elf-body.png";
+            headSheet = "resources/race/elf/elf-head.png";
             break;
         case 2:
-            folder = "resources/enano/";
+            bodySheet = "resources/race/dwarf/dwarf-body.png";
+            headSheet = "resources/race/dwarf/dwarf-head.png";
             break;
         case 3:
-            folder = "resources/gnomo/";
+            bodySheet = "resources/race/gnome/gnome-body.png";
+            headSheet = "resources/race/gnome/gnome-head.png";
             break;
     }
 
     try {
-        SDL2pp::Texture& headTex =
-                textures.get(folder + "cabeza-" + folder.substr(10, folder.length() - 11) + ".png");
-        SDL2pp::Texture& bodyTex =
-                textures.get(folder + "cuerpo-" + folder.substr(10, folder.length() - 11) + ".png");
-
-        int bw = 25;
-        int bh = 45;
-        int hw = 17;
-        int hh = 17;
+        SDL2pp::Texture& headTex = textures.get(headSheet);
+        SDL2pp::Texture& bodyTex = textures.get(bodySheet);
         int scale = 3;
+        int srcBx, srcBy, srcBw, srcBh;
 
-        renderer.Copy(bodyTex, SDL2pp::Rect(0, 0, bw, bh),
-                      SDL2pp::Rect(x, y, bw * scale, bh * scale));
+        switch (selectedRace) {
+            case 2:  // Enano
+            case 3:  // Gnomo
+                srcBx = 3;
+                srcBy = 12;
+                srcBw = 14;
+                srcBh = 23;
+                break;
+            default:  // Humano y Elfo
+                srcBx = 3;
+                srcBy = 5;
+                srcBw = 20;
+                srcBh = 39;
+                break;
+        }
 
-        int headX = x + (bw * scale - hw * scale) / 2;
+        // Dibujar Cuerpo
+        renderer.Copy(bodyTex, SDL2pp::Rect(srcBx, srcBy, srcBw, srcBh),
+                      SDL2pp::Rect(x, y, srcBw * scale, srcBh * scale));
 
-        // El humano y el elfo quedan perfectos con y - 9 * scale
-        int headY = y - (9 * scale);
+        // Calcular posición de la cabeza
+        int headX = x + (srcBw * scale - srcHw * scale) / 2;
+        int headY = y - (10 * scale);
 
-        // El enano y el gnomo necesitan que la cabeza esté un poco más abajo
         if (selectedRace == 2 || selectedRace == 3) {
             headY += 8 * scale;
         }
 
-        renderer.Copy(headTex, SDL2pp::Rect(0, 0, hw, hh),
-                      SDL2pp::Rect(headX, headY, hw * scale, hh * scale));
-    } catch (...) {}
+        // Dibujar Cabeza
+        renderer.Copy(headTex, SDL2pp::Rect(srcHx, srcHy, srcHw, srcHh),
+                      SDL2pp::Rect(headX, headY, srcHw * scale, srcHh * scale));
+    } catch (const std::exception& e) {}
 }
 
 void CharacterCreationScreen::render() {
