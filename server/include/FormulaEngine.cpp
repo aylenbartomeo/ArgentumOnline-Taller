@@ -78,7 +78,7 @@ uint32_t FormulaEngine::calculate_excess_gold_dropped(uint32_t current_gold,
 }
 
 uint32_t FormulaEngine::calculate_npc_gold_drop(uint16_t npc_max_life) const {
-    float drop_factor = rng(0.01f, 0.2f);
+    float drop_factor = rng(0.0f, 0.2f);
     return static_cast<uint32_t>(drop_factor * static_cast<float>(npc_max_life));
 }
 
