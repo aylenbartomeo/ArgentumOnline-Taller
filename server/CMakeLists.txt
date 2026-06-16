@@ -95,6 +95,7 @@ target_sources(lib_server
 
     PUBLIC
     # Headers para visualización en IDEs y exposición pública
+    src/config/TomlConfigHelper.h
     src/config/CharacterConfig.h
     src/config/CharacterConfigLoader.h
     src/config/ItemConfigLoader.h
