@@ -218,13 +218,14 @@ uint32_t Player::dropExcessGold() { return this->inventory.dropExcessGold(); }
 void Player::onActionStarted() { state.stopMeditating(); }
 
 void Player::receiveDamage(int amount) {
-    if (isDead()) return;
+    if (isDead())
+        return;
     onActionStarted();
     if (amount < 0)
         return;
     stats.takeDamage(static_cast<uint16_t>(amount));
     if (stats.getHp() == 0) {
-        handleDeath(); 
+        handleDeath();
     }
 }
 

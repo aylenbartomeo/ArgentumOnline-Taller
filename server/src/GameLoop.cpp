@@ -10,7 +10,8 @@
 #include "loop/ConstantRateLoop.h"
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
-                   const std::filesystem::path& configDir, const WorldConfig& wConfig):
+                   const std::filesystem::path& configDir, const WorldConfig& wConfig,
+                   const ServerConfig& serverConfig):
         isRunning(true),
         gameQueue(gameQueue),
         monitor(monitor),
@@ -21,7 +22,8 @@ GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
         inventoryConfig(InventoryConfigLoader::loadInventoryConfig(configDir / "inventory.toml")),
         worldConfig(wConfig),
         worldDataStore("worlds/"),
-        world(wConfig.worldId, wConfig.worldName, itemRegistry, characterConfigs, inventoryConfig) {
+        world(wConfig.worldId, wConfig.worldName, itemRegistry, characterConfigs, inventoryConfig,
+              serverConfig) {
     if (worldConfig.isNewWorld) {
         world.loadMap(worldConfig.baseMapPath, true);
     } else {

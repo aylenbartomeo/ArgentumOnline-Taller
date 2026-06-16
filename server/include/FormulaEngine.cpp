@@ -56,7 +56,8 @@ bool FormulaEngine::is_pvp_level_valid(uint16_t attacker_level, uint16_t victim_
 
 uint32_t FormulaEngine::calculate_death_exp_loss(int currentLevel) const {
     uint32_t nextLevelLimit = calculate_level_up_limit(currentLevel);
-    return static_cast<uint32_t>(nextLevelLimit * 0.25f);  // Pierde el 25% del límite del siguiente nivel
+    return static_cast<uint32_t>(nextLevelLimit *
+                                 0.25f);  // Pierde el 25% del límite del siguiente nivel
 }
 
 // ========================================================================

@@ -18,7 +18,8 @@
 #include "LootResolver.h"
 
 World::World(int worldId, const std::string& creatorPlayerName, const ItemRegistry& itemRegistry,
-             const CharacterConfigs& configs, const InventoryConfig& inventoryConfig):
+             const CharacterConfigs& configs, const InventoryConfig& inventoryConfig,
+             const ServerConfig& config):
         worldId(worldId),
         creatorPlayerName(creatorPlayerName),
         itemRegistry(itemRegistry),
@@ -27,7 +28,7 @@ World::World(int worldId, const std::string& creatorPlayerName, const ItemRegist
         clanService(clanRepo),
         clanController(clanService),
         characterConfigs(configs),
-        combatSystem(map, entityManager, clanRepo, eventPublisher, *this, enforceFairPlay),
+        combatSystem(map, entityManager, clanRepo, eventPublisher, *this, enforceFairPlay, config),
         projectileSystem(map, entityManager, combatSystem) {
     map.setDimensions(20, 15);
     map.setSpawnPoint(0, 0);

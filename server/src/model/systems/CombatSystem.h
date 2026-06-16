@@ -26,7 +26,7 @@ private:
     EventPublisher& eventPublisher;
     ICombatEventCallback& callback;
     bool enforceFairPlay;
-
+    float criticalProbability;
     ClanBonusCalculator clanBonusCalc;
     CombatNotifier notifier;
 
@@ -40,7 +40,7 @@ private:
 
 public:
     CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, EventPublisher& ep,
-                 ICombatEventCallback& cb, bool enforceFairPlay);
+                 ICombatEventCallback& cb, bool enforceFairPlay, const ServerConfig& config);
     void setFairPlayRules(bool enforce) { enforceFairPlay = enforce; }
 
     void playerAttack(uint32_t attackerDbId, uint32_t targetDbId);

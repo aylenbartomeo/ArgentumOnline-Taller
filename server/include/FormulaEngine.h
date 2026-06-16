@@ -2,12 +2,14 @@
 #define FORMULA_ENGINE_H_
 
 #include <cstdint>
+
 #include "RandomNumberGenerator.h"
 
 class FormulaEngine {
 private:
     FormulaEngine() = default;
     mutable RandomNumberGenerator rng;
+
 public:
     ~FormulaEngine() = default;
 
@@ -55,7 +57,7 @@ public:
 
     // Valida si el nivel de PvP es permitido (diferencia <= 10)
     bool is_pvp_level_valid(uint16_t attacker_level, uint16_t victim_level) const;
-    
+
     // Calcula la pérdida de experiencia al morir: 25% del límite de nivel actual
     uint32_t calculate_death_exp_loss(int currentLevel) const;
 

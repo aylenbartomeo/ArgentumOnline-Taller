@@ -89,7 +89,8 @@ void StatsComponent::recoverMana(uint16_t amount) {
 void StatsComponent::loseExperienceUponDeath() {
     uint32_t loss = formulaEngine.calculate_death_exp_loss(this->level);
 
-    uint32_t minExpAllowed = (this->level == 1) ? 0 : formulaEngine.calculate_level_up_limit(this->level - 1);
+    uint32_t minExpAllowed =
+            (this->level == 1) ? 0 : formulaEngine.calculate_level_up_limit(this->level - 1);
 
     if (this->exp > loss && (this->exp - loss) >= minExpAllowed) {
         this->exp -= loss;

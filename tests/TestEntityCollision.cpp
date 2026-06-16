@@ -13,9 +13,22 @@ static CharacterConfigs getTestConfigs() {
 }
 static InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
 
+static ServerConfig getTestServerConfig() {
+    ServerConfig config;
+    int port;
+    config.worldName = "";
+    config.mapPath + "";
+    config.clanBonusRange = 5;
+    config.criticalProbability = 0.10f;
+    config.clanAttackBonusPerMember = 0.05f;
+    config.clanDefenseBonusPerMember = 0.05f;
+    return config;
+}
+
 TEST(WorldTest, PlayerCannotMoveIntoAnotherPlayer) {
     ItemRegistry registry("../config/items.toml");
-    World mundo(1, "Tester", registry, getTestConfigs(), getTestInventoryConfig());
+    World mundo(1, "Tester", registry, getTestConfigs(), getTestInventoryConfig(),
+                getTestServerConfig());
     // Since World constructor defaults map dimensions to 20, 15, no need to do anything else.
 
     // Player 1 at 2,2

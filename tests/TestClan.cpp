@@ -24,6 +24,18 @@ static CharacterConfigs getTestConfigs() {
 
 static InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
 
+static ServerConfig getTestServerConfig() {
+    ServerConfig config;
+    int port;
+    config.worldName = "";
+    config.mapPath + "";
+    config.clanBonusRange = 5;
+    config.criticalProbability = 0.10f;
+    config.clanAttackBonusPerMember = 0.05f;
+    config.clanDefenseBonusPerMember = 0.05f;
+    return config;
+}
+
 struct MockWorldContext: public IWorldContext {
     uint16_t getPlayerLevel(uint32_t) const override { return 10; }
     uint32_t resolveNickToDbId(const std::string&) const override { return 0; }
@@ -338,7 +350,8 @@ protected:
     void SetUp() override {
         registry = new ItemRegistry("../config/items.toml");
         CharacterConfigs configs = getTestConfigs();
-        world = new World(1, "Tester", *registry, configs, getTestInventoryConfig());
+        world = new World(1, "Tester", *registry, configs, getTestInventoryConfig(),
+                          getTestServerConfig());
 
         // Desactivamos el Fair Play (Modo Arena) y bajamos el nivel de clan a 1 para los tests
         world->setFairPlayRules(false);
@@ -529,7 +542,7 @@ TEST(ClanGameLoopTest, GameLoop_ProcessesClanFoundCommand) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
     WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
-    GameLoop loop(gameQueue, monitor, "../config", wConfig);
+    GameLoop loop(gameQueue, monitor, "../config", wConfig, getTestServerConfig());
     // Jugador ingresa
     JoinEvent join;
     join.clientId = 1;
@@ -560,7 +573,7 @@ TEST(ClanGameLoopTest, GameLoop_ProcessesClanJoinAndAccept) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
     WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
-    GameLoop loop(gameQueue, monitor, "../config", wConfig);
+    GameLoop loop(gameQueue, monitor, "../config", wConfig, getTestServerConfig());
 
     // Dos jugadores ingresan
     auto pushJoin = [&](uint32_t id, const std::string& name) {

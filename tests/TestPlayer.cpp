@@ -190,7 +190,7 @@ TEST(PlayerTest, Player_ExperienceLossOnDeathAndFloorProtection) {
     // ni perforen el piso de EXP requerido para su nivel actual.
     Player player = makeTestPlayer();
 
-    player.addExperience(10000); 
+    player.addExperience(10000);
     uint8_t levelBeforeDeath = player.getLevel();
     uint32_t expBeforeDeath = player.getExp();
 
@@ -213,6 +213,7 @@ TEST(PlayerTest, Player_ExperienceLossOnDeathAndFloorProtection) {
 
     // La experiencia debió estancarse exactamente en el piso requerido para su nivel actual.
     // El piso de experiencia es el límite requerido para superar el nivel anterior (level - 1).
-    uint32_t expectedFloor = FormulaEngine::getInstance().calculate_level_up_limit(levelBeforeDeath - 1);
+    uint32_t expectedFloor =
+            FormulaEngine::getInstance().calculate_level_up_limit(levelBeforeDeath - 1);
     EXPECT_EQ(player.getExp(), expectedFloor);
 }

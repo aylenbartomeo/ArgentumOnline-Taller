@@ -6,10 +6,10 @@
 NpcLootResult LootResolver::resolveNpcLoot(uint16_t npcMaxLife, const std::vector<int>& potionIds,
                                            const std::vector<int>& allDroppableItemIds) {
     NpcLootResult result;
-    
-    static RandomNumberGenerator rng; 
-    
-    float roll = rng(0.0f, 0.90f); 
+
+    static RandomNumberGenerator rng;
+
+    float roll = rng(0.0f, 0.90f);
 
     if (roll < 0.80f) {
         // Nada: ocupa exactamente el 80% del espacio probabilístico

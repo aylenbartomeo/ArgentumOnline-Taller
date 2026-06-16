@@ -1,4 +1,12 @@
 [server]
-port = 9000
+port = 8080
 world = "DefaultWorld"
 map = "maps/defaultMap.json"
+
+[combat]
+critical_probability = 0.05
+
+[clans]
+bonus_range = 5
+attack_bonus_per_member = 0.05
+defense_bonus_per_member = 0.05
