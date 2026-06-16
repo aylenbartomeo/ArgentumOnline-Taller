@@ -61,7 +61,10 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         } else {
             eventPublisher.sendTo(dbId, "[CHEAT] Ya estás muerto.");
         }
-    } else if (type == CheatType::GIVE_RANGED_WEAPONS) {
+    } else if (type == CheatType::GIVE_WEAPONS) {
+        player->addItem(2000, 1);
+        player->addItem(2001, 1);
+        player->addItem(2002, 1);
         player->addItem(2010, 1);
         player->addItem(2011, 1);
         player->addItem(2020, 1);
