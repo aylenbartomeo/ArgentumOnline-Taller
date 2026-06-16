@@ -5,7 +5,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
-
+#include <mutex>
 #include "../../common/utils/position.h"
 #include "../../common/utils/types.h"
 // Struct de tamaño fijo para persistencia binaria.
@@ -50,6 +50,8 @@ private:
 
     // Índice cargado en memoria: username -> offset en el archivo de datos
     std::unordered_map<std::string, uint64_t> index;
+
+    mutable std::mutex storeMutex;
 
     // Lee el índice completo del disco a memoria
     void loadIndex();
