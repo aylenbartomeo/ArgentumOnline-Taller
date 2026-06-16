@@ -114,63 +114,7 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     if (isGhostPlayer)
         body.SetAlphaMod(255);
 
-
-    // ── Weapon overlay (bloque original sin cambios) ──────────────────────────────
-    // ── Weapon overlay ────────────────────────────────────────────────────────────
-    if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr &&
-        !isDead(entity.current_hp)) {
-        WeaponSheetInfo weaponInfo{"", 0};
-        if (WeaponHelper::hasSword(*localStats))
-            weaponInfo = {"items/espada.png", 0};
-        else if (WeaponHelper::hasAxe(*localStats))
-            weaponInfo = {"items/hacha.png", 48};
-        else if (WeaponHelper::hasHammer(*localStats))
-            weaponInfo = {"items/martillo.png", 0};
-        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_SIMPLE_ID))
-            weaponInfo = {"items/arco-simple.png", 0};
-        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_COMPUESTO_ID))
-            weaponInfo = {"items/arco-compuesto.png", 0};
-        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::VARA_FRESNO_WEAPON_ID))
-            weaponInfo = {
-                    "items/vara-fresno.png",
-            };
-        else if (WeaponHelper::hasEquipped(*localStats, 2022))
-            weaponInfo = {"items/baculo-nudoso.png", 0};
-        else if (WeaponHelper::hasEquipped(*localStats, 2023))
-            weaponInfo = {"items/baculo-engarzado.png", 0};
-
-        if (weaponInfo.sheet[0] != '\0') {
-            SDL2pp::Texture& weaponTex =
-                    textures.get(std::string(GC::RESOURCES_DIR) + weaponInfo.sheet);
-
-            if (isGhostPlayer)
-                weaponTex.SetAlphaMod(100);
-
-            const int col = frameCol % WEAPON_COLS;
-            const int wSrcX = col * WEAPON_CELL_W;
-            const int wFrameW = (facing == Movement::RIGHT) ? WEAPON_CELL_W - 2 : WEAPON_CELL_W;
-            const int wSrcY = weaponInfo.yStart + rowForFacing(facing) * WEAPON_STRIDE;
-            const int wFrameH = WEAPON_STRIDE;
-
-            const float scaleX = static_cast<float>(bodyDstW) / bf.w;
-            const float scaleY = static_cast<float>(bodyDstH) / bf.h;
-            const int wDstW = static_cast<int>(wFrameW * scaleX);
-            const int wDstH = static_cast<int>(wFrameH * scaleY);
-            const int wDstX = px + (GC::TILE_SIZE - wDstW) / 2 - camera.x -
-                              (facing == Movement::RIGHT ? 8 : 0);
-            const int wDstY = py + GC::TILE_SIZE - wDstH - camera.y;
-
-            renderer.Copy(weaponTex, SDL2pp::Rect(wSrcX, wSrcY, wFrameW, wFrameH),
-                          SDL2pp::Rect(wDstX, wDstY, wDstW, wDstH));
-
-            if (isGhostPlayer)
-                weaponTex.SetAlphaMod(255);
-        }
-    }
-
-    // ── Armor/Shield overlay ──────────────────────────────────────────────────────
-    // Mismo patrón que weapon overlay: sprites combinados (movimiento + icono al
-    // final), yStart=0 salvo offset si la fila DOWN no arranca en y=0.
+    // ── Armor/Shield overlay (PRIMERO) ────────────────────────────────────────────
     if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr &&
         !isDead(entity.current_hp)) {
 
@@ -208,7 +152,6 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
             const int dstH = static_cast<int>(frameH * scaleY);
 
             // ARMOR_OFFSET_X: corre la capa de armadura/escudo horizontalmente
-            // Valor negativo = mover a la izquierda.
             constexpr int ARMOR_OFFSET_X = -3;
             const int dstX = px + (GC::TILE_SIZE - dstW) / 2 - camera.x + ARMOR_OFFSET_X;
             const int dstY = py + GC::TILE_SIZE - dstH - camera.y;
@@ -220,12 +163,61 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
                 layerTex.SetAlphaMod(255);
         };
 
-        // Armadura se dibuja antes que el escudo para que el escudo quede al frente.
         drawArmorLayer(armorInfo);
         drawArmorLayer(shieldInfo);
     }
 
-    // ── Head (sin cambios) ────────────────────────────────────────────────────────
+    // ── Weapon overlay (SEGUNDO) ──────────────────────────────────────────────────
+    if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr &&
+        !isDead(entity.current_hp)) {
+        WeaponSheetInfo weaponInfo{"", 0};
+        if (WeaponHelper::hasSword(*localStats))
+            weaponInfo = {"items/espada.png", 0};
+        else if (WeaponHelper::hasAxe(*localStats))
+            weaponInfo = {"items/hacha.png", 48};
+        else if (WeaponHelper::hasHammer(*localStats))
+            weaponInfo = {"items/martillo.png", 0};
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_SIMPLE_ID))
+            weaponInfo = {"items/arco-simple.png", 0};
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_COMPUESTO_ID))
+            weaponInfo = {"items/arco-compuesto.png", 0};
+        else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::VARA_FRESNO_WEAPON_ID))
+            weaponInfo = {"items/vara-fresno.png", 0};
+        else if (WeaponHelper::hasEquipped(*localStats, 2022))
+            weaponInfo = {"items/baculo-nudoso.png", 0};
+        else if (WeaponHelper::hasEquipped(*localStats, 2023))
+            weaponInfo = {"items/baculo-engarzado.png", 0};
+
+        if (weaponInfo.sheet[0] != '\0') {
+            SDL2pp::Texture& weaponTex =
+                    textures.get(std::string(GC::RESOURCES_DIR) + weaponInfo.sheet);
+
+            if (isGhostPlayer)
+                weaponTex.SetAlphaMod(100);
+
+            const int col = frameCol % WEAPON_COLS;
+            const int wSrcX = col * WEAPON_CELL_W;
+            const int wFrameW = (facing == Movement::RIGHT) ? WEAPON_CELL_W - 2 : WEAPON_CELL_W;
+            const int wSrcY = weaponInfo.yStart + rowForFacing(facing) * WEAPON_STRIDE;
+            const int wFrameH = WEAPON_STRIDE;
+
+            const float scaleX = static_cast<float>(bodyDstW) / bf.w;
+            const float scaleY = static_cast<float>(bodyDstH) / bf.h;
+            const int wDstW = static_cast<int>(wFrameW * scaleX);
+            const int wDstH = static_cast<int>(wFrameH * scaleY);
+            const int wDstX = px + (GC::TILE_SIZE - wDstW) / 2 - camera.x -
+                              (facing == Movement::RIGHT ? 8 : 0);
+            const int wDstY = py + GC::TILE_SIZE - wDstH - camera.y;
+
+            renderer.Copy(weaponTex, SDL2pp::Rect(wSrcX, wSrcY, wFrameW, wFrameH),
+                          SDL2pp::Rect(wDstX, wDstY, wDstW, wDstH));
+
+            if (isGhostPlayer)
+                weaponTex.SetAlphaMod(255);
+        }
+    }
+
+    // ── Head ────────────────────────────────────────────────────────
     if (sprite.drawHead) {
         const FrameRect hf = headFrameRect(facing);
         SDL2pp::Texture& headSheet =
