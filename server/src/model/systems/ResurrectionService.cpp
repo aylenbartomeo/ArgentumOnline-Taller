@@ -24,7 +24,7 @@ ResurrectResult ResurrectionService::requestResurrection(
         }
     }
 
-    int delayMs = minDistance * 200;
+    int delayMs = minDistance * DELAY_MS_FACTOR;
     pending.push_back({dbId, static_cast<float>(delayMs), bestPos});
 
     return {true,

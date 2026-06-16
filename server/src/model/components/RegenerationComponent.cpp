@@ -17,7 +17,7 @@ void RegenerationComponent::tick(float secondsElapsed) {
 
     // Recuperacion pasiva de vida: Vida = FRazaRecuperacion * segundos
     accumulatedHpRecovery +=
-            formulaEngine.calculate_passive_recovery(raceRecoveryFactor, secondsElapsed);
+            formulaEngine.calculatePassiveRecovery(raceRecoveryFactor, secondsElapsed);
     if (accumulatedHpRecovery >= 1.0f) {
         const uint16_t hpRecovered = static_cast<uint16_t>(accumulatedHpRecovery);
         stats.heal(hpRecovered);
@@ -28,7 +28,7 @@ void RegenerationComponent::tick(float secondsElapsed) {
     if (!canUseMagic)
         return;
     if (state.isMeditating()) {
-        accumulatedManaRecovery += formulaEngine.calculate_meditation_recovery(
+        accumulatedManaRecovery += formulaEngine.calculateMeditationRecovery(
                 classMeditationFactor, stats.getIntelligence(), secondsElapsed);
 
         if (accumulatedManaRecovery >= 1.0f) {
@@ -45,7 +45,7 @@ void RegenerationComponent::tick(float secondsElapsed) {
     } else {
         // Fuera de meditación: recuperación pasiva de maná. Mana = FRazaRecuperacion * segundos
         accumulatedManaRecovery +=
-                formulaEngine.calculate_passive_recovery(raceRecoveryFactor, secondsElapsed);
+                formulaEngine.calculatePassiveRecovery(raceRecoveryFactor, secondsElapsed);
 
         if (accumulatedManaRecovery >= 1.0f) {
             const uint16_t manaRecovered = static_cast<uint16_t>(accumulatedManaRecovery);

@@ -5,7 +5,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
-
+#include <mutex>
 #include "../../common/utils/position.h"
 #include "../../common/utils/types.h"
 // Struct de tamaño fijo para persistencia binaria.
@@ -28,11 +28,12 @@ struct PlayerPersistData {
     struct SlotData {
         uint32_t item_id;
         uint16_t amount;
-    } inventory[16];
-    uint16_t equippedSlots;
+    } inventory[32];
+    uint32_t equippedSlots;
 };
 #pragma pack(pop)
-static_assert(sizeof(PlayerPersistData) == 128, "PlayerPersistData must be 128 bytes");
+// Campos base (30 bytes) + Inventario (32 * 6 = 192 bytes) + Máscara bits (4 bytes) = 226 bytes
+static_assert(sizeof(PlayerPersistData) == 226, "PlayerPersistData must be 226 bytes");
 
 class PlayerDataStore {
 private:
@@ -49,6 +50,8 @@ private:
 
     // Índice cargado en memoria: username -> offset en el archivo de datos
     std::unordered_map<std::string, uint64_t> index;
+
+    mutable std::mutex storeMutex;
 
     // Lee el índice completo del disco a memoria
     void loadIndex();

@@ -51,7 +51,7 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         return;
 
     if (type == CheatType::LEVEL_UP) {
-        uint32_t needed = FormulaEngine::getInstance().calculate_level_up_limit(player->getLevel());
+        uint32_t needed = FormulaEngine::getInstance().calculateLevelUpLimit(player->getLevel());
         player->addExperience(needed);
         eventPublisher.sendTo(dbId, "[CHEAT] ¡Has subido de nivel mágicamente!");
     } else if (type == CheatType::DIE) {
@@ -238,7 +238,10 @@ void World::moveEntity(uint32_t dbId, Movement direction) {
     Player* p = entityManager.getPlayer(dbId);
     if (!p)
         return;
-
+    if (p->isImmobilized()) {
+        eventPublisher.sendTo(dbId, "Estás inmovilizado esperando la resurrección...");
+        return;
+    }
     p->onActionStarted();
     Position oldPos = p->getPosition();
     Position candidate = p->tryMove(direction);
@@ -500,7 +503,7 @@ void World::update(float delta_time) {
 
         monster->update(delta_time);
 
-        Player* target = findNearestPlayer(*monster, monster->get_detection_range());
+        Player* target = findNearestPlayer(*monster, monster->getDetectionRange());
         if (!target) {
             monster->setTargetId(0);
             continue;
@@ -514,7 +517,7 @@ void World::update(float delta_time) {
 
         int dist = monster->distance_to(*target);
 
-        if (dist <= monster->get_attack_range()) {
+        if (dist <= monster->getAttackRange()) {
             if (monster->canAttack()) {
                 combatSystem.monsterAttack(*monster, *target);
                 monster->resetAttackCooldown();
@@ -783,7 +786,7 @@ void World::handlePlayerDeath(uint32_t dbId) {
 }
 
 void World::playerResurrect(uint32_t dbId) {
-    const Player* p = entityManager.getPlayer(dbId);
+    Player* p = entityManager.getPlayer(dbId);
     if (!p)
         return;
 
@@ -801,6 +804,16 @@ void World::playerResurrect(uint32_t dbId) {
 
     auto res = resurrectionService.requestResurrection(dbId, p->getPosition(), p->isDead(),
                                                        priestPositions);
+    if (res.success) {
+        int minDistance = std::numeric_limits<int>::max();
+        for (const auto& pos : priestPositions) {
+            int dist = p->getPosition().distance_to(pos);
+            if (dist < minDistance) minDistance = dist;
+        }
+        int delayMs = minDistance * resurrectionService.getDelayFactor();
+
+        p->immobilizeForResurrection(static_cast<float>(delayMs));
+    }
     eventPublisher.sendTo(dbId, res.message);
 }
 

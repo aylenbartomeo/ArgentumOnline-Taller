@@ -37,7 +37,9 @@ private:
     uint8_t currentAction = 0;
     float actionTimerMs = 0.0f;
     bool infiniteMana = false;
-
+    float resurrectionImmobilizedTimeMs = 0.0f;
+    
+    void updateResurrectionTimer(float deltaTimeMs);
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race, CharacterClass cls,
            const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,
@@ -112,6 +114,8 @@ public:
     void setHp(uint16_t newHp) { stats.setHp(newHp); }
     void setMana(uint16_t newMana) { stats.setMana(newMana); }
     void applyBoost(BoostType type, uint8_t value, uint32_t durationMs);
+    void immobilizeForResurrection(float durationMs);
+    bool isImmobilized() const;
     Race getRace() const { return stats.getRace(); }
     CharacterClass getCharacterClass() const { return stats.getCharacterClass(); }
 
