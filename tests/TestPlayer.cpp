@@ -180,3 +180,39 @@ TEST(PlayerTest, Player_CombatRules) {
     EXPECT_FALSE(victim1.canEngageInCombatWith(highLevel));
     EXPECT_FALSE(highLevel.canEngageInCombatWith(victim1));
 }
+
+// =========================================================================
+// TEST 8: PÉRDIDA DE EXPERIENCIA POR MUERTE Y PROTECCIÓN DE NIVEL
+// =========================================================================
+TEST(PlayerTest, Player_ExperienceLossOnDeathAndFloorProtection) {
+    // Explicación: Verifica que al morir se reduzca la experiencia del jugador,
+    // pero garantiza que muertes consecutivas no fuercen un descenso de nivel
+    // ni perforen el piso de EXP requerido para su nivel actual.
+    Player player = makeTestPlayer();
+
+    player.addExperience(10000); 
+    uint8_t levelBeforeDeath = player.getLevel();
+    uint32_t expBeforeDeath = player.getExp();
+
+    ASSERT_GT(levelBeforeDeath, 1u);
+
+    player.receiveDamage(player.getHp());
+    ASSERT_TRUE(player.isDead());
+
+    EXPECT_LT(player.getExp(), expBeforeDeath);
+    EXPECT_EQ(player.getLevel(), levelBeforeDeath);
+
+    // TEST DE ESTRÉS / LÍMITE: Muertes consecutivas para buscar el "Downgrade" de nivel
+    // Lo revivimos y lo matamos repetidamente para drenarle toda la experiencia posible
+    for (int i = 0; i < 5; ++i) {
+        player.resurrect();
+        player.receiveDamage(player.getHp());
+    }
+
+    EXPECT_EQ(player.getLevel(), levelBeforeDeath);
+
+    // La experiencia debió estancarse exactamente en el piso requerido para su nivel actual.
+    // El piso de experiencia es el límite requerido para superar el nivel anterior (level - 1).
+    uint32_t expectedFloor = FormulaEngine::getInstance().calculate_level_up_limit(levelBeforeDeath - 1);
+    EXPECT_EQ(player.getExp(), expectedFloor);
+}

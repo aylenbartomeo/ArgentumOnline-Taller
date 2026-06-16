@@ -104,7 +104,7 @@ public:
     void restoreHp();
     bool consumeMana(uint16_t amount);
     void recoverMana(uint16_t amount);
-
+    void loseExperienceUponDeath();
     Race getRace() const { return race; }
     CharacterClass getCharacterClass() const { return characterClass; }
 

@@ -57,6 +57,12 @@ bool FormulaEngine::is_pvp_level_valid(uint16_t attacker_level, uint16_t victim_
     return std::abs(diff) <= 10;
 }
 
+uint32_t FormulaEngine::calculate_death_exp_loss(int currentLevel) const {
+    // Ejemplo: Pierde el 10% del límite de nivel actual
+    uint32_t nextLevelLimit = calculate_level_up_limit(currentLevel);
+    return static_cast<uint32_t>(nextLevelLimit * 0.10);
+}
+
 // ========================================================================
 // ECONOMÍA Y DROPS (ORO)
 // ========================================================================

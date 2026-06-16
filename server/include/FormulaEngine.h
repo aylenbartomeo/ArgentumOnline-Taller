@@ -54,6 +54,9 @@ public:
 
     // Valida si el nivel de PvP es permitido (diferencia <= 10)
     bool is_pvp_level_valid(uint16_t attacker_level, uint16_t victim_level) const;
+    
+    // Calcula la pérdida de experiencia al morir: 10% del límite de nivel actual
+    uint32_t calculate_death_exp_loss(int currentLevel) const;
 
     // Calcula el oro que se pierde al morir: max(0, OroActual - OroSeguro)
     uint32_t calculate_excess_gold_dropped(uint32_t current_gold, uint32_t safe_limit) const;
