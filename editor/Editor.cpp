@@ -7,9 +7,12 @@
 #include <utility>
 #include <vector>
 
+#include "loop/ConstantRateLoop.h"
+
 #include "CityStamp.h"
 
 namespace {
+constexpr int FRAME_DURATION_MS = 16;
 constexpr int WINDOW_WIDTH = 800;
 constexpr int WINDOW_HEIGHT = 600;
 constexpr int PANEL_WIDTH = 200;
@@ -134,14 +137,15 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
 
 void Editor::run() {
     bool running = true;
-    while (running) {
+    ConstantRateLoop loop(FRAME_DURATION_MS);
+    loop.run([this, &running](int64_t) -> bool {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             handleEvent(event, running);
         }
         render();
-        SDL_Delay(16);
-    }
+        return running;
+    });
 }
 
 void Editor::handleEvent(const SDL_Event& event, bool& running) {

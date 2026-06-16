@@ -16,6 +16,7 @@
 #include "common/GameConstants.h"
 #include "common/include/dto/CreateCharacterDTO.h"
 #include "common/include/dto/JoinResponseDTO.h"
+#include "loop/ConstantRateLoop.h"
 #include "systems/StateAudioTrigger.h"
 
 using GameConstants::VIEW_H;
@@ -29,6 +30,7 @@ namespace {
 constexpr const char* HUD_FONT_PATH = "resources/fonts/DejaVuSans.ttf";
 constexpr const char* CHAT_FONT_PATH = "resources/fonts/DejaVuSans.ttf";
 constexpr const char* MANUAL_PATH = "resources/MANUAL_JUGADOR.md";
+constexpr int FRAME_DURATION_MS = 16;
 
 std::string readWholeFile(const std::string& path) {
     std::ifstream file(path);
@@ -119,10 +121,11 @@ bool Game::runStartupAndCreation() {
 }
 
 void Game::run() {
-    while (true) {
+    ConstantRateLoop loop(FRAME_DURATION_MS);
+    loop.run([this](int64_t) -> bool {
         const FrameInput input = events.pollEvents();
         if (input.quit)
-            break;
+            return false;
 
         miniChat.update(input, VIEW_X + VIEW_W, VIEW_Y + VIEW_H);
         manualPanel.update(input, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -141,8 +144,8 @@ void Game::run() {
 
         render(input);
         audio.updateMonsterSounds(lastSnapshot, SDL_GetTicks(), client.getClientId());
-        SDL_Delay(16);
-    }
+        return true;
+    });
 }
 
 void Game::render(const FrameInput& input) {
@@ -219,7 +222,7 @@ void Game::render(const FrameInput& input) {
     worldRenderer.renderGroundItems(cam, lastSnapshot);
     worldRenderer.renderGroundItems(cam, lastSnapshot);
     worldRenderer.renderCitizens(cam, client.getSelectedNpc());
-    entityRenderer.render(cam, lastSnapshot, now, client.getSelectedNpc());
+    entityRenderer.render(cam, lastSnapshot, now, client.getSelectedNpc(), &lastStats);
     worldRenderer.renderBuildingFronts(cam, playerCol, playerRow);
     worldRenderer.renderDecorationFront(cam, playerRow);
     worldRenderer.renderRoofs(cam, playerCol, playerRow);

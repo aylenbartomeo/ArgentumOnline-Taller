@@ -127,8 +127,6 @@ endif()
 # Program section
 # ---------------
 if(ARGENTUM_ONLINE_CLIENT)
-    # Buscamos Qt5 acá en la raíz para que esté disponible globalmente
-    find_package(Qt5 COMPONENTS Widgets REQUIRED)
     add_subdirectory(client)
 endif()
 

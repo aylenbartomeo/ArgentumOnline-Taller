@@ -185,7 +185,6 @@ void InputProcessor::sendMoveIfDue(const FrameInput& input, const SnapshotDTO& s
                                    const TileMap& map) {
     if (input.chatInputActive)
         return;
-    const EntityDTO* localPlayer = findEntityById(snapshot, client.getClientId());
 
     const Uint32 now = SDL_GetTicks();
     if (now - lastMoveSentMs < MOVE_INTERVAL_MS)
