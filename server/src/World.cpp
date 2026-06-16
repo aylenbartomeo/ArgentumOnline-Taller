@@ -226,7 +226,10 @@ void World::moveEntity(uint32_t dbId, Movement direction) {
     Player* p = entityManager.getPlayer(dbId);
     if (!p)
         return;
-
+    if (p->isImmobilized()) {
+        eventPublisher.sendTo(dbId, "Estás inmovilizado esperando la resurrección...");
+        return;
+    }
     p->onActionStarted();
     Position oldPos = p->getPosition();
     Position candidate = p->tryMove(direction);
@@ -771,7 +774,7 @@ void World::handlePlayerDeath(uint32_t dbId) {
 }
 
 void World::playerResurrect(uint32_t dbId) {
-    const Player* p = entityManager.getPlayer(dbId);
+    Player* p = entityManager.getPlayer(dbId);
     if (!p)
         return;
 
@@ -789,6 +792,16 @@ void World::playerResurrect(uint32_t dbId) {
 
     auto res = resurrectionService.requestResurrection(dbId, p->getPosition(), p->isDead(),
                                                        priestPositions);
+    if (res.success) {
+        int minDistance = std::numeric_limits<int>::max();
+        for (const auto& pos : priestPositions) {
+            int dist = p->getPosition().distance_to(pos);
+            if (dist < minDistance) minDistance = dist;
+        }
+        int delayMs = minDistance * 200;
+
+        p->immobilizeForResurrection(static_cast<float>(delayMs));
+    }
     eventPublisher.sendTo(dbId, res.message);
 }
 

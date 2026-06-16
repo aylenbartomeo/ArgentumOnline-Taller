@@ -88,9 +88,7 @@ void Player::update(float dtMs) {
         stats.clearBoosts();  // Regla AO: al morir se pierden los elixires
         currentAction = 0;
         actionTimerMs = 0.0f;
-        return;
-    }
-    if (actionTimerMs > 0.0f) {
+    } else if (actionTimerMs > 0.0f) {
         actionTimerMs -= dtMs;
         if (actionTimerMs <= 0.0f) {
             currentAction = 0;
@@ -98,7 +96,8 @@ void Player::update(float dtMs) {
         }
     }
     stats.updateTicks(dtMs);
-    regeneration.tick(dtMs / 1000.0f);  // tick espera segundos, dtMs viene en ms
+    this->updateResurrectionTimer(dtMs);
+    regeneration.tick(dtMs / 1000.0f);
 }
 
 bool Player::canEngageInCombatWith(const Attackable& other) const {
@@ -252,6 +251,23 @@ Position Player::tryMove(Movement direction) const {
 
 void Player::applyBoost(BoostType type, uint8_t value, uint32_t durationMs) {
     stats.addBoost(type, value, durationMs);
+}
+
+void Player::immobilizeForResurrection(float durationMs) {
+        this->resurrectionImmobilizedTimeMs = durationMs;
+}
+
+bool Player::isImmobilized() const {
+    return this->resurrectionImmobilizedTimeMs > 0.0f;
+}
+
+void Player::updateResurrectionTimer(float deltaTimeMs) {
+    if (this->resurrectionImmobilizedTimeMs > 0.0f) {
+        this->resurrectionImmobilizedTimeMs -= deltaTimeMs;
+        if (this->resurrectionImmobilizedTimeMs < 0.0f) {
+            this->resurrectionImmobilizedTimeMs = 0.0f;
+        }
+    }
 }
 
 // Exporta el estado completo del jugador a un struct de persistencia binaria
