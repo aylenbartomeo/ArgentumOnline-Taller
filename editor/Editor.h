@@ -55,7 +55,6 @@ private:
     void renderSpawn();
     void renderPanel();
     void renderStatusBar();
-    const EditorSafeZone* safeZoneAt(int col, int row) const;
     void drawGroundLayer(const std::vector<std::vector<int>>& grid);
     void drawDecorationLayer();
     void drawGrass(int dstX, int dstY, int dstSize);
