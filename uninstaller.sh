@@ -1,28 +1,47 @@
 #!/usr/bin/env bash
 # =============================================================================
 #  uninstaller.sh — Desinstalador para Argentum Online
-#  Uso: bash uninstaller.sh [--name <app_name>] [--purge]
-#
-#  --purge  elimina también la configuración en ~/.config/NAME/
+#  Invocado por: make uninstall (desde la raíz del proyecto)
 # =============================================================================
 
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# Configuración (debe coincidir con installer.sh)
+# Configuración (debe ser idéntica a installer.sh)
 # ---------------------------------------------------------------------------
-APP_NAME="${APP_NAME:-argentum_online}"
-PURGE=false
+APP_NAME="argentum_online"
+APP_DISPLAY_NAME="Argentum Online"
 
 BIN_DIR="$HOME/.local/bin"
 SHARE_DIR="$HOME/.local/share/${APP_NAME}"
 CONFIG_DIR="$HOME/.config/${APP_NAME}"
+ICONS_DIR="$HOME/.local/share/icons/${APP_NAME}"
+DESKTOP_DIR="$HOME/.local/share/applications"
 
-# Exactamente los binarios que instala installer.sh
 APP_BINARIES=(
     argentum_online_server
     argentum_online_client
     argentum_online_editor
+)
+
+DESKTOP_FILES=(
+    "${DESKTOP_DIR}/argentum_online_client.desktop"
+    "${DESKTOP_DIR}/argentum_online_editor.desktop"
+)
+
+# Directorios de bases de datos — todos los lugares donde pueden vivir
+DB_DIRS_LOCAL=(
+    auth_data
+    users_data
+    worlds
+)
+DB_DIRS_GLOBAL=(
+    "${SHARE_DIR}/auth_data"
+    "${SHARE_DIR}/users_data"
+    "${SHARE_DIR}/worlds"
+    "${CONFIG_DIR}/auth_data"
+    "${CONFIG_DIR}/users_data"
+    "${CONFIG_DIR}/worlds"
 )
 
 # ---------------------------------------------------------------------------
@@ -38,39 +57,27 @@ log_error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 die()       { log_error "$*"; exit 1; }
 
 # ---------------------------------------------------------------------------
-# Parseo de argumentos
-# ---------------------------------------------------------------------------
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --name)  APP_NAME="$2"; shift 2 ;;
-        --purge) PURGE=true;    shift   ;;
-        *)       die "Argumento desconocido: $1" ;;
-    esac
-done
-
-SHARE_DIR="$HOME/.local/share/${APP_NAME}"
-CONFIG_DIR="$HOME/.config/${APP_NAME}"
-
-# ---------------------------------------------------------------------------
 # Confirmación interactiva
 # ---------------------------------------------------------------------------
 echo ""
-echo -e "${RED}╔══════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${RED}║          Desinstalador de ${APP_NAME}                        ${NC}"
-echo -e "${RED}╚══════════════════════════════════════════════════════════════╝${NC}"
+echo -e "${RED}╔══════════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${RED}║            Desinstalador de ${APP_DISPLAY_NAME}                   ${NC}"
+echo -e "${RED}╚══════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo "  Se eliminarán:"
 for bin_name in "${APP_BINARIES[@]}"; do
-    echo "    - ${BIN_DIR}/${bin_name}"
+    echo "    - ${BIN_DIR}/${bin_name}  (wrapper)"
 done
-echo "    - ${SHARE_DIR}/  (maps, resources, game_data)"
-
-if $PURGE; then
-    echo "    - ${CONFIG_DIR}/  [--purge activo]"
-else
-    echo "    - ${CONFIG_DIR}/  (conservado; usá --purge para eliminarlo)"
-fi
-
+for desktop_file in "${DESKTOP_FILES[@]}"; do
+    echo "    - ${desktop_file}  (ícono de escritorio)"
+done
+echo "    - ${ICONS_DIR}/  (íconos PNG)"
+echo "    - ${SHARE_DIR}/  (binarios reales, assets)"
+echo "    - ${CONFIG_DIR}/  (configuración)"
+echo ""
+echo "  Se preguntará por separado:"
+echo "    - auth_data/, users_data/, worlds/  (bases de datos — locales y en el sistema)"
+echo "    - build/  (directorio de compilación)"
 echo ""
 read -r -p "¿Confirmás la desinstalación? [s/N]: " CONFIRM
 [[ "$CONFIRM" == "s" || "$CONFIRM" == "S" ]] \
@@ -78,9 +85,9 @@ read -r -p "¿Confirmás la desinstalación? [s/N]: " CONFIRM
 echo ""
 
 # ---------------------------------------------------------------------------
-# PASO 1 — Eliminar binarios
+# PASO 1 — Eliminar wrappers de binarios
 # ---------------------------------------------------------------------------
-log_info "--- Paso 1/3: Eliminando binarios ---"
+log_info "--- Paso 1/5: Eliminando wrappers de binarios ---"
 
 REMOVED=0
 for bin_name in "${APP_BINARIES[@]}"; do
@@ -90,18 +97,49 @@ for bin_name in "${APP_BINARIES[@]}"; do
         log_info "  Eliminado: ${target}"
         REMOVED=$((REMOVED + 1))
     else
-        log_warn "  No encontrado (ya eliminado?): ${target}"
+        log_warn "  No encontrado: ${target}"
     fi
 done
 
 [[ $REMOVED -gt 0 ]] \
-    && log_ok "${REMOVED} binario(s) eliminado(s)." \
-    || log_warn "No se eliminó ningún binario."
+    && log_ok "${REMOVED} wrapper(s) eliminado(s)." \
+    || log_warn "No se eliminó ningún wrapper (¿ya desinstalado?)."
 
 # ---------------------------------------------------------------------------
-# PASO 2 — Eliminar assets (share)
+# PASO 2 — Eliminar entradas .desktop
 # ---------------------------------------------------------------------------
-log_info "--- Paso 2/3: Eliminando assets ---"
+log_info "--- Paso 2/5: Eliminando íconos de escritorio ---"
+
+for desktop_file in "${DESKTOP_FILES[@]}"; do
+    if [[ -f "$desktop_file" ]]; then
+        rm -f "$desktop_file"
+        log_info "  Eliminado: ${desktop_file}"
+    else
+        log_warn "  No encontrado: ${desktop_file}"
+    fi
+done
+
+command -v update-desktop-database &>/dev/null \
+    && update-desktop-database "${DESKTOP_DIR}" 2>/dev/null || true
+
+log_ok "Íconos de escritorio eliminados."
+
+# ---------------------------------------------------------------------------
+# PASO 3 — Eliminar íconos PNG
+# ---------------------------------------------------------------------------
+log_info "--- Paso 3/5: Eliminando íconos PNG ---"
+
+if [[ -d "${ICONS_DIR}" ]]; then
+    rm -rf "${ICONS_DIR}"
+    log_ok "Eliminado: ${ICONS_DIR}"
+else
+    log_warn "No encontrado: ${ICONS_DIR}"
+fi
+
+# ---------------------------------------------------------------------------
+# PASO 4 — Eliminar binarios reales, assets y configuración
+# ---------------------------------------------------------------------------
+log_info "--- Paso 4/5: Eliminando binarios, assets y configuración ---"
 
 if [[ -d "${SHARE_DIR}" ]]; then
     rm -rf "${SHARE_DIR}"
@@ -110,20 +148,51 @@ else
     log_warn "No encontrado: ${SHARE_DIR}"
 fi
 
-# ---------------------------------------------------------------------------
-# PASO 3 — Configuración
-# ---------------------------------------------------------------------------
-log_info "--- Paso 3/3: Configuración ---"
-
-if $PURGE; then
-    if [[ -d "${CONFIG_DIR}" ]]; then
-        rm -rf "${CONFIG_DIR}"
-        log_ok "Eliminado: ${CONFIG_DIR}"
-    else
-        log_warn "No encontrado: ${CONFIG_DIR}"
-    fi
+if [[ -d "${CONFIG_DIR}" ]]; then
+    rm -rf "${CONFIG_DIR}"
+    log_ok "Eliminado: ${CONFIG_DIR}"
 else
-    log_info "Configuración conservada en ${CONFIG_DIR}. Usá --purge para eliminarla."
+    log_warn "No encontrado: ${CONFIG_DIR}"
+fi
+
+# ---------------------------------------------------------------------------
+# PASO 5 — Bases de datos (una sola pregunta, eliminación global + local)
+# ---------------------------------------------------------------------------
+log_info "--- Paso 5/5: Bases de datos ---"
+
+echo ""
+echo -e "  ${YELLOW}Advertencia: las bases de datos contienen todas las cuentas,${NC}"
+echo -e "  ${YELLOW}personajes y mundos generados en runtime.${NC}"
+echo ""
+echo "  Se eliminarían en todos sus ubicaciones:"
+echo "    Local  (repo): auth_data/  users_data/  worlds/"
+echo "    Global (share): ${SHARE_DIR}/auth_data  users_data  worlds"
+echo "    Global (config): ${CONFIG_DIR}/auth_data  users_data  worlds"
+echo ""
+read -r -p "¿Eliminás las bases de datos? [s/N]: " CLEAN_DB
+
+if [[ "$CLEAN_DB" == "s" || "$CLEAN_DB" == "S" ]]; then
+    # Local: dentro del repositorio
+    for dir in "${DB_DIRS_LOCAL[@]}"; do
+        if [[ -d "$dir" ]]; then
+            rm -rf "$dir"
+            log_info "  Eliminado (local):  ${dir}/"
+        fi
+    done
+
+    # Global: en share y config (pueden haber quedado huérfanos si SHARE_DIR
+    # ya fue eliminado en el paso 4, en cuyo caso este loop simplemente no
+    # encuentra nada; lo dejamos por si el usuario corre solo este paso)
+    for dir in "${DB_DIRS_GLOBAL[@]}"; do
+        if [[ -d "$dir" ]]; then
+            rm -rf "$dir"
+            log_info "  Eliminado (global): ${dir}"
+        fi
+    done
+
+    log_ok "Bases de datos eliminadas (local y global)."
+else
+    log_info "Bases de datos conservadas."
 fi
 
 # ---------------------------------------------------------------------------
@@ -133,14 +202,14 @@ SHELL_RC=""
 [[ -f "$HOME/.bashrc" ]] && SHELL_RC="$HOME/.bashrc"
 [[ -f "$HOME/.zshrc"  ]] && SHELL_RC="$HOME/.zshrc"
 
-if [[ -n "$SHELL_RC" ]] && grep -q "Agregado por el instalador de ${APP_NAME}" "$SHELL_RC" 2>/dev/null; then
-    # Borra el comentario y la línea export que siguen
+if [[ -n "$SHELL_RC" ]] \
+   && grep -q "Agregado por el instalador de ${APP_NAME}" "$SHELL_RC" 2>/dev/null; then
     sed -i "/# Agregado por el instalador de ${APP_NAME}/{N;d;}" "$SHELL_RC"
     log_info "Entrada de PATH eliminada de ${SHELL_RC}."
 fi
 
 # ---------------------------------------------------------------------------
-# Limpiar directorio build/ (pregunta)
+# build/ (pregunta separada)
 # ---------------------------------------------------------------------------
 if [[ -d "build" ]]; then
     echo ""
@@ -148,26 +217,16 @@ if [[ -d "build" ]]; then
     if [[ "$CLEAN_BUILD" == "s" || "$CLEAN_BUILD" == "S" ]]; then
         rm -rf build/
         log_ok "build/ eliminado."
+    else
+        log_info "build/ conservado."
     fi
 fi
 
 # ---------------------------------------------------------------------------
-# Bases de datos de runtime (auth_data, users_data, worlds) — sólo con --purge
-# ---------------------------------------------------------------------------
-if $PURGE; then
-    echo ""
-    read -r -p "¿Eliminás también las bases de datos locales (auth_data, users_data, worlds)? [s/N]: " CLEAN_DB
-    if [[ "$CLEAN_DB" == "s" || "$CLEAN_DB" == "S" ]]; then
-        rm -rf auth_data/ users_data/ worlds/
-        log_ok "Bases de datos locales eliminadas."
-    fi
-fi
-
-# ---------------------------------------------------------------------------
-# Resumen
+# Resumen final
 # ---------------------------------------------------------------------------
 echo ""
-echo -e "${GREEN}╔══════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║   ${APP_NAME} desinstalado correctamente ✓                  ${NC}"
-echo -e "${GREEN}╚══════════════════════════════════════════════════════════════╝${NC}"
+echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║        ${APP_DISPLAY_NAME} desinstalado correctamente ✓           ${NC}"
+echo -e "${GREEN}╚══════════════════════════════════════════════════════════════════╝${NC}"
 echo ""

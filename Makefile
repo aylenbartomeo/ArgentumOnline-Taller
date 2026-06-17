@@ -1,4 +1,4 @@
-.PHONY: all test clean editor client common server compile-debug run-tests valgrind-tests compile-and-tests install uninstall prepare-dirs run-server-create run-server-load run-client run-editor clean-db-auth clean-db-world clean-db check-config
+.PHONY: all test clean editor client common server compile-debug prepare-dirs run-tests valgrind-tests compile-and-tests install uninstall run-server-create run-server-load run-client run-editor clean-db-auth clean-db-world clean-db check-config
 
 default: all
 
@@ -49,10 +49,13 @@ compile-debug:
 	@# --- Recursos del Cliente ---
 	@ln -sfn ../resources build/resources
 
-run-tests:
+prepare-dirs:
+	@mkdir -p auth_data users_data worlds
+
+run-tests: prepare-dirs
 	cd build && ./argentum_online_tests
 
-valgrind-tests:
+valgrind-tests: prepare-dirs
 	mkdir -p build/valgrind
 	cd build && valgrind --leak-check=full \
 	                     --show-leak-kinds=all \
@@ -71,8 +74,6 @@ clean:
 
 
 # ─── Ejecución de Binarios (Modificados para usar las variables TOML) ──────────
-prepare-dirs:
-	@mkdir -p auth_data users_data worlds
 
 run-server-create: check-config prepare-dirs
 	cd build && ./argentum_online_server $(PORT) --create "$(WORLD)" --map "$(MAP)"
@@ -80,10 +81,10 @@ run-server-create: check-config prepare-dirs
 run-server-load: check-config prepare-dirs
 	cd build && ./argentum_online_server $(PORT) --load "$(WORLD)"
 
-run-client:
+run-client: prepare-dirs
 	cd build && ./argentum_online_client
 
-run-editor:
+run-editor: prepare-dirs
 	cd build && ./argentum_online_editor
 
 clean-db-auth:
