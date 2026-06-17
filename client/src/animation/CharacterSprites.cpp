@@ -85,6 +85,58 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         .bodyStrideX = 25,
                                         .bodyStrideY = 52,
                                         .bodyCols = 6};
+                case NPCType::BOSS_BALROG:
+                    return EntitySprite{.bodySheet = "bosses/Balrog Infernal.png",
+                                        .drawHead = false,
+                                        .bodySrcX = 0,
+                                        .bodySrcY = 0,
+                                        .bodySrcW = 84,
+                                        .bodySrcH = 130,
+                                        .bodyScale = 100,
+                                        .customGrid = true,
+                                        .bodyStrideX = 84,
+                                        .bodyStrideY = 130,
+                                        .bodyCols = 4,
+                                        .rowOrder = 1};
+                case NPCType::BOSS_TITAN:
+                    return EntitySprite{.bodySheet = "bosses/Titan de Piedra.png",
+                                        .drawHead = false,
+                                        .bodySrcX = 0,
+                                        .bodySrcY = 0,
+                                        .bodySrcW = 58,
+                                        .bodySrcH = 100,
+                                        .bodyScale = 100,
+                                        .customGrid = true,
+                                        .bodyStrideX = 58,
+                                        .bodyStrideY = 100,
+                                        .bodyCols = 4,
+                                        .rowOrder = 1};
+                case NPCType::BOSS_ARACNE:
+                    return EntitySprite{.bodySheet = "bosses/Aracne Abismal.png",
+                                        .drawHead = false,
+                                        .bodySrcX = 0,
+                                        .bodySrcY = 0,
+                                        .bodySrcW = 67,
+                                        .bodySrcH = 120,
+                                        .bodyScale = 100,
+                                        .customGrid = true,
+                                        .bodyStrideX = 67,
+                                        .bodyStrideY = 120,
+                                        .bodyCols = 6,
+                                        .rowOrder = 1};
+                case NPCType::BOSS_COLOSO:
+                    return EntitySprite{.bodySheet = "bosses/Coloso de Magma.png",
+                                        .drawHead = false,
+                                        .bodySrcX = 0,
+                                        .bodySrcY = 0,
+                                        .bodySrcW = 152,
+                                        .bodySrcH = 162,
+                                        .bodyScale = 100,
+                                        .customGrid = true,
+                                        .bodyStrideX = 152,
+                                        .bodyStrideY = 162,
+                                        .bodyCols = 4,
+                                        .rowOrder = 1};
                 default:
                     return EntitySprite{"1200.png", false, 0, "420.png", 6,  13,
                                         13,         15,    2, 4,         24, 44};
@@ -99,7 +151,34 @@ FrameRect bodyFrameRectFor(const EntitySprite& sprite, Movement facing, int col)
     if (c >= sprite.bodyCols) {
         c = sprite.bodyCols - 1;
     }
-    const int row = rowForFacing(facing);
-    return FrameRect{sprite.bodySrcX + c * sprite.bodyStrideX,
-                     sprite.bodySrcY + row * sprite.bodyStrideY, sprite.bodySrcW, sprite.bodySrcH};
+    int row = 0;
+    int srcW = sprite.bodySrcW;
+    int srcH = sprite.bodySrcH;
+    int strideX = sprite.bodyStrideX;
+    int offsetX = 0;
+    int offsetY = 0;
+
+    if (sprite.rowOrder == 1) {
+        switch (facing) {
+            case Movement::DOWN:
+                row = 0;
+                break;
+            case Movement::UP:
+                row = 1;
+                break;
+            case Movement::LEFT:
+                row = 2;
+                break;
+            case Movement::RIGHT:
+                row = 3;
+                break;
+        }
+    } else {
+        row = rowForFacing(facing);
+    }
+
+    int x = sprite.bodySrcX + offsetX + c * strideX;
+    int y = sprite.bodySrcY + offsetY + row * sprite.bodyStrideY;
+
+    return FrameRect{x, y, srcW, srcH};
 }

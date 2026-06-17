@@ -125,18 +125,138 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         else if (WeaponHelper::hasEquipped(*localStats, 2023))
             weaponSheet = "items/baculo-engarzado-mov.png";
 
+        // --- BOSS DROPS ---
+        else if (WeaponHelper::hasEquipped(*localStats, 4001))
+            weaponSheet = "items/maza-de-titan-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, 4002))
+            weaponSheet = "items/escudo-infernal-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, 4003))
+            weaponSheet = "items/espada-de-magma-mov.png";
+        else if (WeaponHelper::hasEquipped(*localStats, 4004))
+            weaponSheet = "items/arco-abismal-mov.png";
+
         if (!weaponSheet.empty()) {
             SDL2pp::Texture& weaponTex = textures.get(std::string(GC::RESOURCES_DIR) + weaponSheet);
             if (isGhostPlayer)
                 weaponTex.SetAlphaMod(100);
 
-            const float cellW = static_cast<float>(weaponTex.GetWidth()) / 5.0f;
-            const float cellH = static_cast<float>(weaponTex.GetHeight()) / 4.0f;
+            float cellCols = 5.0f;
+            float cellRows = 4.0f;
 
-            const int wSrcX = static_cast<int>((frameCol % 5) * cellW);
-            const int wSrcY = static_cast<int>(rowForFacing(facing) * cellH);
-            const int wFrameW = static_cast<int>(cellW);
-            const int wFrameH = static_cast<int>(cellH);
+            const float cellW_default = static_cast<float>(weaponTex.GetWidth()) / cellCols;
+            const float cellH_default = static_cast<float>(weaponTex.GetHeight()) / cellRows;
+
+            int frames = static_cast<int>(cellCols);
+            int mappedRow = rowForFacing(facing);
+            int spriteW = static_cast<int>(cellW_default);
+            int spriteH = static_cast<int>(cellH_default);
+            float strideX = cellW_default;
+            float strideY = cellH_default;
+
+            if (weaponSheet.find("maza-de-titan-mov.png") != std::string::npos) {
+                strideX = 158.0f / 5.0f;
+                strideY = 48.0f;
+                spriteW = 26;
+                spriteH = 46;
+                switch (facing) {
+                    case Movement::UP:
+                        mappedRow = 3;
+                        frames = 1;
+                        break;
+                    case Movement::LEFT:
+                        mappedRow = 3;
+                        frames = 5;
+                        break;
+                    case Movement::RIGHT:
+                        mappedRow = 2;
+                        frames = 5;
+                        break;
+                    case Movement::DOWN:
+                    default:
+                        mappedRow = 2;
+                        frames = 1;
+                        break;
+                }
+            } else if (weaponSheet.find("espada-de-magma-mov.png") != std::string::npos) {
+                strideX = 137.0f / 5.0f;
+                strideY = 51.0f;
+                spriteW = 24;
+                spriteH = 49;
+                switch (facing) {
+                    case Movement::UP:
+                        mappedRow = 3;
+                        frames = 1;
+                        break;
+                    case Movement::LEFT:
+                        mappedRow = 3;
+                        frames = 5;
+                        break;
+                    case Movement::RIGHT:
+                        mappedRow = 2;
+                        frames = 5;
+                        break;
+                    case Movement::DOWN:
+                    default:
+                        mappedRow = 2;
+                        frames = 1;
+                        break;
+                }
+            } else if (weaponSheet.find("escudo-infernal-mov.png") != std::string::npos) {
+                strideX = 107.0f / 4.0f;
+                strideY = 43.0f;
+                spriteW = 28;
+                spriteH = 43;
+                switch (facing) {
+                    case Movement::UP:
+                        mappedRow = 3;
+                        frames = 4;
+                        break;
+                    case Movement::LEFT:
+                        mappedRow = 1;
+                        frames = 4;
+                        break;
+                    case Movement::RIGHT:
+                        mappedRow = 0;
+                        frames = 4;
+                        break;
+                    case Movement::DOWN:
+                    default:
+                        mappedRow = 2;
+                        frames = 4;
+                        break;
+                }
+            } else if (weaponSheet.find("arco-abismal-mov.png") != std::string::npos) {
+                strideX = 130.0f / 5.0f;
+                strideY = 48.0f;
+                spriteW = 24;
+                spriteH = 48;
+                switch (facing) {
+                    case Movement::UP:
+                        mappedRow = 1;
+                        frames = 5;
+                        break;
+                    case Movement::LEFT:
+                        mappedRow = 2;
+                        frames = 5;
+                        break;
+                    case Movement::RIGHT:
+                        mappedRow = 3;
+                        frames = 5;
+                        break;
+                    case Movement::DOWN:
+                    default:
+                        mappedRow = 0;
+                        frames = 5;
+                        break;
+                }
+            }
+
+            int col = (frameCol % frames);
+
+            const int wSrcX = static_cast<int>(col * strideX);
+            const int wSrcY = static_cast<int>(mappedRow * strideY);
+            const int wFrameW = spriteW;
+            const int wFrameH = spriteH;
 
             const float scaleX = static_cast<float>(bodyDstW) / bf.w;
             const float scaleY = static_cast<float>(bodyDstH) / bf.h;

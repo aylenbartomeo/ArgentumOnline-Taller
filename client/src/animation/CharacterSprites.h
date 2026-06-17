@@ -25,6 +25,9 @@ struct EntitySprite {
     int bodyStrideX = 0;
     int bodyStrideY = 0;
     int bodyCols = 1;
+    // 0 = estándar motor (DOWN=0, UP=1, LEFT=2, RIGHT=3)
+    // 1 = boss estándar (DOWN=0, UP=1, LEFT=2, RIGHT=3)
+    int rowOrder = 0;
 };
 
 EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t entityId = 0,
