@@ -50,9 +50,6 @@ log_info "=== Iniciando instalación de ${APP_DISPLAY_NAME} ==="
 [[ -f "Makefile" ]] \
     || die "Ejecutá 'make install' desde la raíz del proyecto (donde está el Makefile)."
 
-command -v cmake &>/dev/null || die "cmake no encontrado. Instalalo con: sudo apt install cmake"
-command -v make  &>/dev/null || die "make no encontrado.  Instalalo con: sudo apt install build-essential"
-
 # ---------------------------------------------------------------------------
 # PASO 1 — Dependencias del sistema
 # ---------------------------------------------------------------------------
@@ -71,6 +68,8 @@ PACKAGES=(
     pkg-config
     valgrind
     python3
+    fluidsynth
+    libfluidsynth-dev
 )
 
 if command -v apt-get &>/dev/null; then
