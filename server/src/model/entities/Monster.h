@@ -17,6 +17,7 @@ private:
     NPCType type;
     std::string zone;  // bosques, mazmorras
     Position pos;
+    bool isBoss_ = false;
 
     int health;
     int max_health;
@@ -47,6 +48,7 @@ public:
     int getAttackMin() const;
     int getAttackMax() const;
     const std::string& get_zone() const;
+    bool isBoss() const { return isBoss_; }
 
     void update(float deltaMs);
     bool canAttack() const;

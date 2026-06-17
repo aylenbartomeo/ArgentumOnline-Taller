@@ -80,8 +80,23 @@ bool Map::loadSpawnFromJson(const std::string& path, const MapLoadOptions& optio
     safeZones.clear();
     npcs.clear();
     monsterSpawns.clear();
+    bossZones.clear();
     mapElements.clear();
     groundItems.clear();
+
+    if (data.contains("bossZones")) {
+        for (const auto& bz: data["bossZones"]) {
+            BossZoneConfig config;
+            config.x = bz["x"].get<int>();
+            config.y = bz["y"].get<int>();
+            config.width = bz["width"].get<int>();
+            config.height = bz["height"].get<int>();
+            config.spawnX = bz["spawnX"].get<int>();
+            config.spawnY = bz["spawnY"].get<int>();
+            config.respawnCooldownMs = bz.value("respawnCooldownMs", 300000.0f);
+            bossZones.push_back(config);
+        }
+    }
 
     if (data.contains("safeZones")) {
         for (const auto& zone: data["safeZones"]) {

@@ -42,6 +42,7 @@ target_sources(lib_server
     src/model/entities/Projectile.cpp
     src/model/systems/ProjectileSystem.cpp
     src/model/systems/SpawnSystem.cpp
+    src/model/systems/BossSpawnSystem.cpp
     src/model/systems/ResurrectionService.cpp
     src/model/systems/InteractionService.cpp
     src/model/systems/CombatSystem.cpp
@@ -76,6 +77,7 @@ target_sources(lib_server
     src/model/map/SafeZoneLayer.cpp
     src/model/map/NPCLayer.cpp
     src/model/map/CollisionLayer.cpp
+    src/model/map/BossZone.cpp
     src/Map.cpp
     src/World.cpp
     src/model/events/EventPublisher.cpp
@@ -116,6 +118,7 @@ target_sources(lib_server
     src/model/entities/GlobalBank.h
     src/model/entities/EntityManager.h
     src/model/systems/SpawnSystem.h
+    src/model/systems/BossSpawnSystem.h
     src/model/systems/ResurrectionService.h
     src/model/systems/InteractionService.h
     src/model/systems/CombatSystem.h
@@ -160,6 +163,7 @@ target_sources(lib_server
     src/model/map/SafeZoneLayer.h
     src/model/map/NPCLayer.h
     src/model/map/CollisionLayer.h
+    src/model/map/BossZone.h
     src/World.h
     src/auth/AuthManager.h
     src/persistence/PlayerDataStore.h

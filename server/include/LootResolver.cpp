@@ -37,3 +37,11 @@ NpcLootResult LootResolver::resolveNpcLoot(uint16_t npcMaxLife, const std::vecto
         return result;
     }
 }
+
+BossLootResult LootResolver::resolveBossLoot(const MonsterConfig& config) {
+    BossLootResult result;
+    result.uniqueItemId = config.uniqueDropItemId;
+    result.goldAmount = config.guaranteedGold;
+    result.extraItems = config.extraLoot;
+    return result;
+}

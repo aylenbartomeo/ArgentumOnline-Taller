@@ -7,16 +7,18 @@
 #include "../interfaces/CombatStrategies.h"
 #include "../items/Weapon.h"
 
+#include "BossSpawnSystem.h"
 #include "FormulaEngine.h"
 
 CombatSystem::CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, EventPublisher& ep,
-                           ICombatEventCallback& cb, bool enforceFairPlay,
-                           const ServerConfig& config):
+                           ICombatEventCallback& cb, const BossSpawnSystem& bss,
+                           bool enforceFairPlay, const ServerConfig& config):
         map(map),
         entityManager(em),
         clanRepo(cr),
         eventPublisher(ep),
         callback(cb),
+        bossSpawnSystem(bss),
         enforceFairPlay(enforceFairPlay),
         criticalProbability(config.criticalProbability),
         clanBonusCalc(em, cr, ep, config),
@@ -56,6 +58,15 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     if (!attacker.canAttack()) {
         eventPublisher.sendTo(attackerDbId, "No puedes atacar en este momento.");
         return;
+    }
+
+    // --- Validar boss area ---
+    Monster* mTarget = dynamic_cast<Monster*>(target);
+    if (mTarget && mTarget->isBoss()) {
+        if (!bossSpawnSystem.isInAnyBossArea(attacker.getPosition())) {
+            eventPublisher.sendTo(attackerDbId, "Debes acercarte al area del boss para atacarlo.");
+            return;
+        }
     }
 
     // --- Validar linea de vision ---
@@ -215,6 +226,16 @@ void CombatSystem::onProjectileHit(Player& attacker, Attackable& target, IHitEff
                                    const CombatModifiers& modifiers, const Weapon& weapon) {
     if (target.isDead() || !target.canBeAttacked()) {
         return;  // Si el objetivo murió en el viaje del proyectil, se descarta el impacto
+    }
+
+    // --- Validar boss area (el jugador podría haberse movido después de disparar) ---
+    const Monster* mTarget = dynamic_cast<const Monster*>(&target);
+    if (mTarget && mTarget->isBoss()) {
+        if (!bossSpawnSystem.isInAnyBossArea(attacker.getPosition())) {
+            eventPublisher.sendTo(attacker.getId(),
+                                  "Debes acercarte al area del boss para atacarlo.");
+            return;
+        }
     }
 
     CombatResult res;
