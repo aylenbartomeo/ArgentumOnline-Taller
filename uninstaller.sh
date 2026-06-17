@@ -2,8 +2,6 @@
 # =============================================================================
 #  uninstaller.sh — Desinstalador para Argentum Online
 #  Invocado por: make uninstall (desde la raíz del proyecto)
-#
-#  make uninstall pasa --purge automáticamente, eliminando todo.
 # =============================================================================
 
 set -euo pipefail
@@ -13,7 +11,6 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 APP_NAME="argentum_online"
 APP_DISPLAY_NAME="Argentum Online"
-PURGE=false
 
 BIN_DIR="$HOME/.local/bin"
 SHARE_DIR="$HOME/.local/share/${APP_NAME}"
@@ -32,6 +29,21 @@ DESKTOP_FILES=(
     "${DESKTOP_DIR}/argentum_online_editor.desktop"
 )
 
+# Directorios de bases de datos — todos los lugares donde pueden vivir
+DB_DIRS_LOCAL=(
+    auth_data
+    users_data
+    worlds
+)
+DB_DIRS_GLOBAL=(
+    "${SHARE_DIR}/auth_data"
+    "${SHARE_DIR}/users_data"
+    "${SHARE_DIR}/worlds"
+    "${CONFIG_DIR}/auth_data"
+    "${CONFIG_DIR}/users_data"
+    "${CONFIG_DIR}/worlds"
+)
+
 # ---------------------------------------------------------------------------
 # Colores
 # ---------------------------------------------------------------------------
@@ -45,16 +57,6 @@ log_error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 die()       { log_error "$*"; exit 1; }
 
 # ---------------------------------------------------------------------------
-# Parseo de argumentos
-# ---------------------------------------------------------------------------
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --purge) PURGE=true; shift ;;
-        *)       die "Argumento desconocido: $1" ;;
-    esac
-done
-
-# ---------------------------------------------------------------------------
 # Confirmación interactiva
 # ---------------------------------------------------------------------------
 echo ""
@@ -64,21 +66,18 @@ echo -e "${RED}╚════════════════════�
 echo ""
 echo "  Se eliminarán:"
 for bin_name in "${APP_BINARIES[@]}"; do
-    echo "    - ${BIN_DIR}/${bin_name}  (wrapper de ejecución)"
+    echo "    - ${BIN_DIR}/${bin_name}  (wrapper)"
 done
 for desktop_file in "${DESKTOP_FILES[@]}"; do
     echo "    - ${desktop_file}  (ícono de escritorio)"
 done
 echo "    - ${ICONS_DIR}/  (íconos PNG)"
-echo "    - ${SHARE_DIR}/  (binarios reales y assets: maps, resources, game_data)"
-
-if $PURGE; then
-    echo "    - ${CONFIG_DIR}/  (configuración)"
-    echo "    - auth_data/, users_data/, worlds/  (bases de datos locales del repositorio)"
-else
-    echo "    - ${CONFIG_DIR}/  (conservado; usá --purge para eliminarlo)"
-fi
-
+echo "    - ${SHARE_DIR}/  (binarios reales, assets)"
+echo "    - ${CONFIG_DIR}/  (configuración)"
+echo ""
+echo "  Se preguntará por separado:"
+echo "    - auth_data/, users_data/, worlds/  (bases de datos — locales y en el sistema)"
+echo "    - build/  (directorio de compilación)"
 echo ""
 read -r -p "¿Confirmás la desinstalación? [s/N]: " CONFIRM
 [[ "$CONFIRM" == "s" || "$CONFIRM" == "S" ]] \
@@ -104,10 +103,10 @@ done
 
 [[ $REMOVED -gt 0 ]] \
     && log_ok "${REMOVED} wrapper(s) eliminado(s)." \
-    || log_warn "No se eliminó ningún wrapper."
+    || log_warn "No se eliminó ningún wrapper (¿ya desinstalado?)."
 
 # ---------------------------------------------------------------------------
-# PASO 2 — Eliminar entradas .desktop (íconos de escritorio)
+# PASO 2 — Eliminar entradas .desktop
 # ---------------------------------------------------------------------------
 log_info "--- Paso 2/5: Eliminando íconos de escritorio ---"
 
@@ -138,9 +137,9 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# PASO 4 — Eliminar binarios reales y assets (share)
+# PASO 4 — Eliminar binarios reales, assets y configuración
 # ---------------------------------------------------------------------------
-log_info "--- Paso 4/5: Eliminando assets y binarios reales ---"
+log_info "--- Paso 4/5: Eliminando binarios, assets y configuración ---"
 
 if [[ -d "${SHARE_DIR}" ]]; then
     rm -rf "${SHARE_DIR}"
@@ -149,23 +148,51 @@ else
     log_warn "No encontrado: ${SHARE_DIR}"
 fi
 
+if [[ -d "${CONFIG_DIR}" ]]; then
+    rm -rf "${CONFIG_DIR}"
+    log_ok "Eliminado: ${CONFIG_DIR}"
+else
+    log_warn "No encontrado: ${CONFIG_DIR}"
+fi
+
 # ---------------------------------------------------------------------------
-# Bases de datos (auth_data, users_data, worlds) — sólo con --purge
+# PASO 5 — Bases de datos (una sola pregunta, eliminación global + local)
 # ---------------------------------------------------------------------------
-if $PURGE; then
-    echo ""
-    read -r -p "¿Eliminás también las bases de datos de juego y mundos (globales y locales)? [s/N]: " CLEAN_DB
-    if [[ "$CLEAN_DB" == "s" || "$CLEAN_DB" == "S" ]]; then
-        # 1. Limpieza Local (Raíz del repositorio)
-        rm -rf auth_data/ users_data/ worlds/
-        
-        # 2. Limpieza Global (Datos persistidos en el sistema por el servidor global)
-        if [[ -d "${CONFIG_DIR}" ]]; then
-            rm -rf "${CONFIG_DIR}/auth_data" "${CONFIG_DIR}/users_data" "${CONFIG_DIR}/worlds"
+log_info "--- Paso 5/5: Bases de datos ---"
+
+echo ""
+echo -e "  ${YELLOW}Advertencia: las bases de datos contienen todas las cuentas,${NC}"
+echo -e "  ${YELLOW}personajes y mundos generados en runtime.${NC}"
+echo ""
+echo "  Se eliminarían en todos sus ubicaciones:"
+echo "    Local  (repo): auth_data/  users_data/  worlds/"
+echo "    Global (share): ${SHARE_DIR}/auth_data  users_data  worlds"
+echo "    Global (config): ${CONFIG_DIR}/auth_data  users_data  worlds"
+echo ""
+read -r -p "¿Eliminás las bases de datos? [s/N]: " CLEAN_DB
+
+if [[ "$CLEAN_DB" == "s" || "$CLEAN_DB" == "S" ]]; then
+    # Local: dentro del repositorio
+    for dir in "${DB_DIRS_LOCAL[@]}"; do
+        if [[ -d "$dir" ]]; then
+            rm -rf "$dir"
+            log_info "  Eliminado (local):  ${dir}/"
         fi
-        
-        log_ok "Todos los mundos y bases de datos (globales y locales) han sido eliminados."
-    fi
+    done
+
+    # Global: en share y config (pueden haber quedado huérfanos si SHARE_DIR
+    # ya fue eliminado en el paso 4, en cuyo caso este loop simplemente no
+    # encuentra nada; lo dejamos por si el usuario corre solo este paso)
+    for dir in "${DB_DIRS_GLOBAL[@]}"; do
+        if [[ -d "$dir" ]]; then
+            rm -rf "$dir"
+            log_info "  Eliminado (global): ${dir}"
+        fi
+    done
+
+    log_ok "Bases de datos eliminadas (local y global)."
+else
+    log_info "Bases de datos conservadas."
 fi
 
 # ---------------------------------------------------------------------------
@@ -182,7 +209,7 @@ if [[ -n "$SHELL_RC" ]] \
 fi
 
 # ---------------------------------------------------------------------------
-# Limpiar directorio build/ (pregunta)
+# build/ (pregunta separada)
 # ---------------------------------------------------------------------------
 if [[ -d "build" ]]; then
     echo ""
@@ -190,6 +217,8 @@ if [[ -d "build" ]]; then
     if [[ "$CLEAN_BUILD" == "s" || "$CLEAN_BUILD" == "S" ]]; then
         rm -rf build/
         log_ok "build/ eliminado."
+    else
+        log_info "build/ conservado."
     fi
 fi
 
