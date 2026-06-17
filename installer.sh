@@ -58,24 +58,32 @@ log_info "--- Paso 1/5: Instalando dependencias del sistema ---"
 PACKAGES=(
     build-essential
     cmake
+    git                 # Asegura control de versiones si se usa en VM limpia
+    pkg-config
+    valgrind
+    python3
+    # --- Herramientas de Interfaz y Lanzador (Launcher) ---
+    qtbase5-dev
+    qtbase5-dev-tools
+    # --- Librerías de desarrollo nativas de SDL2 ---
     libsdl2-dev
     libsdl2-image-dev
     libsdl2-mixer-dev
     libsdl2-ttf-dev
     libsdl2-net-dev
-    libyaml-cpp-dev
-    libgtest-dev
-    pkg-config
-    valgrind
-    python3
+    # --- Códecs y Extensiones de Audio/Fuentes ---
+    libopus-dev
+    libopusfile-dev
+    libxmp-dev
     fluidsynth
     libfluidsynth-dev
-    wavpack
+    libwavpack1
     libwavpack-dev
-    libvorbis-dev
-    libflac-dev
-    libopusfile-dev
-    libmikmod-dev
+    wavpack
+    libfreetype-dev
+    # --- Otras dependencias del motor ---
+    libyaml-cpp-dev
+    libgtest-dev
 )
 
 if command -v apt-get &>/dev/null; then
