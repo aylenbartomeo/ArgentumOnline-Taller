@@ -153,13 +153,23 @@ log_ok "Directorios creados."
 # ---------------------------------------------------------------------------
 log_info "--- Paso 5/5: Instalando archivos ---"
 
-# ── 5a. Binarios ────────────────────────────────────────────────────────────
+# ── 5a. Binarios e Instalación de Wrappers Globales ─────────────────────────
 INSTALLED_BINS=0
 for bin_name in "${APP_BINARIES[@]}"; do
     bin_path="${BUILD_DIR}/${bin_name}"
     if [[ -f "$bin_path" ]]; then
-        install -m 755 "$bin_path" "${BIN_DIR}/"
-        log_info "  Binario: ${bin_name} → ${BIN_DIR}/"
+        # Instalamos el binario real dentro del directorio share
+        install -m 755 "$bin_path" "${SHARE_DIR}/"
+        
+        # Creamos un script ejecutable wrapper en el BIN_DIR del usuario
+        cat > "${BIN_DIR}/${bin_name}" << EOF
+#!/usr/bin/env bash
+# Wrapper dinámico generado por el instalador de Argentum Online
+cd "${SHARE_DIR}" && exec "./${bin_name}" "\$@"
+EOF
+        chmod 755 "${BIN_DIR}/${bin_name}"
+        
+        log_info "  Binario: ${bin_name} → ${SHARE_DIR}/ (Wrapper en ${BIN_DIR}/)"
         INSTALLED_BINS=$((INSTALLED_BINS + 1))
     else
         log_warn "  Binario no encontrado (¿target deshabilitado en CMake?): ${bin_path}"
@@ -169,7 +179,7 @@ done
 [[ $INSTALLED_BINS -gt 0 ]] \
     || die "No se instaló ningún binario. Verificá los targets de CMake."
 
-log_ok "${INSTALLED_BINS} binario(s) instalado(s) en ${BIN_DIR}."
+log_ok "${INSTALLED_BINS} binario(s) y wrapper(s) configurado(s) globalmente."
 
 # ── 5b. Assets ──────────────────────────────────────────────────────────────
 for asset_dir in maps resources game_data; do
@@ -185,6 +195,10 @@ log_ok "Assets instalados en ${SHARE_DIR}."
 if [[ -d "config" ]]; then
     cp -r config/. "${CONFIG_DIR}/"
     log_info "  Config: config/ → ${CONFIG_DIR}/"
+    
+    # Enlace simbólico relativo dentro de SHARE_DIR para que los binarios localicen la config local
+    ln -sfn "${CONFIG_DIR}" "${SHARE_DIR}/config"
+    log_info "  Symlink de compatibilidad: ${SHARE_DIR}/config → ${CONFIG_DIR}"
 fi
 
 log_ok "Configuración instalada en ${CONFIG_DIR}."
@@ -211,17 +225,6 @@ else
 fi
 
 # ── 5e. Entradas .desktop (íconos de escritorio) ────────────────────────────
-#
-# El cliente y el editor se pueden lanzar directamente (sin argumentos).
-# El servidor necesita argumentos, así que NO recibe .desktop.
-#
-# Nota sobre el working directory:
-#   Los binarios instalados en ~/.local/bin buscan recursos relativos al CWD.
-#   Para que funcionen sin depender de desde dónde se los invoca, creamos
-#   wrappers que setean ARGENTUM_SHARE y ARGENTUM_CONFIG, de modo que el
-#   binario pueda leerlas (si el juego las soporta), o bien usamos Path=
-#   en el .desktop apuntando a SHARE_DIR donde viven los assets.
-
 CLIENT_DESKTOP="${DESKTOP_DIR}/argentum_online_client.desktop"
 EDITOR_DESKTOP="${DESKTOP_DIR}/argentum_online_editor.desktop"
 
@@ -261,7 +264,6 @@ chmod 644 "$CLIENT_DESKTOP" "$EDITOR_DESKTOP"
 log_info "  .desktop: argentum_online_client.desktop → ${DESKTOP_DIR}/"
 log_info "  .desktop: argentum_online_editor.desktop → ${DESKTOP_DIR}/"
 
-# Actualizar caché de aplicaciones del escritorio (best-effort)
 if command -v update-desktop-database &>/dev/null; then
     update-desktop-database "${DESKTOP_DIR}" 2>/dev/null || true
 fi
@@ -292,11 +294,11 @@ echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║        ${APP_DISPLAY_NAME} instalado correctamente ✓              ${NC}"
 echo -e "${GREEN}╠══════════════════════════════════════════════════════════════════╣${NC}"
-printf "${GREEN}║${NC}  Binarios   →  %s\n"   "${BIN_DIR}/"
-printf "${GREEN}║${NC}  Assets     →  %s\n"   "${SHARE_DIR}/"
-printf "${GREEN}║${NC}  Config     →  %s\n"   "${CONFIG_DIR}/"
-printf "${GREEN}║${NC}  Íconos     →  %s\n"   "${ICONS_DIR}/"
-printf "${GREEN}║${NC}  Escritorio →  %s\n"   "${DESKTOP_DIR}/"
+printf "${GREEN}║${NC}  Wrappers Globales →  %s\n"   "${BIN_DIR}/"
+printf "${GREEN}║${NC}  Binarios y Assets →  %s\n"   "${SHARE_DIR}/"
+printf "${GREEN}║${NC}  Configuración     →  %s\n"   "${CONFIG_DIR}/"
+printf "${GREEN}║${NC}  Íconos            →  %s\n"   "${ICONS_DIR}/"
+printf "${GREEN}║${NC}  Escritorio        →  %s\n"   "${DESKTOP_DIR}/"
 echo -e "${GREEN}╠══════════════════════════════════════════════════════════════════╣${NC}"
 echo -e "${GREEN}║${NC}  Servidor (terminal):  argentum_online_server <puerto> --load <mundo>"
 echo -e "${GREEN}║${NC}  Cliente  (terminal):  argentum_online_client"

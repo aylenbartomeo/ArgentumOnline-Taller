@@ -64,17 +64,17 @@ echo -e "${RED}╚════════════════════�
 echo ""
 echo "  Se eliminarán:"
 for bin_name in "${APP_BINARIES[@]}"; do
-    echo "    - ${BIN_DIR}/${bin_name}"
+    echo "    - ${BIN_DIR}/${bin_name}  (wrapper de ejecución)"
 done
 for desktop_file in "${DESKTOP_FILES[@]}"; do
     echo "    - ${desktop_file}  (ícono de escritorio)"
 done
 echo "    - ${ICONS_DIR}/  (íconos PNG)"
-echo "    - ${SHARE_DIR}/  (assets: maps, resources, game_data)"
+echo "    - ${SHARE_DIR}/  (binarios reales y assets: maps, resources, game_data)"
 
 if $PURGE; then
     echo "    - ${CONFIG_DIR}/  (configuración)"
-    echo "    - auth_data/, users_data/, worlds/  (bases de datos locales)"
+    echo "    - auth_data/, users_data/, worlds/  (bases de datos locales del repositorio)"
 else
     echo "    - ${CONFIG_DIR}/  (conservado; usá --purge para eliminarlo)"
 fi
@@ -86,9 +86,9 @@ read -r -p "¿Confirmás la desinstalación? [s/N]: " CONFIRM
 echo ""
 
 # ---------------------------------------------------------------------------
-# PASO 1 — Eliminar binarios
+# PASO 1 — Eliminar wrappers de binarios
 # ---------------------------------------------------------------------------
-log_info "--- Paso 1/5: Eliminando binarios ---"
+log_info "--- Paso 1/5: Eliminando wrappers de binarios ---"
 
 REMOVED=0
 for bin_name in "${APP_BINARIES[@]}"; do
@@ -103,8 +103,8 @@ for bin_name in "${APP_BINARIES[@]}"; do
 done
 
 [[ $REMOVED -gt 0 ]] \
-    && log_ok "${REMOVED} binario(s) eliminado(s)." \
-    || log_warn "No se eliminó ningún binario (¿ya desinstalado?)."
+    && log_ok "${REMOVED} wrapper(s) eliminado(s)." \
+    || log_warn "No se eliminó ningún wrapper."
 
 # ---------------------------------------------------------------------------
 # PASO 2 — Eliminar entradas .desktop (íconos de escritorio)
@@ -138,9 +138,9 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# PASO 4 — Eliminar assets (share)
+# PASO 4 — Eliminar binarios reales y assets (share)
 # ---------------------------------------------------------------------------
-log_info "--- Paso 4/5: Eliminando assets ---"
+log_info "--- Paso 4/5: Eliminando assets y binarios reales ---"
 
 if [[ -d "${SHARE_DIR}" ]]; then
     rm -rf "${SHARE_DIR}"
