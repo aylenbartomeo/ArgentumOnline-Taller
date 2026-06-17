@@ -217,6 +217,9 @@ fi
 log_ok "Configuración instalada en ${CONFIG_DIR}."
 
 # ── 5d. Íconos ──────────────────────────────────────────────────────────────
+ICONS_DIR="$HOME/.local/share/icons"
+mkdir -p "${ICONS_DIR}"
+
 CLIENT_ICON_SRC="resources/logos/clientLogo.png"
 EDITOR_ICON_SRC="resources/logos/editorLogo.png"
 
@@ -255,6 +258,7 @@ Terminal=false
 Categories=Game;RolePlaying;
 Keywords=argentum;online;rpg;mmo;
 StartupNotify=true
+StartupWMClass=argentum_online_client
 DESKTOP
 
 cat > "$EDITOR_DESKTOP" << DESKTOP
@@ -271,6 +275,7 @@ Terminal=false
 Categories=Game;RolePlaying;
 Keywords=argentum;editor;mapas;
 StartupNotify=true
+StartupWMClass=argentum_online_editor
 DESKTOP
 
 chmod 644 "$CLIENT_DESKTOP" "$EDITOR_DESKTOP"
@@ -281,7 +286,11 @@ if command -v update-desktop-database &>/dev/null; then
     update-desktop-database "${DESKTOP_DIR}" 2>/dev/null || true
 fi
 
-log_ok "Íconos de escritorio registrados."
+if command -v gtk-update-icon-cache &>/dev/null; then
+    gtk-update-icon-cache -f -t "${ICONS_DIR}" 2>/dev/null || true
+fi
+
+log_ok "Íconos de escritorio registrados y mapeados con el entorno gráfico."
 
 # ---------------------------------------------------------------------------
 # Asegurar ~/.local/bin en el PATH
