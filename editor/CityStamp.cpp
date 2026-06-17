@@ -113,6 +113,21 @@ void clearCity(EditorMap& map, int originX, int originY) {
     map.removeSafeZoneAt(originX + prefab.safeDx, originY + prefab.safeDy);
 }
 
+bool eraseCityAt(EditorMap& map, int col, int row) {
+    const EditorSafeZone* zone = zoneContaining(map, col, row);
+    if (zone == nullptr) {
+        return false;
+    }
+    const CityPrefab& prefab = getCityPrefab();
+    clearCity(map, zone->x - prefab.safeDx, zone->y - prefab.safeDy);
+    return true;
+}
+
+CellPos cityOriginForClick(int col, int row) {
+    const CityPrefab& prefab = getCityPrefab();
+    return {col - prefab.width / 2, row - prefab.height / 2};
+}
+
 bool cityZoneFor(const EditorSafeZone& zone, const std::string& citizenType, CellRect& out) {
     const std::string zoneName = zoneNameForCitizen(citizenType);
     if (zoneName.empty()) {

@@ -235,9 +235,10 @@ void Editor::handleLeftClick(int x, int y) {
                     break;
                 }
                 case Tool::CITY: {
-                    std::string error = cityStampError(map, cell.x, cell.y);
+                    const CellPos origin = cityOriginForClick(cell.x, cell.y);
+                    std::string error = cityStampError(map, origin.x, origin.y);
                     if (error.empty()) {
-                        applyCityPrefab(map, cell.x, cell.y,
+                        applyCityPrefab(map, origin.x, origin.y,
                                         "Ciudad " + std::to_string(map.getSafeZones().size() + 1));
                         statusMsg = "";
                     } else {
@@ -246,9 +247,7 @@ void Editor::handleLeftClick(int x, int y) {
                     break;
                 }
                 case Tool::CITY_ERASE: {
-                    const EditorSafeZone* zone = safeZoneAt(cell.x, cell.y);
-                    if (zone != nullptr) {
-                        clearCity(map, zone->x, zone->y);
+                    if (eraseCityAt(map, cell.x, cell.y)) {
                         statusMsg = "";
                     } else {
                         statusMsg = "ahi no hay ninguna ciudad";
@@ -328,15 +327,6 @@ Palette& Editor::activePalette() {
 }
 
 const Palette& Editor::activePalette() const { return const_cast<Editor*>(this)->activePalette(); }
-
-const EditorSafeZone* Editor::safeZoneAt(int col, int row) const {
-    const auto& zones = map.getSafeZones();
-    auto it = std::find_if(zones.begin(), zones.end(), [col, row](const EditorSafeZone& zone) {
-        return col >= zone.x && col < zone.x + zone.width && row >= zone.y &&
-               row < zone.y + zone.height;
-    });
-    return (it != zones.end()) ? &(*it) : nullptr;
-}
 
 void Editor::drawGrass(int dstX, int dstY, int dstSize) {
     SDL2pp::Texture& tex = textures.get(GRASS_SHEET_PATH);

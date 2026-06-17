@@ -77,6 +77,35 @@ TEST(CityStampTest, ClearCityRestoresGrassAndRemovesEverything) {
     EXPECT_EQ(cityStampError(map, 10, 20), "");
 }
 
+TEST(CityStampTest, EraseCityAtFullyRemovesTheCityNotJustTheGround) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+
+    ASSERT_EQ(map.getDecoration()[20 + 22][10 + 2], 201);
+    ASSERT_TRUE(map.isBlocked(10 + 2, 20 + 22));
+
+    EXPECT_TRUE(eraseCityAt(map, 20, 35));
+
+    EXPECT_EQ(map.getDecoration()[20 + 22][10 + 2], 0);
+    EXPECT_EQ(map.getDecoration()[20 + 18][10 + 20], 0);
+    EXPECT_EQ(map.getDecoration()[20 + 30][10 + 16], 0);
+    EXPECT_EQ(map.getRoofs()[20 + 22][10 + 2], 0);
+    EXPECT_FALSE(map.isBlocked(10 + 2, 20 + 22));
+    EXPECT_EQ(map.getGround()[20 + 23][10 + 1], 108);
+    EXPECT_TRUE(map.getSafeZones().empty());
+}
+
+TEST(CityStampTest, EraseCityAtReturnsFalseWhenNoCityThere) {
+    EditorMap map = emptyMap();
+    EXPECT_FALSE(eraseCityAt(map, 5, 5));
+}
+
+TEST(CityStampTest, CityOriginForClickCentersTheCityOnTheClick) {
+    CellPos origin = cityOriginForClick(50, 40);
+    EXPECT_EQ(origin.x, 50 - 22);
+    EXPECT_EQ(origin.y, 40 - 17);
+}
+
 TEST(CitizenPlacementTest, PriestGoesInsideTheChurch) {
     EditorMap map = emptyMap();
     applyCityPrefab(map, 10, 20, "Pueblo");
