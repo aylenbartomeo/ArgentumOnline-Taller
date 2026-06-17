@@ -17,7 +17,7 @@ std::vector<SpawnRequest> SpawnSystem::getInitialSpawns(const Map& map) const {
 
     for (const auto& spawn: map.getMonsterSpawns()) {
         auto it = monsterConfigs.find(spawn.type);
-        if (it != monsterConfigs.end()) {
+        if (it != monsterConfigs.end() && !isBossType(spawn.type)) {
             requests.push_back({spawn.type, spawn.pos, &it->second});
         }
     }
@@ -38,9 +38,14 @@ std::vector<SpawnRequest> SpawnSystem::tick(float deltaTime, size_t currentMonst
             if (posOpt) {
                 std::vector<NPCType> types;
                 types.reserve(monsterConfigs.size());
-                std::transform(monsterConfigs.begin(), monsterConfigs.end(),
-                               std::back_inserter(types),
-                               [](const auto& pair) { return pair.first; });
+                for (const auto& pair: monsterConfigs) {
+                    if (!isBossType(pair.first)) {
+                        types.push_back(pair.first);
+                    }
+                }
+
+                if (types.empty())
+                    return requests;
 
                 std::random_device rd;
                 std::mt19937 gen(rd());
@@ -78,6 +83,14 @@ std::optional<Position> SpawnSystem::findValidSpawnPosition(
         if (!map.canMoveTo(candidate))
             continue;
         if (map.findNPCNear(candidate, 2).has_value())
+            continue;
+
+        bool inBossZone = std::any_of(
+                map.getBossZones().begin(), map.getBossZones().end(), [&](const auto& bz) {
+                    return candidate.x >= bz.x && candidate.x <= bz.x + bz.width &&
+                           candidate.y >= bz.y && candidate.y <= bz.y + bz.height;
+                });
+        if (inBossZone)
             continue;
 
         bool playerNear = false;

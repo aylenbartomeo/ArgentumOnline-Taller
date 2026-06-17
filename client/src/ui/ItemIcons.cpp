@@ -15,6 +15,11 @@ EquipSlot equipSlotForItem(uint32_t itemId) {
     if (itemId >= 2000 && itemId <= 2999) {
         return EquipSlot::WEAPON;
     }
+    if (itemId >= 4000 && itemId <= 4999) {
+        if (itemId == 4002)
+            return EquipSlot::SHIELD;
+        return EquipSlot::WEAPON;
+    }
     return EquipSlot::NONE;
 }
 
@@ -37,7 +42,17 @@ const char* iconForItem(uint32_t itemId) {
     if (itemId == 2022)
         return "resources/items/baculo-nudoso.png";
     if (itemId == 2023)
-        return "resources/items/baculo-engarzado.png";
+        return "resources/items/baculo-engarzado-item.png";
+
+    // --- BOSS DROPS ---
+    if (itemId == 4001)
+        return "resources/items/maza-de-titan-item.png";
+    if (itemId == 4002)
+        return "resources/items/escudo-infernal-item.png";
+    if (itemId == 4003)
+        return "resources/items/espada-de-magma-item.png";
+    if (itemId == 4004)
+        return "resources/items/arco-abismal-item.png";
 
     // --- ARMADURAS ---
     if (itemId == 1000)

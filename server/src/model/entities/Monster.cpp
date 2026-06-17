@@ -9,6 +9,7 @@ Monster::Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& c
         type(type),
         zone(config.zone),
         pos(pos),
+        isBoss_(config.isBoss),
         health(config.maxHealth),
         max_health(config.maxHealth),
         detection_range(config.detectionRange),
@@ -88,6 +89,14 @@ std::string Monster::getName() const {
             return "Orc";
         case NPCType::GOLEM:
             return "Golem";
+        case NPCType::BOSS_BALROG:
+            return "Balrog Infernal";
+        case NPCType::BOSS_TITAN:
+            return "Titan de Piedra";
+        case NPCType::BOSS_COLOSO:
+            return "Coloso de Magma";
+        case NPCType::BOSS_ARACNE:
+            return "Aracne Abismal";
         default:
             return "Monster";
     }

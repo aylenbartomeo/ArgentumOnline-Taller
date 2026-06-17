@@ -23,6 +23,7 @@
 #include "model/entities/Player.h"
 #include "model/events/EventPublisher.h"
 #include "model/items/ItemRegistry.h"
+#include "model/systems/BossSpawnSystem.h"
 #include "model/systems/CombatSystem.h"
 #include "model/systems/InteractionService.h"
 #include "model/systems/ProjectileSystem.h"
@@ -59,6 +60,7 @@ private:
 
     CharacterConfigs characterConfigs;
     SpawnSystem spawnSystem;
+    BossSpawnSystem bossSpawnSystem;
     CombatSystem combatSystem;
     ProjectileSystem projectileSystem;
     ResurrectionService resurrectionService;

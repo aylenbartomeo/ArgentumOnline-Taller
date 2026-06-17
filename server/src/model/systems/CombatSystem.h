@@ -17,6 +17,7 @@
 
 class IHitEffect;
 class Weapon;
+class BossSpawnSystem;
 
 class CombatSystem {
 private:
@@ -25,6 +26,7 @@ private:
     ClanRepository& clanRepo;
     EventPublisher& eventPublisher;
     ICombatEventCallback& callback;
+    const BossSpawnSystem& bossSpawnSystem;
     bool enforceFairPlay;
     float criticalProbability;
     ClanBonusCalculator clanBonusCalc;
@@ -40,7 +42,8 @@ private:
 
 public:
     CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, EventPublisher& ep,
-                 ICombatEventCallback& cb, bool enforceFairPlay, const ServerConfig& config);
+                 ICombatEventCallback& cb, const BossSpawnSystem& bss, bool enforceFairPlay,
+                 const ServerConfig& config);
     void setFairPlayRules(bool enforce) { enforceFairPlay = enforce; }
 
     void playerAttack(uint32_t attackerDbId, uint32_t targetDbId);

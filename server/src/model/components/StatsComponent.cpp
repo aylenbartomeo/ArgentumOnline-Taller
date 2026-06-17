@@ -45,11 +45,11 @@ StatsComponent::StatsComponent(const RaceConfig& raceConfigData,
 void StatsComponent::recalculateMaxStats() {
     this->max_health =
             formulaEngine.calculateMaxLife(this->constitution, this->classConfig.lifeFactor,
-                                             this->raceConfig.lifeFactor, this->level);
+                                           this->raceConfig.lifeFactor, this->level);
 
     this->max_mana =
             formulaEngine.calculateMaxMana(this->intelligence, this->classConfig.manaFactor,
-                                             this->raceConfig.manaFactor, this->level);
+                                           this->raceConfig.manaFactor, this->level);
 }
 
 void StatsComponent::addExperience(uint32_t amount) {

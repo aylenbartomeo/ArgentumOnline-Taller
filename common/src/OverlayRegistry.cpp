@@ -32,6 +32,10 @@ const std::vector<OverlayDef>& getOverlayRegistry() {
             {"5137.png", 604, 283, 39, 35, "Altar", 0, false},
             {"5137.png", 604, 283, 39, 35, "Mostrador", 0, false},
             {"5137.png", 604, 283, 39, 35, "Boveda", 0, false},
+            {"items/maza-de-titan-item.png", 0, 0, 35, 35, "Maza de Titan", 4001, false},
+            {"items/escudo-infernal-item.png", 0, 0, 30, 30, "Escudo Infernal", 4002, false},
+            {"items/espada-de-magma-item.png", 0, 0, 35, 35, "Espada de Magma", 4003, false},
+            {"items/arco-abismal-item.png", 0, 0, 33, 33, "Arco Abismal", 4004, false},
     };
     return registry;
 }

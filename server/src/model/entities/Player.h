@@ -38,8 +38,9 @@ private:
     float actionTimerMs = 0.0f;
     bool infiniteMana = false;
     float resurrectionImmobilizedTimeMs = 0.0f;
-    
+
     void updateResurrectionTimer(float deltaTimeMs);
+
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race, CharacterClass cls,
            const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,

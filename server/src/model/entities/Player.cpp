@@ -111,7 +111,7 @@ bool Player::canEngageInCombatWith(const Attackable& other) const {
 
     // Regla 2: diferencia de nivel máxima de 10
     if (!FormulaEngine::getInstance().isPvpLevelValid(this->stats.getLevel(),
-                                                         otherPlayer->stats.getLevel())) {
+                                                      otherPlayer->stats.getLevel())) {
         return false;
     }
     return true;
@@ -251,12 +251,10 @@ void Player::applyBoost(BoostType type, uint8_t value, uint32_t durationMs) {
 }
 
 void Player::immobilizeForResurrection(float durationMs) {
-        this->resurrectionImmobilizedTimeMs = durationMs;
+    this->resurrectionImmobilizedTimeMs = durationMs;
 }
 
-bool Player::isImmobilized() const {
-    return this->resurrectionImmobilizedTimeMs > 0.0f;
-}
+bool Player::isImmobilized() const { return this->resurrectionImmobilizedTimeMs > 0.0f; }
 
 void Player::updateResurrectionTimer(float deltaTimeMs) {
     if (this->resurrectionImmobilizedTimeMs > 0.0f) {
