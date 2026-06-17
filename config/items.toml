@@ -228,3 +228,51 @@ price = 5
 type = "boostAgi"
 durationMs = 60000
 effectValue = 10
+
+# =========================
+# BOSS DROPS - 4000 a 4999
+# =========================
+
+[[weapon]]
+id = 4001
+name = "Maza de Titan"
+price = 400
+min_damage = 17
+max_damage = 29
+type = "melee"
+attack_range = 1
+mana_cost = 0
+delivery = "instant_melee"
+hit_effect = "melee_damage"
+
+[[armor]]
+id = 4002
+name = "Escudo Infernal"
+price = 350
+slot = "shield"
+min_defense = 12
+max_defense = 25
+
+[[weapon]]
+id = 4003
+name = "Espada de Magma"
+price = 450
+min_damage = 14
+max_damage = 27
+type = "melee"
+attack_range = 1
+mana_cost = 0
+delivery = "instant_melee"
+hit_effect = "melee_damage"
+
+[[weapon]]
+id = 4004
+name = "Arco Abismal"
+price = 400
+min_damage = 15
+max_damage = 27
+type = "ranged"
+attack_range = 8
+mana_cost = 0
+delivery = "projectile"
+hit_effect = "melee_damage"

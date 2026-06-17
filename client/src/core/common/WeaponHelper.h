@@ -34,7 +34,8 @@ inline bool hasVaraFresno(const PlayerStatsDTO& stats) {
 }
 inline bool hasFlauta(const PlayerStatsDTO& stats) { return hasEquipped(stats, FLAUTA_WEAPON_ID); }
 inline bool hasBow(const PlayerStatsDTO& stats) {
-    return hasEquipped(stats, ARCO_SIMPLE_ID) || hasEquipped(stats, ARCO_COMPUESTO_ID);
+    return hasEquipped(stats, ARCO_SIMPLE_ID) || hasEquipped(stats, ARCO_COMPUESTO_ID) ||
+           hasEquipped(stats, 4004);
 }
 
 }  // namespace WeaponHelper

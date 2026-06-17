@@ -2,6 +2,8 @@
 # MONSTERS
 # =========================
 
+[monsters]
+
 [monsters.goblin]
 max_health = 45
 strength = 1
@@ -85,3 +87,75 @@ min_level = 1
 max_level = 20
 attack_cooldown_ms = 3000
 move_cooldown_ms = 1200
+
+[monsters.boss_balrog]
+max_health = 3000
+strength = 12
+agility = 8
+attack_min = 40
+attack_max = 80
+detection_range = 8
+attack_range = 1
+min_level = 20
+max_level = 20
+zone = "dungeon"
+attack_cooldown_ms = 1500
+move_cooldown_ms = 1000
+is_boss = true
+unique_drop_item_id = 4002
+guaranteed_gold = 500
+extra_loot = [3000, 3010, 3020]
+
+[monsters.boss_titan]
+max_health = 4000
+strength = 15
+agility = 3
+attack_min = 50
+attack_max = 90
+detection_range = 6
+attack_range = 1
+min_level = 25
+max_level = 25
+zone = "dungeon"
+attack_cooldown_ms = 2500
+move_cooldown_ms = 1200
+is_boss = true
+unique_drop_item_id = 4001
+guaranteed_gold = 700
+extra_loot = [3010, 3010, 3020]
+
+[monsters.boss_coloso]
+max_health = 3500
+strength = 14
+agility = 4
+attack_min = 45
+attack_max = 75
+detection_range = 7
+attack_range = 1
+min_level = 22
+max_level = 22
+zone = "dungeon"
+attack_cooldown_ms = 2000
+move_cooldown_ms = 1100
+is_boss = true
+unique_drop_item_id = 4003
+guaranteed_gold = 600
+extra_loot = [3010, 3020]
+
+[monsters.boss_aracne]
+max_health = 2000
+strength = 6
+agility = 15
+attack_min = 25
+attack_max = 50
+detection_range = 12
+attack_range = 1
+min_level = 16
+max_level = 16
+zone = "dungeon"
+attack_cooldown_ms = 1000
+move_cooldown_ms = 700
+is_boss = true
+unique_drop_item_id = 4004
+guaranteed_gold = 300
+extra_loot = [3030, 3030]
