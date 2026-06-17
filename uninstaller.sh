@@ -150,27 +150,22 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# PASO 5 — Configuración y bases de datos (sólo con --purge)
+# Bases de datos (auth_data, users_data, worlds) — sólo con --purge
 # ---------------------------------------------------------------------------
-log_info "--- Paso 5/5: Configuración y bases de datos ---"
-
 if $PURGE; then
-    if [[ -d "${CONFIG_DIR}" ]]; then
-        rm -rf "${CONFIG_DIR}"
-        log_ok "Eliminado: ${CONFIG_DIR}"
-    else
-        log_warn "No encontrado: ${CONFIG_DIR}"
-    fi
-
-    for db_dir in auth_data users_data worlds; do
-        if [[ -d "$db_dir" ]]; then
-            rm -rf "$db_dir"
-            log_info "  BD eliminada: ${db_dir}/"
+    echo ""
+    read -r -p "¿Eliminás también las bases de datos de juego y mundos (globales y locales)? [s/N]: " CLEAN_DB
+    if [[ "$CLEAN_DB" == "s" || "$CLEAN_DB" == "S" ]]; then
+        # 1. Limpieza Local (Raíz del repositorio)
+        rm -rf auth_data/ users_data/ worlds/
+        
+        # 2. Limpieza Global (Datos persistidos en el sistema por el servidor global)
+        if [[ -d "${CONFIG_DIR}" ]]; then
+            rm -rf "${CONFIG_DIR}/auth_data" "${CONFIG_DIR}/users_data" "${CONFIG_DIR}/worlds"
         fi
-    done
-    log_ok "Configuración y bases de datos eliminadas."
-else
-    log_info "Configuración conservada en ${CONFIG_DIR}. Usá --purge para eliminarla."
+        
+        log_ok "Todos los mundos y bases de datos (globales y locales) han sido eliminados."
+    fi
 fi
 
 # ---------------------------------------------------------------------------
