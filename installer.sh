@@ -70,6 +70,12 @@ PACKAGES=(
     python3
     fluidsynth
     libfluidsynth-dev
+    wavpack
+    libwavpack-dev
+    libvorbis-dev
+    libflac-dev
+    libopusfile-dev
+    libmikmod-dev
 )
 
 if command -v apt-get &>/dev/null; then
