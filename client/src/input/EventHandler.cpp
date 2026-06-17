@@ -150,6 +150,7 @@ FrameInput EventHandler::pollEvents() {
         input.cheatGiveRanged = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_B);
         input.cheatInfiniteMana = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_M);
         input.cheatGiveGold = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_G);
+        input.cheatGiveArmors = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_P);
     }
 
     input.attackPressed = attackThisFrame;

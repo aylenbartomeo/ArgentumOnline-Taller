@@ -16,6 +16,7 @@ struct EntitySprite {
     int headSrcY;
     int headSrcW;
     int headSrcH;
+    int headStrideX = 0;
     int bodySrcX;
     int bodySrcY;
     int bodySrcW;

@@ -62,6 +62,7 @@ void PlayerDataStore::flushIndex() {
 
 std::optional<PlayerPersistData> PlayerDataStore::loadPlayerData(
         const std::string& username) const {
+    std::lock_guard<std::mutex> lock(this->storeMutex);
     auto it = this->index.find(username);
     if (it == this->index.end()) {
         return std::nullopt;
@@ -84,8 +85,9 @@ std::optional<PlayerPersistData> PlayerDataStore::loadPlayerData(
 }
 
 void PlayerDataStore::savePlayerData(const std::string& username, const PlayerPersistData& data) {
-    auto it = this->index.find(username);
+    std::lock_guard<std::mutex> lock(this->storeMutex);
 
+    auto it = this->index.find(username);
     if (it != this->index.end()) {
         // El usuario existe, actualiza en el offset
         std::fstream fs(this->dataFilePath, std::ios::binary | std::ios::in | std::ios::out);

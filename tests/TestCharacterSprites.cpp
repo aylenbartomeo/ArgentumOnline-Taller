@@ -5,7 +5,7 @@
 
 TEST(CharacterSpritesTest, PlayerUsesBodyWithHead) {
     EntitySprite s = spriteForEntity(EntityType::PLAYER, 0);
-    EXPECT_STREQ(s.bodySheet, "1500.png");
+    EXPECT_STREQ(s.bodySheet, "race/human/human-body.png");
     EXPECT_TRUE(s.drawHead);
 }
 
@@ -115,8 +115,8 @@ TEST(CharacterSpritesTest, SpiderUsesFiveColumnCustomGrid) {
 
 TEST(CharacterSpritesTest, PlayerHeadUsesFirstColumn) {
     EntitySprite s = spriteForEntity(EntityType::PLAYER, 0);
-    EXPECT_EQ(s.headSrcX, 6);
-    EXPECT_EQ(s.headSrcY, 13);
+    EXPECT_EQ(s.headSrcX, 0);
+    EXPECT_EQ(s.headSrcY, 0);
 }
 
 TEST(CharacterSpritesTest, BodyFrameRectForColZeroDownIsOrigin) {

@@ -17,7 +17,7 @@ NpcLootResult LootResolver::resolveNpcLoot(uint16_t npcMaxLife, const std::vecto
     } else if (roll < 0.88f) {
         // Oro: ocupa exactamente el 8% (0.80 a 0.88)
         result.dropsGold = true;
-        result.goldAmount = FormulaEngine::getInstance().calculate_npc_gold_drop(npcMaxLife);
+        result.goldAmount = FormulaEngine::getInstance().calculateNpcGoldDrop(npcMaxLife);
         return result;
     } else if (roll < 0.89f) {
         // Poción random: ocupa exactamente el 1% (0.88 a 0.89)

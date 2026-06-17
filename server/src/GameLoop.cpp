@@ -31,7 +31,9 @@ GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
         MonsterConfigs mConfigs;
         try {
             mConfigs = MonsterConfigLoader::loadMonsterConfigs("config/monsters.toml");
-        } catch (...) {}
+        } catch (const std::exception& e) {
+            std::cerr << e.what();
+        }
         world.restoreMonsters(worldDataStore.loadMonsters(worldConfig.worldId), mConfigs);
         auto [npcHeaders, npcStocks] = worldDataStore.loadNpcStates(worldConfig.worldId);
         world.restoreNpcStates(npcHeaders, npcStocks);

@@ -1,6 +1,7 @@
 #ifndef MONSTERCONFIG_H
 #define MONSTERCONFIG_H
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>

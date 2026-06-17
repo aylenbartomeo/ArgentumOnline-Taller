@@ -86,6 +86,6 @@ uint16_t EquipmentComponent::calculateCurrentDefense() const {
     uint16_t helmMin = this->helmet ? this->helmet->getMinDefense() : 0;
     uint16_t helmMax = this->helmet ? this->helmet->getMaxDefense() : 0;
 
-    return FormulaEngine::getInstance().calculate_defense(armMin, armMax, shMin, shMax, helmMin,
-                                                          helmMax);
+    return FormulaEngine::getInstance().calculateDefense(armMin, armMax, shMin, shMax, helmMin,
+                                                         helmMax);
 }

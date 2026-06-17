@@ -53,7 +53,7 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         return;
 
     if (type == CheatType::LEVEL_UP) {
-        uint32_t needed = FormulaEngine::getInstance().calculate_level_up_limit(player->getLevel());
+        uint32_t needed = FormulaEngine::getInstance().calculateLevelUpLimit(player->getLevel());
         player->addExperience(needed);
         eventPublisher.sendTo(dbId, "[CHEAT] ¡Has subido de nivel mágicamente!");
     } else if (type == CheatType::DIE) {
@@ -64,16 +64,17 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         } else {
             eventPublisher.sendTo(dbId, "[CHEAT] Ya estás muerto.");
         }
-    } else if (type == CheatType::GIVE_RANGED_WEAPONS) {
-        Player* p = entityManager.getPlayer(dbId);
-        if (p) {
-            p->addItem(2010, 1);
-            p->addItem(2011, 1);
-            p->addItem(2020, 1);
-            p->addItem(2021, 1);
-            p->addItem(2022, 1);
-            p->addItem(2023, 1);
-        }
+    } else if (type == CheatType::GIVE_WEAPONS) {
+        player->addItem(2000, 1);
+        player->addItem(2001, 1);
+        player->addItem(2002, 1);
+        player->addItem(2010, 1);
+        player->addItem(2011, 1);
+        player->addItem(2020, 1);
+        player->addItem(2021, 1);
+        player->addItem(2022, 1);
+        player->addItem(2023, 1);
+
         eventPublisher.sendTo(
                 dbId, "[CHEAT] Armas de rango agregados al inventario. Equipalo con doble click.");
     } else if (type == CheatType::INFINITE_MANA) {
@@ -83,6 +84,17 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
     } else if (type == CheatType::GIVE_GOLD) {
         player->addGold(1000);
         eventPublisher.sendTo(dbId, "[CHEAT] +1.000 de oro agregados.");
+    } else if (type == CheatType::GIVE_ARMORS) {
+        player->addItem(1000, 1);
+        player->addItem(1001, 1);
+        player->addItem(1002, 1);
+        player->addItem(1010, 1);
+        player->addItem(1011, 1);
+        player->addItem(1012, 1);
+        player->addItem(1020, 1);
+        player->addItem(1021, 1);
+
+        eventPublisher.sendTo(dbId, "[CHEAT] Todas las armaduras agregadas.");
     }
 }
 
@@ -233,7 +245,10 @@ void World::moveEntity(uint32_t dbId, Movement direction) {
     Player* p = entityManager.getPlayer(dbId);
     if (!p)
         return;
-
+    if (p->isImmobilized()) {
+        eventPublisher.sendTo(dbId, "Estás inmovilizado esperando la resurrección...");
+        return;
+    }
     p->onActionStarted();
     Position oldPos = p->getPosition();
     Position candidate = p->tryMove(direction);
@@ -504,7 +519,7 @@ void World::update(float delta_time) {
 
         monster->update(delta_time);
 
-        Player* target = findNearestPlayer(*monster, monster->get_detection_range());
+        Player* target = findNearestPlayer(*monster, monster->getDetectionRange());
         if (!target) {
             monster->setTargetId(0);
             continue;
@@ -518,7 +533,7 @@ void World::update(float delta_time) {
 
         int dist = monster->distance_to(*target);
 
-        if (dist <= monster->get_attack_range()) {
+        if (dist <= monster->getAttackRange()) {
             if (monster->canAttack()) {
                 combatSystem.monsterAttack(*monster, *target);
                 monster->resetAttackCooldown();
@@ -795,7 +810,7 @@ void World::handlePlayerDeath(uint32_t dbId) {
 }
 
 void World::playerResurrect(uint32_t dbId) {
-    const Player* p = entityManager.getPlayer(dbId);
+    Player* p = entityManager.getPlayer(dbId);
     if (!p)
         return;
 
@@ -813,6 +828,17 @@ void World::playerResurrect(uint32_t dbId) {
 
     auto res = resurrectionService.requestResurrection(dbId, p->getPosition(), p->isDead(),
                                                        priestPositions);
+    if (res.success) {
+        int minDistance = std::numeric_limits<int>::max();
+        for (const auto& pos: priestPositions) {
+            int dist = p->getPosition().distance_to(pos);
+            if (dist < minDistance)
+                minDistance = dist;
+        }
+        int delayMs = minDistance * resurrectionService.getDelayFactor();
+
+        p->immobilizeForResurrection(static_cast<float>(delayMs));
+    }
     eventPublisher.sendTo(dbId, res.message);
 }
 

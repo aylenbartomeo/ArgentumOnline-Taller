@@ -5,8 +5,89 @@
 EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t entityId,
                              uint8_t stateId) {
     switch (type) {
-        case EntityType::PLAYER:
-            return EntitySprite{"1500.png", true, 6, "420.png", 6, 13, 13, 15, 2, 4, 24, 44};
+        case EntityType::PLAYER: {
+            switch (entityTypeId) {
+                case 0:  // Humano
+                    return EntitySprite{"race/human/human-body.png",
+                                        true,
+                                        15,
+                                        "race/human/human-head.png",
+                                        0,
+                                        0,
+                                        16,
+                                        16,
+                                        16,
+                                        3,
+                                        5,
+                                        20,
+                                        39,
+                                        100,
+                                        false,
+                                        25,
+                                        45,
+                                        6};
+                case 1:  // Elfo
+                    return EntitySprite{"race/elf/elf-body.png",
+                                        true,
+                                        14,
+                                        "race/elf/elf-head.png",
+                                        0,
+                                        0,
+                                        16,
+                                        16,
+                                        16,
+                                        3,
+                                        5,
+                                        20,
+                                        39,
+                                        100,
+                                        false,
+                                        25,
+                                        45,
+                                        6};
+                case 2:  // Enano
+                    return EntitySprite{"race/dward/dward-body.png",
+                                        true,
+                                        28,
+                                        "race/dward/dwarf-head.png",
+                                        2,
+                                        2,
+                                        13,
+                                        19,
+                                        19,
+                                        3,
+                                        12,
+                                        14,
+                                        26,
+                                        100,
+                                        false,
+                                        20,
+                                        36,
+                                        6};
+                case 3:  // Gnomo
+                    return EntitySprite{"race/gnome/gnome-body.png",
+                                        true,
+                                        28,
+                                        "race/gnome/gnome-head.png",
+                                        2,
+                                        2,
+                                        10,
+                                        11,
+                                        13,
+                                        4,
+                                        12,
+                                        13,
+                                        23,
+                                        100,
+                                        false,
+                                        20,
+                                        36,
+                                        6};
+                default:  // Fallback por defecto si viene otro ID
+                    return EntitySprite{"1500.png", true, 6, "420.png", 6,  13,
+                                        13,         15,   2, 4,         24, 44};
+            }
+        }
         case EntityType::NPC:
             return EntitySprite{"1200.png", true, 15, "420.png", 6, 13, 13, 15, 2, 4, 24, 44};
         case EntityType::MONSTER: {

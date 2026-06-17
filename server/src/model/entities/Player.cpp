@@ -14,15 +14,12 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race r
         dbId(dbId),
         name(name),
         pos(spawn),
-        // Stats ahora solo maneja combate (sin max_gold)
         stats(race, cls, raceConfig, classConfig, playerBase),
-        // Inventario ahora absorbe la economía: 20 slots, 5000 seguro, 100000 tope máximo
         inventory(inventoryConfig),
         equipment(),
         state(),
         regeneration(stats, state, raceConfig, classConfig),
         itemRegistry(&itemRegistry) {
-    // Restauramos el oro inicial que arregló el test
     this->addGold(playerBase.startingGold);
 }
 
@@ -88,9 +85,7 @@ void Player::update(float dtMs) {
         stats.clearBoosts();  // Regla AO: al morir se pierden los elixires
         currentAction = 0;
         actionTimerMs = 0.0f;
-        return;
-    }
-    if (actionTimerMs > 0.0f) {
+    } else if (actionTimerMs > 0.0f) {
         actionTimerMs -= dtMs;
         if (actionTimerMs <= 0.0f) {
             currentAction = 0;
@@ -98,7 +93,8 @@ void Player::update(float dtMs) {
         }
     }
     stats.updateTicks(dtMs);
-    regeneration.tick(dtMs / 1000.0f);  // tick espera segundos, dtMs viene en ms
+    this->updateResurrectionTimer(dtMs);
+    regeneration.tick(dtMs / 1000.0f);
 }
 
 bool Player::canEngageInCombatWith(const Attackable& other) const {
@@ -108,14 +104,14 @@ bool Player::canEngageInCombatWith(const Attackable& other) const {
     }
 
     // Regla 1: newbie no puede atacar ni ser atacado por jugadores
-    if (FormulaEngine::getInstance().is_newbie(this->stats.getLevel()) ||
-        FormulaEngine::getInstance().is_newbie(otherPlayer->stats.getLevel())) {
+    if (FormulaEngine::getInstance().isNewbie(this->stats.getLevel()) ||
+        FormulaEngine::getInstance().isNewbie(otherPlayer->stats.getLevel())) {
         return false;
     }
 
     // Regla 2: diferencia de nivel máxima de 10
-    if (!FormulaEngine::getInstance().is_pvp_level_valid(this->stats.getLevel(),
-                                                         otherPlayer->stats.getLevel())) {
+    if (!FormulaEngine::getInstance().isPvpLevelValid(this->stats.getLevel(),
+                                                      otherPlayer->stats.getLevel())) {
         return false;
     }
     return true;
@@ -254,7 +250,21 @@ void Player::applyBoost(BoostType type, uint8_t value, uint32_t durationMs) {
     stats.addBoost(type, value, durationMs);
 }
 
-// Exporta el estado completo del jugador a un struct de persistencia binaria
+void Player::immobilizeForResurrection(float durationMs) {
+    this->resurrectionImmobilizedTimeMs = durationMs;
+}
+
+bool Player::isImmobilized() const { return this->resurrectionImmobilizedTimeMs > 0.0f; }
+
+void Player::updateResurrectionTimer(float deltaTimeMs) {
+    if (this->resurrectionImmobilizedTimeMs > 0.0f) {
+        this->resurrectionImmobilizedTimeMs -= deltaTimeMs;
+        if (this->resurrectionImmobilizedTimeMs < 0.0f) {
+            this->resurrectionImmobilizedTimeMs = 0.0f;
+        }
+    }
+}
+
 PlayerPersistData Player::toPersistData() const {
     PlayerPersistData d{};
     d.dbId = this->dbId;
@@ -280,7 +290,7 @@ PlayerPersistData Player::toPersistData() const {
 
     // Inventario
     const auto& slots = inventory.getSlots();
-    d.inventorySize = static_cast<uint8_t>(std::min(slots.size(), size_t(16)));
+    d.inventorySize = static_cast<uint8_t>(std::min(slots.size(), size_t(32)));
     for (uint8_t i = 0; i < d.inventorySize; ++i) {
         d.inventory[i].item_id = slots[i].item_id;
         d.inventory[i].amount = slots[i].amount;
@@ -296,14 +306,11 @@ PlayerPersistData Player::toPersistData() const {
     return d;
 }
 
-// Restaura el estado del jugador desde un struct de persistencia binaria
 void Player::fromPersistData(const PlayerPersistData& data) {
-    // Restaurar stats usando el método dedicado de StatsComponent
     stats.restoreFromPersist(data.hp, data.mana, data.exp, data.level);
     inventory.setGold(data.gold);
 
-    // Inventario
-    uint8_t slots = std::min<uint8_t>(data.inventorySize, 16);
+    uint8_t slots = std::min<uint8_t>(data.inventorySize, 32);
     for (uint8_t i = 0; i < slots; ++i) {
         inventory.restoreSlot(i, data.inventory[i].item_id, data.inventory[i].amount);
     }
@@ -314,7 +321,6 @@ void Player::fromPersistData(const PlayerPersistData& data) {
         }
     }
 
-    // Estado
     if (data.stateId == 1)
         handleDeath();
     else if (data.stateId == 2)

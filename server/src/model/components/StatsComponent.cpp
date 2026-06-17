@@ -44,17 +44,17 @@ StatsComponent::StatsComponent(const RaceConfig& raceConfigData,
 
 void StatsComponent::recalculateMaxStats() {
     this->max_health =
-            formulaEngine.calculate_max_life(this->constitution, this->classConfig.lifeFactor,
-                                             this->raceConfig.lifeFactor, this->level);
+            formulaEngine.calculateMaxLife(this->constitution, this->classConfig.lifeFactor,
+                                           this->raceConfig.lifeFactor, this->level);
 
     this->max_mana =
-            formulaEngine.calculate_max_mana(this->intelligence, this->classConfig.manaFactor,
-                                             this->raceConfig.manaFactor, this->level);
+            formulaEngine.calculateMaxMana(this->intelligence, this->classConfig.manaFactor,
+                                           this->raceConfig.manaFactor, this->level);
 }
 
 void StatsComponent::addExperience(uint32_t amount) {
     exp += amount;
-    while (exp >= formulaEngine.calculate_level_up_limit(level)) {
+    while (exp >= formulaEngine.calculateLevelUpLimit(level)) {
         level++;
         recalculateMaxStats();
         health = max_health;
@@ -87,10 +87,10 @@ void StatsComponent::recoverMana(uint16_t amount) {
 }
 
 void StatsComponent::loseExperienceUponDeath() {
-    uint32_t loss = formulaEngine.calculate_death_exp_loss(this->level);
+    uint32_t loss = formulaEngine.calculateDeathExpLoss(this->level);
 
     uint32_t minExpAllowed =
-            (this->level == 1) ? 0 : formulaEngine.calculate_level_up_limit(this->level - 1);
+            (this->level == 1) ? 0 : formulaEngine.calculateLevelUpLimit(this->level - 1);
 
     if (this->exp > loss && (this->exp - loss) >= minExpAllowed) {
         this->exp -= loss;

@@ -109,13 +109,15 @@ void InputProcessor::processCheats(const FrameInput& input) {
     if (input.cheatDie)
         client.sendCommand(CheatDTO{CheatType::DIE});
     if (input.cheatGiveRanged)
-        client.sendCommand(CheatDTO{CheatType::GIVE_RANGED_WEAPONS});
+        client.sendCommand(CheatDTO{CheatType::GIVE_WEAPONS});
     if (input.cheatInfiniteMana) {
         client.sendCommand(CheatDTO{CheatType::INFINITE_MANA});
         localInfiniteManaActive = !localInfiniteManaActive;
     }
     if (input.cheatGiveGold)
         client.sendCommand(CheatDTO{CheatType::GIVE_GOLD});
+    if (input.cheatGiveArmors)
+        client.sendCommand(CheatDTO{CheatType::GIVE_ARMORS});
 }
 
 // ─── Equip / Use / Slot / UI ──────────────────────────────────────────────────
