@@ -266,7 +266,7 @@ void CharacterCreationScreen::render() {
     // Coordenadas ajustadas a 800x600 y centradas
     int rightColX = 550 + offX;
     int leftColX = 280 + offX;
-    
+
     int claseY = 165 + offY;
     int razaY = 240 + offY;
     int attrY = 325 + offY;

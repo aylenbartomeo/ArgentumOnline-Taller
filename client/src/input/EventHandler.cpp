@@ -14,6 +14,7 @@ FrameInput EventHandler::pollEvents() {
     bool consumeThisFrame = false;
     bool grabThisFrame = false;
     bool dropThisFrame = false;
+    bool meditateThisFrame = false;
 
     bool toggleChatThisFrame = false;
     int scrollThisFrame = 0;
@@ -106,6 +107,9 @@ FrameInput EventHandler::pollEvents() {
                 } else if (key == SDLK_t) {
                     if (event.key.repeat == 0)
                         dropThisFrame = true;
+                } else if (key == SDLK_m) {
+                    if (event.key.repeat == 0)
+                        meditateThisFrame = true;
                 }
                 pressedKeys.insert(key);
                 justPressedKeys.insert(key);
@@ -147,10 +151,12 @@ FrameInput EventHandler::pollEvents() {
         bool shiftHeld = (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0;
         input.cheatLevelUp = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_L);
         input.cheatDie = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_K);
-        input.cheatGiveRanged = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_B);
+        input.cheatGiveRanged = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_W);
         input.cheatInfiniteMana = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_M);
+        input.cheatInfiniteHealth = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_H);
         input.cheatGiveGold = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_G);
-        input.cheatGiveArmors = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_P);
+        input.cheatGiveArmors = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_A);
+        input.cheatGivePotions = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_P);
     }
 
     input.attackPressed = attackThisFrame;
@@ -162,6 +168,7 @@ FrameInput EventHandler::pollEvents() {
     input.consumeKeyPressed = consumeThisFrame;
     input.grabKeyPressed = grabThisFrame;
     input.dropKeyPressed = dropThisFrame;
+    input.meditateKeyPressed = meditateThisFrame;
     input.resurrectPressed = resurrectThisFrame;
     input.shootPressed = shootThisFrame;
     input.shootScreenX = shootX;

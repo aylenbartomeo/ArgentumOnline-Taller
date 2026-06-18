@@ -45,10 +45,9 @@ std::string newMapError(const std::string& name, const std::vector<std::string>&
         }
     }
     std::string path = mapPathForName(trimmed);
-    for (const std::string& existing: existingPaths) {
-        if (existing == path) {
-            return "ya existe un mapa con ese nombre";
-        }
+    if (std::any_of(existingPaths.begin(), existingPaths.end(),
+                    [&](const std::string& existing) { return existing == path; })) {
+        return "ya existe un mapa con ese nombre";
     }
     return "";
 }

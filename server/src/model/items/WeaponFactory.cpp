@@ -32,7 +32,7 @@ std::unique_ptr<IHitEffect> WeaponFactory::createHitEffectStrategy(WeaponType ty
 //     hacen fallback al tipo de arma si el campo está vacío. ---
 
 std::unique_ptr<IAttackDelivery> WeaponFactory::createDelivery(const std::string& deliveryName,
-                                                               WeaponType type) const {
+                                                               WeaponType type) {
     if (deliveryName == "instant_melee") {
         return std::make_unique<InstantMeleeDelivery>();
     } else if (deliveryName == "projectile") {
@@ -43,7 +43,7 @@ std::unique_ptr<IAttackDelivery> WeaponFactory::createDelivery(const std::string
 }
 
 std::unique_ptr<IHitEffect> WeaponFactory::createHitEffect(const std::string& hitEffectName,
-                                                           WeaponType type) const {
+                                                           WeaponType type) {
     if (hitEffectName == "melee_damage") {
         return std::make_unique<MeleeDamageEffect>();
     } else if (hitEffectName == "magic_damage") {

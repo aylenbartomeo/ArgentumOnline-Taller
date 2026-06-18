@@ -100,6 +100,8 @@ constexpr int FLAUTA_HEAL_COLS = 5;
 constexpr int FLAUTA_HEAL_FRAMES = 5;
 constexpr uint32_t FLAUTA_HEAL_DUR_MS = 60;
 constexpr int FLAUTA_HEAL_DRAW = GC::TILE_SIZE * 2;
+constexpr uint16_t HEAL_SPRITE_ID = 204;
+
 
 constexpr int BE_ATTACKED_FRAMES = 28;
 constexpr uint32_t BE_ATTACKED_FRAME_DUR_MS = 40;
@@ -177,6 +179,8 @@ bool FxSystem::syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapsh
                 impactType = FxType::NUDOSO_IMPACT;
             else if (it->second.getSpriteId() == VARA_SPRITE_ID)
                 impactType = FxType::FRESNO_IMPACT;
+            else if (it->second.getSpriteId() == HEAL_SPRITE_ID)
+                impactType = FxType::FLAUTA_HEAL;
 
             activeFx = ActiveFx{0, SDL_GetTicks(), px, py, impactType};
             it = projAnimators.erase(it);
@@ -271,7 +275,8 @@ void FxSystem::renderProjectiles(const CameraOffset& camera, uint32_t nowMs) {
 
         const uint16_t spriteId = anim.getSpriteId();
 
-        if (spriteId == ARROW_SPRITE_ID || spriteId == VARA_SPRITE_ID) {
+        if (spriteId == ARROW_SPRITE_ID || spriteId == VARA_SPRITE_ID ||
+            spriteId == HEAL_SPRITE_ID) {
             const std::string arrowPath = std::string(GC::RESOURCES_DIR) + ARROW_SHEET;
             if (!std::ifstream(arrowPath).good())
                 continue;

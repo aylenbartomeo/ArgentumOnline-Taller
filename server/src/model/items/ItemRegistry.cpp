@@ -21,8 +21,8 @@ ItemRegistry::ItemRegistry(const std::filesystem::path& configPath) {
         weapons[config.id] = std::make_unique<Weapon>(
                 config.id, name, config.price, config.type, config.minDamage, config.maxDamage,
                 config.attackRange, config.manaCost,
-                WeaponFactory::createDeliveryStrategy(config.type),
-                WeaponFactory::createHitEffectStrategy(config.type));
+                WeaponFactory::createDelivery(config.delivery, config.type),
+                WeaponFactory::createHitEffect(config.hitEffect, config.type));
     }
 
     for (const auto& [name, config]: armorConfigs) {

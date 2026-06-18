@@ -28,9 +28,7 @@ TEST(MapChooserTest, MapPathForNameTrimsAndAddsPrefixAndExtension) {
     EXPECT_EQ(mapPathForName("  bosque  "), "maps/bosque.json");
 }
 
-TEST(MapChooserTest, NewMapErrorRejectsEmpty) {
-    EXPECT_NE(newMapError("   ", {}), "");
-}
+TEST(MapChooserTest, NewMapErrorRejectsEmpty) { EXPECT_NE(newMapError("   ", {}), ""); }
 
 TEST(MapChooserTest, NewMapErrorRejectsInvalidChars) {
     EXPECT_NE(newMapError("hola mundo", {}), "");

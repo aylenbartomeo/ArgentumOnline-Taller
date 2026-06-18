@@ -18,6 +18,8 @@ struct CombatResult {
     bool critical = false;
     int damage = 0;
     bool isPending = false;
+    // Indica que el resultado es una curación, no un ataque
+    bool isHeal = false;
 };
 
 struct AttackParams {
