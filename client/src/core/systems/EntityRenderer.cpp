@@ -118,6 +118,56 @@ static RaceArmorConfig loadRaceArmorConfig(int entityTypeId) {
     }
 }
 
+struct RaceHelmetConfig {
+    int offsetX = 0;
+    int offsetY = 0;
+    int walkDown = 0;
+    int walkUp = 0;
+    int walkLeft = 0;
+    int walkRight = 0;
+};
+
+static RaceHelmetConfig loadHelmetConfigFile(const char* fileName) {
+    RaceHelmetConfig cfg;
+    const std::string path = std::string(GC::RESOURCES_DIR) + fileName;
+    std::ifstream f(path);
+    if (!f.is_open()) {
+        return cfg;
+    }
+    std::string key;
+    int val;
+    while (f >> key >> val) {
+        if (key == "offset_x")
+            cfg.offsetX = val;
+        else if (key == "offset_y")
+            cfg.offsetY = val;
+        else if (key == "walk_down")
+            cfg.walkDown = val;
+        else if (key == "walk_up")
+            cfg.walkUp = val;
+        else if (key == "walk_left")
+            cfg.walkLeft = val;
+        else if (key == "walk_right")
+            cfg.walkRight = val;
+    }
+    return cfg;
+}
+
+static RaceHelmetConfig loadRaceHelmetConfig(int entityTypeId) {
+    switch (entityTypeId) {
+        case 0:
+            return loadHelmetConfigFile("helmet-cfg/human_helmet.cfg");
+        case 1:
+            return loadHelmetConfigFile("helmet-cfg/elf_helmet.cfg");
+        case 2:
+            return loadHelmetConfigFile("helmet-cfg/dwarf_helmet.cfg");
+        case 3:
+            return loadHelmetConfigFile("helmet-cfg/gnome_helmet.cfg");
+        default:
+            return loadHelmetConfigFile("helmet-cfg/human_helmet.cfg");
+    }
+}
+
 }  // namespace
 
 struct WeaponSheetInfo {
@@ -234,7 +284,7 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     int headX = 0, headY = 0;
     drawHead(entity, camera, px, py, frameCol, facing, isGhostPlayer, sprite, headX, headY);
 
-    drawHelmet(entity, localStats, headX, headY, facing, isGhostPlayer);
+    drawHelmet(entity, localStats, headX, headY, frameCol, facing, isGhostPlayer);
 
     // Anillo amarillo del jugador local
     if (entity.type == EntityType::PLAYER && entity.id == myId) {
@@ -772,7 +822,8 @@ void EntityRenderer::drawHead(const EntityDTO& entity, const CameraOffset& camer
 }
 
 void EntityRenderer::drawHelmet(const EntityDTO& entity, const PlayerStatsDTO* localStats,
-                                int headX, int headY, Movement facing, bool isGhostPlayer) {
+                                int headX, int headY, int frameCol, Movement facing,
+                                bool isGhostPlayer) {
     if (entity.type != EntityType::PLAYER || entity.id != myId || localStats == nullptr ||
         isDead(entity.current_hp))
         return;
@@ -781,7 +832,6 @@ void EntityRenderer::drawHelmet(const EntityDTO& entity, const PlayerStatsDTO* l
     int helmFrameW = 17;
     int helmFrameH = 15;
 
-    // Asignamos el sprite y la altura exacta según el ítem equipado
     if (WeaponHelper::hasEquipped(*localStats, 1010)) {
         helmetSheet = "armor/capucha.png";
         helmFrameH = 16;
@@ -798,6 +848,9 @@ void EntityRenderer::drawHelmet(const EntityDTO& entity, const PlayerStatsDTO* l
 
         if (isGhostPlayer)
             helmTex.SetAlphaMod(100);
+
+        // ─── CARGAR CONFIGURACIÓN SEGÚN LA RAZA ───
+        const RaceHelmetConfig hcfg = loadRaceHelmetConfig(entity.entityTypeId);
 
         int helmCol = 0;
         switch (facing) {
@@ -825,9 +878,28 @@ void EntityRenderer::drawHelmet(const EntityDTO& entity, const PlayerStatsDTO* l
         const int dstW = static_cast<int>(helmFrameW * scaleX);
         const int dstH = static_cast<int>(helmFrameH * scaleY);
 
-        const int dstX = headX + (GC::HEAD_DRAW_W - dstW) / 2;
+        int offsetX = hcfg.offsetX;
+        int offsetY = hcfg.offsetY;
 
-        const int dstY = headY + GC::HEAD_DRAW_H - dstH;
+        if (frameCol > 0) {
+            switch (facing) {
+                case Movement::DOWN:
+                    offsetY += hcfg.walkDown;
+                    break;
+                case Movement::UP:
+                    offsetY += hcfg.walkUp;
+                    break;
+                case Movement::LEFT:
+                    offsetX += hcfg.walkLeft;
+                    break;
+                case Movement::RIGHT:
+                    offsetX += hcfg.walkRight;
+                    break;
+            }
+        }
+
+        const int dstX = headX + (GC::HEAD_DRAW_W - dstW) / 2 + offsetX;
+        const int dstY = headY + GC::HEAD_DRAW_H - dstH + offsetY;
 
         SDL_Rect srcRect{srcX, 0, helmFrameW, helmFrameH};
         SDL_Rect dstRect{dstX, dstY, dstW, dstH};
