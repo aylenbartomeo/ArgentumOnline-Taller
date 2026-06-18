@@ -74,7 +74,7 @@ bool ProjectileSystem::checkCollisionWithEntities(const Projectile& p, uint32_t&
         if (player->getDbId() == p.ownerDbId || player->isDead())
             continue;
         auto pos = player->getPosition();
-        if (checkDist(pos.x, pos.y, player->getDbId()))
+        if (checkDist(pos.x, pos.y, id))
             return true;
     }
     for (const auto& [id, monster]: entityManager.getMonsters()) {
@@ -131,8 +131,10 @@ void ProjectileSystem::applySingleTargetDamage(const Projectile& p, uint32_t hit
     if (map.isSafeZone(target->getPosition().x, target->getPosition().y))
         return;
 
-    // No se puede dañar a clanmates
-    if (combatSystem.areClanmates(p.ownerDbId, hitEntityId))
+    Player* targetPlayer = dynamic_cast<Player*>(target);
+    uint32_t targetClanId = targetPlayer ? targetPlayer->getDbId() : hitEntityId;
+
+    if (combatSystem.areClanmates(p.ownerDbId, targetClanId))
         return;
 
     // Calcular modificadores de clan en el momento del impacto
@@ -182,13 +184,15 @@ void ProjectileSystem::applyAoeDamage(const Projectile& p) {
         if (map.isSafeZone(target->getPosition().x, target->getPosition().y))
             return;
 
-        if (combatSystem.areClanmates(p.ownerDbId, id))
+        Player* targetPlayer = dynamic_cast<Player*>(target);
+        uint32_t targetClanId = targetPlayer ? targetPlayer->getDbId() : id;
+
+        if (combatSystem.areClanmates(p.ownerDbId, targetClanId)) {
             return;
+        }
 
         CombatModifiers modifiers = combatSystem.buildModifiers(p.ownerDbId, target);
 
-        // Rutar a través del IHitEffect capturado para que las explosiones AoE
-        // también puedan tener efectos de estado o curación en el futuro.
         if (p.capturedHitEffect && weapon) {
             combatSystem.onProjectileHit(*attacker, *target, p.capturedHitEffect, modifiers,
                                          *weapon);
@@ -202,7 +206,7 @@ void ProjectileSystem::applyAoeDamage(const Projectile& p) {
         if (player->getDbId() == p.ownerDbId || player->isDead())
             continue;
         auto pos = player->getPosition();
-        checkAndDamage(pos.x, pos.y, player->getDbId());
+        checkAndDamage(pos.x, pos.y, id);
     }
     for (const auto& [id, monster]: entityManager.getMonsters()) {
         if (monster->isDead())
