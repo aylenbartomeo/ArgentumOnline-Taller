@@ -80,6 +80,7 @@ private:
     void drawCharacter(int dstX, int dstY, int dstW, int dstH);
     void drawSaveIcon(const Toolbar::Button& b);
     void drawEraserIcon(const Toolbar::Button& b);
+    void drawMapsIcon(const Toolbar::Button& b);
     Palette& activePalette();
     const Palette& activePalette() const;
 

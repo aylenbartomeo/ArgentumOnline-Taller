@@ -810,6 +810,18 @@ void Editor::drawEraserIcon(const Toolbar::Button& b) {
     renderer.DrawRect(SDL2pp::Rect(ix, iy, s, s));
 }
 
+void Editor::drawMapsIcon(const Toolbar::Button& b) {
+    int s = b.h - 12;
+    int ix = b.x + 10;
+    int iy = b.y + 6;
+    renderer.SetDrawColor(225, 215, 170, 255);
+    renderer.FillRect(SDL2pp::Rect(ix, iy, s, s));
+    renderer.SetDrawColor(120, 110, 80, 255);
+    renderer.DrawLine(ix + s / 3, iy, ix + s / 3, iy + s);
+    renderer.DrawLine(ix + 2 * s / 3, iy, ix + 2 * s / 3, iy + s);
+    renderer.DrawRect(SDL2pp::Rect(ix, iy, s, s));
+}
+
 void Editor::renderPanel() {
     const std::vector<OverlayDef>& overlayReg = getOverlayRegistry();
     const auto& monsterCat = getMonsterCatalog();
@@ -866,6 +878,11 @@ void Editor::renderPanel() {
                         drawCharacter(b.x + 4, b.y + 2, b.h - 4, b.h - 4);
                         break;
                 }
+                break;
+            case ToolbarAction::OPEN_MAPS:
+                drawMapsIcon(b);
+                font.drawString("Mapas", b.x + b.h + 4, b.y + (b.h - LABEL_FONT_SIZE) / 2 - 2,
+                                LABEL_COLOR);
                 break;
             case ToolbarAction::NONE:
                 break;
