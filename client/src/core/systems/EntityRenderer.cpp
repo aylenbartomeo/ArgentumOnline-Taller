@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <iostream>
 #include <string>
 
 #include "../animation/CharacterSprites.h"
@@ -22,6 +23,101 @@ constexpr const char* SKULL_SHEET = "106.png";
 constexpr int WEAPON_COLS = 5;
 constexpr int WEAPON_CELL_W = 25;
 constexpr int WEAPON_STRIDE = 48;
+constexpr int GNOME_ARMOR_COLS = 5;
+constexpr int GNOME_ARMOR_CELL_W = 20;
+constexpr int GNOME_ARMOR_STRIDE = 36;
+
+struct RaceArmorConfig {
+    int cellW = WEAPON_CELL_W;
+    int stride = WEAPON_STRIDE;
+    int trimLeft = 5;
+    int extraRight = 2;
+    int offsetX = -1;
+    int offsetY = 0;
+    int walkDown = -7;
+    int walkUp = -8;
+    int walkLeft = -5;
+    int walkRight = -12;
+};
+
+struct GnomeArmorConfig {
+    int cellW = GNOME_ARMOR_CELL_W;
+    int stride = GNOME_ARMOR_STRIDE;
+    int trimLeft = 5;
+    int extraRight = 2;
+    int offsetX = -1;
+    int offsetY = 0;
+    int walkDown = -7;
+    int walkUp = -8;
+    int walkLeft = -5;
+    int walkRight = -12;
+};
+
+template <typename Cfg>
+static Cfg loadArmorConfigFile(const char* fileName) {
+    Cfg cfg;
+    const std::string path = std::string(GC::RESOURCES_DIR) + fileName;
+    std::ifstream f(path);
+    if (!f.is_open())
+        std::cerr << "[ArmorConfig] NO SE PUDO ABRIR: " << path << std::endl;
+    std::string key;
+    int val;
+    while (f >> key >> val) {
+        if (key == "cell_w")
+            cfg.cellW = val;
+        else if (key == "stride")
+            cfg.stride = val;
+        else if (key == "trim_left")
+            cfg.trimLeft = val;
+        else if (key == "extra_right")
+            cfg.extraRight = val;
+        else if (key == "offset_x")
+            cfg.offsetX = val;
+        else if (key == "offset_y")
+            cfg.offsetY = val;
+        else if (key == "walk_down")
+            cfg.walkDown = val;
+        else if (key == "walk_up")
+            cfg.walkUp = val;
+        else if (key == "walk_left")
+            cfg.walkLeft = val;
+        else if (key == "walk_right")
+            cfg.walkRight = val;
+    }
+
+    constexpr int MAX_CELL_W = 256;
+    constexpr int MAX_STRIDE = 256;
+    if (cfg.cellW <= 0 || cfg.cellW > MAX_CELL_W) {
+        std::cerr << "[ArmorConfig] cell_w fuera de rango (" << cfg.cellW << "), clamped a default"
+                  << std::endl;
+        cfg.cellW = Cfg{}.cellW;
+    }
+    if (cfg.stride <= 0 || cfg.stride > MAX_STRIDE) {
+        std::cerr << "[ArmorConfig] stride fuera de rango (" << cfg.stride << "), clamped a default"
+                  << std::endl;
+        cfg.stride = Cfg{}.stride;
+    }
+    return cfg;
+}
+
+static GnomeArmorConfig loadGnomeArmorConfig() {
+    return loadArmorConfigFile<GnomeArmorConfig>("armor-cfg/gnome_armor.cfg");
+}
+
+// entityTypeId: 0 = Humano, 1 = Elfo, 2 = Enano, 3 = Gnomo
+static RaceArmorConfig loadRaceArmorConfig(int entityTypeId) {
+    switch (entityTypeId) {
+        case 0:
+            return loadArmorConfigFile<RaceArmorConfig>("armor-cfg/human_armor.cfg");
+        case 1:
+            return loadArmorConfigFile<RaceArmorConfig>("armor-cfg/elf_armor.cfg");
+        case 2:
+            return loadArmorConfigFile<RaceArmorConfig>("armor-cfg/dwarf_armor.cfg");
+        default:
+            return loadArmorConfigFile<RaceArmorConfig>("armor-cfg/human_armor.cfg");
+    }
+}
+
 }  // namespace
 
 struct WeaponSheetInfo {
@@ -69,6 +165,10 @@ void EntityRenderer::render(const CameraOffset& camera, const SnapshotDTO& snaps
 
     for (const EntityDTO& player: snapshot.players) drawHealthBar(player, camera);
     for (const EntityDTO& monster: snapshot.monsters) drawHealthBar(monster, camera);
+}
+
+static bool isGnome(const EntityDTO& entity) {
+    return entity.type == EntityType::PLAYER && entity.entityTypeId == 3;
 }
 
 // ─── drawEntity ───────────────────────────────────────────────────────────────
@@ -130,12 +230,13 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         !isDead(entity.current_hp)) {
 
         ArmorSheetInfo armorInfo{"", 0};
+        const bool gnome = isGnome(entity);
         if (WeaponHelper::hasEquipped(*localStats, 1000))
-            armorInfo = {"armor/armadura-cuero.png", 0};
+            armorInfo = {gnome ? "armor/pechera-cuero-gnomo.png" : "armor/pechera-cuero.png", 0};
         else if (WeaponHelper::hasEquipped(*localStats, 1001))
-            armorInfo = {"armor/armadura-placas.png", 0};
+            armorInfo = {gnome ? "armor/pechera-hierro-gnomo.png" : "armor/pechera-hierro.png", 0};
         else if (WeaponHelper::hasEquipped(*localStats, 1002))
-            armorInfo = {"armor/tunica-azul.png", 0};
+            armorInfo = {gnome ? "armor/tunica-gnomo.png" : "armor/tunica.png", 0};
 
         ArmorSheetInfo shieldInfo{"", 0};
         if (WeaponHelper::hasEquipped(*localStats, 1020))
@@ -151,38 +252,44 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
             if (isGhostPlayer)
                 layerTex.SetAlphaMod(100);
 
-            const int col = frameCol % WEAPON_COLS;
-            const int srcX = col * WEAPON_CELL_W;
-            const int srcY = info.yStart + rowForFacing(facing) * WEAPON_STRIDE;
-            const int frameW = WEAPON_CELL_W;
-            const int frameH = WEAPON_STRIDE;
+            const GnomeArmorConfig gcfg = gnome ? loadGnomeArmorConfig() : GnomeArmorConfig{};
+            const RaceArmorConfig rcfg =
+                    gnome ? RaceArmorConfig{} : loadRaceArmorConfig(entity.entityTypeId);
 
-            const float scaleX = static_cast<float>(bodyDstW) / bf.w;
-            const float scaleY = static_cast<float>(bodyDstH) / bf.h;
-            const int dstW = static_cast<int>(frameW * scaleX);
-            const int dstH = static_cast<int>(frameH * scaleY);
+            const int armorCols = WEAPON_COLS;
+            const int armorCellW = gnome ? gcfg.cellW : rcfg.cellW;
+            const int armorStride = gnome ? gcfg.stride : rcfg.stride;
 
-            // --- AJUSTES INDIVIDUALES POR DIRECCIÓN ---
-            int offsetX = -1;
-            int offsetY = 0;
+            const int col = frameCol % armorCols;
+            const int srcX = col * armorCellW;
+            const int srcY = info.yStart + rowForFacing(facing) * armorStride;
+            const int frameW = armorCellW;
+            const int frameH = armorStride;
+
+            const int trimLeft = gnome ? gcfg.trimLeft : rcfg.trimLeft;
+            const int extraRight = gnome ? gcfg.extraRight : rcfg.extraRight;
+
+            const int srcW = frameW - trimLeft + extraRight;
+            const int dstW = srcW * GC::TILE_SIZE / CHARACTER_FRAME_W * sprite.bodyScale / 100;
+            const int dstH =
+                    frameH * GC::CHARACTER_DRAW_H / CHARACTER_FRAME_H * sprite.bodyScale / 100;
+
+            int offsetX = gnome ? gcfg.offsetX : rcfg.offsetX;
+            int offsetY = gnome ? gcfg.offsetY : rcfg.offsetY;
 
             if (frameCol > 0) {
                 switch (facing) {
                     case Movement::DOWN:
-                        offsetX = -7;
-                        offsetY = 0;
+                        offsetY += gnome ? gcfg.walkDown : rcfg.walkDown;
                         break;
                     case Movement::UP:
-                        offsetX = -8;
-                        offsetY = 0;
+                        offsetY += gnome ? gcfg.walkUp : rcfg.walkUp;
                         break;
                     case Movement::LEFT:
-                        offsetX = -5;
-                        offsetY = 0;
+                        offsetX += gnome ? gcfg.walkLeft : rcfg.walkLeft;
                         break;
                     case Movement::RIGHT:
-                        offsetX = -12;
-                        offsetY = 0;
+                        offsetX += gnome ? gcfg.walkRight : rcfg.walkRight;
                         break;
                 }
             }
@@ -190,18 +297,8 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
             const int dstX = bodyDstX - (dstW - bodyDstW) / 2 + offsetX;
             const int dstY = bodyDstY - (dstH - bodyDstH) + offsetY;
 
-            // Cantidad de píxeles a recortar del lado izquierdo
-            constexpr int TRIM_LEFT = 5;
-            constexpr int EXTRA_RIGHT = 2;
-
-            // Movemos el punto de inicio hacia la derecha y reducimos el ancho
-            const int safeSrcX = srcX + TRIM_LEFT;
-            const int safeSrcW = frameW - TRIM_LEFT + EXTRA_RIGHT;
-
-            const int finalDstW = dstW + EXTRA_RIGHT;
-
-            renderer.Copy(layerTex, SDL2pp::Rect(safeSrcX, srcY, safeSrcW, frameH),
-                          SDL2pp::Rect(dstX, dstY, finalDstW, dstH));
+            renderer.Copy(layerTex, SDL2pp::Rect(srcX + trimLeft, srcY, srcW, frameH),
+                          SDL2pp::Rect(dstX, dstY, dstW, dstH));
 
             if (isGhostPlayer)
                 layerTex.SetAlphaMod(255);
