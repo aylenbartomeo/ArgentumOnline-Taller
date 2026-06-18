@@ -43,6 +43,12 @@ TEST(ToolbarTest, ClickSaveButtonReturnsSave) {
     EXPECT_EQ(toolbar.handleClick(10, 50), ToolbarAction::SAVE);
 }
 
+TEST(ToolbarTest, ClickMapsButtonReturnsOpenMaps) {
+    Toolbar toolbar;
+    toolbar.addActionButton(0, 120, 100, 30, ToolbarAction::OPEN_MAPS);
+    EXPECT_EQ(toolbar.handleClick(10, 130), ToolbarAction::OPEN_MAPS);
+}
+
 TEST(ToolbarTest, ClickEmptyAreaReturnsNone) {
     Toolbar toolbar;
     toolbar.addActionButton(0, 80, 35, 30, ToolbarAction::SAVE);

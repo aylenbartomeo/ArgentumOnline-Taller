@@ -5,7 +5,7 @@
 
 enum class Tool { OVERLAY, MONSTER, CITIZEN, CITY, CITY_ERASE, ERASER, SPAWN };
 
-enum class ToolbarAction { NONE, TOOL_CHANGED, SAVE };
+enum class ToolbarAction { NONE, TOOL_CHANGED, SAVE, OPEN_MAPS };
 
 class Toolbar {
 public:
