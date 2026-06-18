@@ -23,26 +23,10 @@ constexpr const char* SKULL_SHEET = "106.png";
 constexpr int WEAPON_COLS = 5;
 constexpr int WEAPON_CELL_W = 25;
 constexpr int WEAPON_STRIDE = 48;
-constexpr int GNOME_ARMOR_COLS = 5;
-constexpr int GNOME_ARMOR_CELL_W = 20;
-constexpr int GNOME_ARMOR_STRIDE = 36;
 
 struct RaceArmorConfig {
     int cellW = WEAPON_CELL_W;
     int stride = WEAPON_STRIDE;
-    int trimLeft = 5;
-    int extraRight = 2;
-    int offsetX = -1;
-    int offsetY = 0;
-    int walkDown = -7;
-    int walkUp = -8;
-    int walkLeft = -5;
-    int walkRight = -12;
-};
-
-struct GnomeArmorConfig {
-    int cellW = GNOME_ARMOR_CELL_W;
-    int stride = GNOME_ARMOR_STRIDE;
     int trimLeft = 5;
     int extraRight = 2;
     int offsetX = -1;
@@ -100,10 +84,6 @@ static Cfg loadArmorConfigFile(const char* fileName) {
     return cfg;
 }
 
-static GnomeArmorConfig loadGnomeArmorConfig() {
-    return loadArmorConfigFile<GnomeArmorConfig>("armor-cfg/gnome_armor.cfg");
-}
-
 // entityTypeId: 0 = Humano, 1 = Elfo, 2 = Enano, 3 = Gnomo
 static RaceArmorConfig loadRaceArmorConfig(int entityTypeId) {
     switch (entityTypeId) {
@@ -113,6 +93,9 @@ static RaceArmorConfig loadRaceArmorConfig(int entityTypeId) {
             return loadArmorConfigFile<RaceArmorConfig>("armor-cfg/elf_armor.cfg");
         case 2:
             return loadArmorConfigFile<RaceArmorConfig>("armor-cfg/dwarf_armor.cfg");
+        case 3:
+            return loadArmorConfigFile<RaceArmorConfig>(
+                    "armor-cfg/gnome_armor.cfg");  // Agregamos al Gnomo
         default:
             return loadArmorConfigFile<RaceArmorConfig>("armor-cfg/human_armor.cfg");
     }
@@ -380,13 +363,16 @@ void EntityRenderer::drawArmorAndShield(const EntityDTO& entity, const PlayerSta
         return;
 
     ArmorSheetInfo armorInfo{"", 0};
-    const bool gnome = isGnome(entity);
+    const bool useSmallArmor = (entity.entityTypeId == 2 || entity.entityTypeId == 3);
+
     if (WeaponHelper::hasEquipped(*localStats, 1000))
-        armorInfo = {gnome ? "armor/pechera-cuero-gnomo.png" : "armor/pechera-cuero.png", 0};
+        armorInfo = {useSmallArmor ? "armor/pechera-cuero-gnomo.png" : "armor/pechera-cuero.png",
+                     0};
     else if (WeaponHelper::hasEquipped(*localStats, 1001))
-        armorInfo = {gnome ? "armor/pechera-hierro-gnomo.png" : "armor/pechera-hierro.png", 0};
+        armorInfo = {useSmallArmor ? "armor/pechera-hierro-gnomo.png" : "armor/pechera-hierro.png",
+                     0};
     else if (WeaponHelper::hasEquipped(*localStats, 1002))
-        armorInfo = {gnome ? "armor/tunica-gnomo.png" : "armor/tunica.png", 0};
+        armorInfo = {useSmallArmor ? "armor/tunica-gnomo.png" : "armor/tunica.png", 0};
 
     ArmorSheetInfo shieldInfo{"", 0};
     if (WeaponHelper::hasEquipped(*localStats, 1020))
@@ -402,13 +388,11 @@ void EntityRenderer::drawArmorAndShield(const EntityDTO& entity, const PlayerSta
         if (isGhostPlayer)
             layerTex.SetAlphaMod(100);
 
-        const GnomeArmorConfig gcfg = gnome ? loadGnomeArmorConfig() : GnomeArmorConfig{};
-        const RaceArmorConfig rcfg =
-                gnome ? RaceArmorConfig{} : loadRaceArmorConfig(entity.entityTypeId);
+        const RaceArmorConfig rcfg = loadRaceArmorConfig(entity.entityTypeId);
 
         const int armorCols = WEAPON_COLS;
-        const int armorCellW = gnome ? gcfg.cellW : rcfg.cellW;
-        const int armorStride = gnome ? gcfg.stride : rcfg.stride;
+        const int armorCellW = rcfg.cellW;
+        const int armorStride = rcfg.stride;
 
         const int col = frameCol % armorCols;
         const int srcX = col * armorCellW;
@@ -416,29 +400,29 @@ void EntityRenderer::drawArmorAndShield(const EntityDTO& entity, const PlayerSta
         const int frameW = armorCellW;
         const int frameH = armorStride;
 
-        const int trimLeft = gnome ? gcfg.trimLeft : rcfg.trimLeft;
-        const int extraRight = gnome ? gcfg.extraRight : rcfg.extraRight;
+        const int trimLeft = rcfg.trimLeft;
+        const int extraRight = rcfg.extraRight;
 
         const int srcW = frameW - trimLeft + extraRight;
         const int dstW = srcW * GC::TILE_SIZE / CHARACTER_FRAME_W * sprite.bodyScale / 100;
         const int dstH = frameH * GC::CHARACTER_DRAW_H / CHARACTER_FRAME_H * sprite.bodyScale / 100;
 
-        int offsetX = gnome ? gcfg.offsetX : rcfg.offsetX;
-        int offsetY = gnome ? gcfg.offsetY : rcfg.offsetY;
+        int offsetX = rcfg.offsetX;
+        int offsetY = rcfg.offsetY;
 
         if (frameCol > 0) {
             switch (facing) {
                 case Movement::DOWN:
-                    offsetY += gnome ? gcfg.walkDown : rcfg.walkDown;
+                    offsetY += rcfg.walkDown;
                     break;
                 case Movement::UP:
-                    offsetY += gnome ? gcfg.walkUp : rcfg.walkUp;
+                    offsetY += rcfg.walkUp;
                     break;
                 case Movement::LEFT:
-                    offsetX += gnome ? gcfg.walkLeft : rcfg.walkLeft;
+                    offsetX += rcfg.walkLeft;
                     break;
                 case Movement::RIGHT:
-                    offsetX += gnome ? gcfg.walkRight : rcfg.walkRight;
+                    offsetX += rcfg.walkRight;
                     break;
             }
         }
