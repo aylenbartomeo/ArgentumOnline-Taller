@@ -55644,34 +55644,5 @@
     "tileSize": 32,
     "tileset": "5108.png",
     "tilesetCols": 32,
-    "width": 100,
-    "bossZones": [
-        {
-            "x": 2,
-            "y": 2,
-            "width": 10,
-            "height": 10,
-            "spawnX": 7,
-            "spawnY": 7,
-            "respawnCooldownMs": 300000.0
-        },
-        {
-            "x": 88,
-            "y": 2,
-            "width": 10,
-            "height": 10,
-            "spawnX": 93,
-            "spawnY": 7,
-            "respawnCooldownMs": 300000.0
-        },
-        {
-            "x": 88,
-            "y": 88,
-            "width": 10,
-            "height": 10,
-            "spawnX": 93,
-            "spawnY": 93,
-            "respawnCooldownMs": 300000.0
-        }
-    ]
+    "width": 100
 }
