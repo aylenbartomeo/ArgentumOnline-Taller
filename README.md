@@ -1,12 +1,15 @@
 # Argentum Online
 
+<p align="center">
+  <img width="560" alt="Argentum Online Logo" 
+       src="resources/logos/gameLogo.png"/>
+</p>
+
 Trabajo Práctico Final de **Taller de Programación** (FIUBA): un juego
 multijugador en red basado en *Argentum Online*. Varios jugadores se conectan a
 un mismo servidor y comparten el mundo en tiempo real. El proyecto incluye el
 cliente gráfico (SDL2 con launcher en Qt5), el servidor de juego y un editor de
 mapas.
-
-<img width="960" alt="image" src="https://github.com/resources/logos/gameLogo.png"/>
 
 ## Integrantes
 
