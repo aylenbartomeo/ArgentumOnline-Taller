@@ -474,6 +474,63 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
             }
         }
 
+        // --- Ajustes particulares para humanos (entityTypeId == 0) ---
+        if (entity.type == EntityType::PLAYER && entity.entityTypeId == 0) {
+            headOffsetY -= 2;  // Subir un poco la cabeza en todos los ángulos
+            if (facing == Movement::UP) {
+                headOffsetX -= 2;  // Apenas más a la izquierda
+            }
+        }
+
+        // --- Ajustes particulares para elfos (entityTypeId == 1) ---
+        if (entity.type == EntityType::PLAYER && entity.entityTypeId == 1) {
+            headOffsetY -= 2;  // Subir un poco la cabeza en todos los ángulos
+        }
+
+        // --- Ajustes particulares para enanos (entityTypeId == 2) ---
+        if (entity.type == EntityType::PLAYER && entity.entityTypeId == 2) {
+            switch (facing) {
+                case Movement::DOWN:
+                    headOffsetY -= 2;
+                    headOffsetX += 2;  // Mover 1px más a la derecha que antes
+                    break;
+                case Movement::UP:
+                    headOffsetX += 5;
+                    // Si sale cortada es porque el recorte original en la imagen está corrido.
+                    // Le restamos a hf.x para que empiece a "leer" la imagen más a la izquierda
+                    hf.x -= 6;
+                    break;
+                case Movement::RIGHT:
+                    headOffsetX += 3;  // Un pixel más a la derecha
+                    break;
+                case Movement::LEFT:
+                    // Separamos quieto (frameCol == 0) de en movimiento
+                    if (frameCol == 0) {
+                        headOffsetX += 5;  // Aún más a la derecha cuando está quieto
+                    } else {
+                        headOffsetX += 8;  // Mucho más a la derecha cuando camina para compensar el
+                                           // "vuelo"
+                    }
+                    break;
+            }
+        }
+
+        // --- Ajustes particulares para gnomos (entityTypeId == 3) ---
+        if (entity.type == EntityType::PLAYER && entity.entityTypeId == 3) {
+            if (facing == Movement::DOWN) {
+                if (frameCol == 0) {
+                    headOffsetX += 2;  // Quieto
+                } else {
+                    headOffsetX +=
+                            1;  // En movimiento: un poco más a la izquierda que cuando está quieto
+                }
+            } else if (facing == Movement::UP) {
+                if (frameCol > 0) {
+                    headOffsetX += 1;  // En movimiento: apenas a la derecha
+                }
+            }
+        }
+
         const int headX = px + GC::TILE_SIZE / 2 - GC::HEAD_DRAW_W / 2 - camera.x + headOffsetX;
         const int headY = py + GC::TILE_SIZE - GC::CHARACTER_DRAW_H + sprite.headOverlap -
                           GC::HEAD_DRAW_H - camera.y + headOffsetY;
@@ -481,8 +538,10 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
         int renderHeadX = headX;
         int renderHeadW = GC::HEAD_DRAW_W;
 
-        if (entity.type == EntityType::PLAYER && entity.entityTypeId == 1 &&
-            facing == Movement::UP) {
+        // Se recorta la cabeza hacia arriba para Elfo (1) y Humano (0)
+        // ya que a veces el frame izquierdo se "filtra" en el derecho (bleeding)
+        if (entity.type == EntityType::PLAYER &&
+            (entity.entityTypeId == 1 || entity.entityTypeId == 0) && facing == Movement::UP) {
             int trimLeft = 2;
 
             hf.x += trimLeft;
