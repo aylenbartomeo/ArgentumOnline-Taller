@@ -30,6 +30,13 @@ struct MonsterSpawn {
     int y;
 };
 
+struct EditorDungeon {
+    int x;
+    int y;
+    int width;
+    int height;
+};
+
 struct PlacedItem {
     int overlayIndex;
     int amount;
@@ -53,6 +60,7 @@ private:
     std::vector<CitizenSpawn> citizens;
     std::vector<MonsterSpawn> monsters;
     std::map<std::pair<int, int>, PlacedItem> items;
+    std::vector<EditorDungeon> dungeons;
     nlohmann::json extraItems = nlohmann::json::array();
 
     bool inside(int col, int row) const;
@@ -79,6 +87,7 @@ public:
     bool isBlocked(int col, int row) const;
 
     void paintItem(int col, int row, int overlayIndex);
+    void setItem(int col, int row, int overlayIndex, int amount);
     const PlacedItem* itemAt(int col, int row) const;
     void removeItemAt(int col, int row);
     const std::map<std::pair<int, int>, PlacedItem>& getItems() const;
@@ -103,6 +112,10 @@ public:
 
     const std::vector<MonsterSpawn>& getMonsters() const;
     void addMonster(const std::string& type, int x, int y);
+
+    const std::vector<EditorDungeon>& getDungeons() const;
+    void addDungeon(int x, int y, int width, int height);
+    void removeDungeonAt(int x, int y);
 };
 
 #endif

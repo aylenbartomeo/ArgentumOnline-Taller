@@ -108,6 +108,13 @@ EditorMap::EditorMap(const std::string& jsonText) {
                        });
     }
 
+    if (data.contains("dungeons")) {
+        for (const auto& d: data.at("dungeons")) {
+            dungeons.push_back(EditorDungeon{d.at("x").get<int>(), d.at("y").get<int>(),
+                                             d.at("width").get<int>(), d.at("height").get<int>()});
+        }
+    }
+
     if (data.contains("items")) {
         for (const auto& item: data.at("items")) {
             int overlayIndex = overlayIndexForItemId(item.at("id").get<int>());
@@ -180,6 +187,15 @@ std::string EditorMap::toJson() const {
     std::copy(extraItems.begin(), extraItems.end(), std::back_inserter(itemsJson));
     if (!itemsJson.empty()) {
         data["items"] = itemsJson;
+    }
+
+    if (!dungeons.empty()) {
+        nlohmann::json dungeonsJson = nlohmann::json::array();
+        for (const EditorDungeon& d: dungeons) {
+            dungeonsJson.push_back(
+                    {{"x", d.x}, {"y", d.y}, {"width", d.width}, {"height", d.height}});
+        }
+        data["dungeons"] = dungeonsJson;
     }
 
     return data.dump(4);
@@ -255,6 +271,15 @@ void EditorMap::paintItem(int col, int row, int overlayIndex) {
     }
 }
 
+void EditorMap::setItem(int col, int row, int overlayIndex, int amount) {
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+    if (!inside(col, row) || overlayIndex < 0 ||
+        overlayIndex >= static_cast<int>(registry.size())) {
+        return;
+    }
+    items[{col, row}] = PlacedItem{overlayIndex, amount};
+}
+
 const PlacedItem* EditorMap::itemAt(int col, int row) const {
     auto it = items.find({col, row});
     return (it != items.end()) ? &it->second : nullptr;
@@ -319,4 +344,16 @@ void EditorMap::removeEntitiesAt(int x, int y) {
     };
     matches(citizens);
     matches(monsters);
+}
+
+const std::vector<EditorDungeon>& EditorMap::getDungeons() const { return dungeons; }
+
+void EditorMap::addDungeon(int x, int y, int width, int height) {
+    dungeons.push_back({x, y, width, height});
+}
+
+void EditorMap::removeDungeonAt(int x, int y) {
+    dungeons.erase(std::remove_if(dungeons.begin(), dungeons.end(),
+                                  [x, y](const EditorDungeon& d) { return d.x == x && d.y == y; }),
+                   dungeons.end());
 }

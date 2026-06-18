@@ -206,3 +206,33 @@ TEST(OverlayRegistryTest, ContainsStackableGold) {
     }
     EXPECT_TRUE(found);
 }
+
+TEST(EditorMapDungeonTest, AddAndRemoveDungeon) {
+    EditorMap map(50, 50, 32, "5108.png", 32);
+    map.addDungeon(11, 21, 14, 14);
+    ASSERT_EQ(map.getDungeons().size(), 1u);
+    EXPECT_EQ(map.getDungeons()[0].x, 11);
+    EXPECT_EQ(map.getDungeons()[0].y, 21);
+    EXPECT_EQ(map.getDungeons()[0].width, 14);
+    EXPECT_EQ(map.getDungeons()[0].height, 14);
+    map.removeDungeonAt(11, 21);
+    EXPECT_TRUE(map.getDungeons().empty());
+}
+
+TEST(EditorMapDungeonTest, DungeonsSurviveJsonRoundTrip) {
+    EditorMap map(50, 50, 32, "5108.png", 32);
+    map.addDungeon(11, 21, 14, 14);
+    EditorMap loaded(map.toJson());
+    ASSERT_EQ(loaded.getDungeons().size(), 1u);
+    EXPECT_EQ(loaded.getDungeons()[0].x, 11);
+    EXPECT_EQ(loaded.getDungeons()[0].height, 14);
+}
+
+TEST(EditorMapDungeonTest, SetItemStoresGivenAmount) {
+    EditorMap map(50, 50, 32, "5108.png", 32);
+    map.setItem(5, 6, goldOverlayIndex(), 5000);
+    const PlacedItem* item = map.itemAt(5, 6);
+    ASSERT_NE(item, nullptr);
+    EXPECT_EQ(item->overlayIndex, goldOverlayIndex());
+    EXPECT_EQ(item->amount, 5000);
+}
