@@ -24,6 +24,10 @@ constexpr int WEAPON_COLS = 5;
 constexpr int WEAPON_CELL_W = 25;
 constexpr int WEAPON_STRIDE = 48;
 
+constexpr int ITEM_CELL_W = 25;
+constexpr int ITEM_CELL_H = 48;
+constexpr int ITEM_COLS = 5;
+static constexpr int ITEM_DIR_ROW[4] = {0, 3, 1, 2};
 struct RaceArmorConfig {
     int cellW = WEAPON_CELL_W;
     int stride = WEAPON_STRIDE;
@@ -161,6 +165,13 @@ struct WeaponSheetInfo {
 struct ArmorSheetInfo {
     const char* sheet;
     int yStart;
+};
+
+struct WeaponConfig {
+    const char* sheet;
+    int yStart;
+    int pivotX;
+    int pivotY;
 };
 
 // ─── Constructor / accesors ───────────────────────────────────────────────────
@@ -374,12 +385,6 @@ void EntityRenderer::drawArmorAndShield(const EntityDTO& entity, const PlayerSta
     else if (WeaponHelper::hasEquipped(*localStats, 1002))
         armorInfo = {useSmallArmor ? "armor/tunica-gnomo.png" : "armor/tunica.png", 0};
 
-    ArmorSheetInfo shieldInfo{"", 0};
-    if (WeaponHelper::hasEquipped(*localStats, 1020))
-        shieldInfo = {"armor/escudo-tortuga.png", 0};
-    else if (WeaponHelper::hasEquipped(*localStats, 1021))
-        shieldInfo = {"armor/escudo-hierro.png", 0};
-
     auto drawArmorLayer = [&](const ArmorSheetInfo& info) {
         if (info.sheet[0] == '\0')
             return;
@@ -438,7 +443,54 @@ void EntityRenderer::drawArmorAndShield(const EntityDTO& entity, const PlayerSta
     };
 
     drawArmorLayer(armorInfo);
-    drawArmorLayer(shieldInfo);
+
+    const char* shieldSheet = nullptr;
+    if (WeaponHelper::hasEquipped(*localStats, 1020))
+        shieldSheet = "items/escudo-tortuga.png";
+    else if (WeaponHelper::hasEquipped(*localStats, 1021))
+        shieldSheet = "items/escudo-hierro.png";
+
+    if (shieldSheet != nullptr) {
+        SDL2pp::Texture& shieldTex = textures.get(std::string(GC::RESOURCES_DIR) + shieldSheet);
+        if (isGhostPlayer)
+            shieldTex.SetAlphaMod(100);
+
+        const int row = ITEM_DIR_ROW[rowForFacing(facing)];
+        const int col = frameCol % ITEM_COLS;
+        const SDL_Rect srcRect{col * ITEM_CELL_W, row * ITEM_CELL_H, ITEM_CELL_W, ITEM_CELL_H};
+
+        const float scaleX = static_cast<float>(bodyDstW) / CHARACTER_FRAME_W;
+        const float scaleY = static_cast<float>(bodyDstH) / CHARACTER_FRAME_H;
+        const int dW = static_cast<int>(ITEM_CELL_W * scaleX);
+        const int dH = static_cast<int>(ITEM_CELL_H * scaleY);
+
+        int shieldOffsetX = 0;
+        int shieldOffsetY = 2;
+        switch (facing) {
+            case Movement::DOWN:
+                shieldOffsetX = 6;
+                break;
+            case Movement::UP:
+                shieldOffsetX = -6;
+                break;
+            case Movement::LEFT:
+                shieldOffsetX = -2;
+                break;
+            case Movement::RIGHT:
+                shieldOffsetX = 2;
+                break;
+        }
+
+        const SDL_Rect dstRect{bodyDstX + (bodyDstW - dW) / 2 + shieldOffsetX,
+                               bodyDstY + (bodyDstH - dH) / 2 + shieldOffsetY, dW, dH};
+
+        const SDL_Point pivot{dW / 2, dH / 2};
+        SDL_RenderCopyEx(renderer.Get(), shieldTex.Get(), &srcRect, &dstRect, 0.0, &pivot,
+                         SDL_FLIP_NONE);
+
+        if (isGhostPlayer)
+            shieldTex.SetAlphaMod(255);
+    }
 }
 
 void EntityRenderer::drawWeapon(const EntityDTO& entity, const PlayerStatsDTO* localStats,
@@ -449,27 +501,32 @@ void EntityRenderer::drawWeapon(const EntityDTO& entity, const PlayerStatsDTO* l
         isDead(entity.current_hp))
         return;
 
-    WeaponSheetInfo weaponInfo{"", 0};
-    std::string weaponSheet = "";
+    constexpr int PIV_HANDLE_X = ITEM_CELL_W / 2;
+    constexpr int PIV_HANDLE_Y = ITEM_CELL_H - 12;
+    constexpr int PIV_CENTER_X = ITEM_CELL_W / 2;
+    constexpr int PIV_CENTER_Y = ITEM_CELL_H / 2;
+
+    std::optional<WeaponConfig> weaponCfg;
 
     if (WeaponHelper::hasSword(*localStats))
-        weaponInfo = {"items/espada.png", 0};
+        weaponCfg = {"items/espada.png", 0, PIV_HANDLE_X, PIV_HANDLE_Y};
     else if (WeaponHelper::hasAxe(*localStats))
-        weaponInfo = {"items/hacha.png", 48};
+        weaponCfg = {"items/hacha.png", 0, PIV_HANDLE_X, PIV_HANDLE_Y};
     else if (WeaponHelper::hasHammer(*localStats))
-        weaponInfo = {"items/martillo.png", 0};
+        weaponCfg = {"items/martillo.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
     else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_SIMPLE_ID))
-        weaponInfo = {"items/arco-simple.png", 0};
+        weaponCfg = {"items/arco-simple.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
     else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_COMPUESTO_ID))
-        weaponInfo = {"items/arco-compuesto.png", 0};
+        weaponCfg = {"items/arco-compuesto.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
     else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::VARA_FRESNO_WEAPON_ID))
-        weaponInfo = {"items/vara-fresno.png", 0};
+        weaponCfg = {"items/vara-fresno.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
     else if (WeaponHelper::hasEquipped(*localStats, 2022))
-        weaponInfo = {"items/baculo-nudoso.png", 0};
+        weaponCfg = {"items/baculo-nudoso.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
     else if (WeaponHelper::hasEquipped(*localStats, 2023))
-        weaponInfo = {"items/baculo-engarzado.png", 0};
-    // --- BOSS DROPS ---
-    else if (WeaponHelper::hasEquipped(*localStats, 4001))
+        weaponCfg = {"items/baculo-engarzado.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
+
+    std::string weaponSheet = "";
+    if (WeaponHelper::hasEquipped(*localStats, 4001))
         weaponSheet = "items/maza-de-titan-mov.png";
     else if (WeaponHelper::hasEquipped(*localStats, 4002))
         weaponSheet = "items/escudo-infernal-mov.png";
@@ -614,29 +671,69 @@ void EntityRenderer::drawWeapon(const EntityDTO& entity, const PlayerStatsDTO* l
         if (isGhostPlayer)
             weaponTex.SetAlphaMod(255);
 
-    } else if (weaponInfo.sheet[0] != '\0') {
-        SDL2pp::Texture& weaponTex =
-                textures.get(std::string(GC::RESOURCES_DIR) + weaponInfo.sheet);
+    } else if (weaponCfg.has_value()) {
+        const WeaponConfig& wcfg = *weaponCfg;
+        SDL2pp::Texture& weaponTex = textures.get(std::string(GC::RESOURCES_DIR) + wcfg.sheet);
 
         if (isGhostPlayer)
             weaponTex.SetAlphaMod(100);
 
-        const int col = frameCol % WEAPON_COLS;
-        const int wSrcX = col * WEAPON_CELL_W;
-        const int wFrameW = (facing == Movement::RIGHT) ? WEAPON_CELL_W - 2 : WEAPON_CELL_W;
-        const int wSrcY = weaponInfo.yStart + rowForFacing(facing) * WEAPON_STRIDE;
-        const int wFrameH = WEAPON_STRIDE;
+        const int row = ITEM_DIR_ROW[rowForFacing(facing)];
+        const int col = frameCol % ITEM_COLS;
+
+        const SDL_Rect srcRect{wcfg.yStart + col * ITEM_CELL_W, row * ITEM_CELL_H, ITEM_CELL_W,
+                               ITEM_CELL_H};
 
         const float scaleX = static_cast<float>(bodyDstW) / bf.w;
         const float scaleY = static_cast<float>(bodyDstH) / bf.h;
-        const int wDstW = static_cast<int>(wFrameW * scaleX);
-        const int wDstH = static_cast<int>(wFrameH * scaleY);
-        const int wDstX =
-                px + (GC::TILE_SIZE - wDstW) / 2 - camera.x - (facing == Movement::RIGHT ? 8 : 0);
-        const int wDstY = py + GC::TILE_SIZE - wDstH - camera.y;
+        const int wDstW = static_cast<int>(ITEM_CELL_W * scaleX);
+        const int wDstH = static_cast<int>(ITEM_CELL_H * scaleY);
 
-        renderer.Copy(weaponTex, SDL2pp::Rect(wSrcX, wSrcY, wFrameW, wFrameH),
-                      SDL2pp::Rect(wDstX, wDstY, wDstW, wDstH));
+        int handOffsetX = 0;
+        int handOffsetY = 0;
+        switch (facing) {
+            case Movement::DOWN:
+                handOffsetX = -6;
+                handOffsetY = 3;
+                break;
+            case Movement::UP:
+                handOffsetX = 8;
+                handOffsetY = 2;
+                break;
+            case Movement::LEFT:
+                handOffsetX = -7;
+                handOffsetY = 4;
+                break;
+            case Movement::RIGHT:
+                handOffsetX = 2;
+                handOffsetY = 4;
+                break;
+        }
+
+        const int wDstX = px + (GC::TILE_SIZE - wDstW) / 2 - camera.x + handOffsetX;
+        const int wDstY = py + GC::TILE_SIZE - wDstH - camera.y + handOffsetY;
+        const SDL_Rect dstRect{wDstX, wDstY, wDstW, wDstH};
+
+        const SDL_Point pivot{static_cast<int>(wcfg.pivotX * scaleX),
+                              static_cast<int>(wcfg.pivotY * scaleY)};
+
+        double swingAngle = 0.0;
+        if (frameCol > 0) {
+            const double swingPattern[5] = {0.0, 15.0, 0.0, -15.0, 0.0};
+            swingAngle = swingPattern[frameCol % 5];
+            if (facing == Movement::LEFT)
+                swingAngle -= 10.0;
+            if (facing == Movement::RIGHT)
+                swingAngle += 10.0;
+        } else {
+            if (facing == Movement::LEFT)
+                swingAngle = -15.0;
+            if (facing == Movement::RIGHT)
+                swingAngle = 15.0;
+        }
+
+        SDL_RenderCopyEx(renderer.Get(), weaponTex.Get(), &srcRect, &dstRect, swingAngle, &pivot,
+                         SDL_FLIP_NONE);
 
         if (isGhostPlayer)
             weaponTex.SetAlphaMod(255);
