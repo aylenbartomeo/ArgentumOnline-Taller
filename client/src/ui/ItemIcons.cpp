@@ -3,7 +3,7 @@
 #include "../core/common/WeaponHelper.h"
 
 EquipSlot equipSlotForItem(uint32_t itemId) {
-    if (itemId >= 1001 && itemId <= 1009) {
+    if (itemId >= 1000 && itemId <= 1009) {
         return EquipSlot::ARMOR;
     }
     if (itemId >= 1010 && itemId <= 1019) {
