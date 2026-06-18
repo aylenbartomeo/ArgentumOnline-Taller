@@ -46,10 +46,10 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         45,
                                         6};
                 case 2:  // Enano
-                    return EntitySprite{"race/dward/dward-body.png",
+                    return EntitySprite{"race/dwarf/dwarf-body.png",
                                         true,
                                         28,
-                                        "race/dward/dwarf-head.png",
+                                        "race/dwarf/dwarf-head.png",
                                         2,
                                         2,
                                         13,
