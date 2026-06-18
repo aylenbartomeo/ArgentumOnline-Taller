@@ -1,36 +1,22 @@
 #include <filesystem>
-#include <fstream>
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <utility>
 
 #include "Editor.h"
 #include "EditorMap.h"
-
-namespace {
-constexpr const char* MAP_PATH = "maps/defaultMap.json";
-constexpr const char* TILESET_NAME = "5108.png";
-constexpr int DEFAULT_WIDTH = 60;
-constexpr int DEFAULT_HEIGHT = 60;
-constexpr int DEFAULT_TILE_SIZE = 32;
-constexpr int DEFAULT_TILESET_COLS = 32;
-
-std::string readWholeFile(const std::string& path) {
-    std::ifstream file(path);
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-}
-}  // namespace
+#include "MapChooser.h"
+#include "MapDefaults.h"
 
 int main() {
     try {
-        EditorMap map = std::filesystem::exists(MAP_PATH) ?
-                                EditorMap(readWholeFile(MAP_PATH)) :
-                                EditorMap(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_TILE_SIZE,
-                                          TILESET_NAME, DEFAULT_TILESET_COLS);
-        Editor editor(std::move(map), MAP_PATH);
+        const std::string mapPath = MapDefaults::DEFAULT_MAP_PATH;
+        EditorMap map = std::filesystem::exists(mapPath) ?
+                                EditorMap(readMapFile(mapPath)) :
+                                EditorMap(MapDefaults::WIDTH, MapDefaults::HEIGHT,
+                                          MapDefaults::TILE_SIZE, MapDefaults::TILESET,
+                                          MapDefaults::TILESET_COLS);
+        Editor editor(std::move(map), mapPath);
         editor.run();
     } catch (const std::exception& e) {
         std::cerr << "Error en el editor: " << e.what() << std::endl;
