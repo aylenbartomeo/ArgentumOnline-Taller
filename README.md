@@ -6,6 +6,8 @@ un mismo servidor y comparten el mundo en tiempo real. El proyecto incluye el
 cliente gráfico (SDL2 con launcher en Qt5), el servidor de juego y un editor de
 mapas.
 
+<img width="960" alt="image" src="https://github.com/resources/logos/gameLogo.png"/>
+
 ## Integrantes
 
 - Aylén Bartomeo — 111738
@@ -206,3 +208,21 @@ cuando hay cambios, el botón verde parpadea, y en la terminal aparece
 `Mapa guardado en maps/defaultMap.json`.
 
 El mapa se guarda en `maps/defaultMap.json`, que es el mapa del juego: el cliente lee ese mismo archivo.
+
+## Documentacion
+Dentro de la carpeta ***documentation*** se encuentran los 3 manuales del juego y el enunciado del mismo.
+
+- [Enunciado Argentum Online](documents/enunciado.pdf).
+- 'Manual de Usuario'.
+- 'Informe Técnico'.
+- 'Informe del Proyecto'.
+
+## Créditos
+Se han usado las siguiente bibliotecas desarrolladas por [Di Paola, Martin](https://www.github.com/eldipa):
+
+- 'Socket'.
+- 'Resolver'.
+- 'ResolverError'.
+- 'LibError'.
+- 'Queue'.
+- 'Thread'.
