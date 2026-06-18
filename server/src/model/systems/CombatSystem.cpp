@@ -24,8 +24,8 @@ CombatSystem::CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, Even
         clanBonusCalc(em, cr, ep, config),
         notifier(ep, cb) {}
 
-bool CombatSystem::checkFairPlay(Player& attacker, const Attackable& target, uint32_t attackerDbId,
-                                 bool notify) {
+bool CombatSystem::checkFairPlay(const Player& attacker, const Attackable& target,
+                                 uint32_t attackerDbId, bool notify) {
     if (enforceFairPlay &&
         (!attacker.canEngageInCombatWith(target) || !target.canEngageInCombatWith(attacker))) {
         if (notify) {

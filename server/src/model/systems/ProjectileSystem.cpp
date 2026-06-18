@@ -133,7 +133,7 @@ void ProjectileSystem::applySingleTargetDamage(const Projectile& p, uint32_t hit
     if (healingProjectile) {
         // Proyectil curativo: solo aplica sobre Players (los monstruos no se curan con magia
         // aliada)
-        Player* targetPlayer = dynamic_cast<Player*>(target);
+        const Player* targetPlayer = dynamic_cast<const Player*>(target);
         if (!targetPlayer)
             return;
 
@@ -211,7 +211,7 @@ void ProjectileSystem::applyAoeDamage(const Projectile& p) {
 
         if (healingProjectile) {
             // Solo cura Players; no aplica guardias ofensivas
-            Player* targetPlayer = dynamic_cast<Player*>(target);
+            const Player* targetPlayer = dynamic_cast<const Player*>(target);
             if (!targetPlayer || !weapon)
                 return;
 

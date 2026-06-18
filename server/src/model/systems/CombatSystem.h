@@ -45,7 +45,7 @@ public:
                  ICombatEventCallback& cb, const BossSpawnSystem& bss, bool enforceFairPlay,
                  const ServerConfig& config);
     void setFairPlayRules(bool enforce) { enforceFairPlay = enforce; }
-    bool checkFairPlay(Player& attacker, const Attackable& target, uint32_t attackerDbId,
+    bool checkFairPlay(const Player& attacker, const Attackable& target, uint32_t attackerDbId,
                        bool notify = true);
     void playerAttack(uint32_t attackerDbId, uint32_t targetDbId);
     void monsterAttack(const Monster& monster, Player& target);
