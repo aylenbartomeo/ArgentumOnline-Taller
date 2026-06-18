@@ -308,12 +308,12 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
 
 // ─── NPC target input ─────────────────────────────────────────────────────────
 
-void InputProcessor::processNpcTargetInput(const FrameInput& input, const CameraOffset& camera,
+bool InputProcessor::processNpcTargetInput(const FrameInput& input, const CameraOffset& camera,
                                            const SnapshotDTO& snapshot, const TileMap& map) {
     if (!input.mouseLeftJustPressed || input.equipPressed)
-        return;
+        return false;
     if (miniChat.isMouseOver(input.mouseX, input.mouseY, GC::WINDOW_HEIGHT))
-        return;
+        return false;
 
     const Cell cell = screenToCell(input.mouseX, input.mouseY, camera.x, camera.y, GC::TILE_SIZE);
 
@@ -323,16 +323,16 @@ void InputProcessor::processNpcTargetInput(const FrameInput& input, const Camera
             });
 
     if (citizenIt == map.getCitizens().end())
-        return;
+        return false;
 
     // Verificar rango máximo de selección
     const EntityDTO* me = findEntityById(snapshot, client.getClientId());
     if (!me)
-        return;
+        return true;
     const int dist = std::max(std::abs(me->x - citizenIt->x), std::abs(me->y - citizenIt->y));
     if (dist > MAX_SELECT_RANGE) {
         miniChat.pushMessage("[INFO] Estás demasiado lejos para interactuar.");
-        return;
+        return true;
     }
 
     // Deseleccionar si se vuelve a clickear el mismo NPC
@@ -345,12 +345,13 @@ void InputProcessor::processNpcTargetInput(const FrameInput& input, const Camera
 
     if (client.getSelectedNpc() == targetId) {
         client.setSelectedNpc(std::nullopt);
-        miniChat.pushMessage("[INFO] NPC deseleccionado.");
-        return;
+        // miniChat.pushMessage("[INFO] NPC deseleccionado.");
+        return true;
     }
 
     client.setSelectedNpc(targetId, citizenIt->type);
-    client.sendCommand(AttackDTO{targetId});
-    miniChat.pushMessage("[INFO] Seleccionaste al " + NpcVisuals::displayName(citizenIt->type) +
-                         ".");
+    client.sendCommand(SelectNpcDTO{targetId});
+    // miniChat.pushMessage("[INFO] Seleccionaste al " + NpcVisuals::displayName(citizenIt->type) +
+    //                      ".");
+    return true;
 }

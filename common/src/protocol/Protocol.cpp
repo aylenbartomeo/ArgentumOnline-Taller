@@ -402,6 +402,11 @@ void Protocol::sendAttack(uint32_t targetId) {
     sendUint32(targetId);
 }
 
+void Protocol::sendSelectNpc(uint32_t targetId) {
+    sendUint8(static_cast<uint8_t>(OPCODE::SELECT_NPC));
+    sendUint32(targetId);
+}
+
 void Protocol::sendDropItem(const DropItemDTO& dto) {
     sendUint8(static_cast<uint8_t>(OPCODE::DROP_ITEM));
     sendUint8(dto.slot);
@@ -539,9 +544,12 @@ CommandVariant Protocol::receive_command() {
             return StopMoveDTO{};
         }
         case OPCODE::ATTACK: {
-            AttackDTO dto;
-            dto.targetId = recvUint32();
-            return dto;
+            uint32_t targetId = recvUint32();
+            return AttackDTO{targetId};
+        }
+        case OPCODE::SELECT_NPC: {
+            uint32_t targetId = recvUint32();
+            return SelectNpcDTO{targetId};
         }
         case OPCODE::DROP_ITEM: {
             DropItemDTO dto;

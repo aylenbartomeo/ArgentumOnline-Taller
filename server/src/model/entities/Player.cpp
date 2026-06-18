@@ -46,27 +46,27 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race r
 
 // Eliminado: equipItemById
 
-bool Player::equipFromSlot(uint8_t slotIndex) {
+Player::EquipResult Player::equipFromSlot(uint8_t slotIndex) {
     onActionStarted();
 
     // 1. Si el slot ya está equipado, el jugador quiere desequiparlo (doble clic)
     if (equipment.isSlotEquipped(slotIndex)) {
         equipment.unequipSlot(slotIndex);
-        return true;
+        return EquipResult::UNEQUIPPED;
     }
 
     // 2. Si no estaba equipado, intentamos equiparlo
     auto slotOpt = inventory.inspectSlot(slotIndex);
     if (!slotOpt)
-        return false;
+        return EquipResult::FAILED;
 
     uint32_t itemId = slotOpt->item_id;
     if (!itemRegistry)
-        return false;
+        return EquipResult::FAILED;
 
     const Item* item = itemRegistry->get_item(static_cast<int>(itemId));
     if (!item || !item->is_wearable())
-        return false;
+        return EquipResult::FAILED;
 
     // si es un arma y ya hay otra equipada en un slot distinto, desequiparla primero
     const Weapon* asWeapon = dynamic_cast<const Weapon*>(item);
@@ -77,7 +77,7 @@ bool Player::equipFromSlot(uint8_t slotIndex) {
     // Equipamos el ítem pero NO lo sacamos del inventario
     equipment.equipItem(item, slotIndex);
 
-    return true;
+    return EquipResult::EQUIPPED;
 }
 
 void Player::update(float dtMs) {
