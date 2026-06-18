@@ -49,6 +49,13 @@ TEST(ToolbarTest, ClickMapsButtonReturnsOpenMaps) {
     EXPECT_EQ(toolbar.handleClick(10, 130), ToolbarAction::OPEN_MAPS);
 }
 
+TEST(ToolbarTest, ClickDungeonButtonActivatesDungeon) {
+    Toolbar toolbar;
+    toolbar.addToolButton(0, 0, 100, 30, Tool::DUNGEON);
+    EXPECT_EQ(toolbar.handleClick(10, 10), ToolbarAction::TOOL_CHANGED);
+    EXPECT_EQ(toolbar.getActiveTool(), Tool::DUNGEON);
+}
+
 TEST(ToolbarTest, ClickEmptyAreaReturnsNone) {
     Toolbar toolbar;
     toolbar.addActionButton(0, 80, 35, 30, ToolbarAction::SAVE);

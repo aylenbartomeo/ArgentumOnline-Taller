@@ -61,6 +61,7 @@ private:
     void render();
     void renderTerrain();
     void renderSafeZones();
+    void renderDungeons();
     void renderCitizenZones();
     void renderItems();
     void renderMonsters();
@@ -81,6 +82,7 @@ private:
     void drawSaveIcon(const Toolbar::Button& b);
     void drawEraserIcon(const Toolbar::Button& b);
     void drawMapsIcon(const Toolbar::Button& b);
+    void drawDungeonIcon(const Toolbar::Button& b);
     Palette& activePalette();
     const Palette& activePalette() const;
 

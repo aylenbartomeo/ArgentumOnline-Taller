@@ -10,6 +10,7 @@
 #include "loop/ConstantRateLoop.h"
 
 #include "CityStamp.h"
+#include "DungeonStamp.h"
 #include "MapChooser.h"
 #include "MapDefaults.h"
 
@@ -33,13 +34,15 @@ constexpr int MONSTER_BTN_Y = 44;
 constexpr int CITIZEN_BTN_Y = 82;
 constexpr int CITY_BTN_Y = 120;
 constexpr int CITY_ERASE_BTN_Y = 158;
-constexpr int ERASER_BTN_Y = 196;
-constexpr int SPAWN_BTN_Y = 234;
-constexpr int SAVE_Y = 274;
-constexpr int MAPS_Y = 312;
+constexpr int DUNGEON_BTN_Y = 196;
+constexpr int DUNGEON_ERASE_BTN_Y = 234;
+constexpr int ERASER_BTN_Y = 272;
+constexpr int SPAWN_BTN_Y = 310;
+constexpr int SAVE_Y = 348;
+constexpr int MAPS_Y = 386;
 
 constexpr int PALETTE_X = PANEL_X + 10;
-constexpr int PALETTE_Y = 352;
+constexpr int PALETTE_Y = 424;
 constexpr int PALETTE_TILE = 32;
 constexpr int PALETTE_COLS = 5;
 
@@ -87,6 +90,10 @@ std::string labelForTool(Tool tool) {
             return "Ciudad";
         case Tool::CITY_ERASE:
             return "Borrar ciudad";
+        case Tool::DUNGEON:
+            return "Mazmorra";
+        case Tool::DUNGEON_ERASE:
+            return "Borrar mazmorra";
         case Tool::ERASER:
             return "Goma";
         case Tool::SPAWN:
@@ -139,6 +146,8 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
     toolbar.addToolButton(BTN_X, CITIZEN_BTN_Y, BTN_W, BTN_H, Tool::CITIZEN);
     toolbar.addToolButton(BTN_X, CITY_BTN_Y, BTN_W, BTN_H, Tool::CITY);
     toolbar.addToolButton(BTN_X, CITY_ERASE_BTN_Y, BTN_W, BTN_H, Tool::CITY_ERASE);
+    toolbar.addToolButton(BTN_X, DUNGEON_BTN_Y, BTN_W, BTN_H, Tool::DUNGEON);
+    toolbar.addToolButton(BTN_X, DUNGEON_ERASE_BTN_Y, BTN_W, BTN_H, Tool::DUNGEON_ERASE);
     toolbar.addToolButton(BTN_X, ERASER_BTN_Y, BTN_W, BTN_H, Tool::ERASER);
     toolbar.addToolButton(BTN_X, SPAWN_BTN_Y, BTN_W, BTN_H, Tool::SPAWN);
     toolbar.addActionButton(BTN_X, SAVE_Y, BTN_W, BTN_H, ToolbarAction::SAVE);
@@ -300,6 +309,25 @@ void Editor::handleLeftClick(int x, int y) {
                         statusMsg = "";
                     } else {
                         statusMsg = "ahi no hay ninguna ciudad";
+                    }
+                    break;
+                }
+                case Tool::DUNGEON: {
+                    const CellPos origin = dungeonOriginForClick(cell.x, cell.y);
+                    std::string error = dungeonStampError(map, origin.x, origin.y);
+                    if (error.empty()) {
+                        applyDungeonPrefab(map, origin.x, origin.y);
+                        statusMsg = "";
+                    } else {
+                        statusMsg = error;
+                    }
+                    break;
+                }
+                case Tool::DUNGEON_ERASE: {
+                    if (eraseDungeonAt(map, cell.x, cell.y)) {
+                        statusMsg = "";
+                    } else {
+                        statusMsg = "ahi no hay ninguna mazmorra";
                     }
                     break;
                 }
@@ -489,6 +517,8 @@ Palette& Editor::activePalette() {
         case Tool::OVERLAY:
         case Tool::CITY:
         case Tool::CITY_ERASE:
+        case Tool::DUNGEON:
+        case Tool::DUNGEON_ERASE:
         case Tool::ERASER:
         case Tool::SPAWN:
         default:
@@ -625,6 +655,7 @@ void Editor::render() {
     renderer.Clear();
     renderTerrain();
     renderSafeZones();
+    renderDungeons();
     renderCitizenZones();
     renderItems();
     renderMonsters();
@@ -653,6 +684,17 @@ void Editor::renderSafeZones() {
     for (const EditorSafeZone& zone: map.getSafeZones()) {
         Position screen = camera.cellToScreen(zone.x, zone.y);
         renderer.DrawRect(SDL2pp::Rect(screen.x, screen.y, zone.width * ts, zone.height * ts));
+    }
+    renderer.SetClipRect();
+}
+
+void Editor::renderDungeons() {
+    const int ts = camera.getTileSize();
+    renderer.SetClipRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
+    renderer.SetDrawColor(255, 120, 40, 255);
+    for (const EditorDungeon& d: map.getDungeons()) {
+        Position screen = camera.cellToScreen(d.x, d.y);
+        renderer.DrawRect(SDL2pp::Rect(screen.x, screen.y, d.width * ts, d.height * ts));
     }
     renderer.SetClipRect();
 }
@@ -822,6 +864,17 @@ void Editor::drawMapsIcon(const Toolbar::Button& b) {
     renderer.DrawRect(SDL2pp::Rect(ix, iy, s, s));
 }
 
+void Editor::drawDungeonIcon(const Toolbar::Button& b) {
+    int s = b.h - 12;
+    int ix = b.x + 10;
+    int iy = b.y + 6;
+    renderer.SetDrawColor(40, 30, 30, 255);
+    renderer.FillRect(SDL2pp::Rect(ix, iy, s, s));
+    renderer.SetDrawColor(220, 80, 30, 255);
+    renderer.DrawRect(SDL2pp::Rect(ix, iy, s, s));
+    renderer.DrawRect(SDL2pp::Rect(ix + 2, iy + 2, s - 4, s - 4));
+}
+
 void Editor::renderPanel() {
     const std::vector<OverlayDef>& overlayReg = getOverlayRegistry();
     const auto& monsterCat = getMonsterCatalog();
@@ -872,6 +925,12 @@ void Editor::renderPanel() {
                         break;
                     case Tool::CITY_ERASE:
                     case Tool::ERASER:
+                        drawEraserIcon(b);
+                        break;
+                    case Tool::DUNGEON:
+                        drawDungeonIcon(b);
+                        break;
+                    case Tool::DUNGEON_ERASE:
                         drawEraserIcon(b);
                         break;
                     case Tool::SPAWN:
@@ -969,6 +1028,8 @@ void Editor::renderStatusBar() {
             break;
         case Tool::CITY:
         case Tool::CITY_ERASE:
+        case Tool::DUNGEON:
+        case Tool::DUNGEON_ERASE:
             drawGrass(x0, y0, iconSize);
             break;
         case Tool::OVERLAY:
