@@ -11,6 +11,7 @@ target_sources(lib_editor
     Font.cpp
     Editor.cpp
     CityStamp.cpp
+    MapChooser.cpp
     PUBLIC
     # .h files
     EditorMap.h
@@ -21,6 +22,8 @@ target_sources(lib_editor
     Font.h
     Editor.h
     CityStamp.h
+    MapChooser.h
+    MapDefaults.h
     )
 
 # Exponemos los directorios de inclusión del editor públicamente

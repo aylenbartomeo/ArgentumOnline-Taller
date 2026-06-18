@@ -54,6 +54,7 @@ target_sources(argentum_online_tests
     TestCamera.cpp
     TestPalette.cpp
     TestToolbar.cpp
+    TestMapChooser.cpp
     TestSpawnCatalogs.cpp
     TestPersistence.cpp
     TestEntityCollision.cpp
