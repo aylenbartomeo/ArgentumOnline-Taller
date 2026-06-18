@@ -20,8 +20,19 @@ enum class NPCType {
     ZOMBIE,
     SPIDER,
     ORC,
-    GOLEM
+    GOLEM,
+
+    // --- BOSSES DE MAZMORRA ---
+    BOSS_BALROG,  // Balrog Infernal
+    BOSS_TITAN,   // Titán de Piedra
+    BOSS_COLOSO,  // Coloso de Magma
+    BOSS_ARACNE   // Aracne Abismal
 };
+
+inline bool isBossType(NPCType type) {
+    return type == NPCType::BOSS_BALROG || type == NPCType::BOSS_TITAN ||
+           type == NPCType::BOSS_COLOSO || type == NPCType::BOSS_ARACNE;
+}
 
 inline std::string getRaceName(Race r) {
     switch (r) {

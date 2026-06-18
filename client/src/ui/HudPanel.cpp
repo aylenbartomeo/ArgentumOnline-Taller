@@ -148,7 +148,15 @@ void HudPanel::drawItemSprite(SDL2pp::Renderer& renderer, uint32_t itemId, int x
                               int h) {
     const OverlayDef* def = itemDef(itemId);
     if (def == nullptr) {
-        renderer.Copy(textures.get(iconForItem(itemId)), SDL2pp::NullOpt, SDL2pp::Rect(x, y, w, h));
+        SDL2pp::Texture& tex = textures.get(iconForItem(itemId));
+        if (itemId >= 4000 && itemId <= 4004) {
+            // Option 1: extract bottom-left icon from 6x6 sheet
+            int wTex = tex.GetWidth() / 6;
+            int hTex = tex.GetHeight() / 6;
+            renderer.Copy(tex, SDL2pp::Rect(0, 5 * hTex, wTex, hTex), SDL2pp::Rect(x, y, w, h));
+        } else {
+            renderer.Copy(tex, SDL2pp::NullOpt, SDL2pp::Rect(x, y, w, h));
+        }
         return;
     }
     int dw = w;

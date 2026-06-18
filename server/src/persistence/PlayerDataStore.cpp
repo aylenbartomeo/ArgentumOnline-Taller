@@ -86,7 +86,7 @@ std::optional<PlayerPersistData> PlayerDataStore::loadPlayerData(
 
 void PlayerDataStore::savePlayerData(const std::string& username, const PlayerPersistData& data) {
     std::lock_guard<std::mutex> lock(this->storeMutex);
-    
+
     auto it = this->index.find(username);
     if (it != this->index.end()) {
         // El usuario existe, actualiza en el offset

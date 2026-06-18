@@ -33,7 +33,7 @@ public:
                                         const std::vector<Position>& priestPositions);
 
     std::vector<CompletedResurrection> tick(float deltaTimeMs);
-    int getDelayFactor() const { return DELAY_MS_FACTOR;}
+    int getDelayFactor() const { return DELAY_MS_FACTOR; }
 };
 
 #endif  // RESURRECTION_SERVICE_H

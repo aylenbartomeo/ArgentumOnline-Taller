@@ -46,7 +46,7 @@ public:
                                     const SnapshotDTO& snapshot, const PlayerStatsDTO& stats,
                                     const TileMap& map);
 
-    void processNpcTargetInput(const FrameInput& input, const CameraOffset& camera,
+    bool processNpcTargetInput(const FrameInput& input, const CameraOffset& camera,
                                const SnapshotDTO& snapshot, const TileMap& map);
 
 private:

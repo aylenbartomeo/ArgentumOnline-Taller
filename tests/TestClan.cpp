@@ -26,9 +26,8 @@ static InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
 
 static ServerConfig getTestServerConfig() {
     ServerConfig config;
-    int port;
     config.worldName = "";
-    config.mapPath + "";
+    config.mapPath = "";
     config.clanBonusRange = 5;
     config.criticalProbability = 0.10f;
     config.clanAttackBonusPerMember = 0.05f;

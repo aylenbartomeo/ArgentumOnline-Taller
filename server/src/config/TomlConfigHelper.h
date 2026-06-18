@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include <toml++/toml.hpp>
 
@@ -118,6 +119,33 @@ inline const toml::array& requiredArray(const toml::table& table, std::string_vi
                                  std::string(fieldName) + "]] array");
     }
     return *arr;
+}
+
+inline bool optionalBool(const toml::table& table, std::string_view fieldName,
+                         bool defaultValue = false) {
+    return table[fieldName].value_or(defaultValue);
+}
+
+inline uint32_t optionalUInt32(const toml::table& table, std::string_view fieldName,
+                               uint32_t defaultValue = 0) {
+    const std::optional<int64_t> value = table[fieldName].value<int64_t>();
+    if (!value.has_value()) {
+        return defaultValue;
+    }
+    return static_cast<uint32_t>(*value);
+}
+
+inline std::vector<uint32_t> optionalUInt32Array(const toml::table& table,
+                                                 std::string_view fieldName) {
+    std::vector<uint32_t> result;
+    if (const toml::array* arr = table[fieldName].as_array()) {
+        for (const auto& elem: *arr) {
+            if (auto val = elem.value<int64_t>()) {
+                result.push_back(static_cast<uint32_t>(*val));
+            }
+        }
+    }
+    return result;
 }
 
 }  // namespace TomlHelper

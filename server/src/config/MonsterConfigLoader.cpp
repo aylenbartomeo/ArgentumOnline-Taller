@@ -20,6 +20,10 @@ MonsterConfig parseMonsterConfig(const toml::table& monsterTable) {
             TomlHelper::requiredString(monsterTable, "zone", CTX),
             TomlHelper::requiredInt(monsterTable, "attack_cooldown_ms", CTX),
             TomlHelper::requiredInt(monsterTable, "move_cooldown_ms", CTX),
+            TomlHelper::optionalBool(monsterTable, "is_boss"),
+            TomlHelper::optionalUInt32(monsterTable, "unique_drop_item_id"),
+            TomlHelper::optionalUInt32(monsterTable, "guaranteed_gold"),
+            TomlHelper::optionalUInt32Array(monsterTable, "extra_loot"),
     };
 
     // ─── Validaciones lógicas específicas del negocio ────────────────────────
@@ -59,5 +63,13 @@ MonsterConfigs MonsterConfigLoader::loadMonsterConfigs(const std::filesystem::pa
              parseMonsterConfig(TomlHelper::requiredTable(monsters, "spider", CTX))},
             {NPCType::ORC, parseMonsterConfig(TomlHelper::requiredTable(monsters, "orc", CTX))},
             {NPCType::GOLEM, parseMonsterConfig(TomlHelper::requiredTable(monsters, "golem", CTX))},
+            {NPCType::BOSS_BALROG,
+             parseMonsterConfig(TomlHelper::requiredTable(monsters, "boss_balrog", CTX))},
+            {NPCType::BOSS_TITAN,
+             parseMonsterConfig(TomlHelper::requiredTable(monsters, "boss_titan", CTX))},
+            {NPCType::BOSS_COLOSO,
+             parseMonsterConfig(TomlHelper::requiredTable(monsters, "boss_coloso", CTX))},
+            {NPCType::BOSS_ARACNE,
+             parseMonsterConfig(TomlHelper::requiredTable(monsters, "boss_aracne", CTX))},
     };
 }

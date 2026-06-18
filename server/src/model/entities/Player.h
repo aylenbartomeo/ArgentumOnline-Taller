@@ -38,8 +38,9 @@ private:
     float actionTimerMs = 0.0f;
     bool infiniteMana = false;
     float resurrectionImmobilizedTimeMs = 0.0f;
-    
+
     void updateResurrectionTimer(float deltaTimeMs);
+
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race, CharacterClass cls,
            const RaceConfig& raceConfig, const CharacterClassConfig& classConfig,
@@ -57,9 +58,11 @@ public:
     void update(float deltaSeconds);
 
 
+    enum class EquipResult { EQUIPPED, UNEQUIPPED, FAILED };
+
     // Equipa un ítem directamente desde un slot del inventario.
-    // Retorna true si pudo equiparlo, false en caso contrario.
-    bool equipFromSlot(uint8_t slotIndex);
+    // Retorna EQUIPPED si lo equipó, UNEQUIPPED si lo desequipó, FAILED en caso contrario.
+    EquipResult equipFromSlot(uint8_t slotIndex);
 
     // Se llama cada vez que el jugador inicia una accion activa en el mundo
     void onActionStarted();

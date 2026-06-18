@@ -18,6 +18,8 @@ void Sender::run() {
                 protocol.sendStopMove();
             } else if (std::holds_alternative<AttackDTO>(cmd)) {
                 protocol.sendAttack(std::get<AttackDTO>(cmd).targetId);
+            } else if (std::holds_alternative<SelectNpcDTO>(cmd)) {
+                protocol.sendSelectNpc(std::get<SelectNpcDTO>(cmd).npcId);
             } else if (std::holds_alternative<DropItemDTO>(cmd)) {
                 protocol.sendDropItem(std::get<DropItemDTO>(cmd));
             } else if (std::holds_alternative<EquipItemDTO>(cmd)) {

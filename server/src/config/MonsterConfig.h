@@ -1,8 +1,10 @@
 #ifndef MONSTERCONFIG_H
 #define MONSTERCONFIG_H
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "../../common/utils/types.h"
 
@@ -19,6 +21,10 @@ struct MonsterConfig {
     std::string zone;
     int attackCooldownMs;
     int moveCooldownMs;
+    bool isBoss = false;
+    uint32_t uniqueDropItemId = 0;
+    uint32_t guaranteedGold = 0;
+    std::vector<uint32_t> extraLoot;
 };
 
 using MonsterConfigs = std::unordered_map<NPCType, MonsterConfig>;

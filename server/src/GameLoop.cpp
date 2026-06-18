@@ -31,7 +31,9 @@ GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
         MonsterConfigs mConfigs;
         try {
             mConfigs = MonsterConfigLoader::loadMonsterConfigs("config/monsters.toml");
-        } catch (const std::exception& e) { std::cerr << e.what(); }
+        } catch (const std::exception& e) {
+            std::cerr << e.what();
+        }
         world.restoreMonsters(worldDataStore.loadMonsters(worldConfig.worldId), mConfigs);
         auto [npcHeaders, npcStocks] = worldDataStore.loadNpcStates(worldConfig.worldId);
         world.restoreNpcStates(npcHeaders, npcStocks);
@@ -152,9 +154,9 @@ void GameLoop::processInputs() {
 
             if (std::holds_alternative<StartMoveDTO>(pCmd.command)) {
                 StartMoveDTO move_dto = std::get<StartMoveDTO>(pCmd.command);
-                std::cout << "[GAMELOOP] Jugador " << pCmd.clientId
-                          << " solicito moverse a: " << static_cast<int>(move_dto.direction)
-                          << std::endl;
+                // std::cout << "[GAMELOOP] Jugador " << pCmd.clientId
+                //           << " solicito moverse a: " << static_cast<int>(move_dto.direction)
+                //           << std::endl;
                 world.moveEntity(pCmd.clientId, move_dto.direction);
 
             } else if (std::holds_alternative<AttackDTO>(pCmd.command)) {
@@ -181,14 +183,14 @@ void GameLoop::processInputs() {
                 world.playerResurrect(pCmd.clientId);
             } else if (std::holds_alternative<SelectNpcDTO>(pCmd.command)) {
                 SelectNpcDTO selectDto = std::get<SelectNpcDTO>(pCmd.command);
-                std::cout << "[GAMELOOP] Jugador " << pCmd.clientId
-                          << " hizo clic en el NPC: " << selectDto.npcId << std::endl;
+                // std::cout << "[GAMELOOP] Jugador " << pCmd.clientId
+                //           << " hizo clic en el NPC: " << selectDto.npcId << std::endl;
                 world.playerInteract(pCmd.clientId, selectDto.npcId);
             } else if (std::holds_alternative<NpcCommandDTO>(pCmd.command)) {
                 NpcCommandDTO cmdDto = std::get<NpcCommandDTO>(pCmd.command);
-                std::cout << "[GAMELOOP] Jugador " << pCmd.clientId
-                          << " ejecuto comando de NPC tipo: " << static_cast<int>(cmdDto.type)
-                          << std::endl;
+                // std::cout << "[GAMELOOP] Jugador " << pCmd.clientId
+                //           << " ejecuto comando de NPC tipo: " << static_cast<int>(cmdDto.type)
+                //           << std::endl;
                 world.playerExecuteNpcCommand(pCmd.clientId, cmdDto);
             } else if (std::holds_alternative<ClanCommandDTO>(pCmd.command)) {
                 ClanCommandDTO clanCmd = std::get<ClanCommandDTO>(pCmd.command);

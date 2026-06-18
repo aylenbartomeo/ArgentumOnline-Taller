@@ -48,6 +48,7 @@ public:
     void sendStartMove(const StartMoveDTO& dto);
     void sendStopMove();
     void sendAttack(uint32_t targetId);
+    void sendSelectNpc(uint32_t targetId);
     void sendDropItem(const DropItemDTO& dto);
     void sendEquipItem(const EquipItemDTO& dto);
     void sendUseItem(const UseItemDTO& dto);

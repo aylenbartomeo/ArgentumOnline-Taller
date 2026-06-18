@@ -174,25 +174,27 @@ void Game::render(const FrameInput& input) {
             camera.compute(client.getClientId(), lastSnapshot, entityRenderer.getAnimators(), map);
 
     // Procesar click izq sobre npc
-    inputProcessor.processNpcTargetInput(input, cam, lastSnapshot, map);
+    bool npcHandled = inputProcessor.processNpcTargetInput(input, cam, lastSnapshot, map);
 
-    const auto combatResult =
-            inputProcessor.processCombatInput(input, cam, lastSnapshot, lastStats, map);
-    if (combatResult.fx) {
-        fxSystem.triggerOnEntity(combatResult.fx->targetId, combatResult.fx->startMs,
-                                 combatResult.fx->type);
+    if (!npcHandled) {
+        const auto combatResult =
+                inputProcessor.processCombatInput(input, cam, lastSnapshot, lastStats, map);
+        if (combatResult.fx) {
+            fxSystem.triggerOnEntity(combatResult.fx->targetId, combatResult.fx->startMs,
+                                     combatResult.fx->type);
 
-        if (combatResult.fx->type == FxType::SWORD) {
-            audio.playSound(SoundEffect::SWORD_ATTACK);
-        } else if (combatResult.fx->type == FxType::FLAUTA_HEAL) {
-            audio.playSound(SoundEffect::FLAUTE);
+            if (combatResult.fx->type == FxType::SWORD) {
+                audio.playSound(SoundEffect::SWORD_ATTACK);
+            } else if (combatResult.fx->type == FxType::FLAUTA_HEAL) {
+                audio.playSound(SoundEffect::FLAUTE);
+            }
         }
-    }
 
-    if (combatResult.magicAttack)
-        audio.playSound(SoundEffect::MAGIC_ATTACK);
-    if (combatResult.bowAttack)
-        audio.playSound(SoundEffect::BOW_SHOOT);
+        if (combatResult.magicAttack)
+            audio.playSound(SoundEffect::MAGIC_ATTACK);
+        if (combatResult.bowAttack)
+            audio.playSound(SoundEffect::BOW_SHOOT);
+    }
 
     const uint32_t now = SDL_GetTicks();
 

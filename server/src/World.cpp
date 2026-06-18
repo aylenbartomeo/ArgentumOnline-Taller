@@ -28,7 +28,8 @@ World::World(int worldId, const std::string& creatorPlayerName, const ItemRegist
         clanService(clanRepo),
         clanController(clanService),
         characterConfigs(configs),
-        combatSystem(map, entityManager, clanRepo, eventPublisher, *this, enforceFairPlay, config),
+        combatSystem(map, entityManager, clanRepo, eventPublisher, *this, bossSpawnSystem,
+                     enforceFairPlay, config),
         projectileSystem(map, entityManager, combatSystem) {
     map.setDimensions(20, 15);
     map.setSpawnPoint(0, 0);
@@ -39,6 +40,7 @@ World::World(int worldId, const std::string& creatorPlayerName, const ItemRegist
         }
         MonsterConfigs mc = MonsterConfigLoader::loadMonsterConfigs(configPath);
         spawnSystem = SpawnSystem(std::move(mc), 5000.0f, 100);
+        bossSpawnSystem.setConfigs(&spawnSystem.getConfigs());
     } catch (const std::exception& e) {
         std::cerr << "[ERROR] No se pudo cargar monsters.toml en el inicio: " << e.what()
                   << std::endl;
@@ -207,6 +209,11 @@ bool World::loadMap(const std::string& path, bool spawnMonstersAndItems) {
     options.spawnGroundItems = spawnMonstersAndItems;
     if (map.loadSpawnFromJson(path, options)) {
         spawnNPCs();
+
+        for (const auto& bz: map.getBossZones()) {
+            bossSpawnSystem.addBossZone(bz);
+        }
+
         if (spawnMonstersAndItems) {
             for (const auto& req: spawnSystem.getInitialSpawns(map)) {
                 addMonster(req.type, req.pos, *req.config);
@@ -348,10 +355,12 @@ void World::playerInteract(uint32_t dbId, uint32_t targetId) {
     if (!p)
         return;
 
-    Interactable* npc = entityManager.findInteractable(targetId);
+    Interactable* npc = resolveNpcTarget(targetId, *p);
     InteractionResult res = interactionService.startInteraction(entityManager.resolveEntityId(dbId),
                                                                 const_cast<Player&>(*p), npc);
-    eventPublisher.sendTo(dbId, res.msg);
+    if (!res.msg.empty()) {
+        publishInteractionResult(dbId, res);
+    }
 }
 
 void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
@@ -436,6 +445,10 @@ Player* World::findNearestPlayer(const Monster& monster, int range) {
         if (map.isSafeZone(player->getPosition().x, player->getPosition().y))
             continue;
 
+        if (monster.isBoss() &&
+            !bossSpawnSystem.isPositionInBossZone(monster.getId(), player->getPosition()))
+            continue;
+
         int dist = monster.distance_to(*player);
         if (dist <= range && dist < minDist) {
             minDist = dist;
@@ -480,8 +493,13 @@ void World::moveMonsterTowards(Monster& monster, const Position& targetPos) {
         candidates.push_back({mPos.x - 1, mPos.y});
     }
 
-    auto it = std::find_if(candidates.begin(), candidates.end(),
-                           [&](const Position& c) { return c != mPos && map.canMoveTo(c); });
+    auto it = std::find_if(candidates.begin(), candidates.end(), [&](const Position& c) {
+        if (c == mPos || !map.canMoveTo(c))
+            return false;
+        if (monster.isBoss() && !bossSpawnSystem.isPositionInBossZone(monster.getId(), c))
+            return false;
+        return true;
+    });
 
     if (it != candidates.end()) {
         map.setEntityCollision(mPos.x, mPos.y, false);
@@ -560,6 +578,14 @@ void World::update(float delta_time) {
     for (const auto& req: newSpawns) {
         entityManager.addMonster(req.type, req.pos, *req.config);
         map.setEntityCollision(req.pos.x, req.pos.y, true);
+    }
+
+    auto bossSpawns = bossSpawnSystem.tick(delta_time, entityManager);
+    for (const auto& res: bossSpawns) {
+        uint32_t newId =
+                entityManager.addMonster(res.request.type, res.request.pos, *res.request.config);
+        map.setEntityCollision(res.request.pos.x, res.request.pos.y, true);
+        bossSpawnSystem.registerBossEntity(res.zoneIndex, newId, res.request.type);
     }
 
     projectileSystem.update(delta_time);
@@ -723,8 +749,11 @@ void World::equipItem(uint32_t dbId, uint8_t slot) {
         return;
     }
 
-    if (p->equipFromSlot(slot)) {
+    Player::EquipResult res = p->equipFromSlot(slot);
+    if (res == Player::EquipResult::EQUIPPED) {
         eventPublisher.sendTo(dbId, "Equipaste el item.");
+    } else if (res == Player::EquipResult::UNEQUIPPED) {
+        eventPublisher.sendTo(dbId, "Desequipaste el item.");
     }
 }
 
@@ -806,9 +835,10 @@ void World::playerResurrect(uint32_t dbId) {
                                                        priestPositions);
     if (res.success) {
         int minDistance = std::numeric_limits<int>::max();
-        for (const auto& pos : priestPositions) {
+        for (const auto& pos: priestPositions) {
             int dist = p->getPosition().distance_to(pos);
-            if (dist < minDistance) minDistance = dist;
+            if (dist < minDistance)
+                minDistance = dist;
         }
         int delayMs = minDistance * resurrectionService.getDelayFactor();
 
@@ -820,28 +850,58 @@ void World::playerResurrect(uint32_t dbId) {
 void World::onMonsterDeath(const Monster& monster, uint32_t killerDbId) {
     Position pos = monster.getPosition();
 
-    auto potionIds = itemRegistry.getPotionIds();
-    auto allItemIds = itemRegistry.getAllDroppableItemIds();
+    if (monster.isBoss()) {
+        auto it = spawnSystem.getConfigs().find(monster.getType());
+        if (it != spawnSystem.getConfigs().end()) {
+            BossLootResult loot = LootResolver::resolveBossLoot(it->second);
 
-    NpcLootResult loot = LootResolver::resolveNpcLoot(monster.getMaxHp(), potionIds, allItemIds);
-
-    if (loot.dropsGold && loot.goldAmount > 0) {
-        uint32_t gold = loot.goldAmount;
-        while (gold > 0) {
-            uint16_t chunk =
-                    static_cast<uint16_t>(std::min(gold, static_cast<uint32_t>(UINT16_MAX)));
-            map.placeItemNearby(pos, GOLD_ITEM_ID, chunk);
-            gold -= chunk;
+            if (loot.uniqueItemId > 0) {
+                map.placeItemNearby(pos, loot.uniqueItemId, 1);
+            }
+            if (loot.goldAmount > 0) {
+                uint32_t gold = loot.goldAmount;
+                while (gold > 0) {
+                    uint16_t chunk = static_cast<uint16_t>(
+                            std::min(gold, static_cast<uint32_t>(UINT16_MAX)));
+                    map.placeItemNearby(pos, GOLD_ITEM_ID, chunk);
+                    gold -= chunk;
+                }
+            }
+            for (uint32_t itemId: loot.extraItems) {
+                map.placeItemNearby(pos, itemId, 1);
+            }
+            const Player* killer = entityManager.getPlayer(killerDbId);
+            std::string killerName = killer ? killer->getName() : "Un héroe desconocido";
+            eventPublisher.broadcast("¡" + monster.getName() + " ha sido derrotado por " +
+                                     killerName + "!");
+            bossSpawnSystem.onBossDeath(monster.getId());
         }
-        eventPublisher.sendTo(killerDbId, "La criatura dejo " + std::to_string(loot.goldAmount) +
-                                                  " monedas de oro.");
-    }
+    } else {
+        auto potionIds = itemRegistry.getPotionIds();
+        auto allItemIds = itemRegistry.getAllDroppableItemIds();
 
-    if (loot.dropsItem && loot.droppedItemId > 0) {
-        map.placeItemNearby(pos, loot.droppedItemId, 1);
-        const Item* item = itemRegistry.get_item(loot.droppedItemId);
-        std::string itemName = item ? item->getName() : "objeto desconocido";
-        eventPublisher.sendTo(killerDbId, "La criatura dejo: " + itemName + ".");
+        NpcLootResult loot =
+                LootResolver::resolveNpcLoot(monster.getMaxHp(), potionIds, allItemIds);
+
+        if (loot.dropsGold && loot.goldAmount > 0) {
+            uint32_t gold = loot.goldAmount;
+            while (gold > 0) {
+                uint16_t chunk =
+                        static_cast<uint16_t>(std::min(gold, static_cast<uint32_t>(UINT16_MAX)));
+                map.placeItemNearby(pos, GOLD_ITEM_ID, chunk);
+                gold -= chunk;
+            }
+            eventPublisher.sendTo(
+                    killerDbId,
+                    "La criatura dejo " + std::to_string(loot.goldAmount) + " monedas de oro.");
+        }
+
+        if (loot.dropsItem && loot.droppedItemId > 0) {
+            map.placeItemNearby(pos, loot.droppedItemId, 1);
+            const Item* item = itemRegistry.get_item(loot.droppedItemId);
+            std::string itemName = item ? item->getName() : "objeto desconocido";
+            eventPublisher.sendTo(killerDbId, "La criatura dejo: " + itemName + ".");
+        }
     }
 
     deadMonsterIds.push_back(monster.getId());

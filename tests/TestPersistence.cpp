@@ -78,9 +78,8 @@ static PlayerPersistData makeFullPersistData(uint32_t dbId, int32_t x, int32_t y
 
 static ServerConfig getTestServerConfig() {
     ServerConfig config;
-    int port;
     config.worldName = "";
-    config.mapPath + "";
+    config.mapPath = "";
     config.clanBonusRange = 5;
     config.criticalProbability = 0.10f;
     config.clanAttackBonusPerMember = 0.05f;
