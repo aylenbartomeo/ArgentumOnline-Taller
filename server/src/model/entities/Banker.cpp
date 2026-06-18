@@ -22,8 +22,10 @@ InteractionResult Banker::beInteractedBy(Player& player) {
                 "encuentra muerto. Hable con San Pedro, el sacerdote del pueblo, para resucitar";
     } else {
         player.onActionStarted();
-        result.msg = "[BANKER] Saludos, viajero. ¿Lo puedo ayudar con algo?";
+        result.msg = "[BANKER] El oro es la sangre del mundo, y mi bóveda su corazón. ¿Vienes a "
+                     "guardar tus riquezas o a retirar lo que es tuyo?";
     }
+    result.status = InteractionStatus::SUCCESS;
     return result;
 }
 

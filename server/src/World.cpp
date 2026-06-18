@@ -355,10 +355,12 @@ void World::playerInteract(uint32_t dbId, uint32_t targetId) {
     if (!p)
         return;
 
-    Interactable* npc = entityManager.findInteractable(targetId);
+    Interactable* npc = resolveNpcTarget(targetId, *p);
     InteractionResult res = interactionService.startInteraction(entityManager.resolveEntityId(dbId),
                                                                 const_cast<Player&>(*p), npc);
-    eventPublisher.sendTo(dbId, res.msg);
+    if (!res.msg.empty()) {
+        publishInteractionResult(dbId, res);
+    }
 }
 
 void World::playerExecuteNpcCommand(uint32_t dbId, const NpcCommandDTO& dto) {
@@ -747,8 +749,11 @@ void World::equipItem(uint32_t dbId, uint8_t slot) {
         return;
     }
 
-    if (p->equipFromSlot(slot)) {
+    Player::EquipResult res = p->equipFromSlot(slot);
+    if (res == Player::EquipResult::EQUIPPED) {
         eventPublisher.sendTo(dbId, "Equipaste el item.");
+    } else if (res == Player::EquipResult::UNEQUIPPED) {
+        eventPublisher.sendTo(dbId, "Desequipaste el item.");
     }
 }
 

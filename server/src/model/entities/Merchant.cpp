@@ -31,8 +31,10 @@ InteractionResult Merchant::beInteractedBy(Player& player) {
                      "ayuda al sacerdote";
     } else {
         player.onActionStarted();
-        result.msg = "[MERCHANT] Saludos, viajero. ¿Lo puedo ayudar con algo?";
+        result.msg = "[MERCHANT] ¡Bienvenido a mi humilde tienda! Si tienes oro, tengo maravillas "
+                     "para ofrecerte. ¿Qué buscas hoy?";
     }
+    result.status = InteractionStatus::SUCCESS;
     return result;
 }
 
