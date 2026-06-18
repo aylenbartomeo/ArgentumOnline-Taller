@@ -83,6 +83,38 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
         return;
     }
 
+    auto attackerPos = attacker.getPosition();
+    auto targetPos = target->getPosition();
+    const Weapon* weapon = attacker.getEquippedWeapon();
+
+    if (!weapon || weapon->getType() == WeaponType::MELEE) {
+        // Lógica Melee (Por celdas discretas / tiles de la grilla)
+        int attackerTileX = static_cast<int>(std::floor(attackerPos.x));
+        int attackerTileY = static_cast<int>(std::floor(attackerPos.y));
+        int targetTileX = static_cast<int>(std::floor(targetPos.x));
+        int targetTileY = static_cast<int>(std::floor(targetPos.y));
+
+        int deltaX = std::abs(attackerTileX - targetTileX);
+        int deltaY = std::abs(attackerTileY - targetTileY);
+
+        // Permite atacar si está en cualquiera de los 8 casilleros adyacentes
+        if (deltaX > 1 || deltaY > 1) {
+            eventPublisher.sendTo(attackerDbId,
+                                  "Estas demasiado lejos para atacar cuerpo a cuerpo.");
+            return;
+        }
+    } else {
+        float dx = attackerPos.x - targetPos.x;
+        float dy = attackerPos.y - targetPos.y;
+        float distance = std::sqrt(dx * dx + dy * dy);
+
+        int maxRange = weapon->getAttackRange();
+        if (distance > maxRange) {
+            eventPublisher.sendTo(attackerDbId, "El objetivo esta fuera del rango de tu arma.");
+            return;
+        }
+    }
+
     // --- Calcular bonificaciones y notificar ataque de clan ---
     CombatModifiers mods = clanBonusCalc.buildModifiers(attackerDbId, target);
 
