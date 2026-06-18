@@ -251,12 +251,10 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     if (isGhostPlayer)
         body.SetAlphaMod(100);
 
-    // Solo dibujamos el cuerpo base si NO es un jugador local con armadura equipada.
     bool drawBaseBody = true;
-    if (entity.type == EntityType::PLAYER && entity.id == myId && localStats != nullptr) {
-        if (WeaponHelper::hasEquipped(*localStats, 1000) ||
-            WeaponHelper::hasEquipped(*localStats, 1001) ||
-            WeaponHelper::hasEquipped(*localStats, 1002)) {
+    if (entity.type == EntityType::PLAYER) {
+        if (isItemEquipped(entity, localStats, 1000) || isItemEquipped(entity, localStats, 1001) ||
+            isItemEquipped(entity, localStats, 1002)) {
             drawBaseBody = false;
         }
     }
@@ -369,20 +367,19 @@ void EntityRenderer::drawArmorAndShield(const EntityDTO& entity, const PlayerSta
                                         int bodyDstX, int bodyDstY, int bodyDstW, int bodyDstH,
                                         int frameCol, Movement facing, bool isGhostPlayer,
                                         const EntitySprite& sprite) {
-    if (entity.type != EntityType::PLAYER || entity.id != myId || localStats == nullptr ||
-        isDead(entity.current_hp))
+    if (entity.type != EntityType::PLAYER || isDead(entity.current_hp))
         return;
 
     ArmorSheetInfo armorInfo{"", 0};
     const bool useSmallArmor = (entity.entityTypeId == 2 || entity.entityTypeId == 3);
 
-    if (WeaponHelper::hasEquipped(*localStats, 1000))
+    if (isItemEquipped(entity, localStats, 1000))
         armorInfo = {useSmallArmor ? "armor/pechera-cuero-gnomo.png" : "armor/pechera-cuero.png",
                      0};
-    else if (WeaponHelper::hasEquipped(*localStats, 1001))
+    else if (isItemEquipped(entity, localStats, 1001))
         armorInfo = {useSmallArmor ? "armor/pechera-hierro-gnomo.png" : "armor/pechera-hierro.png",
                      0};
-    else if (WeaponHelper::hasEquipped(*localStats, 1002))
+    else if (isItemEquipped(entity, localStats, 1002))
         armorInfo = {useSmallArmor ? "armor/tunica-gnomo.png" : "armor/tunica.png", 0};
 
     auto drawArmorLayer = [&](const ArmorSheetInfo& info) {
@@ -445,9 +442,9 @@ void EntityRenderer::drawArmorAndShield(const EntityDTO& entity, const PlayerSta
     drawArmorLayer(armorInfo);
 
     const char* shieldSheet = nullptr;
-    if (WeaponHelper::hasEquipped(*localStats, 1020))
+    if (isItemEquipped(entity, localStats, 1020))
         shieldSheet = "items/escudo-tortuga.png";
-    else if (WeaponHelper::hasEquipped(*localStats, 1021))
+    else if (isItemEquipped(entity, localStats, 1021))
         shieldSheet = "items/escudo-hierro.png";
 
     if (shieldSheet != nullptr) {
@@ -497,8 +494,7 @@ void EntityRenderer::drawWeapon(const EntityDTO& entity, const PlayerStatsDTO* l
                                 const CameraOffset& camera, int px, int py, int bodyDstW,
                                 int bodyDstH, const FrameRect& bf, int frameCol, Movement facing,
                                 bool isGhostPlayer) {
-    if (entity.type != EntityType::PLAYER || entity.id != myId || localStats == nullptr ||
-        isDead(entity.current_hp))
+    if (entity.type != EntityType::PLAYER || isDead(entity.current_hp))
         return;
 
     constexpr int PIV_HANDLE_X = ITEM_CELL_W / 2;
@@ -508,31 +504,31 @@ void EntityRenderer::drawWeapon(const EntityDTO& entity, const PlayerStatsDTO* l
 
     std::optional<WeaponConfig> weaponCfg;
 
-    if (WeaponHelper::hasSword(*localStats))
+    if (isItemEquipped(entity, localStats, WeaponHelper::SWORD_WEAPON_ID))
         weaponCfg = {"items/espada.png", 0, PIV_HANDLE_X, PIV_HANDLE_Y};
-    else if (WeaponHelper::hasAxe(*localStats))
+    else if (isItemEquipped(entity, localStats, WeaponHelper::HACHA_WEAPON_ID))
         weaponCfg = {"items/hacha.png", 0, PIV_HANDLE_X, PIV_HANDLE_Y};
-    else if (WeaponHelper::hasHammer(*localStats))
+    else if (isItemEquipped(entity, localStats, WeaponHelper::MARTILLO_WEAPON_ID))
         weaponCfg = {"items/martillo.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
-    else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_SIMPLE_ID))
+    else if (isItemEquipped(entity, localStats, WeaponHelper::ARCO_SIMPLE_ID))
         weaponCfg = {"items/arco-simple.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
-    else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::ARCO_COMPUESTO_ID))
+    else if (isItemEquipped(entity, localStats, WeaponHelper::ARCO_COMPUESTO_ID))
         weaponCfg = {"items/arco-compuesto.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
-    else if (WeaponHelper::hasEquipped(*localStats, WeaponHelper::VARA_FRESNO_WEAPON_ID))
+    else if (isItemEquipped(entity, localStats, WeaponHelper::VARA_FRESNO_WEAPON_ID))
         weaponCfg = {"items/vara-fresno.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
-    else if (WeaponHelper::hasEquipped(*localStats, 2022))
+    else if (isItemEquipped(entity, localStats, 2022))
         weaponCfg = {"items/baculo-nudoso.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
-    else if (WeaponHelper::hasEquipped(*localStats, 2023))
+    else if (isItemEquipped(entity, localStats, 2023))
         weaponCfg = {"items/baculo-engarzado.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
 
     std::string weaponSheet = "";
-    if (WeaponHelper::hasEquipped(*localStats, 4001))
+    if (isItemEquipped(entity, localStats, 4001))
         weaponSheet = "items/maza-de-titan-mov.png";
-    else if (WeaponHelper::hasEquipped(*localStats, 4002))
+    else if (isItemEquipped(entity, localStats, 4002))
         weaponSheet = "items/escudo-infernal-mov.png";
-    else if (WeaponHelper::hasEquipped(*localStats, 4003))
+    else if (isItemEquipped(entity, localStats, 4003))
         weaponSheet = "items/espada-de-magma-mov.png";
-    else if (WeaponHelper::hasEquipped(*localStats, 4004))
+    else if (isItemEquipped(entity, localStats, 4004))
         weaponSheet = "items/arco-abismal-mov.png";
 
     if (!weaponSheet.empty()) {
@@ -905,21 +901,20 @@ void EntityRenderer::drawHead(const EntityDTO& entity, const CameraOffset& camer
 void EntityRenderer::drawHelmet(const EntityDTO& entity, const PlayerStatsDTO* localStats,
                                 int headX, int headY, int frameCol, Movement facing,
                                 bool isGhostPlayer) {
-    if (entity.type != EntityType::PLAYER || entity.id != myId || localStats == nullptr ||
-        isDead(entity.current_hp))
+    if (entity.type != EntityType::PLAYER || isDead(entity.current_hp))
         return;
 
     const char* helmetSheet = nullptr;
     int helmFrameW = 17;
     int helmFrameH = 15;
 
-    if (WeaponHelper::hasEquipped(*localStats, 1010)) {
+    if (isItemEquipped(entity, localStats, 1010)) {
         helmetSheet = "armor/capucha.png";
         helmFrameH = 16;
-    } else if (WeaponHelper::hasEquipped(*localStats, 1011)) {
+    } else if (isItemEquipped(entity, localStats, 1011)) {
         helmetSheet = "armor/casco-hierro.png";
         helmFrameH = 15;
-    } else if (WeaponHelper::hasEquipped(*localStats, 1012)) {
+    } else if (isItemEquipped(entity, localStats, 1012)) {
         helmetSheet = "armor/sombrero-magico.png";
         helmFrameH = 25;
     }
@@ -1042,4 +1037,13 @@ void EntityRenderer::drawPlayerName(const EntityDTO& entity, const CameraOffset&
             SDL_DestroyTexture(textTex);
         }
     }
+}
+
+bool EntityRenderer::isItemEquipped(const EntityDTO& entity, const PlayerStatsDTO* localStats,
+                                    uint32_t itemId) const {
+    if (entity.id == myId && localStats != nullptr) {
+        return WeaponHelper::hasEquipped(*localStats, itemId);
+    }
+    return (entity.weaponItemId == itemId || entity.bodyArmorItemId == itemId ||
+            entity.shieldItemId == itemId || entity.helmetItemId == itemId);
 }
