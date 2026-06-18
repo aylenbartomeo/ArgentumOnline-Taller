@@ -55,9 +55,9 @@ DungeonPrefab buildPrefab() {
     }
 
     addGrave(p, GRAVE_HOLE, 2, 7);
-    addGrave(p, GRAVE_HOLE, 13, 7);
+    addGrave(p, GRAVE_HOLE, 9, 7);
     addGrave(p, GRAVE_SMALL, 2, 12);
-    addGrave(p, GRAVE_SMALL, 13, 12);
+    addGrave(p, GRAVE_SMALL, 12, 12);
 
     p.decoration.push_back({5, 4, SKELETON});
     p.decoration.push_back({10, 4, SKELETON});
