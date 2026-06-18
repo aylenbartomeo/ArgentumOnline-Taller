@@ -23,6 +23,7 @@ target_sources(argentum_online_tests
     TestIndoorRegions.cpp
     TestBuildingFronts.cpp
     TestCityPrefab.cpp
+    TestDungeonPrefab.cpp
     TestCityStamp.cpp
     TestMerchant.cpp
     TestPriest.cpp

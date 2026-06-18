@@ -9,6 +9,7 @@ target_sources(lib_common
     src/protocol/Protocol.cpp
     src/OverlayRegistry.cpp
     src/CityPrefab.cpp
+    src/DungeonPrefab.cpp
     src/loop/ConstantRateLoop.cpp
     PUBLIC
     # .h files
@@ -21,6 +22,7 @@ target_sources(lib_common
     include/thread.h
     include/OverlayRegistry.h
     include/CityPrefab.h
+    include/DungeonPrefab.h
     include/SafeZoneRect.h
     include/loop/ConstantRateLoop.h
     src/protocol/Protocol.h
