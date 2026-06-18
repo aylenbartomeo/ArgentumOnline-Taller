@@ -48,7 +48,7 @@ private:
     void drawText(const std::string& text, int x, int y, TTF_Font* useFont, const SDL_Color& color);
     void drawStatRow(const std::string& label, int value, float raceFactor, int xLeft, int xRight,
                      int y);
-    void drawSelector(const std::string& title, const std::string& value, int y);
+    void drawSelector(const std::string& title, const std::string& value, int x, int y);
     void drawPreview(int x, int y);
 };
 

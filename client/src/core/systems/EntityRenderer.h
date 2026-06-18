@@ -53,6 +53,9 @@ private:
 
     void drawHealthBar(const EntityDTO& entity, const CameraOffset& camera);
 
+    bool isItemEquipped(const EntityDTO& entity, const PlayerStatsDTO* localStats,
+                        uint32_t itemId) const;
+
     TextureManager& textures;
     SDL2pp::Renderer& renderer;
     uint32_t myId;
