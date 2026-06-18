@@ -23,6 +23,7 @@ enum class OPCODE : uint8_t {
     OPCODE_CHEAT = 0x15,
     SHOOT = 0x16,
     CREATE_CHARACTER = 0x17,
+    SELECT_NPC = 0x18,
 
     // --- SERVIDOR A CLIENTE ---
     SNAPSHOT = 0x82,
