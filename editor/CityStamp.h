@@ -20,6 +20,7 @@ struct CellPos {
 bool cityZoneFor(const EditorSafeZone& zone, const std::string& citizenType, CellRect& out);
 std::string citizenPlacementError(const EditorMap& map, const std::string& citizenType, int col,
                                   int row);
+std::string monsterPlacementError(const EditorMap& map, int col, int row);
 
 std::string cityStampError(const EditorMap& map, int originX, int originY);
 void applyCityPrefab(EditorMap& map, int originX, int originY, const std::string& name);

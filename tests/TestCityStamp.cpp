@@ -153,3 +153,21 @@ TEST(CitizenPlacementTest, AnyCitizenRejectedOutsideAnyCity) {
     applyCityPrefab(map, 10, 20, "Pueblo");
     EXPECT_NE(citizenPlacementError(map, "priest", 5, 5), "");
 }
+
+TEST(MonsterPlacementTest, RejectedInsideACityBuilding) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+    EXPECT_NE(monsterPlacementError(map, 10 + 9, 20 + 14), "");
+}
+
+TEST(MonsterPlacementTest, RejectedAnywhereInTheCityNotJustBuildings) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+    EXPECT_NE(monsterPlacementError(map, 10 + 2, 20 + 26), "");
+}
+
+TEST(MonsterPlacementTest, AllowedOutsideAnyCity) {
+    EditorMap map = emptyMap();
+    applyCityPrefab(map, 10, 20, "Pueblo");
+    EXPECT_EQ(monsterPlacementError(map, 5, 5), "");
+}

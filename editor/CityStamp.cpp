@@ -163,3 +163,10 @@ std::string citizenPlacementError(const EditorMap& map, const std::string& citiz
     }
     return "";
 }
+
+std::string monsterPlacementError(const EditorMap& map, int col, int row) {
+    if (zoneContaining(map, col, row) != nullptr) {
+        return "no se pueden poner monstruos en la ciudad";
+    }
+    return "";
+}
