@@ -208,16 +208,38 @@ void CharacterCreationScreen::drawPreview(int x, int y) {
                 break;
         }
 
+        // x lo vamos a usar como Centro
+        int renderX = x - (srcBw * scale) / 2;
+
+        // Alineamos los pies a la misma altura usando la altura del humano (39) como base
+        int renderY = y + (39 - srcBh) * scale;
+
         // Dibujar Cuerpo
         renderer.Copy(bodyTex, SDL2pp::Rect(srcBx, srcBy, srcBw, srcBh),
-                      SDL2pp::Rect(x, y, srcBw * scale, srcBh * scale));
+                      SDL2pp::Rect(renderX, renderY, srcBw * scale, srcBh * scale));
 
         // Calcular posición de la cabeza
-        int headX = x + (srcBw * scale - srcHw * scale) / 2;
-        int headY = y - (10 * scale);
+        int headX = renderX + (srcBw * scale - srcHw * scale) / 2;
+        int headY;
 
-        if (selectedRace == 2 || selectedRace == 3) {
-            headY += 8 * scale;
+        switch (selectedRace) {
+            case 0:                              // Humano
+                headX -= 1;                      // Un pixel a la izquierda
+                headY = renderY - (13 * scale);  // Subimos más
+                break;
+            case 1:                              // Elfo
+                headY = renderY - (12 * scale);  // Subimos más
+                break;
+            case 2:                              // Enano
+                headY = renderY - (13 * scale);  // Lo subimos bastante más (antes 9)
+                break;
+            case 3:                             // Gnomo
+                headX += 1;                     // Correr un píxel a la derecha
+                headY = renderY - (8 * scale);  // Subir apenas la cabeza
+                break;
+            default:
+                headY = renderY - (11 * scale);
+                break;
         }
 
         // Dibujar Cabeza
@@ -279,8 +301,10 @@ void CharacterCreationScreen::render() {
     th = 0;
     if (fontLarge)
         TTF_SizeUTF8(fontLarge, "Aspecto", &tw, &th);
-    drawText("Aspecto", 235 + offX - tw / 2, 150 + offY, fontLarge, COLOR_WHITE);
-    drawPreview(195 + offX, 240 + offY);
+
+    int aspectoCenterX = 235 + offX;  // El centro exacto de la palabra "Aspecto"
+    drawText("Aspecto", aspectoCenterX - tw / 2, 150 + offY, fontLarge, COLOR_WHITE);
+    drawPreview(aspectoCenterX, 240 + offY);  // Le pasamos el centro para que lo dibuje alineado
 
     renderer.Present();
 }

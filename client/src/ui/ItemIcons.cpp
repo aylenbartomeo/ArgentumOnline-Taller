@@ -56,11 +56,11 @@ const char* iconForItem(uint32_t itemId) {
 
     // --- ARMADURAS ---
     if (itemId == 1000)
-        return "resources/armor/armadura-cuero.png";
+        return "resources/armor/pechera-cuero.png";
     if (itemId == 1001)
-        return "resources/armor/armadura-placas.png";
+        return "resources/armor/pechera-hierro.png";
     if (itemId == 1002)
-        return "resources/armor/tunica-azul.png";
+        return "resources/armor/tunica.png";
 
     // --- ESCUDOS ---
     if (itemId == 1020)
