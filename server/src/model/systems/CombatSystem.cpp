@@ -24,6 +24,19 @@ CombatSystem::CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, Even
         clanBonusCalc(em, cr, ep, config),
         notifier(ep, cb) {}
 
+bool CombatSystem::checkFairPlay(Player& attacker, const Attackable& target, uint32_t attackerDbId,
+                                 bool notify) {
+    if (enforceFairPlay &&
+        (!attacker.canEngageInCombatWith(target) || !target.canEngageInCombatWith(attacker))) {
+        if (notify) {
+            eventPublisher.sendTo(attackerDbId,
+                                  "No puedes pelear con este objetivo (violacion de fair play).");
+        }
+        return false;  // Violación de Fair Play
+    }
+    return true;  // Todo legal, proceda
+}
+
 void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     Player* pAttacker = entityManager.getPlayer(attackerDbId);
     if (!pAttacker)
@@ -76,10 +89,7 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     }
 
     // --- Validar fair play ---
-    if (enforceFairPlay &&
-        (!attacker.canEngageInCombatWith(*target) || !target->canEngageInCombatWith(attacker))) {
-        eventPublisher.sendTo(attackerDbId,
-                              "No puedes pelear con este objetivo (violacion de fair play).");
+    if (!checkFairPlay(attacker, *target, attackerDbId, true)) {
         return;
     }
 
@@ -258,14 +268,6 @@ void CombatSystem::onProjectileHit(Player& attacker, Attackable& target, IHitEff
                                    const CombatModifiers& modifiers, const Weapon& weapon) {
     if (target.isDead() || !target.canBeAttacked()) {
         return;  // Si el objetivo murió en el viaje del proyectil, se descarta el impacto
-    }
-
-    // --- Validar fair play ---
-    if (enforceFairPlay &&
-        (!attacker.canEngageInCombatWith(*target) || !target->canEngageInCombatWith(attacker))) {
-        eventPublisher.sendTo(attackerDbId,
-                              "No puedes pelear con este objetivo (violacion de fair play).");
-        return;
     }
 
     // --- Validar boss area (el jugador podría haberse movido después de disparar) ---
