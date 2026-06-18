@@ -9,6 +9,7 @@
 #include <SDL_ttf.h>
 
 #include "../animation/CharacterAnimator.h"
+#include "../animation/CharacterSprites.h"
 #include "../rendering/TextureManager.h"
 #include "../rendering/Viewport.h"
 #include "common/include/dto/PlayerStatsDTO.h"
@@ -32,6 +33,23 @@ public:
 private:
     void drawEntity(const EntityDTO& entity, const CameraOffset& camera, uint32_t nowMs,
                     std::optional<uint32_t> selectedNpc, const PlayerStatsDTO* localStats);
+
+    void drawArmorAndShield(const EntityDTO& entity, const PlayerStatsDTO* localStats, int bodyDstX,
+                            int bodyDstY, int bodyDstW, int bodyDstH, int frameCol, Movement facing,
+                            bool isGhostPlayer, const EntitySprite& sprite);
+
+    void drawWeapon(const EntityDTO& entity, const PlayerStatsDTO* localStats,
+                    const CameraOffset& camera, int px, int py, int bodyDstW, int bodyDstH,
+                    const FrameRect& bf, int frameCol, Movement facing, bool isGhostPlayer);
+
+    void drawHead(const EntityDTO& entity, const CameraOffset& camera, int px, int py, int frameCol,
+                  Movement facing, bool isGhostPlayer, const EntitySprite& sprite, int& outHeadX,
+                  int& outHeadY);
+
+    void drawHelmet(const EntityDTO& entity, const PlayerStatsDTO* localStats, int headX, int headY,
+                    Movement facing, bool isGhostPlayer);
+
+    void drawPlayerName(const EntityDTO& entity, const CameraOffset& camera, int px, int py);
 
     void drawHealthBar(const EntityDTO& entity, const CameraOffset& camera);
 
