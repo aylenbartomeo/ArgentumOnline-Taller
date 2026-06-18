@@ -23,26 +23,10 @@ constexpr const char* SKULL_SHEET = "106.png";
 constexpr int WEAPON_COLS = 5;
 constexpr int WEAPON_CELL_W = 25;
 constexpr int WEAPON_STRIDE = 48;
-constexpr int GNOME_ARMOR_COLS = 5;
-constexpr int GNOME_ARMOR_CELL_W = 20;
-constexpr int GNOME_ARMOR_STRIDE = 36;
 
 struct RaceArmorConfig {
     int cellW = WEAPON_CELL_W;
     int stride = WEAPON_STRIDE;
-    int trimLeft = 5;
-    int extraRight = 2;
-    int offsetX = -1;
-    int offsetY = 0;
-    int walkDown = -7;
-    int walkUp = -8;
-    int walkLeft = -5;
-    int walkRight = -12;
-};
-
-struct GnomeArmorConfig {
-    int cellW = GNOME_ARMOR_CELL_W;
-    int stride = GNOME_ARMOR_STRIDE;
     int trimLeft = 5;
     int extraRight = 2;
     int offsetX = -1;
@@ -100,10 +84,6 @@ static Cfg loadArmorConfigFile(const char* fileName) {
     return cfg;
 }
 
-static GnomeArmorConfig loadGnomeArmorConfig() {
-    return loadArmorConfigFile<GnomeArmorConfig>("armor-cfg/gnome_armor.cfg");
-}
-
 // entityTypeId: 0 = Humano, 1 = Elfo, 2 = Enano, 3 = Gnomo
 static RaceArmorConfig loadRaceArmorConfig(int entityTypeId) {
     switch (entityTypeId) {
@@ -113,8 +93,61 @@ static RaceArmorConfig loadRaceArmorConfig(int entityTypeId) {
             return loadArmorConfigFile<RaceArmorConfig>("armor-cfg/elf_armor.cfg");
         case 2:
             return loadArmorConfigFile<RaceArmorConfig>("armor-cfg/dwarf_armor.cfg");
+        case 3:
+            return loadArmorConfigFile<RaceArmorConfig>(
+                    "armor-cfg/gnome_armor.cfg");  // Agregamos al Gnomo
         default:
             return loadArmorConfigFile<RaceArmorConfig>("armor-cfg/human_armor.cfg");
+    }
+}
+
+struct RaceHelmetConfig {
+    int offsetX = 0;
+    int offsetY = 0;
+    int walkDown = 0;
+    int walkUp = 0;
+    int walkLeft = 0;
+    int walkRight = 0;
+};
+
+static RaceHelmetConfig loadHelmetConfigFile(const char* fileName) {
+    RaceHelmetConfig cfg;
+    const std::string path = std::string(GC::RESOURCES_DIR) + fileName;
+    std::ifstream f(path);
+    if (!f.is_open()) {
+        return cfg;
+    }
+    std::string key;
+    int val;
+    while (f >> key >> val) {
+        if (key == "offset_x")
+            cfg.offsetX = val;
+        else if (key == "offset_y")
+            cfg.offsetY = val;
+        else if (key == "walk_down")
+            cfg.walkDown = val;
+        else if (key == "walk_up")
+            cfg.walkUp = val;
+        else if (key == "walk_left")
+            cfg.walkLeft = val;
+        else if (key == "walk_right")
+            cfg.walkRight = val;
+    }
+    return cfg;
+}
+
+static RaceHelmetConfig loadRaceHelmetConfig(int entityTypeId) {
+    switch (entityTypeId) {
+        case 0:
+            return loadHelmetConfigFile("helmet-cfg/human_helmet.cfg");
+        case 1:
+            return loadHelmetConfigFile("helmet-cfg/elf_helmet.cfg");
+        case 2:
+            return loadHelmetConfigFile("helmet-cfg/dwarf_helmet.cfg");
+        case 3:
+            return loadHelmetConfigFile("helmet-cfg/gnome_helmet.cfg");
+        default:
+            return loadHelmetConfigFile("helmet-cfg/human_helmet.cfg");
     }
 }
 
@@ -234,7 +267,7 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
     int headX = 0, headY = 0;
     drawHead(entity, camera, px, py, frameCol, facing, isGhostPlayer, sprite, headX, headY);
 
-    drawHelmet(entity, localStats, headX, headY, facing, isGhostPlayer);
+    drawHelmet(entity, localStats, headX, headY, frameCol, facing, isGhostPlayer);
 
     // Anillo amarillo del jugador local
     if (entity.type == EntityType::PLAYER && entity.id == myId) {
@@ -330,13 +363,16 @@ void EntityRenderer::drawArmorAndShield(const EntityDTO& entity, const PlayerSta
         return;
 
     ArmorSheetInfo armorInfo{"", 0};
-    const bool gnome = isGnome(entity);
+    const bool useSmallArmor = (entity.entityTypeId == 2 || entity.entityTypeId == 3);
+
     if (WeaponHelper::hasEquipped(*localStats, 1000))
-        armorInfo = {gnome ? "armor/pechera-cuero-gnomo.png" : "armor/pechera-cuero.png", 0};
+        armorInfo = {useSmallArmor ? "armor/pechera-cuero-gnomo.png" : "armor/pechera-cuero.png",
+                     0};
     else if (WeaponHelper::hasEquipped(*localStats, 1001))
-        armorInfo = {gnome ? "armor/pechera-hierro-gnomo.png" : "armor/pechera-hierro.png", 0};
+        armorInfo = {useSmallArmor ? "armor/pechera-hierro-gnomo.png" : "armor/pechera-hierro.png",
+                     0};
     else if (WeaponHelper::hasEquipped(*localStats, 1002))
-        armorInfo = {gnome ? "armor/tunica-gnomo.png" : "armor/tunica.png", 0};
+        armorInfo = {useSmallArmor ? "armor/tunica-gnomo.png" : "armor/tunica.png", 0};
 
     ArmorSheetInfo shieldInfo{"", 0};
     if (WeaponHelper::hasEquipped(*localStats, 1020))
@@ -352,13 +388,11 @@ void EntityRenderer::drawArmorAndShield(const EntityDTO& entity, const PlayerSta
         if (isGhostPlayer)
             layerTex.SetAlphaMod(100);
 
-        const GnomeArmorConfig gcfg = gnome ? loadGnomeArmorConfig() : GnomeArmorConfig{};
-        const RaceArmorConfig rcfg =
-                gnome ? RaceArmorConfig{} : loadRaceArmorConfig(entity.entityTypeId);
+        const RaceArmorConfig rcfg = loadRaceArmorConfig(entity.entityTypeId);
 
         const int armorCols = WEAPON_COLS;
-        const int armorCellW = gnome ? gcfg.cellW : rcfg.cellW;
-        const int armorStride = gnome ? gcfg.stride : rcfg.stride;
+        const int armorCellW = rcfg.cellW;
+        const int armorStride = rcfg.stride;
 
         const int col = frameCol % armorCols;
         const int srcX = col * armorCellW;
@@ -366,29 +400,29 @@ void EntityRenderer::drawArmorAndShield(const EntityDTO& entity, const PlayerSta
         const int frameW = armorCellW;
         const int frameH = armorStride;
 
-        const int trimLeft = gnome ? gcfg.trimLeft : rcfg.trimLeft;
-        const int extraRight = gnome ? gcfg.extraRight : rcfg.extraRight;
+        const int trimLeft = rcfg.trimLeft;
+        const int extraRight = rcfg.extraRight;
 
         const int srcW = frameW - trimLeft + extraRight;
         const int dstW = srcW * GC::TILE_SIZE / CHARACTER_FRAME_W * sprite.bodyScale / 100;
         const int dstH = frameH * GC::CHARACTER_DRAW_H / CHARACTER_FRAME_H * sprite.bodyScale / 100;
 
-        int offsetX = gnome ? gcfg.offsetX : rcfg.offsetX;
-        int offsetY = gnome ? gcfg.offsetY : rcfg.offsetY;
+        int offsetX = rcfg.offsetX;
+        int offsetY = rcfg.offsetY;
 
         if (frameCol > 0) {
             switch (facing) {
                 case Movement::DOWN:
-                    offsetY += gnome ? gcfg.walkDown : rcfg.walkDown;
+                    offsetY += rcfg.walkDown;
                     break;
                 case Movement::UP:
-                    offsetY += gnome ? gcfg.walkUp : rcfg.walkUp;
+                    offsetY += rcfg.walkUp;
                     break;
                 case Movement::LEFT:
-                    offsetX += gnome ? gcfg.walkLeft : rcfg.walkLeft;
+                    offsetX += rcfg.walkLeft;
                     break;
                 case Movement::RIGHT:
-                    offsetX += gnome ? gcfg.walkRight : rcfg.walkRight;
+                    offsetX += rcfg.walkRight;
                     break;
             }
         }
@@ -772,7 +806,8 @@ void EntityRenderer::drawHead(const EntityDTO& entity, const CameraOffset& camer
 }
 
 void EntityRenderer::drawHelmet(const EntityDTO& entity, const PlayerStatsDTO* localStats,
-                                int headX, int headY, Movement facing, bool isGhostPlayer) {
+                                int headX, int headY, int frameCol, Movement facing,
+                                bool isGhostPlayer) {
     if (entity.type != EntityType::PLAYER || entity.id != myId || localStats == nullptr ||
         isDead(entity.current_hp))
         return;
@@ -781,7 +816,6 @@ void EntityRenderer::drawHelmet(const EntityDTO& entity, const PlayerStatsDTO* l
     int helmFrameW = 17;
     int helmFrameH = 15;
 
-    // Asignamos el sprite y la altura exacta según el ítem equipado
     if (WeaponHelper::hasEquipped(*localStats, 1010)) {
         helmetSheet = "armor/capucha.png";
         helmFrameH = 16;
@@ -798,6 +832,9 @@ void EntityRenderer::drawHelmet(const EntityDTO& entity, const PlayerStatsDTO* l
 
         if (isGhostPlayer)
             helmTex.SetAlphaMod(100);
+
+        // ─── CARGAR CONFIGURACIÓN SEGÚN LA RAZA ───
+        const RaceHelmetConfig hcfg = loadRaceHelmetConfig(entity.entityTypeId);
 
         int helmCol = 0;
         switch (facing) {
@@ -825,9 +862,28 @@ void EntityRenderer::drawHelmet(const EntityDTO& entity, const PlayerStatsDTO* l
         const int dstW = static_cast<int>(helmFrameW * scaleX);
         const int dstH = static_cast<int>(helmFrameH * scaleY);
 
-        const int dstX = headX + (GC::HEAD_DRAW_W - dstW) / 2;
+        int offsetX = hcfg.offsetX;
+        int offsetY = hcfg.offsetY;
 
-        const int dstY = headY + GC::HEAD_DRAW_H - dstH;
+        if (frameCol > 0) {
+            switch (facing) {
+                case Movement::DOWN:
+                    offsetY += hcfg.walkDown;
+                    break;
+                case Movement::UP:
+                    offsetY += hcfg.walkUp;
+                    break;
+                case Movement::LEFT:
+                    offsetX += hcfg.walkLeft;
+                    break;
+                case Movement::RIGHT:
+                    offsetX += hcfg.walkRight;
+                    break;
+            }
+        }
+
+        const int dstX = headX + (GC::HEAD_DRAW_W - dstW) / 2 + offsetX;
+        const int dstY = headY + GC::HEAD_DRAW_H - dstH + offsetY;
 
         SDL_Rect srcRect{srcX, 0, helmFrameW, helmFrameH};
         SDL_Rect dstRect{dstX, dstY, dstW, dstH};

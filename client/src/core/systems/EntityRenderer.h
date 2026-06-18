@@ -47,7 +47,7 @@ private:
                   int& outHeadY);
 
     void drawHelmet(const EntityDTO& entity, const PlayerStatsDTO* localStats, int headX, int headY,
-                    Movement facing, bool isGhostPlayer);
+                    int frameCol, Movement facing, bool isGhostPlayer);
 
     void drawPlayerName(const EntityDTO& entity, const CameraOffset& camera, int px, int py);
 
