@@ -131,7 +131,8 @@ void ProjectileSystem::applySingleTargetDamage(const Projectile& p, uint32_t hit
     bool healingProjectile = p.capturedHitEffect && p.capturedHitEffect->isHeal();
 
     if (healingProjectile) {
-        // Proyectil curativo: solo aplica sobre Players (los monstruos no se curan con magia aliada)
+        // Proyectil curativo: solo aplica sobre Players (los monstruos no se curan con magia
+        // aliada)
         Player* targetPlayer = dynamic_cast<Player*>(target);
         if (!targetPlayer)
             return;

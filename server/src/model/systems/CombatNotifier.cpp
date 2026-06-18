@@ -18,11 +18,9 @@ void CombatNotifier::notifyCombatResult(const Attackable& attacker, const Attack
     // Rama de curación: sin daño, sin evasión, sin crítico
     if (res.isHeal) {
         if (pAttacker)
-            eventPublisher.sendTo(pAttacker->getDbId(),
-                                  "¡Curaste a " + target.getName() + "!");
+            eventPublisher.sendTo(pAttacker->getDbId(), "¡Curaste a " + target.getName() + "!");
         if (pTarget)
-            eventPublisher.sendTo(pTarget->getDbId(),
-                                  "¡" + attacker.getName() + " te curo!");
+            eventPublisher.sendTo(pTarget->getDbId(), "¡" + attacker.getName() + " te curo!");
         return;
     }
 
@@ -49,8 +47,8 @@ void CombatNotifier::notifyCombatResult(const Attackable& attacker, const Attack
         // Notificar target (si es player) y chequear si muere
         if (pTarget) {
             eventPublisher.sendTo(pTarget->getDbId(), "¡Recibiste " + std::to_string(res.damage) +
-                                                               " de dano de " + attacker.getName() +
-                                                               "!");
+                                                              " de dano de " + attacker.getName() +
+                                                              "!");
 
             if (pTarget->isDead()) {
                 std::string deathMsg =
