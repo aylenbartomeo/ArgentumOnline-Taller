@@ -11,6 +11,7 @@ target_sources(lib_editor
     Font.cpp
     Editor.cpp
     CityStamp.cpp
+    DungeonStamp.cpp
     MapChooser.cpp
     PUBLIC
     # .h files
@@ -22,6 +23,7 @@ target_sources(lib_editor
     Font.h
     Editor.h
     CityStamp.h
+    DungeonStamp.h
     MapChooser.h
     MapDefaults.h
     )
