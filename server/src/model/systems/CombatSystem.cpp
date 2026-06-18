@@ -130,13 +130,11 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
 
     // Ejecutar ataque con bonificaciones calculadas
     CombatResult res = processAttack(attacker, *target, mods.attackBonus, mods.defenseBonus);
-
+    notifier.notifyCombatResult(attacker, *target, res);
     if (!res.attackHappened)
         return;
 
     attacker.setAction(static_cast<uint8_t>(EntityAction::ATTACKING), 400.0f);
-
-    notifier.notifyCombatResult(attacker, *target, res);
 }
 
 void CombatSystem::monsterAttack(const Monster& monster, Player& target) {
@@ -219,6 +217,7 @@ CombatResult CombatSystem::applyDamageEffect(const Attackable& attacker, Attacka
 CombatResult CombatSystem::applyHealEffect(Player& target) {
     CombatResult res;
     res.attackHappened = true;
+    res.isHeal = true;
     target.restoreHp();
     return res;
 }

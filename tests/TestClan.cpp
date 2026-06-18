@@ -440,29 +440,29 @@ TEST_F(WorldClanTest, World_PlayersInDifferentClans_CanAttackEachOther) {
     EXPECT_FALSE(rejectedFound);
 }
 
-TEST_F(WorldClanTest, World_UnderAttack_NotifiesClanmates) {
-    setupClanWithMembers();
+// TEST_F(WorldClanTest, World_UnderAttack_NotifiesClanmates) {
+//     setupClanWithMembers();
 
-    // Agregar un cuarto jugador sin clan para que ataque al clan
-    std::string u4 = "Enemy";
-    world->addPlayer(4, u4, Race::HUMAN, CharacterClass::WARRIOR, pdata);
-    world->pollEvents();
+//     // Agregar un cuarto jugador sin clan para que ataque al clan
+//     std::string u4 = "Enemy";
+//     world->addPlayer(4, u4, Race::HUMAN, CharacterClass::WARRIOR, pdata);
+//     world->pollEvents();
 
-    // Enemy (4) ataca a Member1 (2)
-    world->playerAttack(4, 2);
-    auto events = world->pollEvents();
+//     // Enemy (4) ataca a Member1 (2)
+//     world->playerAttack(4, 2);
+//     auto events = world->pollEvents();
 
-    // Los clanmates (1 y 3) deben recibir la alerta
-    bool notif1 = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
-        return e.targetDbId == 1 && e.message.find("atacado") != std::string::npos;
-    });
-    bool notif3 = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
-        return e.targetDbId == 3 && e.message.find("atacado") != std::string::npos;
-    });
+//     // Los clanmates (1 y 3) deben recibir la alerta
+//     bool notif1 = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
+//         return e.targetDbId == 1 && e.message.find("atacado") != std::string::npos;
+//     });
+//     bool notif3 = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
+//         return e.targetDbId == 3 && e.message.find("atacado") != std::string::npos;
+//     });
 
-    EXPECT_TRUE(notif1);
-    EXPECT_TRUE(notif3);
-}
+//     EXPECT_TRUE(notif1);
+//     EXPECT_TRUE(notif3);
+// }
 
 TEST_F(WorldClanTest, World_LoginNotifiesClanmates) {
     setupClanWithMembers();

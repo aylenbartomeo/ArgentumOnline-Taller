@@ -350,3 +350,51 @@ TEST(CombatSystemTest, MagicHealEffectTargetNotPlayer) {
     EXPECT_EQ(attacker.getMana(), initialMana - 5);
     EXPECT_EQ(monster.getHp(), 10);
 }
+
+// =========================================================================
+// TEST 9: MagicHealEffect::isHeal() retorna true
+// =========================================================================
+TEST(CombatSystemTest, MagicHealEffect_isHeal_ReturnsTrue) {
+    // Explicación: Verifica que MagicHealEffect reporte correctamente que es
+    // un efecto curativo, necesario para que ProjectileSystem bypasee las
+    // guardias ofensivas (clanmates, fairPlay) al impactar con proyectil.
+    MagicHealEffect effect;
+    EXPECT_TRUE(effect.isHeal());
+}
+
+// =========================================================================
+// TEST 10: MeleeDamageEffect::isHeal() retorna false
+// =========================================================================
+TEST(CombatSystemTest, MeleeDamageEffect_isHeal_ReturnsFalse) {
+    // Explicación: Verifica que MeleeDamageEffect no sea clasificado como
+    // efecto curativo; garantiza que el flujo de proyectiles no lo trate
+    // como un heal y aplique correctamente las guardias ofensivas.
+    MeleeDamageEffect effect;
+    EXPECT_FALSE(effect.isHeal());
+}
+
+// =========================================================================
+// TEST 11: applyHealEffect propaga el flag isHeal en CombatResult
+// =========================================================================
+TEST(CombatSystemTest, ApplyHealEffect_SetsIsHealFlag) {
+    // Explicación: Verifica que el CombatResult devuelto por applyHealEffect
+    // tenga isHeal=true para que CombatNotifier muestre el mensaje correcto
+    // de curación en lugar del de daño.
+    Map map;
+    EntityManager em;
+    ClanRepository cr;
+    EventPublisher ep;
+    DummyCombatCallback cb;
+    BossSpawnSystem bss;
+    CombatSystem combatSystem(map, em, cr, ep, cb, bss, false, getTestServerConfig());
+
+    Player victim = makeTestPlayer(1);
+    victim.receiveDamage(10);
+    ASSERT_LT(victim.getHp(), victim.getMaxHp());
+
+    CombatResult res = combatSystem.applyHealEffect(victim);
+
+    EXPECT_TRUE(res.attackHappened);
+    EXPECT_TRUE(res.isHeal);
+    EXPECT_EQ(victim.getHp(), victim.getMaxHp());
+}
