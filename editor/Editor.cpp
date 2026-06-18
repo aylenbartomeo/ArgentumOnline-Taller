@@ -217,11 +217,18 @@ void Editor::handleLeftClick(int x, int y) {
                     map.paintItem(cell.x, cell.y, itemOverlays[itemPalette.getSelectedTile()]);
                     statusMsg = "";
                     break;
-                case Tool::MONSTER:
-                    map.addMonster(getMonsterCatalog()[monsterPalette.getSelectedTile()].type,
-                                   cell.x, cell.y);
-                    statusMsg = "";
+                case Tool::MONSTER: {
+                    const std::string type =
+                            getMonsterCatalog()[monsterPalette.getSelectedTile()].type;
+                    std::string error = monsterPlacementError(map, cell.x, cell.y);
+                    if (error.empty()) {
+                        map.addMonster(type, cell.x, cell.y);
+                        statusMsg = "";
+                    } else {
+                        statusMsg = error;
+                    }
                     break;
+                }
                 case Tool::CITIZEN: {
                     const std::string type =
                             getCitizenCatalog()[citizenPalette.getSelectedTile()].type;
