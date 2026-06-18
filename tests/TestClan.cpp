@@ -440,29 +440,38 @@ TEST_F(WorldClanTest, World_PlayersInDifferentClans_CanAttackEachOther) {
     EXPECT_FALSE(rejectedFound);
 }
 
-// TEST_F(WorldClanTest, World_UnderAttack_NotifiesClanmates) {
-//     setupClanWithMembers();
+TEST_F(WorldClanTest, World_UnderAttack_NotifiesClanmates) {
+    setupClanWithMembers();
 
-//     // Agregar un cuarto jugador sin clan para que ataque al clan
-//     std::string u4 = "Enemy";
-//     world->addPlayer(4, u4, Race::HUMAN, CharacterClass::WARRIOR, pdata);
-//     world->pollEvents();
+    // Agregar un cuarto jugador sin clan para que ataque al clan
+    std::string u4 = "Enemy";
+    // Asegurarnos de que el jugador 4 esté adyacente al jugador 2 para que el ataque melee pase el
+    // filtro
+    PlayerPersistData pdata4 = pdata;
+    // Jugador 2 suele terminar en (4,4) u otra celda cercana a (5,5).
+    // Lo ideal es simplemente usar un arma de rango o acercarlo.
+    // Demosle un arco al jugador 4 para asegurarnos de que el rango no sea problema.
+    world->addPlayer(4, u4, Race::HUMAN, CharacterClass::WARRIOR, pdata);
+    world->playerCheat(4, CheatType::GIVE_WEAPONS);
+    world->equipItem(4, 4);  // slot 4 tiene Arco Compuesto (2011) en GIVE_WEAPONS
 
-//     // Enemy (4) ataca a Member1 (2)
-//     world->playerAttack(4, 2);
-//     auto events = world->pollEvents();
+    world->pollEvents();
 
-//     // Los clanmates (1 y 3) deben recibir la alerta
-//     bool notif1 = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
-//         return e.targetDbId == 1 && e.message.find("atacado") != std::string::npos;
-//     });
-//     bool notif3 = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
-//         return e.targetDbId == 3 && e.message.find("atacado") != std::string::npos;
-//     });
+    // Enemy (4) ataca a Member1 (2)
+    world->playerAttack(4, 2);
+    auto events = world->pollEvents();
 
-//     EXPECT_TRUE(notif1);
-//     EXPECT_TRUE(notif3);
-// }
+    // Los clanmates (1 y 3) deben recibir la alerta
+    bool notif1 = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
+        return e.targetDbId == 1 && e.message.find("atacado") != std::string::npos;
+    });
+    bool notif3 = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
+        return e.targetDbId == 3 && e.message.find("atacado") != std::string::npos;
+    });
+
+    EXPECT_TRUE(notif1);
+    EXPECT_TRUE(notif3);
+}
 
 TEST_F(WorldClanTest, World_LoginNotifiesClanmates) {
     setupClanWithMembers();

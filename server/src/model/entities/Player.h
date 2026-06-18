@@ -37,6 +37,7 @@ private:
     uint8_t currentAction = 0;
     float actionTimerMs = 0.0f;
     bool infiniteMana = false;
+    bool infiniteHealth = false;
     float resurrectionImmobilizedTimeMs = 0.0f;
 
     void updateResurrectionTimer(float deltaTimeMs);
@@ -108,6 +109,7 @@ public:
         return stats.consumeMana(static_cast<uint16_t>(amount));
     }
     void toggleInfiniteMana() { infiniteMana = !infiniteMana; }
+    void toggleInfiniteHealth() { infiniteHealth = !infiniteHealth; }
     uint16_t heal(uint16_t amount) {
         stats.heal(amount);
         return amount;

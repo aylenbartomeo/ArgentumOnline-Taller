@@ -9,7 +9,9 @@ enum class CheatType : uint8_t {
     GIVE_WEAPONS,
     INFINITE_MANA,
     GIVE_GOLD,
-    GIVE_ARMORS
+    GIVE_ARMORS,
+    GIVE_POTIONS,
+    INFINITE_HEALTH
 };
 
 struct CheatDTO {

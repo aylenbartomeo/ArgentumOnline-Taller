@@ -114,10 +114,15 @@ void InputProcessor::processCheats(const FrameInput& input) {
         client.sendCommand(CheatDTO{CheatType::INFINITE_MANA});
         localInfiniteManaActive = !localInfiniteManaActive;
     }
+    if (input.cheatInfiniteHealth) {
+        client.sendCommand(CheatDTO{CheatType::INFINITE_HEALTH});
+    }
     if (input.cheatGiveGold)
         client.sendCommand(CheatDTO{CheatType::GIVE_GOLD});
     if (input.cheatGiveArmors)
         client.sendCommand(CheatDTO{CheatType::GIVE_ARMORS});
+    if (input.cheatGivePotions)
+        client.sendCommand(CheatDTO{CheatType::GIVE_POTIONS});
 }
 
 // ─── Equip / Use / Slot / UI ──────────────────────────────────────────────────
@@ -145,7 +150,7 @@ void InputProcessor::processUseInput(const FrameInput& input, AudioSystem& audio
     }
 }
 
-void InputProcessor::processGrabDropInput(const FrameInput& input) {
+void InputProcessor::processActionKeysInput(const FrameInput& input) {
     if (input.grabKeyPressed) {
         client.sendCommand(GrabItemDTO{});
     }
@@ -158,6 +163,10 @@ void InputProcessor::processGrabDropInput(const FrameInput& input) {
         } else {
             miniChat.pushMessage("[Info] Selecciona un slot del inventario primero.");
         }
+    }
+
+    if (input.meditateKeyPressed) {
+        client.sendCommand(MeditateDTO{});
     }
 }
 
@@ -236,29 +245,19 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
             miniChat.pushMessage("[INFO] Estás en zona segura.");
             return result;
         }
-        if (WeaponHelper::hasFlauta(stats)) {
-            if (stats.currentMana > 0 || localInfiniteManaActive) {
-                result.fx =
-                        ActiveFx{client.getClientId(), SDL_GetTicks(), 0, 0, FxType::FLAUTA_HEAL};
-                client.sendCommand(ShootDTO{0.f, 0.f});
-            } else {
-                miniChat.pushMessage("[INFO] No tienes maná suficiente.");
-            }
+        const bool isBow = WeaponHelper::hasBow(stats);
+        const bool isMagic = !isBow;
+        if (isMagic && stats.currentMana <= 0 && !localInfiniteManaActive) {
+            miniChat.pushMessage("[INFO] No tienes maná suficiente.");
         } else {
-            const bool isBow = WeaponHelper::hasBow(stats);
-            const bool isMagic = !isBow;
-            if (isMagic && stats.currentMana <= 0 && !localInfiniteManaActive) {
-                miniChat.pushMessage("[INFO] No tienes maná suficiente.");
-            } else {
-                const Cell cell = screenToCell(input.shootScreenX, input.shootScreenY, camera.x,
-                                               camera.y, GC::TILE_SIZE);
-                client.sendCommand(
-                        ShootDTO{static_cast<float>(cell.col), static_cast<float>(cell.row)});
-                if (isBow)
-                    result.bowAttack = true;
-                else
-                    result.magicAttack = true;
-            }
+            const Cell cell = screenToCell(input.shootScreenX, input.shootScreenY, camera.x,
+                                           camera.y, GC::TILE_SIZE);
+            client.sendCommand(
+                    ShootDTO{static_cast<float>(cell.col), static_cast<float>(cell.row)});
+            if (isBow)
+                result.bowAttack = true;
+            else
+                result.magicAttack = true;
         }
     }
 
@@ -297,9 +296,7 @@ InputProcessor::CombatResult InputProcessor::processCombatInput(const FrameInput
             pickTargetAt(cell.col, cell.row, snapshot, client.getClientId(), ATTACK_RANGE_TILES);
     if (target) {
         client.sendCommand(AttackDTO{*target});
-        FxType fxType = WeaponHelper::hasFlauta(stats) ? FxType::FLAUTA_HEAL :
-                        WeaponHelper::hasSword(stats)  ? FxType::SWORD :
-                                                         FxType::DEFAULT;
+        FxType fxType = WeaponHelper::hasSword(stats) ? FxType::SWORD : FxType::DEFAULT;
         result.fx = ActiveFx{*target, SDL_GetTicks(), 0, 0, fxType};
     }
 
