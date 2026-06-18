@@ -260,6 +260,14 @@ void CombatSystem::onProjectileHit(Player& attacker, Attackable& target, IHitEff
         return;  // Si el objetivo murió en el viaje del proyectil, se descarta el impacto
     }
 
+    // --- Validar fair play ---
+    if (enforceFairPlay &&
+        (!attacker.canEngageInCombatWith(*target) || !target->canEngageInCombatWith(attacker))) {
+        eventPublisher.sendTo(attackerDbId,
+                              "No puedes pelear con este objetivo (violacion de fair play).");
+        return;
+    }
+
     // --- Validar boss area (el jugador podría haberse movido después de disparar) ---
     const Monster* mTarget = dynamic_cast<const Monster*>(&target);
     if (mTarget && mTarget->isBoss()) {

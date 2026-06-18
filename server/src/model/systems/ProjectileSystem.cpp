@@ -137,10 +137,10 @@ void ProjectileSystem::applySingleTargetDamage(const Projectile& p, uint32_t hit
     if (combatSystem.areClanmates(p.ownerDbId, targetClanId))
         return;
 
-    if (combatSystem.isFairPlayEnforced() &&
-        (!attacker->canEngageInCombatWith(*target) || !target->canEngageInCombatWith(*attacker))) {
-        return;
-    }
+    // if (combatSystem.isFairPlayEnforced() &&
+    //     (!attacker->canEngageInCombatWith(*target) || !target->canEngageInCombatWith(*attacker)))
+    //     { return;
+    // }
 
     // Calcular modificadores de clan en el momento del impacto
     CombatModifiers modifiers = combatSystem.buildModifiers(p.ownerDbId, target);
@@ -192,14 +192,13 @@ void ProjectileSystem::applyAoeDamage(const Projectile& p) {
         Player* targetPlayer = dynamic_cast<Player*>(target);
         uint32_t targetClanId = targetPlayer ? targetPlayer->getDbId() : id;
 
-        if (combatSystem.areClanmates(p.ownerDbId, targetClanId)) {
+        if (combatSystem.areClanmates(p.ownerDbId, targetClanId))
             return;
-        }
 
-        if (combatSystem.isFairPlayEnforced() && (!attacker->canEngageInCombatWith(*target) ||
-                                                  !target->canEngageInCombatWith(*attacker))) {
-            return;
-        }
+        // if (combatSystem.isFairPlayEnforced() && (!attacker->canEngageInCombatWith(*target) ||
+        //                                           !target->canEngageInCombatWith(*attacker))) {
+        //     return;
+        // }
         CombatModifiers modifiers = combatSystem.buildModifiers(p.ownerDbId, target);
 
         if (p.capturedHitEffect && weapon) {
