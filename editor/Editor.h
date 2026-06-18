@@ -13,6 +13,7 @@
 #include "EditorMap.h"
 #include "Font.h"
 #include "OverlayRegistry.h"
+#include "MapChooser.h"
 #include "Palette.h"
 #include "SpawnCatalogs.h"
 #include "Toolbar.h"
@@ -38,12 +39,19 @@ private:
     int lastMouseY;
     bool dirty;
     Uint32 savedFlashUntil;
+    bool mapListOpen;
+    std::vector<MapEntry> mapEntries;
 
     void handleEvent(const SDL_Event& event, bool& running);
     void handleLeftClick(int x, int y);
     void handlePanelClick(int x, int y);
     void save();
     void updateTitle();
+    void openMapList();
+    void closeMapList();
+    void switchToMap(const std::string& path, bool isNew);
+    void handleMapListClick(int x, int y);
+    int mapListIndexAt(int x, int y) const;
 
     void render();
     void renderTerrain();
@@ -55,6 +63,7 @@ private:
     void renderSpawn();
     void renderPanel();
     void renderStatusBar();
+    void renderMapList();
     void drawGroundLayer(const std::vector<std::vector<int>>& grid);
     void drawDecorationLayer();
     void drawGrass(int dstX, int dstY, int dstSize);

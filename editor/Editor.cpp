@@ -10,6 +10,8 @@
 #include "loop/ConstantRateLoop.h"
 
 #include "CityStamp.h"
+#include "MapChooser.h"
+#include "MapDefaults.h"
 
 namespace {
 constexpr int FRAME_DURATION_MS = 16;
@@ -34,11 +36,18 @@ constexpr int CITY_ERASE_BTN_Y = 158;
 constexpr int ERASER_BTN_Y = 196;
 constexpr int SPAWN_BTN_Y = 234;
 constexpr int SAVE_Y = 274;
+constexpr int MAPS_Y = 312;
 
 constexpr int PALETTE_X = PANEL_X + 10;
-constexpr int PALETTE_Y = 318;
+constexpr int PALETTE_Y = 352;
 constexpr int PALETTE_TILE = 32;
 constexpr int PALETTE_COLS = 5;
+
+constexpr int MAPLIST_X = 40;
+constexpr int MAPLIST_Y = 40;
+constexpr int MAPLIST_W = CANVAS_WIDTH - 80;
+constexpr int MAPLIST_ROW_H = 32;
+constexpr int MAPLIST_TITLE_H = 36;
 
 constexpr const char* RESOURCES_DIR = "resources/";
 constexpr const char* FONT_TTF_PATH = "resources/DejaVuSans-Bold.ttf";
@@ -120,7 +129,8 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
         lastMouseX(0),
         lastMouseY(0),
         dirty(false),
-        savedFlashUntil(0) {
+        savedFlashUntil(0),
+        mapListOpen(false) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
     toolbar.addToolButton(BTN_X, OVERLAY_BTN_Y, BTN_W, BTN_H, Tool::OVERLAY);
@@ -131,6 +141,7 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
     toolbar.addToolButton(BTN_X, ERASER_BTN_Y, BTN_W, BTN_H, Tool::ERASER);
     toolbar.addToolButton(BTN_X, SPAWN_BTN_Y, BTN_W, BTN_H, Tool::SPAWN);
     toolbar.addActionButton(BTN_X, SAVE_Y, BTN_W, BTN_H, ToolbarAction::SAVE);
+    toolbar.addActionButton(BTN_X, MAPS_Y, BTN_W, BTN_H, ToolbarAction::OPEN_MAPS);
 
     updateTitle();
 }
@@ -177,6 +188,12 @@ void Editor::handleEvent(const SDL_Event& event, bool& running) {
             activePalette().scroll(-event.wheel.y);
         }
     } else if (event.type == SDL_KEYDOWN) {
+        if (mapListOpen) {
+            if (event.key.keysym.sym == SDLK_ESCAPE) {
+                closeMapList();
+            }
+            return;
+        }
         switch (event.key.keysym.sym) {
             case SDLK_LEFT:
                 camera.move(-CAMERA_STEP, 0);
@@ -209,6 +226,10 @@ void Editor::handleEvent(const SDL_Event& event, bool& running) {
 }
 
 void Editor::handleLeftClick(int x, int y) {
+    if (mapListOpen) {
+        handleMapListClick(x, y);
+        return;
+    }
     if (x < CANVAS_WIDTH && y < CANVAS_HEIGHT) {
         Position cell = camera.screenToCell(x, y);
         if (cell.x >= 0 && cell.x < map.getWidth() && cell.y >= 0 && cell.y < map.getHeight()) {
@@ -285,6 +306,9 @@ void Editor::handlePanelClick(int x, int y) {
         case ToolbarAction::SAVE:
             save();
             break;
+        case ToolbarAction::OPEN_MAPS:
+            openMapList();
+            break;
         case ToolbarAction::TOOL_CHANGED:
             statusMsg = "";
             break;
@@ -315,6 +339,90 @@ void Editor::updateTitle() {
     std::string title = "Editor de mapas - Argentum Online";
     title += dirty ? "  [* sin guardar]" : "  [guardado]";
     window.SetTitle(title);
+}
+
+void Editor::openMapList() {
+    mapEntries = mapEntriesFrom(listMapFiles(MapDefaults::MAPS_DIR));
+    mapListOpen = true;
+    statusMsg = "";
+}
+
+void Editor::closeMapList() { mapListOpen = false; }
+
+void Editor::switchToMap(const std::string& path, bool isNew) {
+    if (isNew) {
+        map = EditorMap(MapDefaults::WIDTH, MapDefaults::HEIGHT, MapDefaults::TILE_SIZE,
+                        MapDefaults::TILESET, MapDefaults::TILESET_COLS);
+        mapPath = path;
+        camera.setMapSize(map.getWidth(), map.getHeight());
+        save();
+    } else {
+        map = EditorMap(readMapFile(path));
+        mapPath = path;
+        camera.setMapSize(map.getWidth(), map.getHeight());
+        dirty = false;
+    }
+    closeMapList();
+    statusMsg = "";
+    updateTitle();
+}
+
+int Editor::mapListIndexAt(int x, int y) const {
+    int rowsTop = MAPLIST_Y + MAPLIST_TITLE_H;
+    if (x < MAPLIST_X || x >= MAPLIST_X + MAPLIST_W || y < rowsTop) {
+        return -1;
+    }
+    int idx = (y - rowsTop) / MAPLIST_ROW_H;
+    if (idx < 0 || idx >= static_cast<int>(mapEntries.size())) {
+        return -1;
+    }
+    return idx;
+}
+
+void Editor::handleMapListClick(int x, int y) {
+    int idx = mapListIndexAt(x, y);
+    if (idx < 0) {
+        closeMapList();
+        return;
+    }
+    const MapEntry& entry = mapEntries[idx];
+    if (entry.isNew) {
+        return;
+    }
+    if (entry.path == mapPath) {
+        closeMapList();
+        return;
+    }
+    if (dirty) {
+        statusMsg = "tenés cambios sin guardar (apretá S o Guardar)";
+        return;
+    }
+    switchToMap(entry.path, false);
+}
+
+void Editor::renderMapList() {
+    renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+    renderer.SetDrawColor(0, 0, 0, 180);
+    renderer.FillRect(SDL2pp::Rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
+
+    int panelH = MAPLIST_TITLE_H + MAPLIST_ROW_H * static_cast<int>(mapEntries.size()) + 8;
+    renderer.SetDrawColor(30, 30, 38, 255);
+    renderer.FillRect(SDL2pp::Rect(MAPLIST_X, MAPLIST_Y, MAPLIST_W, panelH));
+
+    font.drawString("Elegí un mapa (Esc cierra)", MAPLIST_X + 10, MAPLIST_Y + 8, LABEL_COLOR);
+
+    int rowsTop = MAPLIST_Y + MAPLIST_TITLE_H;
+    for (size_t i = 0; i < mapEntries.size(); ++i) {
+        int ry = rowsTop + static_cast<int>(i) * MAPLIST_ROW_H;
+        const MapEntry& e = mapEntries[i];
+        if (e.path == mapPath) {
+            renderer.SetDrawColor(60, 90, 60, 255);
+            renderer.FillRect(SDL2pp::Rect(MAPLIST_X + 4, ry, MAPLIST_W - 8, MAPLIST_ROW_H - 2));
+        }
+        SDL_Color color = e.isNew ? SDL_Color{255, 235, 120, 255} : LABEL_COLOR;
+        std::string label = e.isNew ? "+ Nuevo mapa" : e.displayName;
+        font.drawString(label, MAPLIST_X + 12, ry + 6, color);
+    }
 }
 
 Palette& Editor::activePalette() {
@@ -469,6 +577,9 @@ void Editor::render() {
     renderSpawn();
     renderPanel();
     renderStatusBar();
+    if (mapListOpen) {
+        renderMapList();
+    }
     renderer.Present();
 }
 
