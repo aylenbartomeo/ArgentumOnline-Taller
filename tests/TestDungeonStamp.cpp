@@ -78,3 +78,16 @@ TEST(DungeonStampTest, EraseDungeonAtReturnsFalseWhenNoneThere) {
     EditorMap map = emptyMap();
     EXPECT_FALSE(eraseDungeonAt(map, 5, 5));
 }
+
+TEST(DungeonStampTest, MonstersRejectedInsideTheDungeon) {
+    EditorMap map = emptyMap();
+    applyDungeonPrefab(map, 10, 20);
+    EXPECT_NE(monsterPlacementError(map, 10 + 5, 20 + 5), "");
+    EXPECT_EQ(monsterPlacementError(map, 80, 80), "");
+}
+
+TEST(DungeonStampTest, CitizensAlreadyRejectedInsideTheDungeon) {
+    EditorMap map = emptyMap();
+    applyDungeonPrefab(map, 10, 20);
+    EXPECT_NE(citizenPlacementError(map, "priest", 10 + 5, 20 + 5), "");
+}
