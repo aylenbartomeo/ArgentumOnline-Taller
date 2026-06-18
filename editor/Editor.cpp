@@ -130,7 +130,8 @@ Editor::Editor(EditorMap initialMap, const std::string& mapPath):
         lastMouseY(0),
         dirty(false),
         savedFlashUntil(0),
-        mapListOpen(false) {
+        mapListOpen(false),
+        newMapInput(false) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
     toolbar.addToolButton(BTN_X, OVERLAY_BTN_Y, BTN_W, BTN_H, Tool::OVERLAY);
@@ -187,7 +188,24 @@ void Editor::handleEvent(const SDL_Event& event, bool& running) {
         if (mouseX >= PANEL_X) {
             activePalette().scroll(-event.wheel.y);
         }
+    } else if (event.type == SDL_TEXTINPUT) {
+        if (newMapInput) {
+            newMapName += event.text.text;
+        }
     } else if (event.type == SDL_KEYDOWN) {
+        if (newMapInput) {
+            SDL_Keycode sym = event.key.keysym.sym;
+            if (sym == SDLK_RETURN || sym == SDLK_KP_ENTER) {
+                confirmNewMap();
+            } else if (sym == SDLK_BACKSPACE) {
+                if (!newMapName.empty()) {
+                    newMapName.pop_back();
+                }
+            } else if (sym == SDLK_ESCAPE) {
+                cancelNewMapInput();
+            }
+            return;
+        }
         if (mapListOpen) {
             if (event.key.keysym.sym == SDLK_ESCAPE) {
                 closeMapList();
@@ -226,6 +244,9 @@ void Editor::handleEvent(const SDL_Event& event, bool& running) {
 }
 
 void Editor::handleLeftClick(int x, int y) {
+    if (newMapInput) {
+        return;
+    }
     if (mapListOpen) {
         handleMapListClick(x, y);
         return;
@@ -349,6 +370,31 @@ void Editor::openMapList() {
 
 void Editor::closeMapList() { mapListOpen = false; }
 
+void Editor::beginNewMapInput() {
+    newMapInput = true;
+    newMapName = "";
+    statusMsg = "";
+    SDL_StartTextInput();
+}
+
+void Editor::cancelNewMapInput() {
+    newMapInput = false;
+    newMapName = "";
+    SDL_StopTextInput();
+}
+
+void Editor::confirmNewMap() {
+    std::string error = newMapError(newMapName, listMapFiles(MapDefaults::MAPS_DIR));
+    if (!error.empty()) {
+        statusMsg = error;
+        return;
+    }
+    std::string path = mapPathForName(newMapName);
+    newMapInput = false;
+    SDL_StopTextInput();
+    switchToMap(path, true);
+}
+
 void Editor::switchToMap(const std::string& path, bool isNew) {
     if (isNew) {
         map = EditorMap(MapDefaults::WIDTH, MapDefaults::HEIGHT, MapDefaults::TILE_SIZE,
@@ -387,6 +433,7 @@ void Editor::handleMapListClick(int x, int y) {
     }
     const MapEntry& entry = mapEntries[idx];
     if (entry.isNew) {
+        beginNewMapInput();
         return;
     }
     if (entry.path == mapPath) {
@@ -408,6 +455,14 @@ void Editor::renderMapList() {
     int panelH = MAPLIST_TITLE_H + MAPLIST_ROW_H * static_cast<int>(mapEntries.size()) + 8;
     renderer.SetDrawColor(30, 30, 38, 255);
     renderer.FillRect(SDL2pp::Rect(MAPLIST_X, MAPLIST_Y, MAPLIST_W, panelH));
+
+    if (newMapInput) {
+        font.drawString("Nombre del mapa nuevo (Enter confirma, Esc cancela):", MAPLIST_X + 10,
+                        MAPLIST_Y + 8, LABEL_COLOR);
+        font.drawString(newMapName + "_", MAPLIST_X + 12, MAPLIST_Y + MAPLIST_TITLE_H + 6,
+                        SDL_Color{255, 235, 120, 255});
+        return;
+    }
 
     font.drawString("Elegí un mapa (Esc cierra)", MAPLIST_X + 10, MAPLIST_Y + 8, LABEL_COLOR);
 

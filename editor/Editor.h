@@ -41,6 +41,8 @@ private:
     Uint32 savedFlashUntil;
     bool mapListOpen;
     std::vector<MapEntry> mapEntries;
+    bool newMapInput;
+    std::string newMapName;
 
     void handleEvent(const SDL_Event& event, bool& running);
     void handleLeftClick(int x, int y);
@@ -52,6 +54,9 @@ private:
     void switchToMap(const std::string& path, bool isNew);
     void handleMapListClick(int x, int y);
     int mapListIndexAt(int x, int y) const;
+    void beginNewMapInput();
+    void cancelNewMapInput();
+    void confirmNewMap();
 
     void render();
     void renderTerrain();
