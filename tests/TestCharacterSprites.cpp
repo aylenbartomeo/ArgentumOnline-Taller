@@ -26,40 +26,58 @@ TEST(CharacterSpritesTest, PlayerAndNpcUseDifferentBodies) {
                  spriteForEntity(EntityType::NPC, 0).bodySheet);
 }
 
-TEST(CharacterSpritesTest, MonsterGoblinUsesmonsters / goblin1) {
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOBLIN), 0)
+TEST(CharacterSpritesTest, MonsterGoblinUsesMonstersGoblin2) {
+    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOBLIN), 1)
                          .bodySheet,
-                 "monsters/goblin1.png");
+                 "monsters/goblin2.png");
 }
 
-TEST(CharacterSpritesTest, MonsterOrcUsesmonsters / orco1) {
+TEST(CharacterSpritesTest, MonsterOrcUsesMonstersOrco2) {
     EXPECT_STREQ(
-            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ORC), 0).bodySheet,
-            "monsters/orco1.png");
+            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ORC), 1).bodySheet,
+            "monsters/orco2.png");
 }
 
-TEST(CharacterSpritesTest, MonsterZombieUsesmonsters / zombie1) {
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0)
+TEST(CharacterSpritesTest, MonsterZombieUsesMonstersZombie2) {
+    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 1)
                          .bodySheet,
-                 "monsters/zombie1.png");
+                 "monsters/zombie2.png");
 }
 
-TEST(CharacterSpritesTest, MonsterSpiderUsesmonsters / spider1) {
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SPIDER), 0)
+TEST(CharacterSpritesTest, MonsterSpiderUsesMonstersSpider2) {
+    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SPIDER), 1)
                          .bodySheet,
-                 "monsters/spider1.png");
+                 "monsters/spider2.png");
 }
 
-TEST(CharacterSpritesTest, MonsterGolemUsesmonsters / golem1) {
+TEST(CharacterSpritesTest, MonsterSpiderUsesMonstersSpider3) {
+    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SPIDER), 2)
+                         .bodySheet,
+                 "monsters/spider3.png");
+}
+
+TEST(CharacterSpritesTest, MonsterGolemUsesMonstersGolem2) {
     EXPECT_STREQ(
-            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOLEM), 0).bodySheet,
-            "monsters/golem1.png");
+            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOLEM), 1).bodySheet,
+            "monsters/golem2.png");
 }
 
-TEST(CharacterSpritesTest, MonsterSkeletonUsesmonsters / skeleton1) {
-    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SKELETON), 0)
+TEST(CharacterSpritesTest, MonsterGolemUsesMonstersGolem3) {
+    EXPECT_STREQ(
+            spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOLEM), 2).bodySheet,
+            "monsters/golem3.png");
+}
+
+TEST(CharacterSpritesTest, MonsterSkeletonUsesMonstersSkeleton2) {
+    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SKELETON), 1)
                          .bodySheet,
-                 "monsters/skeleton1.png");
+                 "monsters/skeleton2.png");
+}
+
+TEST(CharacterSpritesTest, MonsterSkeletonUsesMonstersSkeleton3) {
+    EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SKELETON), 2)
+                         .bodySheet,
+                 "monsters/skeleton3.png");
 }
 
 TEST(CharacterSpritesTest, ZombieHasNoHead) {
