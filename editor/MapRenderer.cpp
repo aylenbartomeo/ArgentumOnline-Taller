@@ -1,8 +1,25 @@
 #include "MapRenderer.h"
 
+#include "OverlayRegistry.h"
+
 namespace {
 constexpr const char* RESOURCES_DIR = "resources/";
 constexpr int TILE_NATIVE = 32;
+
+void drawOverlaySprite(SDL2pp::Renderer& renderer, TextureManager& textures, const OverlayDef& def,
+                       int cellX, int cellY, int cellSize) {
+    SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + def.tilesheet);
+    const SDL2pp::Rect srcRect(def.srcX, def.srcY, def.srcW, def.srcH);
+    int dstW = def.srcW;
+    int dstH = def.srcH;
+    if (dstW > cellSize) {
+        dstH = def.srcH * cellSize / def.srcW;
+        dstW = cellSize;
+    }
+    const int dstX = cellX + (cellSize - dstW) / 2;
+    const int dstY = cellY + cellSize - dstH;
+    renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
+}
 }  // namespace
 
 MapRenderer::MapRenderer(SDL2pp::Renderer& renderer, TextureManager& textures):
@@ -57,8 +74,24 @@ void MapRenderer::drawDecorationLayer(const EditorMap& map, const Camera& camera
     }
 }
 
+void MapRenderer::drawItems(const EditorMap& map, const Camera& camera, int canvasW, int canvasH) {
+    const std::vector<OverlayDef>& registry = getOverlayRegistry();
+    const int ts = camera.getTileSize();
+    for (const auto& entry: map.getItems()) {
+        int col = entry.first.first;
+        int row = entry.first.second;
+        const PlacedItem& item = entry.second;
+        Position screen = camera.cellToScreen(col, row);
+        if (screen.x + ts <= 0 || screen.x >= canvasW || screen.y + ts <= 0 || screen.y >= canvasH) {
+            continue;
+        }
+        drawOverlaySprite(renderer, textures, registry[item.overlayIndex], screen.x, screen.y, ts);
+    }
+}
+
 void MapRenderer::render(const EditorMap& map, const Camera& camera, int canvasW, int canvasH) {
     drawGroundLayer(map, camera, canvasW, canvasH, map.getGround());
     drawGroundLayer(map, camera, canvasW, canvasH, map.getGround2());
     drawDecorationLayer(map, camera, canvasW, canvasH);
+    drawItems(map, camera, canvasW, canvasH);
 }
