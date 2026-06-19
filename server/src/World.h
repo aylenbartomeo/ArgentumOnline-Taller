@@ -197,6 +197,9 @@ public:
 
     void publishInteractionResult(uint32_t dbId, const InteractionResult& res);
 
+    void setUsernameCache(const std::unordered_map<uint32_t, std::string>& cache) {
+        entityManager.setUsernameCache(cache);
+    }
 
     ~World() override = default;
 };

@@ -19,6 +19,7 @@ private:
     std::unordered_map<uint32_t, std::unique_ptr<Player>> players;
     std::unordered_map<uint32_t, std::unique_ptr<Monster>> monsters;
     std::unordered_map<uint32_t, std::unique_ptr<Interactable>> cityNPCs;
+    std::unordered_map<uint32_t, std::string> dbIdToUsernameCache;
 
     uint32_t nextEntityId = 1;
     std::unordered_map<uint32_t, uint32_t> dbIdToEntityId;
@@ -61,6 +62,10 @@ public:
     size_t getPlayerCount() const;
     size_t getMonsterCount() const;
     bool isEmpty() const;
+
+    void setUsernameCache(const std::unordered_map<uint32_t, std::string>& cache) {
+        dbIdToUsernameCache = cache;
+    }
 
     // --- Acceso a Colecciones (Para Snapshot/Update) ---
     auto& getPlayers() { return players; }

@@ -45,6 +45,8 @@ GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
 
         auto [bankHeaders, bankSlots] = worldDataStore.loadBankAccounts(worldConfig.worldId);
         world.restoreBank({bankHeaders, bankSlots});
+
+        world.setUsernameCache(playerDataStore.loadAllUsernames());
     }
 }
 
