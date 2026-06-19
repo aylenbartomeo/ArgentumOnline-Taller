@@ -16,7 +16,7 @@ namespace GC = GameConstants;
 
 // Constantes privadas (Solo le importan al FxSystem)
 namespace {
-constexpr const char* FX_SHEET = "19052.png";
+constexpr const char* FX_SHEET = "dash-imp.png";
 constexpr int FX_FRAME_W = 64;
 constexpr int FX_FRAME_H = 96;
 constexpr int FX_COLS = 8;
@@ -25,7 +25,7 @@ constexpr uint32_t FX_FRAME_DUR_MS = 50;
 constexpr int FX_DRAW_W = GC::TILE_SIZE * 3 / 2;
 constexpr int FX_DRAW_H = FX_DRAW_W * FX_FRAME_H / FX_FRAME_W;
 
-constexpr const char* SWORD_FX_SHEET = "2101.png";
+constexpr const char* SWORD_FX_SHEET = "animation/impact/sword-imp.png";
 constexpr int SWORD_FRAME_W = 32;
 constexpr int SWORD_FRAME_H = 32;
 constexpr int SWORD_FRAME_COLS = 5;
@@ -34,13 +34,13 @@ constexpr uint32_t SWORD_FRAME_DUR_MS = 40;
 constexpr int SWORD_DRAW_W = GC::TILE_SIZE * 2;
 constexpr int SWORD_DRAW_H = GC::TILE_SIZE * 2;
 
-constexpr const char* PROJ_SHEET = "projectiles.png";
+constexpr const char* PROJ_SHEET = "animation/projectile/default-proj.png";
 constexpr int PROJ_DRAW_W = 64;
 constexpr int PROJ_DRAW_H = 64;
 constexpr int PROJ_FRAME_COLS = 8;
 constexpr int PROJ_FRAME_SIZE = 64;
 
-constexpr const char* ARROW_SHEET = "2046.png";
+constexpr const char* ARROW_SHEET = "animation/projectile/arrow-proj.png";
 constexpr int ARROW_FRAME_COLS = 2;
 constexpr int ARROW_FRAME_W = 32;
 constexpr int ARROW_FRAME_H = 32;
@@ -50,7 +50,7 @@ constexpr int ARROW_DRAW_W = 48;
 constexpr int ARROW_DRAW_H = 48;
 constexpr uint16_t ARROW_SPRITE_ID = 200;
 
-constexpr const char* STAFF_PROJ_SHEET = "3492.png";
+constexpr const char* STAFF_PROJ_SHEET = "animation/projectile/baculo-engarzado-proj.png";
 constexpr int STAFF_PROJ_FRAME_W = 128;
 constexpr int STAFF_PROJ_FRAME_H = 128;
 constexpr int STAFF_PROJ_COLS = 4;
@@ -59,7 +59,7 @@ constexpr uint32_t STAFF_PROJ_DUR_MS = 60;
 constexpr int STAFF_PROJ_DRAW = GC::TILE_SIZE * 2;
 constexpr uint16_t STAFF_SPRITE_ID = 203;
 
-constexpr const char* EXPL_SHEET = "3471.png";
+constexpr const char* EXPL_SHEET = "animation/impact/baculo-engarzado-imp.png";
 constexpr int EXPL_FRAME_W = 192;
 constexpr int EXPL_FRAME_H = 192;
 constexpr int EXPL_COLS = 5;
@@ -67,7 +67,7 @@ constexpr int EXPL_FRAMES = 23;
 constexpr uint32_t EXPL_DUR_MS = 55;
 constexpr int EXPL_DRAW = GC::TILE_SIZE * 4;
 
-constexpr const char* NUDOSO_PROJ_SHEET = "3483.png";
+constexpr const char* NUDOSO_PROJ_SHEET = "animation/projectile/baculo-nudoso-proj.png";
 constexpr int NUDOSO_PROJ_FRAME_W = 144;
 constexpr int NUDOSO_PROJ_FRAME_H = 144;
 constexpr int NUDOSO_PROJ_COLS = 5;
@@ -76,7 +76,7 @@ constexpr uint32_t NUDOSO_PROJ_DUR_MS = 60;
 constexpr int NUDOSO_PROJ_DRAW = GC::TILE_SIZE * 2;
 constexpr uint16_t NUDOSO_SPRITE_ID = 202;
 
-constexpr const char* NUDOSO_IMPACT_SHEET = "3534.png";
+constexpr const char* NUDOSO_IMPACT_SHEET = "animation/impact/baculo-nudoso-imp.png";
 constexpr int NUDOSO_IMPACT_FRAME_W = 192;
 constexpr int NUDOSO_IMPACT_FRAME_H = 192;
 constexpr int NUDOSO_IMPACT_COLS = 5;
@@ -84,7 +84,7 @@ constexpr int NUDOSO_IMPACT_FRAMES = 30;
 constexpr uint32_t NUDOSO_IMPACT_DUR_MS = 40;
 constexpr int NUDOSO_IMPACT_DRAW = GC::TILE_SIZE * 3;
 
-constexpr const char* FRESNO_IMPACT_SHEET = "3490.png";
+constexpr const char* FRESNO_IMPACT_SHEET = "animation/impact/vara-fresno-imp.png";
 constexpr int FRESNO_IMPACT_FRAME_W = 192;
 constexpr int FRESNO_IMPACT_FRAME_H = 192;
 constexpr int FRESNO_IMPACT_COLS = 5;
@@ -93,7 +93,7 @@ constexpr uint32_t FRESNO_IMPACT_DUR_MS = 35;
 constexpr int FRESNO_IMPACT_DRAW = GC::TILE_SIZE * 3;
 constexpr uint16_t VARA_SPRITE_ID = 201;
 
-constexpr const char* FLAUTA_HEAL_SHEET = "3456.png";
+constexpr const char* FLAUTA_HEAL_SHEET = "animation/impact/flauta-elfica-imp.png";
 constexpr int FLAUTA_HEAL_FRAME_W = 32;
 constexpr int FLAUTA_HEAL_FRAME_H = 32;
 constexpr int FLAUTA_HEAL_COLS = 5;
@@ -102,7 +102,7 @@ constexpr uint32_t FLAUTA_HEAL_DUR_MS = 60;
 constexpr int FLAUTA_HEAL_DRAW = GC::TILE_SIZE * 2;
 constexpr uint16_t HEAL_SPRITE_ID = 204;
 
-constexpr const char* FLAUTA_PROJ_SHEET = "vara-fresno-proj.png";  // o un sheet propio si lo tenés
+constexpr const char* FLAUTA_PROJ_SHEET = "animation/projectile/vara-fresno-proj.png";
 constexpr int FLAUTA_PROJ_FRAME_W = 128;
 constexpr int FLAUTA_PROJ_FRAME_H = 128;
 constexpr int FLAUTA_PROJ_COLS = 4;
