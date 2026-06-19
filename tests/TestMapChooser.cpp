@@ -1,3 +1,5 @@
+#include <filesystem>
+
 #include <gtest/gtest.h>
 
 #include "MapChooser.h"
@@ -45,4 +47,12 @@ TEST(MapChooserTest, NewMapErrorRejectsCollisionIncludingDefault) {
 TEST(MapChooserTest, NewMapErrorAcceptsValidUniqueName) {
     std::vector<std::string> existing = {"maps/defaultMap.json"};
     EXPECT_EQ(newMapError("bosque_2", existing), "");
+}
+
+TEST(MapChooserTest, WriteMapFileRoundTripsWithReadMapFile) {
+    const std::string path = "writemap_roundtrip.tmp";
+    const std::string contents = "{\"hello\":\"world\"}";
+    writeMapFile(path, contents);
+    EXPECT_EQ(readMapFile(path), contents);
+    std::filesystem::remove(path);
 }

@@ -15,5 +15,6 @@ std::string mapPathForName(const std::string& name);
 std::string newMapError(const std::string& name, const std::vector<std::string>& existingPaths);
 std::vector<std::string> listMapFiles(const std::string& dir);
 std::string readMapFile(const std::string& path);
+void writeMapFile(const std::string& path, const std::string& contents);
 
 #endif

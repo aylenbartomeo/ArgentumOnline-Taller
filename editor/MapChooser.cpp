@@ -72,3 +72,12 @@ std::string readMapFile(const std::string& path) {
     buffer << file.rdbuf();
     return buffer.str();
 }
+
+void writeMapFile(const std::string& path, const std::string& contents) {
+    std::filesystem::path p(path);
+    if (p.has_parent_path()) {
+        std::filesystem::create_directories(p.parent_path());
+    }
+    std::ofstream file(path);
+    file << contents;
+}
