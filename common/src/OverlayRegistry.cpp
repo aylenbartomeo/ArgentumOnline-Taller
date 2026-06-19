@@ -14,7 +14,7 @@ const std::vector<OverlayDef>& getOverlayRegistry() {
             {"items/vara-fresno-item.png", 0, 0, 32, 32, "Vara de fresno", 2020, false},
             {"items/baculo-nudoso-item.png", 0, 0, 32, 32, "Baculo nudoso", 2022, false},
             {"items/baculo-engarzado-item.png", 0, 0, 32, 32, "Baculo engarzado", 2023, false},
-            {"111.png", 422, 67, 20, 26, "Flauta elfica", 2021, false},
+            {"items/flauta-elfica-item.png", 0, 0, 32, 32, "Flauta elfica", 2021, false},
             {"armor/pechera-cuero-item.png", 0, 0, 32, 32, "Armadura de cuero", 1000, false},
             {"armor/pechera-hierro-item.png", 0, 0, 32, 32, "Armadura de placas", 1001, false},
             {"armor/tunica-item.png", 0, 0, 32, 32, "Tunica azul", 1002, false},
