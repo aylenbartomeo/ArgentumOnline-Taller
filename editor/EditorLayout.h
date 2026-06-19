@@ -34,5 +34,7 @@ LayoutRect topLeftToolsRect();
 LayoutRect terrenoBackRect();
 LayoutRect gomaRect();
 LayoutRect spawnRect();
+LayoutRect guardarRect();
+LayoutRect mapasRect();
 
 #endif

@@ -72,3 +72,19 @@ TEST(EditorLayoutTest, GomaAndSpawnRectsAreExposed) {
     EXPECT_EQ(s.w, 135);
     EXPECT_EQ(s.h, 156);
 }
+
+TEST(EditorLayoutTest, GuardarRectIsExposed) {
+    LayoutRect g = guardarRect();
+    EXPECT_EQ(g.x, 1118);
+    EXPECT_EQ(g.y, 148);
+    EXPECT_EQ(g.w, 125);
+    EXPECT_EQ(g.h, 95);
+}
+
+TEST(EditorLayoutTest, MapasRectIsExposed) {
+    LayoutRect m = mapasRect();
+    EXPECT_EQ(m.x, 1284);
+    EXPECT_EQ(m.y, 80);
+    EXPECT_EQ(m.w, 85);
+    EXPECT_EQ(m.h, 120);
+}

@@ -15,6 +15,21 @@ constexpr int WINDOW_W = 1280;
 constexpr int WINDOW_H = 958;
 constexpr int FRAME_MS = 16;
 constexpr const char* EDITOR_RES = "resources/editor/";
+constexpr int PAPIRO_W = 773;
+constexpr int PAPIRO_H = 618;
+constexpr int PAPIRO_X = (MOCKUP_W - PAPIRO_W) / 2;
+constexpr int PAPIRO_Y = (MOCKUP_H - PAPIRO_H) / 2;
+constexpr int MAP_FONT_SIZE = 26;
+constexpr int LIST_X = PAPIRO_X + 90;
+constexpr int LIST_W = PAPIRO_W - 180;
+constexpr int LIST_TITLE_Y = PAPIRO_Y + 70;
+constexpr int LIST_ROWS_TOP = PAPIRO_Y + 130;
+constexpr int LIST_ROW_H = 44;
+constexpr LayoutRect MAP_BACK = {PAPIRO_X + PAPIRO_W - 120, PAPIRO_Y + 25, 100, 90};
+
+bool insideRect(LayoutRect r, int x, int y) {
+    return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+}
 
 EditorMap loadMap() {
     const std::string path = MapDefaults::DEFAULT_MAP_PATH;
@@ -44,7 +59,10 @@ ScreenEditor::ScreenEditor():
         lastMouseX(0),
         lastMouseY(0),
         currentMapPath(MapDefaults::DEFAULT_MAP_PATH),
-        savedFlashUntil(0) {
+        savedFlashUntil(0),
+        mapasFlashUntil(0),
+        font(renderer, "resources/DejaVuSans-Bold.ttf", MAP_FONT_SIZE),
+        mapListOpen(false) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 }
 
@@ -62,7 +80,13 @@ SDL2pp::Point ScreenEditor::toMockup(int winX, int winY) const {
 void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
     if (event.type == SDL_QUIT) {
         running = false;
-    } else if (event.type == SDL_MOUSEBUTTONDOWN) {
+        return;
+    }
+    if (mapListOpen) {
+        handleMapListEvent(event);
+        return;
+    }
+    if (event.type == SDL_MOUSEBUTTONDOWN) {
         if (event.button.button == SDL_BUTTON_LEFT) {
             SDL2pp::Point p = toMockup(event.button.x, event.button.y);
             Region region = regionAtClick(screen, p.x, p.y);
@@ -77,6 +101,9 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
                 activeTool = Tool::SPAWN;
             } else if (region == Region::GUARDAR) {
                 saveMap();
+            } else if (region == Region::MAPAS) {
+                openMapList();
+                mapasFlashUntil = SDL_GetTicks() + 700;
             } else if (region == Region::CANVAS && activeTool != Tool::NONE) {
                 LayoutRect c = canvasRect();
                 Position cell = camera.screenToCell(p.x - c.x, p.y - c.y);
@@ -162,7 +189,7 @@ void ScreenEditor::render() {
     }
     if (SDL_GetTicks() < savedFlashUntil) {
         LayoutRect g = guardarRect();
-        const int hx = g.x + 43;
+        const int hx = g.x + 40;
         const int hy = g.y - 70;
         const int hw = g.w - 35;
         const int hh = g.h + 30;
@@ -176,6 +203,16 @@ void ScreenEditor::render() {
         SDL2pp::Texture& back = textures.get(std::string(EDITOR_RES) + "BackTerreno.png");
         renderer.Copy(back, SDL2pp::NullOpt, SDL2pp::Rect(b.x, b.y, b.w, b.h));
     }
+    if (mapListOpen) {
+        renderMapList();
+    }
+    if (SDL_GetTicks() < mapasFlashUntil) {
+        LayoutRect m = mapasRect();
+        renderer.SetDrawColor(255, 235, 0, 255);
+        for (int i = 0; i < 4; ++i) {
+            renderer.DrawRect(SDL2pp::Rect(m.x + i, m.y + i, m.w - 2 * i, m.h - 2 * i));
+        }
+    }
 
     renderer.SetTarget();
     renderer.SetDrawColor(0, 0, 0, 255);
@@ -187,6 +224,98 @@ void ScreenEditor::render() {
 void ScreenEditor::saveMap() {
     writeMapFile(currentMapPath, map.toJson());
     savedFlashUntil = SDL_GetTicks() + 700;
+}
+
+void ScreenEditor::openMapList() {
+    mapEntries = mapEntriesFrom(listMapFiles(MapDefaults::MAPS_DIR));
+    mapListOpen = true;
+}
+
+void ScreenEditor::closeMapList() { mapListOpen = false; }
+
+int ScreenEditor::mapListIndexAt(int mx, int my) const {
+    if (mx < LIST_X - 8 || mx >= LIST_X + LIST_W + 8 || my < LIST_ROWS_TOP) {
+        return -1;
+    }
+    int idx = (my - LIST_ROWS_TOP) / LIST_ROW_H;
+    if (idx >= static_cast<int>(mapEntries.size())) {
+        return -1;
+    }
+    return idx;
+}
+
+void ScreenEditor::handleMapListClick(int mx, int my) {
+    int idx = mapListIndexAt(mx, my);
+    if (idx < 0) {
+        return;
+    }
+    const MapEntry& entry = mapEntries[idx];
+    if (entry.isNew) {
+        return;
+    }
+    if (entry.path == currentMapPath) {
+        closeMapList();
+        return;
+    }
+    switchToMap(entry.path, false);
+}
+
+void ScreenEditor::switchToMap(const std::string& path, bool isNew) {
+    if (isNew) {
+        map = EditorMap(MapDefaults::WIDTH, MapDefaults::HEIGHT, MapDefaults::TILE_SIZE,
+                        MapDefaults::TILESET, MapDefaults::TILESET_COLS);
+        currentMapPath = path;
+        camera.setMapSize(map.getWidth(), map.getHeight());
+        saveMap();
+    } else {
+        map = EditorMap(readMapFile(path));
+        currentMapPath = path;
+        camera.setMapSize(map.getWidth(), map.getHeight());
+    }
+    closeMapList();
+}
+
+void ScreenEditor::handleMapListEvent(const SDL_Event& event) {
+    if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+        SDL2pp::Point p = toMockup(event.button.x, event.button.y);
+        if (insideRect(MAP_BACK, p.x, p.y)) {
+            closeMapList();
+        } else {
+            handleMapListClick(p.x, p.y);
+        }
+    } else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
+        closeMapList();
+    }
+}
+
+void ScreenEditor::renderMapList() {
+    renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+    renderer.SetDrawColor(0, 0, 0, 150);
+    renderer.FillRect(SDL2pp::Rect(0, 0, MOCKUP_W, MOCKUP_H));
+    renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
+
+    SDL2pp::Texture& papiro = textures.get(std::string(EDITOR_RES) + "papiro.bmp");
+    renderer.Copy(papiro, SDL2pp::NullOpt, SDL2pp::Rect(PAPIRO_X, PAPIRO_Y, PAPIRO_W, PAPIRO_H));
+
+    const SDL_Color textColor = {70, 45, 20, 255};
+    const SDL_Color accent = {150, 90, 20, 255};
+    SDL2pp::Texture& back = textures.get(std::string(EDITOR_RES) + "BackTerreno.png");
+
+    font.drawString("Elegí un mapa (Esc cierra)", LIST_X, LIST_TITLE_Y, textColor);
+    for (size_t i = 0; i < mapEntries.size(); ++i) {
+        int ry = LIST_ROWS_TOP + static_cast<int>(i) * LIST_ROW_H;
+        const MapEntry& e = mapEntries[i];
+        if (e.path == currentMapPath) {
+            renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+            renderer.SetDrawColor(220, 180, 40, 110);
+            renderer.FillRect(SDL2pp::Rect(LIST_X - 8, ry, LIST_W + 16, LIST_ROW_H - 4));
+            renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
+        }
+        std::string label = e.isNew ? "+ Nuevo mapa" : e.displayName;
+        SDL_Color color = e.isNew ? accent : textColor;
+        font.drawString(label, LIST_X, ry + 4, color);
+    }
+    renderer.Copy(back, SDL2pp::NullOpt, SDL2pp::Rect(MAP_BACK.x, MAP_BACK.y, MAP_BACK.w, MAP_BACK.h));
 }
 
 void ScreenEditor::run() {

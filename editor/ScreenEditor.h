@@ -11,6 +11,9 @@
 #include "EditorMap.h"
 #include "MapRenderer.h"
 
+#include "Font.h"
+#include "MapChooser.h"
+
 enum class Tool { NONE, ERASER, SPAWN };
 
 class ScreenEditor {
@@ -30,10 +33,21 @@ private:
     int lastMouseY;
     std::string currentMapPath;
     Uint32 savedFlashUntil;
+    Uint32 mapasFlashUntil;
+    Font font;
+    bool mapListOpen;
+    std::vector<MapEntry> mapEntries;
 
     void handleEvent(const SDL_Event& event, bool& running);
     void render();
     void saveMap();
+    void openMapList();
+    void closeMapList();
+    void renderMapList();
+    void handleMapListEvent(const SDL_Event& event);
+    void handleMapListClick(int mx, int my);
+    int mapListIndexAt(int mx, int my) const;
+    void switchToMap(const std::string& path, bool isNew);
     SDL2pp::Rect canvasViewport() const;
     SDL2pp::Point toMockup(int winX, int winY) const;
 

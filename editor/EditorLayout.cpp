@@ -5,7 +5,7 @@ constexpr LayoutRect CANVAS = {64, 72, 1018, 960};
 constexpr LayoutRect GOMA = {48, 48, 152, 156};
 constexpr LayoutRect SPAWN = {200, 48, 135, 156};
 constexpr LayoutRect GUARDAR = {1118, 148, 125, 95};
-constexpr LayoutRect MAPAS = {1255, 148, 135, 95};
+constexpr LayoutRect MAPAS = {1284, 80, 85, 120};
 constexpr LayoutRect BACK_TERRENO = {35, 900, 165, 150};
 constexpr LayoutRect BACK_PANEL = {1098, 958, 95, 90};
 constexpr LayoutRect NAV_CIUDADANOS = {1130, 300, 290, 130};
@@ -98,3 +98,7 @@ LayoutRect terrenoBackRect() { return BACK_TERRENO; }
 LayoutRect gomaRect() { return GOMA; }
 
 LayoutRect spawnRect() { return SPAWN; }
+
+LayoutRect guardarRect() { return GUARDAR; }
+
+LayoutRect mapasRect() { return MAPAS; }
