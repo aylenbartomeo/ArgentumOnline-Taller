@@ -27,6 +27,7 @@ target_sources(argentum_online_tests
     TestForestPrefab.cpp
     TestCityStamp.cpp
     TestDungeonStamp.cpp
+    TestForestStamp.cpp
     TestMerchant.cpp
     TestPriest.cpp
     TestGlobalBank.cpp
