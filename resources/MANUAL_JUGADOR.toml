@@ -1,0 +1,137 @@
+   =============================================
+
+                  MANUAL DEL JUGADOR - ARGENTUM ONLINE
+   =============================================
+   
+Bienvenido aventurero! A continuacion encontraras todas las instrucciones necesarias para dar tus primeros pasos, comunicarte y sobrevivir.
+   
+   -------------------------------------------------------------------------------------------
+
+   [ 1. CONTROLES DE MOVIMIENTO ]
+   -------------------------------------------------------------------------------------------
+   
+   * Arriba: W o Flecha Arriba
+
+   * Abajo: S o Flecha Abajo
+
+   * Izquierda: A o Flecha Izquierda
+
+   * Derecha: D o Flecha Derecha
+   
+   -------------------------------------------------------------------------------------------
+
+   [ 2. ATAJOS RAPIDOS DE ACCION ]
+   -------------------------------------------------------------------------------------------
+   
+   * Agarrar: G  (Recoge el objeto que esta a tus pies)
+
+   * Tirar: T  (Tira al suelo el objeto que tienes seleccionado)
+
+   * Consumir: C  (Bebe pociones)
+
+   * Meditar: M  (Inicia o detiene la recuperacion de mana)
+
+   * Resucitar: R  (Intenta revivirte si estas muerto)
+   
+   -------------------------------------------------------------------------------------------
+
+   [ 3. INTERACCION CON EL MOUSE ]
+   -------------------------------------------------------------------------------------------
+   
+   * Click Izquierdo: Seleccionar a un objetivo o Atacar cuerpo a cuerpo.
+
+   * Click Derecho: Lanzar magia o Disparar con arco.
+
+   * Doble Click Izquierdo: Equipar o usar el objeto del inventario.
+
+   * Rueda del Mouse: Desplazarse por el chat, manual o inventario.
+   
+   -------------------------------------------------------------------------------------------
+
+   [ 4. CHAT Y COMANDOS GENERALES ]
+   -------------------------------------------------------------------------------------------
+   
+   * Hablar: Presiona ENTER, escribe tu mensaje y vuelve a dar ENTER.
+
+   * Cancelar Chat: Presiona ESCAPE para salir del modo escritura.
+
+   * Ocultar Chat: Presiona F2.
+
+   * Privado: Escribe "@NombreJugador Mensaje" para hablar por privado.
+   
+   * /tomar: Alternativa al boton G.
+
+   * /tirar [cant]: Alternativa al boton T (puedes especificar la cantidad).
+
+   * /consumir: Alternativa al boton C.
+
+   * /meditar: Alternativa al boton M.
+
+   * /resucitar: Alternativa al boton R.
+   
+   -------------------------------------------------------------------------------------------
+
+   [ 5. COMERCIO, BANCO Y CURACION (NPCs) ]
+   -------------------------------------------------------------------------------------------
+   (Debes estar cerca del NPC para interactuar)
+   
+   * /listar: Muestra todo lo que el comerciante o cura ofrece.
+
+   * /comprar <nombre>: Compra 1 unidad del item especificado.
+
+   * /vender <nombre>: Vende 1 unidad del item especificado.
+
+   * /curar: Pidele al sacerdote que restaure tu vida y te reviva.
+
+   * /depositar <monto>: Guarda una cantidad de oro en el banco.
+
+   * /retirar <monto>: Retira oro de tu cuenta bancaria.
+   
+   -------------------------------------------------------------------------------------------
+
+   [ 6. SISTEMA DE CLANES ]
+   -------------------------------------------------------------------------------------------
+   
+   * /fundar-clan <nombre>: Crea un clan nuevo (te vuelves el Lider).
+
+   * /unirse <nombre_clan>: Envia tu solicitud de ingreso a un clan.
+
+   * /dejar-clan: Abandona el clan al que perteneces.
+   
+   COMANDOS DE LIDER:
+   * /revisar-clan: Revisa la informacion y solicitudes.
+
+   * /clan-aceptar <nombre>: Acepta a un jugador postulante.
+
+   * /clan-rechazar <nombre>: Rechaza a un postulante.
+
+   * /clan-kick <nombre>: Expulsa a un miembro actual de tu clan.
+
+   * /clan-ban <nombre>: Expulsa permanentemente a un miembro.
+   
+   -------------------------------------------------------------------------------------------
+
+   [ 7. COMANDOS DE MODO DESARROLLO (CHEATS) ]
+   -------------------------------------------------------------------------------------------
+   Para utilizar estos trucos, manten presionada la tecla SHIFT y presiona:
+   
+   * SHIFT + L: Sube de nivel a tu personaje.
+
+   * SHIFT + K: Suicida a tu personaje.
+
+   * SHIFT + M: Activa el Mana infinito.
+
+   * SHIFT + H: Activa la Vida infinita.
+
+   * SHIFT + G: Genera oro en tu inventario.
+
+   * SHIFT + P: Te entrega un set de pociones.
+
+   * SHIFT + A: Te entrega armaduras.
+
+   * SHIFT + W: Te entrega armas y municion.
+   
+   =============================================
+
+                             ¡Buena suerte en tu aventura!
+   =============================================

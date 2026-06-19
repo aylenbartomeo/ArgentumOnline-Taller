@@ -53,12 +53,21 @@ void StatsComponent::recalculateMaxStats() {
 }
 
 void StatsComponent::addExperience(uint32_t amount) {
+    if (level >= FormulaEngine::MAX_LEVEL) {
+        exp = formulaEngine.calculateLevelUpLimit(FormulaEngine::MAX_LEVEL - 1);
+        return;
+    }
+
     exp += amount;
-    while (exp >= formulaEngine.calculateLevelUpLimit(level)) {
+    while (level < FormulaEngine::MAX_LEVEL && exp >= formulaEngine.calculateLevelUpLimit(level)) {
         level++;
         recalculateMaxStats();
         health = max_health;
         mana = max_mana;
+    }
+
+    if (level >= FormulaEngine::MAX_LEVEL) {
+        exp = formulaEngine.calculateLevelUpLimit(FormulaEngine::MAX_LEVEL - 1);
     }
 }
 

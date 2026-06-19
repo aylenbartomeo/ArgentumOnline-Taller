@@ -29,7 +29,7 @@ using GameConstants::WINDOW_WIDTH;
 namespace {
 constexpr const char* HUD_FONT_PATH = "resources/fonts/DejaVuSans.ttf";
 constexpr const char* CHAT_FONT_PATH = "resources/fonts/DejaVuSans.ttf";
-constexpr const char* MANUAL_PATH = "resources/MANUAL_JUGADOR.md";
+constexpr const char* MANUAL_PATH = "resources/MANUAL_JUGADOR.toml";
 constexpr int FRAME_DURATION_MS = 16;
 
 std::string readWholeFile(const std::string& path) {

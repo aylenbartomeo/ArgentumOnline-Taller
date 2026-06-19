@@ -78,7 +78,7 @@ int HudPanel::slotAtPosition(int x, int y) const {
     const int pitch = INV_CELL + INV_GAP;
     const int col = relX / pitch;
     const int row = relY / pitch;
-    if (col >= INV_COLS || row >= 5) {
+    if (col >= INV_COLS || row >= 4) {
         return -1;
     }
     if (relX % pitch > INV_CELL || relY % pitch > INV_CELL) {
@@ -265,7 +265,12 @@ void HudPanel::render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats,
     drawInventory(renderer, stats);
     drawEquipment(renderer, stats);
     drawItemTooltip(renderer, stats);
-    drawText(renderer, "Nivel: " + std::to_string(stats.level), LEVEL_X, LEVEL_Y);
+    
+    std::string levelStr = "Nivel: " + std::to_string(stats.level);
+    if (stats.level >= 99) { // Nivel máximo, se usa 99 según MAX_LEVEL
+        levelStr += " (Máx)";
+    }
+    drawText(renderer, levelStr, LEVEL_X, LEVEL_Y);
     drawText(renderer, "Oro: " + std::to_string(stats.gold), GOLD_X, GOLD_Y);
     drawText(renderer,
              "Exp: " + std::to_string(stats.expIntoLevel) + "/" + std::to_string(stats.expForLevel),

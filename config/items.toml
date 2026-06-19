@@ -203,31 +203,31 @@ name = "pocima de Mana"
 price = 5
 type = "mana"
 durationMs = 0
-effectValue = 10
+effectValue = 25
 
 [[consumable]]
 id = 3010
-name = "pocima de vida"
+name = "pocima de Vida"
 price = 5
 type = "health"
 durationMs = 0
-effectValue = 10
+effectValue = 25
 
 [[consumable]]
 id = 3020
-name = "pocima de fuerza"
+name = "pocima de Fuerza"
 price = 5
 type = "boostStr"
 durationMs = 60000
-effectValue = 10
+effectValue = 15
 
 [[consumable]]
 id = 3030
-name = "pocima de agilidad"
+name = "pocima de Agilidad"
 price = 5
 type = "boostAgi"
 durationMs = 60000
-effectValue = 10
+effectValue = 15
 
 # =========================
 # BOSS DROPS - 4000 a 4999

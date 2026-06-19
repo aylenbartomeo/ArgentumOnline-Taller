@@ -6,8 +6,8 @@
 #include "Client.h"
 #include "Game.h"
 int main(int argc, const char* argv[]) try {
-    int windowW = 800;
-    int windowH = 600;
+    int windowW = 1024;
+    int windowH = 768;
     bool fullscreen = false;
 
     for (int i = 1; i < argc; ++i) {
