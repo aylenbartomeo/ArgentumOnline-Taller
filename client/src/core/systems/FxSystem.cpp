@@ -102,6 +102,14 @@ constexpr uint32_t FLAUTA_HEAL_DUR_MS = 60;
 constexpr int FLAUTA_HEAL_DRAW = GC::TILE_SIZE * 2;
 constexpr uint16_t HEAL_SPRITE_ID = 204;
 
+constexpr const char* FLAUTA_PROJ_SHEET = "vara-fresno-proj.png";  // o un sheet propio si lo tenés
+constexpr int FLAUTA_PROJ_FRAME_W = 128;
+constexpr int FLAUTA_PROJ_FRAME_H = 128;
+constexpr int FLAUTA_PROJ_COLS = 4;
+constexpr int FLAUTA_PROJ_FRAMES = 16;
+constexpr uint32_t FLAUTA_PROJ_DUR_MS = 60;
+constexpr int FLAUTA_PROJ_DRAW = GC::TILE_SIZE * 2;
+
 
 constexpr int BE_ATTACKED_FRAMES = 28;
 constexpr uint32_t BE_ATTACKED_FRAME_DUR_MS = 40;
@@ -275,8 +283,7 @@ void FxSystem::renderProjectiles(const CameraOffset& camera, uint32_t nowMs) {
 
         const uint16_t spriteId = anim.getSpriteId();
 
-        if (spriteId == ARROW_SPRITE_ID || spriteId == VARA_SPRITE_ID ||
-            spriteId == HEAL_SPRITE_ID) {
+        if (spriteId == ARROW_SPRITE_ID || spriteId == VARA_SPRITE_ID) {
             const std::string arrowPath = std::string(GC::RESOURCES_DIR) + ARROW_SHEET;
             if (!std::ifstream(arrowPath).good())
                 continue;
@@ -288,6 +295,19 @@ void FxSystem::renderProjectiles(const CameraOffset& camera, uint32_t nowMs) {
             const float angle = std::atan2(anim.getVelY(), anim.getVelX()) * 180.0f / M_PI;
             renderer.Copy(arrowSheet, SDL2pp::Rect(srcX, ARROW_SRC_Y, ARROW_FRAME_W, ARROW_FRAME_H),
                           dst, angle, SDL2pp::NullOpt, SDL_FLIP_NONE);
+
+        } else if (spriteId == HEAL_SPRITE_ID) {
+            const std::string p = std::string(GC::RESOURCES_DIR) + FLAUTA_PROJ_SHEET;
+            if (!std::ifstream(p).good())
+                continue;
+            SDL2pp::Texture& tex = textures.get(p);
+            const int frame = (nowMs / FLAUTA_PROJ_DUR_MS) % FLAUTA_PROJ_FRAMES;
+            const FrameRect fr =
+                    fxFrameRect(frame, FLAUTA_PROJ_FRAME_W, FLAUTA_PROJ_FRAME_H, FLAUTA_PROJ_COLS);
+            const SDL2pp::Rect dst(px - FLAUTA_PROJ_DRAW / 2, py - FLAUTA_PROJ_DRAW / 2,
+                                   FLAUTA_PROJ_DRAW, FLAUTA_PROJ_DRAW);
+            renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst, 0.0, SDL2pp::NullOpt,
+                          SDL_FLIP_NONE);
 
         } else if (spriteId == STAFF_SPRITE_ID) {
             const std::string p = std::string(GC::RESOURCES_DIR) + STAFF_PROJ_SHEET;
