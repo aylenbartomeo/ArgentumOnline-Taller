@@ -14,6 +14,7 @@ enum class Region {
     GO_CIUDADANOS,
     BACK,
     GOMA,
+    SPAWN,
     GUARDAR,
     MAPAS
 };
@@ -31,5 +32,7 @@ std::string mockupFile(Screen screen);
 Screen screenForRegion(Region region);
 LayoutRect topLeftToolsRect();
 LayoutRect terrenoBackRect();
+LayoutRect gomaRect();
+LayoutRect spawnRect();
 
 #endif

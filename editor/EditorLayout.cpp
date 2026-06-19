@@ -3,6 +3,7 @@
 namespace {
 constexpr LayoutRect CANVAS = {64, 72, 1018, 960};
 constexpr LayoutRect GOMA = {48, 48, 152, 156};
+constexpr LayoutRect SPAWN = {200, 48, 135, 156};
 constexpr LayoutRect GUARDAR = {1118, 148, 125, 95};
 constexpr LayoutRect MAPAS = {1255, 148, 135, 95};
 constexpr LayoutRect BACK_TERRENO = {35, 900, 165, 150};
@@ -23,6 +24,9 @@ LayoutRect canvasRect() { return CANVAS; }
 Region regionAtClick(Screen screen, int mx, int my) {
     if (inside(GOMA, mx, my)) {
         return Region::GOMA;
+    }
+    if (inside(SPAWN, mx, my)) {
+        return Region::SPAWN;
     }
     if (inside(GUARDAR, mx, my)) {
         return Region::GUARDAR;
@@ -90,3 +94,7 @@ Screen screenForRegion(Region region) {
 LayoutRect topLeftToolsRect() { return TOOLS; }
 
 LayoutRect terrenoBackRect() { return BACK_TERRENO; }
+
+LayoutRect gomaRect() { return GOMA; }
+
+LayoutRect spawnRect() { return SPAWN; }

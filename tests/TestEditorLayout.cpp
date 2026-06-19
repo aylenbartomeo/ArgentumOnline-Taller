@@ -54,3 +54,21 @@ TEST(EditorLayoutTest, MockupFilesAndScreenForRegion) {
     EXPECT_EQ(screenForRegion(Region::GO_TERRENO), Screen::TERRENO);
     EXPECT_EQ(screenForRegion(Region::GO_CIUDADANOS), Screen::CIUDADANOS);
 }
+
+TEST(EditorLayoutTest, SpawnOnEveryScreen) {
+    EXPECT_EQ(regionAtClick(Screen::PRINCIPAL, 267, 126), Region::SPAWN);
+    EXPECT_EQ(regionAtClick(Screen::MONSTRUOS, 267, 126), Region::SPAWN);
+}
+
+TEST(EditorLayoutTest, GomaAndSpawnRectsAreExposed) {
+    LayoutRect g = gomaRect();
+    EXPECT_EQ(g.x, 48);
+    EXPECT_EQ(g.y, 48);
+    EXPECT_EQ(g.w, 152);
+    EXPECT_EQ(g.h, 156);
+    LayoutRect s = spawnRect();
+    EXPECT_EQ(s.x, 200);
+    EXPECT_EQ(s.y, 48);
+    EXPECT_EQ(s.w, 135);
+    EXPECT_EQ(s.h, 156);
+}
