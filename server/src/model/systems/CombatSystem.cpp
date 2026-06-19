@@ -252,6 +252,12 @@ CombatResult CombatSystem::processAttack(Player& attacker, Attackable& target, f
     if (!res.attackHappened || res.isPending)
         return res;
 
+    if (!res.evaded && !res.isHeal && res.damage > 0) {
+        uint32_t attackXp = FormulaEngine::getInstance().calculateAttackXpGain(
+                res.damage, attacker.getLevel(), target.getLevel());
+        attacker.addExperience(attackXp);
+    }
+
     if (target.isDead()) {
         target.handleDeath();
         uint32_t killXp = FormulaEngine::getInstance().calculateKillXpGain(
@@ -282,6 +288,12 @@ void CombatSystem::onProjectileHit(Player& attacker, Attackable& target, IHitEff
     CombatResult res;
     if (hitEffect) {
         res = hitEffect->apply(attacker, target, modifiers, weapon, *this);
+    }
+
+    if (res.attackHappened && !res.evaded && !res.isHeal && res.damage > 0) {
+        uint32_t attackXp = FormulaEngine::getInstance().calculateAttackXpGain(
+                res.damage, attacker.getLevel(), target.getLevel());
+        attacker.addExperience(attackXp);
     }
 
     if (target.isDead()) {
