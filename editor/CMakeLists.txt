@@ -9,6 +9,7 @@ target_sources(lib_editor
     Toolbar.cpp
     EditorLayout.cpp
     MapRenderer.cpp
+    ScreenEditor.cpp
     SpawnCatalogs.cpp
     Font.cpp
     Editor.cpp
@@ -24,6 +25,7 @@ target_sources(lib_editor
     Toolbar.h
     EditorLayout.h
     MapRenderer.h
+    ScreenEditor.h
     SpawnCatalogs.h
     Font.h
     Editor.h
@@ -49,7 +51,7 @@ target_link_libraries(lib_editor PUBLIC
     pthread
 )
 
-add_executable(argentum_online_editor main.cpp)
+add_executable(argentum_online_editor MainScreenEditor.cpp)
 
 set_target_properties(argentum_online_editor PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
@@ -58,6 +60,16 @@ set_target_properties(argentum_online_editor PROPERTIES
 target_link_libraries(argentum_online_editor PRIVATE lib_editor)
 
 set_project_warnings(argentum_online_editor ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
+
+add_executable(argentum_online_editor_classic main.cpp)
+
+set_target_properties(argentum_online_editor_classic PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+target_link_libraries(argentum_online_editor_classic PRIVATE lib_editor)
+
+set_project_warnings(argentum_online_editor_classic ${ARGENTUM_ONLINE_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
 add_executable(argentum_map_builder MapBuilder.cpp)
 
