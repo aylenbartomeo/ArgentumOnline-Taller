@@ -8,6 +8,7 @@ target_sources(lib_editor
     Palette.cpp
     Toolbar.cpp
     EditorLayout.cpp
+    MapRenderer.cpp
     SpawnCatalogs.cpp
     Font.cpp
     Editor.cpp
@@ -22,6 +23,7 @@ target_sources(lib_editor
     Palette.h
     Toolbar.h
     EditorLayout.h
+    MapRenderer.h
     SpawnCatalogs.h
     Font.h
     Editor.h
