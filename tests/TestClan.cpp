@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <chrono>
+#include <string>
 #include <thread>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -13,27 +15,8 @@
 #include "model/items/ItemRegistry.h"
 
 #include "GameLoop.h"
+#include "TestHelpers.h"
 #include "World.h"
-
-static CharacterConfigs getTestConfigs() {
-    PlayerConfig base{15, 15, 15, 15, 1, 0, 0};
-    RaceConfig human{1.0f, 1.0f, 1.0f};
-    CharacterClassConfig warrior{1.0f, 1.0f, 1.0f, false};
-    return CharacterConfigs{base, {{Race::HUMAN, human}}, {{CharacterClass::WARRIOR, warrior}}};
-}
-
-static InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
-
-static ServerConfig getTestServerConfig() {
-    ServerConfig config;
-    config.worldName = "";
-    config.mapPath = "";
-    config.clanBonusRange = 5;
-    config.criticalProbability = 0.10f;
-    config.clanAttackBonusPerMember = 0.05f;
-    config.clanDefenseBonusPerMember = 0.05f;
-    return config;
-}
 
 struct MockWorldContext: public IWorldContext {
     uint16_t getPlayerLevel(uint32_t) const override { return 10; }
@@ -115,6 +98,7 @@ protected:
         });
     }
 };
+
 // =============================================================================
 // BLOQUE 1 — Fundación de clan
 // =============================================================================
@@ -125,7 +109,6 @@ TEST_F(ClanSystemTest, FoundClan_OK) {
 }
 
 TEST_F(ClanSystemTest, FoundClan_LevelTooLow) {
-    // Restauramos temporalmente la restricción de nivel a 6 solo para este test
     service.setMinLevelToFound(6);
 
     EXPECT_EQ(foundClan(1, "MiClan", 3), ClanOpResult::LEVEL_TOO_LOW);
@@ -323,7 +306,7 @@ TEST_F(ClanSystemTest, ReviewClan_ShowsPendingRequests) {
 
     notifs.clear();
     controller.handleReviewClan(1, mockCtx, notifs);
-    EXPECT_TRUE(hasNotifFor(1, std::to_string(2)));  // ID de la solicitud pendiente
+    EXPECT_TRUE(hasNotifFor(1, std::to_string(2)));
 }
 
 TEST_F(ClanSystemTest, ReviewClan_OnlyFounderCanReview) {
@@ -348,11 +331,17 @@ protected:
 
     void SetUp() override {
         registry = new ItemRegistry("../config/items.toml");
-        CharacterConfigs configs = getTestConfigs();
-        world = new World(1, "Tester", *registry, configs, getTestInventoryConfig(),
-                          getTestServerConfig());
 
-        // Desactivamos el Fair Play (Modo Arena) y bajamos el nivel de clan a 1 para los tests
+        PlayerConfig singlePlayerCfg = TestUtils::getTestPlayerConfig();
+        std::unordered_map<Race, RaceConfig> raceMap = {
+                {Race::HUMAN, TestUtils::getTestRaceConfig()}};
+        std::unordered_map<CharacterClass, CharacterClassConfig> classMap = {
+                {CharacterClass::WARRIOR, TestUtils::getTestClassConfig()}};
+        CharacterConfigs configs{singlePlayerCfg, raceMap, classMap};
+
+        world = new World(1, "Tester", *registry, configs, TestUtils::getTestInventoryConfig(),
+                          TestUtils::getTestServerConfig());
+
         world->setFairPlayRules(false);
         world->setClanMinLevel(1);
 
@@ -362,13 +351,11 @@ protected:
         pdata.level = 1;
         pdata.hp = 15;
         pdata.mana = 15;
-
         pdata.race = static_cast<uint8_t>(Race::HUMAN);
         pdata.characterClass = static_cast<uint8_t>(CharacterClass::WARRIOR);
 
         std::string u1 = "Founder", u2 = "Member1", u3 = "Member2";
 
-        // Pasamos el mismo pdata limpio para los tres (les cambia el dbId adentro de addPlayer)
         world->addPlayer(1, u1, Race::HUMAN, CharacterClass::WARRIOR, pdata);
         world->addPlayer(2, u2, Race::HUMAN, CharacterClass::WARRIOR, pdata);
         world->addPlayer(3, u3, Race::HUMAN, CharacterClass::WARRIOR, pdata);
@@ -379,7 +366,6 @@ protected:
         delete registry;
     }
 
-    // Envía un ClanCommandDTO al World y descarta notificaciones intermedias
     void sendCmd(uint32_t sender, ClanCommandType type, const std::string& arg = "",
                  uint32_t targetDbId = 0) {
         ClanCommandDTO cmd;
@@ -387,10 +373,9 @@ protected:
         cmd.arg1 = arg;
         cmd.targetDbId = targetDbId;
         world->processClanCommand(sender, cmd);
-        world->pollEvents();  // limpiar cola de eventos
+        world->pollEvents();
     }
 
-    // Funda un clan con el jugador 1 y hace que 2 y 3 sean miembros
     void setupClanWithMembers() {
         sendCmd(1, ClanCommandType::FOUND, "Alpha");
         sendCmd(2, ClanCommandType::JOIN, "Alpha");
@@ -402,14 +387,12 @@ protected:
 
 TEST_F(WorldClanTest, World_FoundClan_EventReachesQueue) {
     sendCmd(1, ClanCommandType::FOUND, "LosBravos");
-    // No lanzó excepción: el comando se procesó sin errores
     SUCCEED();
 }
 
 TEST_F(WorldClanTest, World_ClanmatesCannotAttackEachOther) {
     setupClanWithMembers();
 
-    // Intentar atacar: jugador 1 a jugador 2 (clanmates) → debe generar evento de rechazo
     world->playerAttack(1, 2);
     auto events = world->pollEvents();
 
@@ -420,17 +403,14 @@ TEST_F(WorldClanTest, World_ClanmatesCannotAttackEachOther) {
 }
 
 TEST_F(WorldClanTest, World_PlayersInDifferentClans_CanAttackEachOther) {
-    // Jugador 1 funda Alpha, jugador 3 funda Beta
     sendCmd(1, ClanCommandType::FOUND, "Alpha");
 
-    // Agregar cuarto jugador para fundar Beta
     std::string u4 = "OtherFounder";
     world->addPlayer(4, u4, Race::HUMAN, CharacterClass::WARRIOR, pdata);
     world->pollEvents();
 
     sendCmd(4, ClanCommandType::FOUND, "Beta");
 
-    // 1 ataca a 4 (clanes distintos): no debe haber mensaje de "No puedes atacar"
     world->playerAttack(1, 4);
     auto events = world->pollEvents();
 
@@ -443,25 +423,16 @@ TEST_F(WorldClanTest, World_PlayersInDifferentClans_CanAttackEachOther) {
 TEST_F(WorldClanTest, World_UnderAttack_NotifiesClanmates) {
     setupClanWithMembers();
 
-    // Agregar un cuarto jugador sin clan para que ataque al clan
     std::string u4 = "Enemy";
-    // Asegurarnos de que el jugador 4 esté adyacente al jugador 2 para que el ataque melee pase el
-    // filtro
-    PlayerPersistData pdata4 = pdata;
-    // Jugador 2 suele terminar en (4,4) u otra celda cercana a (5,5).
-    // Lo ideal es simplemente usar un arma de rango o acercarlo.
-    // Demosle un arco al jugador 4 para asegurarnos de que el rango no sea problema.
     world->addPlayer(4, u4, Race::HUMAN, CharacterClass::WARRIOR, pdata);
     world->playerCheat(4, CheatType::GIVE_WEAPONS);
-    world->equipItem(4, 4);  // slot 4 tiene Arco Compuesto (2011) en GIVE_WEAPONS
+    world->equipItem(4, 4);
 
     world->pollEvents();
 
-    // Enemy (4) ataca a Member1 (2)
     world->playerAttack(4, 2);
     auto events = world->pollEvents();
 
-    // Los clanmates (1 y 3) deben recibir la alerta
     bool notif1 = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
         return e.targetDbId == 1 && e.message.find("atacado") != std::string::npos;
     });
@@ -476,11 +447,8 @@ TEST_F(WorldClanTest, World_UnderAttack_NotifiesClanmates) {
 TEST_F(WorldClanTest, World_LoginNotifiesClanmates) {
     setupClanWithMembers();
 
-    // Un nuevo jugador se une al clan
     std::string u5 = "Newbie";
-    world->addPlayer(5, u5, Race::HUMAN, CharacterClass::WARRIOR,
-                     pdata);  // esto genera notificación si 5 ya estuviera en un clan
-    // En este caso 5 no está en un clan aún, así que no hay notificación de clan en login
+    world->addPlayer(5, u5, Race::HUMAN, CharacterClass::WARRIOR, pdata);
     auto events = world->pollEvents();
 
     bool unexpectedClanNotif = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
@@ -493,11 +461,9 @@ TEST_F(WorldClanTest, World_LoginNotifiesClanmates) {
 TEST_F(WorldClanTest, World_LogoffNotifiesClanmates) {
     setupClanWithMembers();
 
-    // Jugador 2 (miembro del clan) se desconecta
     world->removePlayer(2);
     auto events = world->pollEvents();
 
-    // Jugador 1 debe recibir notificación de logoff de Member1
     bool foundLogoff = std::any_of(events.begin(), events.end(), [](const WorldEvent& e) {
         return e.targetDbId == 1 && e.message.find("[Clan]") != std::string::npos &&
                e.message.find("salió") != std::string::npos;
@@ -513,7 +479,6 @@ TEST_F(WorldClanTest, World_AreClanmates_TrueAfterAccept) {
 
 TEST_F(WorldClanTest, World_AreClanmates_FalseForNonMembers) {
     sendCmd(1, ClanCommandType::FOUND, "Alpha");
-    // Jugador 2 y 3 no están en el clan
     EXPECT_FALSE(world->areClanmates(1, 2));
     EXPECT_FALSE(world->areClanmates(2, 3));
 }
@@ -521,14 +486,12 @@ TEST_F(WorldClanTest, World_AreClanmates_FalseForNonMembers) {
 TEST_F(WorldClanTest, World_ProcessClanCommand_LeaveRemovesMember) {
     setupClanWithMembers();
     sendCmd(2, ClanCommandType::LEAVE);
-    // Ya no son clanmates
     EXPECT_FALSE(world->areClanmates(1, 2));
 }
 
 TEST_F(WorldClanTest, World_ProcessClanCommand_FounderCannotLeave) {
     setupClanWithMembers();
 
-    // Capturar el mensaje de error
     ClanCommandDTO cmd;
     cmd.type = ClanCommandType::LEAVE;
     world->processClanCommand(1, cmd);
@@ -538,7 +501,6 @@ TEST_F(WorldClanTest, World_ProcessClanCommand_FounderCannotLeave) {
         return e.targetDbId == 1 && e.message.find("fundador") != std::string::npos;
     });
     EXPECT_TRUE(foundError);
-    // Sigue siendo clanmate con 2
     EXPECT_TRUE(world->areClanmates(1, 2));
 }
 
@@ -550,14 +512,15 @@ TEST(ClanGameLoopTest, GameLoop_ProcessesClanFoundCommand) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
     WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
-    GameLoop loop(gameQueue, monitor, "../config", wConfig, getTestServerConfig());
-    // Jugador ingresa
+
+    // 🚀 Uso de TestUtils para inyectar la configuración del servidor unificada
+    GameLoop loop(gameQueue, monitor, "../config", wConfig, TestUtils::getTestServerConfig());
+
     JoinEvent join;
     join.clientId = 1;
     join.username = "HeroFounder";
     gameQueue.push(join);
 
-    // El jugador envía /fundar-clan
     ClanCommandDTO clanCmd;
     clanCmd.type = ClanCommandType::FOUND;
     clanCmd.arg1 = "LosHeroes";
@@ -573,7 +536,6 @@ TEST(ClanGameLoopTest, GameLoop_ProcessesClanFoundCommand) {
     if (hiloGL.joinable())
         hiloGL.join();
 
-    // Si no lanzó excepción, el comando fue despachado correctamente
     SUCCEED();
 }
 
@@ -581,9 +543,10 @@ TEST(ClanGameLoopTest, GameLoop_ProcessesClanJoinAndAccept) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
     WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
-    GameLoop loop(gameQueue, monitor, "../config", wConfig, getTestServerConfig());
 
-    // Dos jugadores ingresan
+    // 🚀 Uso de TestUtils
+    GameLoop loop(gameQueue, monitor, "../config", wConfig, TestUtils::getTestServerConfig());
+
     auto pushJoin = [&](uint32_t id, const std::string& name) {
         JoinEvent j;
         j.clientId = id;

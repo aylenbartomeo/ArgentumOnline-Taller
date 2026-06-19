@@ -7,26 +7,8 @@
 #include "model/items/ItemRegistry.h"
 
 #include "Merchant.h"
+#include "TestHelpers.h"  // <--- Incluimos tu nuevo archivo unificado de helpers
 #include "World.h"
-
-// Helper para armar comandos de red simulados
-NpcCommandDTO createTestCommand(NpcCommandType type, const std::string& itemIdStr) {
-    NpcCommandDTO dto;
-    dto.type = type;
-    dto.arg = itemIdStr;
-    return dto;
-}
-
-// Helper: crea un Player base para tests
-static Player makeTestPlayer(uint32_t id = 1) {
-    std::string name = "TestPlayer";
-    RaceConfig race = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
-    CharacterClassConfig cls = {1.0f, 1.0f, 1.0f, false};
-    PlayerConfig cfg = {15, 15, 15, 15, 1, 0, 0};
-    InventoryConfig invCfg = {16, 0, 10000, 5000};
-    return Player(id, id, name, Race::HUMAN, CharacterClass::WARRIOR, race, cls, cfg, invCfg,
-                  FormulaEngine::getInstance());
-}
 
 // =========================================================================
 // TEST 1: COMPRA UNITARIA EXITOSA (Usando la Espada 4001 de tu TOML)
@@ -35,16 +17,18 @@ TEST(MerchantTest, Merchant_BuySingleWeaponSuccessfully) {
     ItemRegistry registry("../config/items.toml");
     Position merchantPos{5, 5};
     Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
-    Player player = makeTestPlayer();
+
+    // 🚀 Instanciación limpia y unificada con TestUtils
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
     player.addGold(500);
 
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "Espada");
+    NpcCommandDTO cmd = TestUtils::createTestCommand(NpcCommandType::BUY, "Espada");
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
     EXPECT_EQ(player.getGold(), 480u);
 
-    // 2. El ítem 4001 ingresó efectivamente en el slot 0 de la mochila
+    // El ítem 2000u ingresó efectivamente en el slot 0 de la mochila
     auto slotOpt = player.inspectSlot(0);
     ASSERT_TRUE(slotOpt.has_value());
     EXPECT_EQ(slotOpt->item_id, 2000u);
@@ -58,7 +42,7 @@ TEST(MerchantTest, Merchant_BuyWithFullInventoryDoesNotStealGold) {
     ItemRegistry registry("../config/items.toml");
     Position merchantPos{5, 5};
     Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
 
     player.addGold(200);
 
@@ -69,13 +53,12 @@ TEST(MerchantTest, Merchant_BuyWithFullInventoryDoesNotStealGold) {
         player.addItem(1000u + i, 1);  // IDs distintos para ocupar cada slot
     }
 
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "Espada");
+    NpcCommandDTO cmd = TestUtils::createTestCommand(NpcCommandType::BUY, "Espada");
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES CRÍTICAS:
-    // 0. Verificamos que la compra fue rechazada
     EXPECT_EQ(res.status, InteractionStatus::FAILURE);
-    // 1. ¡Rollback exitoso! El oro debe permanecer en 200 de forma segura
+    // ¡Rollback exitoso! El oro debe permanecer intacto de forma segura
     EXPECT_EQ(player.getGold(), 200u);
 }
 
@@ -86,20 +69,19 @@ TEST(MerchantTest, Merchant_RejectsMagicItemsBasedOnName) {
     ItemRegistry registry("../config/items.toml");
     Position merchantPos{5, 5};
     Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
 
     player.addGold(300);
 
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::BUY, "Baculo nudoso");  // Baculo nudoso
+    NpcCommandDTO cmd = TestUtils::createTestCommand(NpcCommandType::BUY, "Baculo nudoso");
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
-    // 0. Verificamos que la compra fue rechazada por filtro de magia
+    // Verificamos que la compra fue rechazada por filtro de magia
     EXPECT_EQ(res.status, InteractionStatus::FAILURE);
-    // 1. Verificamos que no se le haya descontado un solo centavo de oro
+    // Verificamos que no se le haya descontado un solo centavo de oro
     EXPECT_EQ(player.getGold(), 300u);
 
-    // 2. Verificamos que el inventario siga vacío (no se agregó el báculo)
-    // (Asumiendo que arranca vacía con el helper makeTestPlayer)
+    // Verificamos que el inventario siga vacío (no se agregó el báculo)
     if (player.getSize() > 0) {
         auto slotOpt = player.inspectSlot(0);
         EXPECT_FALSE(slotOpt.has_value());
@@ -113,14 +95,14 @@ TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
     ItemRegistry registry("../config/items.toml");
     Position merchantPos{5, 5};
     Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
 
-    // Le damos una "Armadura de cuero" (ID: 1001) directo en la mochila
+    // Le damos una "Armadura de cuero" (ID: 1000) directo en la mochila
     player.addItem(1000, 1);
-    EXPECT_EQ(player.getGold(), 0u);  // Arranca seco
+    EXPECT_EQ(player.getGold(), 0u);  // Arranca sin oro
 
     // Ejecutamos el comando de venta de la armadura
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::SELL, "Armadura de cuero");
+    NpcCommandDTO cmd = TestUtils::createTestCommand(NpcCommandType::SELL, "Armadura de cuero");
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES:
@@ -129,7 +111,7 @@ TEST(MerchantTest, Merchant_SellItemIncrementsMerchantStock) {
     auto slotOpt = player.inspectSlot(0);
     EXPECT_FALSE(slotOpt.has_value());
 
-    // Traemos el precio base del .toml (150) y calculamos la mitad (75)
+    // Traemos el precio base del .toml y calculamos la mitad por venta de usados
     uint32_t precioBase = registry.get_item(1000u)->getPrice();
     uint32_t oroEsperado = precioBase / 2;
 
@@ -143,21 +125,20 @@ TEST(MerchantTest, Merchant_ListStockSuccessfully) {
     ItemRegistry registry("../config/items.toml");
     Position merchantPos{5, 5};
     Merchant comerciante(1, merchantPos, registry, {{2000u, 10}});
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
 
     // El jugador ejecuta el comando para listar la tienda del mercader
-    NpcCommandDTO cmd = createTestCommand(NpcCommandType::LIST, "");
+    NpcCommandDTO cmd = TestUtils::createTestCommand(NpcCommandType::LIST, "");
     InteractionResult res = comerciante.handleCommand(player, cmd);
 
     // VALIDACIONES:
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
 
-    // Verificamos que el mensaje contenga palabras claves del catálogo formateado
+    // Verificamos formato del catálogo expuesto en la red
     EXPECT_NE(res.msg.find("--- CATÁLOGO DISPONIBLE ---"), std::string::npos);
     EXPECT_NE(res.msg.find("Disp:"), std::string::npos);
     EXPECT_NE(res.msg.find("Compra:"), std::string::npos);
 
-    // Verificamos que al menos uno de los ítems hardcodeados del stock inicial esté presente en el
-    // texto El stock inicial del Merchant posee la Espada y la Armadura de cuero
+    // Verificamos que la espada del stock inicial esté mapeada en el texto string literal
     EXPECT_NE(res.msg.find("Espada"), std::string::npos);
 }

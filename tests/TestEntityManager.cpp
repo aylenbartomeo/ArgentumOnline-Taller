@@ -1,21 +1,16 @@
+#include <algorithm>
+
 #include <gtest/gtest.h>
 
 #include "model/entities/EntityManager.h"
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
 
-static PlayerConfig getTestPlayerConfig() { return {15, 15, 15, 15, 1, 0, 0}; }
-static RaceConfig getTestRaceConfig() { return {1.0f, 1.0f, 1.0f}; }
-static CharacterClassConfig getTestClassConfig() { return {1.0f, 1.0f, 1.0f, false}; }
-static InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
+#include "TestHelpers.h"
 
-std::unique_ptr<Player> createTestPlayer(uint32_t entityId, uint32_t dbId, const std::string& name,
-                                         const ItemRegistry& reg) {
-    return std::make_unique<Player>(entityId, dbId, name, Race::HUMAN, CharacterClass::WARRIOR,
-                                    getTestRaceConfig(), getTestClassConfig(),
-                                    getTestPlayerConfig(), reg, getTestInventoryConfig(),
-                                    Position{0, 0});
-}
+// =========================================================================
+// PRUEBAS DE CICLO DE VIDA Y GESTIÓN DE ENTIDADES
+// =========================================================================
 
 TEST(EntityManagerTest, HandlesPlayerLifecycle) {
     EntityManager em;
@@ -26,8 +21,10 @@ TEST(EntityManagerTest, HandlesPlayerLifecycle) {
 
     uint32_t e1 = em.allocateEntityId();
     uint32_t e2 = em.allocateEntityId();
-    auto p1 = createTestPlayer(e1, id1, "PlayerOne", reg);
-    auto p2 = createTestPlayer(e2, id2, "PlayerTwo", reg);
+
+    // 🚀 Instanciación directa y limpia delegada a los builders de TestUtils
+    auto p1 = std::make_unique<Player>(TestUtils::makeTestPlayer(id1, "PlayerOne"));
+    auto p2 = std::make_unique<Player>(TestUtils::makeTestPlayer(id2, "PlayerTwo"));
 
     em.registerPlayer(e1, id1, std::move(p1));
     em.registerPlayer(e2, id2, std::move(p2));
@@ -37,9 +34,10 @@ TEST(EntityManagerTest, HandlesPlayerLifecycle) {
 
     // Fallar al duplicar ID de base de datos
     uint32_t e3 = em.allocateEntityId();
-    auto p3 = createTestPlayer(e3, id1, "PlayerThree", reg);
+    auto p3 = std::make_unique<Player>(TestUtils::makeTestPlayer(id1, "PlayerThree"));
     em.registerPlayer(e3, id1, std::move(p3));
-    // It shouldn't add a new one if duplicate dbId exists
+
+    // No debería agregar un nuevo jugador si ya existe el dbId duplicado
     EXPECT_EQ(em.getPlayerCount(), 2);
 
     EXPECT_TRUE(em.removePlayer(id1));
@@ -56,10 +54,10 @@ TEST(EntityManagerTest, RemoveNonExistentPlayerReturnsFalse) {
 
 TEST(EntityManagerTest, GetPlayerPositionReturnsCurrentPos) {
     EntityManager em;
-    ItemRegistry reg("../config/items.toml");
     uint32_t dbId = 100;
     uint32_t e = em.allocateEntityId();
-    auto p = createTestPlayer(e, dbId, "PlayerOne", reg);
+
+    auto p = std::make_unique<Player>(TestUtils::makeTestPlayer(dbId, "PlayerOne"));
     p->setPosition(Position{10, 20});
     em.registerPlayer(e, dbId, std::move(p));
 
@@ -71,10 +69,10 @@ TEST(EntityManagerTest, GetPlayerPositionReturnsCurrentPos) {
 
 TEST(EntityManagerTest, GetPlayerUsernameReturnsCorrectName) {
     EntityManager em;
-    ItemRegistry reg("../config/items.toml");
     uint32_t dbId = 123;
     uint32_t e = em.allocateEntityId();
-    auto p = createTestPlayer(e, dbId, "UsernameTest", reg);
+
+    auto p = std::make_unique<Player>(TestUtils::makeTestPlayer(dbId, "UsernameTest"));
     em.registerPlayer(e, dbId, std::move(p));
 
     auto nameOpt = em.getPlayerUsername(dbId);
@@ -84,12 +82,12 @@ TEST(EntityManagerTest, GetPlayerUsernameReturnsCorrectName) {
 
 TEST(EntityManagerTest, GetOnlinePlayerDbIdsReturnsAllActive) {
     EntityManager em;
-    ItemRegistry reg("../config/items.toml");
 
     uint32_t e1 = em.allocateEntityId();
     uint32_t e2 = em.allocateEntityId();
-    auto p1 = createTestPlayer(e1, 10, "P1", reg);
-    auto p2 = createTestPlayer(e2, 20, "P2", reg);
+
+    auto p1 = std::make_unique<Player>(TestUtils::makeTestPlayer(10, "P1"));
+    auto p2 = std::make_unique<Player>(TestUtils::makeTestPlayer(20, "P2"));
 
     em.registerPlayer(e1, 10, std::move(p1));
     em.registerPlayer(e2, 20, std::move(p2));

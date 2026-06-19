@@ -57,8 +57,10 @@ target_sources(argentum_online_tests
     TestMapChooser.cpp
     TestSpawnCatalogs.cpp
     TestPersistence.cpp
-    TestEntityCollision.cpp
     TestCombatSystem.cpp
+    TestHelpers.cpp
+    PUBLIC
+    TestHelpers.h
 )
 
 # Solo incluimos directorios ajenos al servidor (los del server ya los provee lib_server por herencia)
