@@ -42,7 +42,9 @@ ScreenEditor::ScreenEditor():
         activeTool(Tool::NONE),
         rightDragging(false),
         lastMouseX(0),
-        lastMouseY(0) {
+        lastMouseY(0),
+        currentMapPath(MapDefaults::DEFAULT_MAP_PATH),
+        savedFlashUntil(0) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 }
 
@@ -73,6 +75,8 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
                 activeTool = Tool::ERASER;
             } else if (region == Region::SPAWN) {
                 activeTool = Tool::SPAWN;
+            } else if (region == Region::GUARDAR) {
+                saveMap();
             } else if (region == Region::CANVAS && activeTool != Tool::NONE) {
                 LayoutRect c = canvasRect();
                 Position cell = camera.screenToCell(p.x - c.x, p.y - c.y);
@@ -156,6 +160,13 @@ void ScreenEditor::render() {
             renderer.DrawRect(SDL2pp::Rect(hx + i, hy + i, hw - 2 * i, hh - 2 * i));
         }
     }
+    if (SDL_GetTicks() < savedFlashUntil) {
+        LayoutRect g = guardarRect();
+        renderer.SetDrawColor(255, 235, 0, 255);
+        for (int i = 0; i < 4; ++i) {
+            renderer.DrawRect(SDL2pp::Rect(g.x + i, g.y + i, g.w - 2 * i, g.h - 2 * i));
+        }
+    }
     if (screen == Screen::TERRENO) {
         LayoutRect b = terrenoBackRect();
         SDL2pp::Texture& back = textures.get(std::string(EDITOR_RES) + "BackTerreno.png");
@@ -167,6 +178,11 @@ void ScreenEditor::render() {
     renderer.Clear();
     renderer.Copy(canvasTarget, SDL2pp::NullOpt, SDL2pp::NullOpt);
     renderer.Present();
+}
+
+void ScreenEditor::saveMap() {
+    writeMapFile(currentMapPath, map.toJson());
+    savedFlashUntil = SDL_GetTicks() + 700;
 }
 
 void ScreenEditor::run() {

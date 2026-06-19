@@ -28,9 +28,12 @@ private:
     bool rightDragging;
     int lastMouseX;
     int lastMouseY;
+    std::string currentMapPath;
+    Uint32 savedFlashUntil;
 
     void handleEvent(const SDL_Event& event, bool& running);
     void render();
+    void saveMap();
     SDL2pp::Rect canvasViewport() const;
     SDL2pp::Point toMockup(int winX, int winY) const;
 
