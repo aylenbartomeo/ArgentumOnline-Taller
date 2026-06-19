@@ -127,6 +127,27 @@ TEST(MapTest, Map_LoadsSpawnAndDimensionsFromJson) {
     EXPECT_FLOAT_EQ(spawn.second, 9.0f);
 }
 
+TEST(MapTest, Map_DungeonFromJsonBecomesBossZoneCenteredInArena) {
+    const std::string path = "/tmp/test_map_dungeon_boss.json";
+    std::ofstream out(path);
+    out << R"({"width":100,"height":100,"spawn":{"x":0,"y":0},)"
+        << R"("dungeons":[{"x":40,"y":50,"width":14,"height":14}]})";
+    out.close();
+
+    Map mapa;
+    ASSERT_TRUE(mapa.loadSpawnFromJson(path));
+
+    ASSERT_EQ(mapa.getBossZones().size(), 1u);
+    const BossZoneConfig& bz = mapa.getBossZones()[0];
+    EXPECT_EQ(bz.x, 40);
+    EXPECT_EQ(bz.y, 50);
+    EXPECT_EQ(bz.width, 14);
+    EXPECT_EQ(bz.height, 14);
+    EXPECT_EQ(bz.spawnX, 47);
+    EXPECT_EQ(bz.spawnY, 57);
+    EXPECT_FLOAT_EQ(bz.respawnCooldownMs, 300000.0f);
+}
+
 TEST(MapTest, Map_LoadSpawnFromJsonFailsOnMissingFile) {
     Map mapa;
     EXPECT_FALSE(mapa.loadSpawnFromJson("/tmp/no_existe_este_mapa_12345.json"));

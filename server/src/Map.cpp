@@ -98,6 +98,20 @@ bool Map::loadSpawnFromJson(const std::string& path, const MapLoadOptions& optio
         }
     }
 
+    if (data.contains("dungeons")) {
+        for (const auto& d: data["dungeons"]) {
+            BossZoneConfig config;
+            config.x = d["x"].get<int>();
+            config.y = d["y"].get<int>();
+            config.width = d["width"].get<int>();
+            config.height = d["height"].get<int>();
+            config.spawnX = config.x + config.width / 2;
+            config.spawnY = config.y + config.height / 2;
+            config.respawnCooldownMs = 300000.0f;
+            bossZones.push_back(config);
+        }
+    }
+
     if (data.contains("safeZones")) {
         for (const auto& zone: data["safeZones"]) {
             safeZones.addZone(zone["name"].get<std::string>(), zone["x"].get<int>(),
