@@ -155,8 +155,7 @@ void Game::run() {
         inputProcessor.processUseInput(input, audio);
         inputProcessor.processActionKeysInput(input);
         inputProcessor.processSelectSlotInput(input);
-        inputProcessor.processUiInput(input);
-
+        inputProcessor.processUiInput(input, audio);
         if (input.toggleMute)
             audio.toggleMute();
 
@@ -256,7 +255,7 @@ void Game::render(const FrameInput& input) {
     miniChat.render(renderer.Get(), VIEW_X + VIEW_W, VIEW_Y + VIEW_H, input.chatInputActive,
                     input.chatText);
     hud.renderBackground(renderer);
-    hud.render(renderer, lastStats, lastStatsReceiveTimeMs);
+    hud.render(renderer, lastStats, lastStatsReceiveTimeMs, audio.getIsMuted());
     manualPanel.render(renderer.Get(), WINDOW_WIDTH, WINDOW_HEIGHT);
 
     renderer.Present();

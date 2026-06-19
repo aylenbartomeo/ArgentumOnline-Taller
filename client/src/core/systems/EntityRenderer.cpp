@@ -520,6 +520,8 @@ void EntityRenderer::drawWeapon(const EntityDTO& entity, const PlayerStatsDTO* l
         weaponCfg = {"items/baculo-nudoso.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
     else if (isItemEquipped(entity, localStats, 2023))
         weaponCfg = {"items/baculo-engarzado.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
+    else if (isItemEquipped(entity, localStats, 2021))
+        weaponCfg = {"items/flauta-elfica.png", 0, PIV_CENTER_X, PIV_CENTER_Y};
 
     std::string weaponSheet = "";
     if (isItemEquipped(entity, localStats, 4001))

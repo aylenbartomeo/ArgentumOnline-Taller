@@ -13,8 +13,8 @@ const SDL_Rect BTN_COMENZAR = {280, 490, 240, 50};
 
 const SDL_Rect BTN_LOGIN = {450, 320, 200, 40};
 const SDL_Rect BTN_REGISTER = {120, 445, 200, 45};
-const SDL_Rect BTN_CLOSE = {500, 450, 200, 45};
-
+const SDL_Rect BTN_CLOSE_AUTH = {500, 450, 200, 45};
+const SDL_Rect BTN_CLOSE_CONNECTION = {760, 8, 30, 30};
 Launcher::Launcher(int width, int height, bool fullscreen):
         client(nullptr),
         authenticated(false),
@@ -52,8 +52,8 @@ Launcher::Launcher(int width, int height, bool fullscreen):
                   << std::endl;
     }
 
-    ipBox = {225, 251, 340, 35, "127.0.0.1", false, false};
-    portBox = {240, 328, 340, 35, "8080", false, false};
+    ipBox = {155, 251, 340, 35, "127.0.0.1", false, false};
+    portBox = {155, 328, 340, 35, "8080", false, false};
 
     userBox = {122, 245, 340, 35, "", false, false};
     passBox = {415, 245, 340, 35, "", false, true};
@@ -102,7 +102,29 @@ void Launcher::handleEvents(bool& quit) {
                     activeBox = &passBox;
             }
             if (activeBox) {
-                activeBox->text += e.text.text;
+                std::string newText = activeBox->text + e.text.text;
+                std::string display = newText;
+                if (activeBox->isPassword) {
+                    display = std::string(newText.length(), '*');
+                }
+                
+                int w = 0, h = 0;
+                if (font && TTF_SizeUTF8(font, display.c_str(), &w, &h) == 0) {
+                    int max_w = activeBox->w - 30;
+                    if (state == LauncherState::CONNECTION) {
+                        max_w -= 80; // Equivalente a ~8 caracteres menos para IP y Puerto
+                    } else if (state == LauncherState::AUTHENTICATION) {
+                        max_w -= 60; // Equivalente a ~6 caracteres menos para Usuario y Contraseña
+                        if (activeBox->isPassword) {
+                            max_w -= 10; // 1 caracter menos para la contraseña
+                        }
+                    }
+                    if (w <= max_w) {
+                        activeBox->text = newText;
+                    }
+                } else if (newText.length() < 50) { // Fallback en caso de error
+                    activeBox->text = newText;
+                }
             }
         } else if (e.type == SDL_KEYDOWN) {
             TextBox* activeBox = nullptr;
@@ -151,12 +173,12 @@ void Launcher::handleMouseClick(int x, int y, bool& quit) {
         return mx >= b.x && mx <= (b.x + b.w) && my >= b.y && my <= (b.y + b.h);
     };
 
-    if (isInside(x, y, BTN_CLOSE)) {
-        quit = true;
-        return;
-    }
-
     if (state == LauncherState::CONNECTION) {
+        if (isInside(x, y, BTN_CLOSE_CONNECTION)) {
+            quit = true;
+            return;
+        }
+
         ipBox.isFocused = isInsideBox(x, y, ipBox);
         portBox.isFocused = isInsideBox(x, y, portBox);
 
@@ -179,6 +201,11 @@ void Launcher::handleMouseClick(int x, int y, bool& quit) {
             }
         }
     } else if (state == LauncherState::AUTHENTICATION) {
+        if (isInside(x, y, BTN_CLOSE_AUTH)) {
+            quit = true;
+            return;
+        }
+
         userBox.isFocused = isInsideBox(x, y, userBox);
         passBox.isFocused = isInsideBox(x, y, passBox);
 

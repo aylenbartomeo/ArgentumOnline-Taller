@@ -74,9 +74,6 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         player->addItem(2021, 1);
         player->addItem(2022, 1);
         player->addItem(2023, 1);
-        player->addItem(4001, 1);
-        player->addItem(4003, 1);
-        player->addItem(4004, 1);
 
         eventPublisher.sendTo(
                 dbId, "[CHEAT] Armas de rango agregados al inventario. Equipalo con doble click.");

@@ -16,11 +16,11 @@ public:
 
     void renderBackground(SDL2pp::Renderer& renderer);
     void render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats,
-                uint32_t lastStatsReceiveTimeMs = 0);
+                uint32_t lastStatsReceiveTimeMs, bool isMuted);
 
     int slotAtPosition(int x, int y) const;
     bool isManualButtonClicked(int x, int y) const;
-
+    bool isAudioButtonClicked(int x, int y) const;
     // Selección de slot: click en el mismo slot lo deselecciona (toggle)
     void selectSlot(int slot);
     void clearSelection();
@@ -44,6 +44,7 @@ private:
     void drawEquipment(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats);
     void drawSlotHighlight(SDL2pp::Renderer& renderer, int slotIndex);
     void drawItemTooltip(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats);
+    void drawAudioButton(SDL2pp::Renderer& renderer, bool isMuted);
 };
 
 #endif

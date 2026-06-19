@@ -38,6 +38,11 @@ constexpr int EQUIP_LIST_X = 778, EQUIP_LIST_Y = 648, EQUIP_ROW_H = 20, EQUIP_IC
 constexpr int LEVEL_X = 770, LEVEL_Y = 48;
 constexpr int GOLD_X = 788, GOLD_Y = 506;
 
+constexpr int AUDIO_BTN_X = 880;
+constexpr int AUDIO_BTN_Y = 730;
+constexpr int AUDIO_BTN_W = 130;
+constexpr int AUDIO_BTN_H = 20;
+
 const SDL_Color WHITE{255, 255, 255, 255};
 }  // namespace
 
@@ -241,8 +246,21 @@ void HudPanel::drawItemTooltip(SDL2pp::Renderer& renderer, const PlayerStatsDTO&
     drawText(renderer, desc, 775, 398);
 }
 
+bool HudPanel::isAudioButtonClicked(int x, int y) const {
+    return (x >= AUDIO_BTN_X && x <= AUDIO_BTN_X + AUDIO_BTN_W && y >= AUDIO_BTN_Y &&
+            y <= AUDIO_BTN_Y + AUDIO_BTN_H);
+}
+
+void HudPanel::drawAudioButton(SDL2pp::Renderer& renderer, bool isMuted) {
+    const std::string path =
+            isMuted ? "resources/button/audio-off.jpg" : "resources/button/audio-on.jpg";
+    SDL2pp::Texture& tex = textures.get(path);
+    renderer.Copy(tex, SDL2pp::NullOpt,
+                  SDL2pp::Rect(AUDIO_BTN_X, AUDIO_BTN_Y, AUDIO_BTN_W, AUDIO_BTN_H));
+}
+
 void HudPanel::render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats,
-                      uint32_t lastStatsReceiveTimeMs) {
+                      uint32_t lastStatsReceiveTimeMs, bool isMuted) {
     drawBars(renderer, stats);
     drawInventory(renderer, stats);
     drawEquipment(renderer, stats);
@@ -294,6 +312,7 @@ void HudPanel::render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats,
         drawText(renderer, std::to_string(stats.currentMana) + "/" + std::to_string(stats.maxMana),
                  MP_X + 78, MP_Y + 1);
     }
+    drawAudioButton(renderer, isMuted);
 }
 
 void HudPanel::selectSlot(int slot) {
