@@ -37,6 +37,9 @@ private:
     Font font;
     bool mapListOpen;
     std::vector<MapEntry> mapEntries;
+    bool newMapInput;
+    std::string newMapName;
+    std::string mapErrorMsg;
 
     void handleEvent(const SDL_Event& event, bool& running);
     void render();
@@ -48,6 +51,9 @@ private:
     void handleMapListClick(int mx, int my);
     int mapListIndexAt(int mx, int my) const;
     void switchToMap(const std::string& path, bool isNew);
+    void beginNewMapInput();
+    void cancelNewMapInput();
+    void confirmNewMap();
     SDL2pp::Rect canvasViewport() const;
     SDL2pp::Point toMockup(int winX, int winY) const;
 

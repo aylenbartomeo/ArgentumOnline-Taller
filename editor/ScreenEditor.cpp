@@ -62,7 +62,8 @@ ScreenEditor::ScreenEditor():
         savedFlashUntil(0),
         mapasFlashUntil(0),
         font(renderer, "resources/DejaVuSans-Bold.ttf", MAP_FONT_SIZE),
-        mapListOpen(false) {
+        mapListOpen(false),
+        newMapInput(false) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 }
 
@@ -251,6 +252,7 @@ void ScreenEditor::handleMapListClick(int mx, int my) {
     }
     const MapEntry& entry = mapEntries[idx];
     if (entry.isNew) {
+        beginNewMapInput();
         return;
     }
     if (entry.path == currentMapPath) {
@@ -279,12 +281,33 @@ void ScreenEditor::handleMapListEvent(const SDL_Event& event) {
     if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
         SDL2pp::Point p = toMockup(event.button.x, event.button.y);
         if (insideRect(MAP_BACK, p.x, p.y)) {
-            closeMapList();
-        } else {
+            if (newMapInput) {
+                cancelNewMapInput();
+            } else {
+                closeMapList();
+            }
+        } else if (!newMapInput) {
             handleMapListClick(p.x, p.y);
         }
-    } else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
-        closeMapList();
+    } else if (event.type == SDL_TEXTINPUT) {
+        if (newMapInput) {
+            newMapName += event.text.text;
+        }
+    } else if (event.type == SDL_KEYDOWN) {
+        SDL_Keycode sym = event.key.keysym.sym;
+        if (newMapInput) {
+            if (sym == SDLK_RETURN || sym == SDLK_KP_ENTER) {
+                confirmNewMap();
+            } else if (sym == SDLK_BACKSPACE) {
+                if (!newMapName.empty()) {
+                    newMapName.pop_back();
+                }
+            } else if (sym == SDLK_ESCAPE) {
+                cancelNewMapInput();
+            }
+        } else if (sym == SDLK_ESCAPE) {
+            closeMapList();
+        }
     }
 }
 
@@ -301,6 +324,18 @@ void ScreenEditor::renderMapList() {
     const SDL_Color accent = {150, 90, 20, 255};
     SDL2pp::Texture& back = textures.get(std::string(EDITOR_RES) + "BackTerreno.png");
 
+    if (newMapInput) {
+        font.drawString("Nombre del mapa nuevo (Enter confirma, Esc cancela):", LIST_X,
+                        LIST_TITLE_Y, textColor);
+        font.drawString(newMapName + "_", LIST_X, LIST_ROWS_TOP, accent);
+        if (!mapErrorMsg.empty()) {
+            font.drawString(mapErrorMsg, LIST_X, LIST_ROWS_TOP + LIST_ROW_H, textColor);
+        }
+        renderer.Copy(back, SDL2pp::NullOpt,
+                      SDL2pp::Rect(MAP_BACK.x, MAP_BACK.y, MAP_BACK.w, MAP_BACK.h));
+        return;
+    }
+
     font.drawString("Elegí un mapa (Esc cierra)", LIST_X, LIST_TITLE_Y, textColor);
     for (size_t i = 0; i < mapEntries.size(); ++i) {
         int ry = LIST_ROWS_TOP + static_cast<int>(i) * LIST_ROW_H;
@@ -316,6 +351,32 @@ void ScreenEditor::renderMapList() {
         font.drawString(label, LIST_X, ry + 4, color);
     }
     renderer.Copy(back, SDL2pp::NullOpt, SDL2pp::Rect(MAP_BACK.x, MAP_BACK.y, MAP_BACK.w, MAP_BACK.h));
+}
+
+void ScreenEditor::beginNewMapInput() {
+    newMapInput = true;
+    newMapName = "";
+    mapErrorMsg = "";
+    SDL_StartTextInput();
+}
+
+void ScreenEditor::cancelNewMapInput() {
+    newMapInput = false;
+    newMapName = "";
+    mapErrorMsg = "";
+    SDL_StopTextInput();
+}
+
+void ScreenEditor::confirmNewMap() {
+    std::string error = newMapError(newMapName, listMapFiles(MapDefaults::MAPS_DIR));
+    if (!error.empty()) {
+        mapErrorMsg = error;
+        return;
+    }
+    std::string path = mapPathForName(newMapName);
+    newMapInput = false;
+    SDL_StopTextInput();
+    switchToMap(path, true);
 }
 
 void ScreenEditor::run() {
