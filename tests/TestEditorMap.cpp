@@ -236,3 +236,24 @@ TEST(EditorMapDungeonTest, SetItemStoresGivenAmount) {
     EXPECT_EQ(item->overlayIndex, goldOverlayIndex());
     EXPECT_EQ(item->amount, 5000);
 }
+
+TEST(EditorMapForestTest, AddAndRemoveForest) {
+    EditorMap map(50, 50, 32, "5108.png", 32);
+    map.addForest(10, 20, 12, 12);
+    ASSERT_EQ(map.getForests().size(), 1u);
+    EXPECT_EQ(map.getForests()[0].x, 10);
+    EXPECT_EQ(map.getForests()[0].y, 20);
+    EXPECT_EQ(map.getForests()[0].width, 12);
+    EXPECT_EQ(map.getForests()[0].height, 12);
+    map.removeForestAt(10, 20);
+    EXPECT_TRUE(map.getForests().empty());
+}
+
+TEST(EditorMapForestTest, ForestsSurviveJsonRoundTrip) {
+    EditorMap map(50, 50, 32, "5108.png", 32);
+    map.addForest(10, 20, 12, 12);
+    EditorMap loaded(map.toJson());
+    ASSERT_EQ(loaded.getForests().size(), 1u);
+    EXPECT_EQ(loaded.getForests()[0].x, 10);
+    EXPECT_EQ(loaded.getForests()[0].width, 12);
+}

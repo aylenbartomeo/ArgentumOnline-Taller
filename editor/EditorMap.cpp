@@ -115,6 +115,13 @@ EditorMap::EditorMap(const std::string& jsonText) {
         }
     }
 
+    if (data.contains("forests")) {
+        for (const auto& f: data.at("forests")) {
+            forests.push_back(EditorForest{f.at("x").get<int>(), f.at("y").get<int>(),
+                                           f.at("width").get<int>(), f.at("height").get<int>()});
+        }
+    }
+
     if (data.contains("items")) {
         for (const auto& item: data.at("items")) {
             int overlayIndex = overlayIndexForItemId(item.at("id").get<int>());
@@ -196,6 +203,15 @@ std::string EditorMap::toJson() const {
                     {{"x", d.x}, {"y", d.y}, {"width", d.width}, {"height", d.height}});
         }
         data["dungeons"] = dungeonsJson;
+    }
+
+    if (!forests.empty()) {
+        nlohmann::json forestsJson = nlohmann::json::array();
+        for (const EditorForest& f: forests) {
+            forestsJson.push_back(
+                    {{"x", f.x}, {"y", f.y}, {"width", f.width}, {"height", f.height}});
+        }
+        data["forests"] = forestsJson;
     }
 
     return data.dump(4);
@@ -356,4 +372,16 @@ void EditorMap::removeDungeonAt(int x, int y) {
     dungeons.erase(std::remove_if(dungeons.begin(), dungeons.end(),
                                   [x, y](const EditorDungeon& d) { return d.x == x && d.y == y; }),
                    dungeons.end());
+}
+
+const std::vector<EditorForest>& EditorMap::getForests() const { return forests; }
+
+void EditorMap::addForest(int x, int y, int width, int height) {
+    forests.push_back({x, y, width, height});
+}
+
+void EditorMap::removeForestAt(int x, int y) {
+    forests.erase(std::remove_if(forests.begin(), forests.end(),
+                                 [x, y](const EditorForest& f) { return f.x == x && f.y == y; }),
+                  forests.end());
 }
