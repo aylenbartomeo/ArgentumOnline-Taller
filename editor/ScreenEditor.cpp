@@ -135,9 +135,25 @@ void ScreenEditor::render() {
     renderer.Copy(tools, SDL2pp::NullOpt, SDL2pp::Rect(t.x, t.y, t.w, t.h));
     if (activeTool != Tool::NONE) {
         LayoutRect b = (activeTool == Tool::ERASER) ? gomaRect() : spawnRect();
+        int insetLeft, insetRight, insetTop, insetBottom;
+        if (activeTool == Tool::ERASER) {
+            insetLeft = 8;
+            insetRight = 8;
+            insetTop = 26;
+            insetBottom = -6;
+        } else {
+            insetLeft = 12;
+            insetRight = 32;
+            insetTop = 48;
+            insetBottom = 12;
+        }
+        const int hx = b.x + insetLeft;
+        const int hy = b.y + insetTop;
+        const int hw = b.w - insetLeft - insetRight;
+        const int hh = b.h - insetTop - insetBottom;
         renderer.SetDrawColor(255, 235, 0, 255);
         for (int i = 0; i < 4; ++i) {
-            renderer.DrawRect(SDL2pp::Rect(b.x + i, b.y + i, b.w - 2 * i, b.h - 2 * i));
+            renderer.DrawRect(SDL2pp::Rect(hx + i, hy + i, hw - 2 * i, hh - 2 * i));
         }
     }
     if (screen == Screen::TERRENO) {
