@@ -13,6 +13,7 @@
 #include <SDL_ttf.h>
 
 #include "../ui/CharacterCreationScreen.h"
+#include "../ui/QuitView.h"
 #include "common/GameConstants.h"
 #include "common/include/dto/CreateCharacterDTO.h"
 #include "common/include/dto/JoinResponseDTO.h"
@@ -107,26 +108,43 @@ bool Game::runStartupAndCreation() {
         if (result.created) {
             CreateCharacterDTO createDto{result.race, result.characterClass};
             client.sendCommand(createDto);
-            run();  // Entramos al mundo
-            return false;
+            run();                    // Entramos al mundo
+            return returnToLauncher;  // true → vuelve al Launcher, false → cierra
         } else {
-            // El usuario apretó VOLVER
+            // El usuario apretó VOLVER en la creación de personaje
             return true;  // Volvemos al login
         }
     } else {
         // Ya tiene personaje
-        run();  // Entramos al mundo
-        return false;
+        run();                    // Entramos al mundo
+        return returnToLauncher;  // true → vuelve al Launcher, false → cierra
     }
 }
 
 void Game::run() {
     ConstantRateLoop loop(FRAME_DURATION_MS);
     loop.run([this](int64_t) -> bool {
-        const FrameInput input = events.pollEvents();
-        if (input.quit)
-            return false;
+        FrameInput input = events.pollEvents();
 
+        // 2. Si apretan la X de la ventana (quit) o la tecla ESC, mostramos el diálogo
+        if (input.quit || input.escPressed) {
+            // Instanciamos y ejecutamos la vista de salida de forma bloqueante
+            QuitView quitView; 
+            QuitViewAction action = quitView.run();
+
+            if (action == QuitViewAction::Quit) {
+                // El usuario eligió ACEPTAR (Salir al Launcher)
+                returnToLauncher = true; // Seteamos el flag para ir al Launcher
+                return false;           
+            } 
+            else if (action == QuitViewAction::Resume) {
+                // El usuario eligió VOLVER (Reanudar la partida)
+                input.quit = false;      
+                events.clearInputState();
+            }
+        }
+
+        // --- 3. Lógica normal de juego ---
         miniChat.update(input, VIEW_X + VIEW_W, VIEW_Y + VIEW_H);
         manualPanel.update(input, WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -138,12 +156,15 @@ void Game::run() {
         inputProcessor.processActionKeysInput(input);
         inputProcessor.processSelectSlotInput(input);
         inputProcessor.processUiInput(input);
+
         if (input.toggleMute)
             audio.toggleMute();
+
         inputProcessor.sendMoveIfDue(input, lastSnapshot, map);
 
         render(input);
         audio.updateMonsterSounds(lastSnapshot, SDL_GetTicks(), client.getClientId());
+
         return true;
     });
 }

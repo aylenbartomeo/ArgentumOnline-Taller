@@ -13,6 +13,7 @@
 #include "../ui/HudPanel.h"
 #include "../ui/ManualPanel.h"
 #include "../ui/MiniChat.h"
+#include "../ui/QuitView.h"
 #include "../ui/Window.h"
 #include "common/include/dto/PlayerStatsDTO.h"
 #include "common/include/dto/Snapshot.h"
@@ -32,10 +33,8 @@ public:
 
     void run();
     bool runStartupAndCreation();
-
     SDL2pp::Renderer& getWindowRenderer() { return window.getRenderer(); }
     TextureManager& getTextures() { return textures; }
-
     Game(const Game&) = delete;
     Game& operator=(const Game&) = delete;
     Game(Game&&) = delete;
@@ -43,7 +42,6 @@ public:
 
 private:
     void render(const FrameInput& input);
-
     // SDL / core
     SDL2pp::SDL sdl;
     Window window;
@@ -61,6 +59,11 @@ private:
     HudPanel hud;
     ManualPanel manualPanel;
     ChatCommandParser chatParser;
+
+    // Flag que run() setea antes de terminar:
+    // true  → runStartupAndCreation() devuelve true  → main vuelve al Launcher
+    // false → runStartupAndCreation() devuelve false → main sale del programa
+    bool returnToLauncher = false;
 
     // State
     SnapshotDTO lastSnapshot;
