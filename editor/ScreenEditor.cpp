@@ -162,9 +162,13 @@ void ScreenEditor::render() {
     }
     if (SDL_GetTicks() < savedFlashUntil) {
         LayoutRect g = guardarRect();
+        const int hx = g.x + 43;
+        const int hy = g.y - 70;
+        const int hw = g.w - 35;
+        const int hh = g.h + 30;
         renderer.SetDrawColor(255, 235, 0, 255);
         for (int i = 0; i < 4; ++i) {
-            renderer.DrawRect(SDL2pp::Rect(g.x + i, g.y + i, g.w - 2 * i, g.h - 2 * i));
+            renderer.DrawRect(SDL2pp::Rect(hx + i, hy + i, hw - 2 * i, hh - 2 * i));
         }
     }
     if (screen == Screen::TERRENO) {
