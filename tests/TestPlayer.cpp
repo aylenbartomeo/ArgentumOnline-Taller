@@ -8,25 +8,14 @@
 #include "model/entities/Player.h"
 #include "model/items/ItemRegistry.h"
 
-// Helper: crea un Player base para tests
-static Player makeTestPlayer(uint32_t id = 1) {
-    std::string name = "TestPlayer";
-    Race race = Race::HUMAN;
-    CharacterClass charClass = CharacterClass::WARRIOR;
-    RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
-    CharacterClassConfig clsConfig = {1.0f, 1.0f, 1.0f, false};
-    PlayerConfig cfg = {15, 15, 15, 15, 1, 0, 0};
-    InventoryConfig invCfg = {16, 0, 10000, 5000};
-    return Player(id, id, name, race, charClass, raceConfig, clsConfig, cfg, invCfg,
-                  FormulaEngine::getInstance());
-}
+#include "TestHelpers.h"
 
 // =========================================================================
 // TEST 1: INICIALIZACIÓN DE ATRIBUTOS BÁSICOS
 // =========================================================================
 TEST(PlayerTest, Player_Initialization) {
-    // Explicación: Verifica que los atributos iniciales del Player se carguen correctamente
-    Player player = makeTestPlayer(42);
+    Player player = TestUtils::makeTestPlayer(42, "TestPlayer");
+
     EXPECT_EQ(player.getId(), 42u);
     EXPECT_EQ(player.getDbId(), 42u);
     EXPECT_EQ(player.getName(), "TestPlayer");
@@ -39,8 +28,7 @@ TEST(PlayerTest, Player_Initialization) {
 // TEST 2: RECEPCIÓN DE DAÑO Y MUERTE
 // =========================================================================
 TEST(PlayerTest, Player_DamageAndDeath) {
-    // Explicación: Verifica la recepcion de daño, el estado de muerte y los limites de vida
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
     uint16_t initialHp = player.getHp();
 
     // Daño menor que la vida
@@ -58,8 +46,7 @@ TEST(PlayerTest, Player_DamageAndDeath) {
 // TEST 3: RESURRECCIÓN
 // =========================================================================
 TEST(PlayerTest, Player_Resurrection) {
-    // Explicación: Verifica que al resucitar se restablezca la vida y cambie el estado de muerte
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
     player.receiveDamage(player.getMaxHp());
     ASSERT_TRUE(player.isDead());
 
@@ -72,19 +59,17 @@ TEST(PlayerTest, Player_Resurrection) {
 // TEST 4: INVENTARIO Y ORO
 // =========================================================================
 TEST(PlayerTest, Player_InventoryAndGoldOperations) {
-    // Explicación: Verifica la adicion y remocion de oro e items en el inventario del jugador
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
 
-    // Adicion de oro (mayor al límite seguro de 5000)
+    // Adición de oro (mayor al límite seguro de 5000)
     EXPECT_TRUE(player.addGold(6000));
     EXPECT_EQ(player.getGold(), 6000u);
 
-    // Remocion de oro
+    // Remoción de oro
     EXPECT_TRUE(player.removeGold(400));
     EXPECT_EQ(player.getGold(), 5600u);
 
-    // Límite seguro de oro inicial para el player es 5000.
-    // El oro actual es 5600, por lo que el exceso a tirar es 5600 - 5000 = 600.
+    // El exceso a tirar es 5600 - 5000 = 600.
     uint32_t droppedGold = player.dropExcessGold();
     EXPECT_EQ(droppedGold, 600u);
     EXPECT_EQ(player.getGold(), 5000u);
@@ -108,20 +93,18 @@ TEST(PlayerTest, Player_InventoryAndGoldOperations) {
 // TEST 5: SIMULACIÓN DE MOVIMIENTO
 // =========================================================================
 TEST(PlayerTest, Player_Movement) {
-    // Explicación: Verifica que tryMove retorne la posicion tentativa sin alterar la actual,
-    // y que setPosition actualice la posicion del jugador
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
     Position startPos = player.getPosition();
 
-    // Intentar moverse en una direccion
+    // Intentar moverse en una dirección
     Position nextPos = player.tryMove(Movement::RIGHT);
     EXPECT_EQ(nextPos.x, startPos.x + 1);
     EXPECT_EQ(nextPos.y, startPos.y);
 
-    // Verificar que la posicion del jugador no ha cambiado
+    // Verificar que la posición del jugador no ha cambiado
     EXPECT_EQ(player.getPosition().x, startPos.x);
 
-    // Establecer la nueva posicion
+    // Establecer la nueva posición
     player.setPosition(nextPos);
     EXPECT_EQ(player.getPosition().x, startPos.x + 1);
 }
@@ -130,19 +113,18 @@ TEST(PlayerTest, Player_Movement) {
 // TEST 6: MANÁ
 // =========================================================================
 TEST(PlayerTest, Player_ManaUsage) {
-    // Explicación: Verifica el consumo y la restauracion de mana
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
     uint16_t maxMana = player.getMaxMana();
 
-    // Consumir mana disponible
+    // Consumir maná disponible
     EXPECT_TRUE(player.consumeMana(maxMana / 2));
     EXPECT_EQ(player.getMana(), maxMana - (maxMana / 2));
 
-    // Intentar consumir mas mana del disponible
+    // Intentar consumir más maná del disponible
     EXPECT_FALSE(player.consumeMana(maxMana));
     EXPECT_EQ(player.getMana(), maxMana - (maxMana / 2));  // No debe alterarse
 
-    // Restaurar mana
+    // Restaurar maná
     player.restoreMana();
     EXPECT_EQ(player.getMana(), maxMana);
 }
@@ -151,29 +133,26 @@ TEST(PlayerTest, Player_ManaUsage) {
 // TEST 7: REGLAS DE COMBATE (NIVEL / PVP / NEWBIE)
 // =========================================================================
 TEST(PlayerTest, Player_CombatRules) {
-    // Explicación: Verifica las restricciones de PvP basadas en nivel de novato (newbie) y
-    // diferencias de nivel
-    Player newbie = makeTestPlayer(1);   // Nivel 1
-    Player victim1 = makeTestPlayer(2);  // Nivel 1
+    Player newbie = TestUtils::makeTestPlayer(1, "Newbie");   // Nivel 1
+    Player victim1 = TestUtils::makeTestPlayer(2, "Victim");  // Nivel 1
 
     // Regla 1: Un novato (newbie, nivel <= 12) no puede entrar en combate con otro jugador
     EXPECT_FALSE(newbie.canEngageInCombatWith(victim1));
     EXPECT_FALSE(victim1.canEngageInCombatWith(newbie));
 
     // Elevamos el nivel de los jugadores para que dejen de ser newbies
-    // Agregamos mucha experiencia para forzar la subida de nivel > 12
-    newbie.addExperience(1000000);  // Sube mucho mas alla del nivel 12
+    newbie.addExperience(1000000);
     victim1.addExperience(1000000);
 
     ASSERT_GT(newbie.getLevel(), 12);
     ASSERT_GT(victim1.getLevel(), 12);
 
-    // Ahora que no son newbies, deberian poder combatir si tienen diferencia de nivel <= 10
+    // Ahora que no son newbies, deberían poder combatir si tienen diferencia de nivel <= 10
     EXPECT_TRUE(newbie.canEngageInCombatWith(victim1));
 
     // Creamos un tercer jugador de nivel alto para verificar la diferencia de nivel
-    Player highLevel = makeTestPlayer(3);
-    highLevel.addExperience(10000000);  // Nivel muy alto
+    Player highLevel = TestUtils::makeTestPlayer(3, "HighLevel");
+    highLevel.addExperience(10000000);
 
     // Verificar que la diferencia de nivel es > 10 y por lo tanto no pueden combatir
     ASSERT_GT(highLevel.getLevel() - victim1.getLevel(), 10);
@@ -185,10 +164,7 @@ TEST(PlayerTest, Player_CombatRules) {
 // TEST 8: PÉRDIDA DE EXPERIENCIA POR MUERTE Y PROTECCIÓN DE NIVEL
 // =========================================================================
 TEST(PlayerTest, Player_ExperienceLossOnDeathAndFloorProtection) {
-    // Explicación: Verifica que al morir se reduzca la experiencia del jugador,
-    // pero garantiza que muertes consecutivas no fuercen un descenso de nivel
-    // ni perforen el piso de EXP requerido para su nivel actual.
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
 
     player.addExperience(10000);
     uint8_t levelBeforeDeath = player.getLevel();
@@ -202,8 +178,7 @@ TEST(PlayerTest, Player_ExperienceLossOnDeathAndFloorProtection) {
     EXPECT_LT(player.getExp(), expBeforeDeath);
     EXPECT_EQ(player.getLevel(), levelBeforeDeath);
 
-    // TEST DE ESTRÉS / LÍMITE: Muertes consecutivas para buscar el "Downgrade" de nivel
-    // Lo revivimos y lo matamos repetidamente para drenarle toda la experiencia posible
+    // Muertes consecutivas para buscar el "Downgrade" de nivel
     for (int i = 0; i < 5; ++i) {
         player.resurrect();
         player.receiveDamage(player.getHp());
@@ -212,7 +187,6 @@ TEST(PlayerTest, Player_ExperienceLossOnDeathAndFloorProtection) {
     EXPECT_EQ(player.getLevel(), levelBeforeDeath);
 
     // La experiencia debió estancarse exactamente en el piso requerido para su nivel actual.
-    // El piso de experiencia es el límite requerido para superar el nivel anterior (level - 1).
     uint32_t expectedFloor =
             FormulaEngine::getInstance().calculateLevelUpLimit(levelBeforeDeath - 1);
     EXPECT_EQ(player.getExp(), expectedFloor);
