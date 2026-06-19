@@ -184,6 +184,19 @@ bool World::addPlayer(uint32_t dbId, std::string& username, Race race, Character
 
     entityManager.registerPlayer(entityId, dbId, std::move(player));
     map.setEntityCollision(spawnPos.x, spawnPos.y, true);
+
+    auto clanIdOpt = clanRepo.getClanIdOfPlayer(dbId);
+    if (clanIdOpt) {
+        const Clan* clan = clanRepo.getClanById(*clanIdOpt);
+        if (clan) {
+            for (uint32_t memberId: clan->getMembers()) {
+                if (memberId != dbId) {
+                    eventPublisher.sendTo(memberId, "[Clan] " + username + " entró al juego.");
+                }
+            }
+        }
+    }
+
     return true;
 }
 
