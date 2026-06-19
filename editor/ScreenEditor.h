@@ -15,6 +15,7 @@
 #include "MapChooser.h"
 #include "Palette.h"
 #include "CatalogSprites.h"
+#include "BlockBrush.h"
 
 enum class Tool { NONE, ERASER, SPAWN };
 
@@ -30,6 +31,7 @@ private:
     SDL2pp::Texture canvasTarget;
     Screen screen;
     Tool activeTool;
+    TerrainBlock selectedBlock;
     bool rightDragging;
     int lastMouseX;
     int lastMouseY;

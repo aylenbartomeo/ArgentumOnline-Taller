@@ -39,14 +39,54 @@ constexpr int MONSTER_DX = 16;
 constexpr int CITIZEN_DX = 14;
 constexpr int SLOT_HILITE = 42;
 constexpr int BRUSH_X = 1210;
-constexpr int BRUSH_Y = 990;
+constexpr int BRUSH_Y = 980;
 constexpr int BRUSH_TOOL_DY = 8;
+constexpr int BRUSH_ITEM_X = 1210;
+constexpr int BRUSH_ITEM_Y = 994;
+constexpr int BRUSH_MONSTER_X = 1210;
+constexpr int BRUSH_MONSTER_Y = 994;
+constexpr int BRUSH_CITIZEN_X = 1210;
+constexpr int BRUSH_CITIZEN_Y = 994;
 constexpr int SLOT_COLS = 5;
 constexpr int SLOT_VISIBLE_ROWS = 6;
 constexpr LayoutRect AMOUNT_FIELD = {1150, 880, 150, 40};
 
 bool insideRect(LayoutRect r, int x, int y) {
     return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+}
+
+TerrainBlock blockForRegion(Region region) {
+    switch (region) {
+        case Region::BLOCK_PLAYA:
+            return TerrainBlock::BEACH;
+        case Region::BLOCK_BOSQUE:
+            return TerrainBlock::FOREST;
+        case Region::BLOCK_DESIERTO:
+            return TerrainBlock::DESERT;
+        case Region::BLOCK_CIUDAD:
+            return TerrainBlock::CITY;
+        case Region::BLOCK_MAZMORRA:
+            return TerrainBlock::DUNGEON;
+        default:
+            return TerrainBlock::NONE;
+    }
+}
+
+Region regionForBlock(TerrainBlock block) {
+    switch (block) {
+        case TerrainBlock::BEACH:
+            return Region::BLOCK_PLAYA;
+        case TerrainBlock::FOREST:
+            return Region::BLOCK_BOSQUE;
+        case TerrainBlock::DESERT:
+            return Region::BLOCK_DESIERTO;
+        case TerrainBlock::CITY:
+            return Region::BLOCK_CIUDAD;
+        case TerrainBlock::DUNGEON:
+            return Region::BLOCK_MAZMORRA;
+        default:
+            return Region::NONE;
+    }
 }
 
 std::string citizenDisplayName(const std::string& type) {
@@ -108,6 +148,7 @@ ScreenEditor::ScreenEditor():
                      MOCKUP_H),
         screen(Screen::PRINCIPAL),
         activeTool(Tool::NONE),
+        selectedBlock(TerrainBlock::NONE),
         rightDragging(false),
         lastMouseX(0),
         lastMouseY(0),
@@ -180,17 +221,25 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
             if (region == Region::GO_TERRENO || region == Region::GO_ITEMS ||
                 region == Region::GO_MONSTRUOS || region == Region::GO_CIUDADANOS) {
                 screen = screenForRegion(region);
+                placeMsg = "";
             } else if (region == Region::BACK) {
                 screen = Screen::PRINCIPAL;
+                placeMsg = "";
             } else if (region == Region::GOMA) {
                 activeTool = Tool::ERASER;
+                selectedBlock = TerrainBlock::NONE;
             } else if (region == Region::SPAWN) {
                 activeTool = Tool::SPAWN;
+                selectedBlock = TerrainBlock::NONE;
             } else if (region == Region::GUARDAR) {
                 saveMap();
             } else if (region == Region::MAPAS) {
                 openMapList();
                 mapasFlashUntil = SDL_GetTicks() + 700;
+            } else if (blockForRegion(region) != TerrainBlock::NONE) {
+                selectedBlock = blockForRegion(region);
+                activeTool = Tool::NONE;
+                placeMsg = "";
             } else if (selectedIsStackable() && insideRect(AMOUNT_FIELD, p.x, p.y)) {
                 amountInput = true;
                 amountText = "";
@@ -210,6 +259,17 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
                     smartEraseAt(map, cell.x, cell.y);
                 } else if (activeTool == Tool::SPAWN) {
                     map.setSpawn(cell.x, cell.y);
+                }
+            } else if (region == Region::CANVAS && activeTool == Tool::NONE &&
+                       selectedBlock != TerrainBlock::NONE) {
+                LayoutRect c = canvasRect();
+                Position cell = camera.screenToCell(p.x - c.x, p.y - c.y);
+                std::string error = blockStampError(map, selectedBlock, cell.x, cell.y);
+                if (error.empty()) {
+                    applyBlock(map, selectedBlock, cell.x, cell.y);
+                    placeMsg = "";
+                } else {
+                    placeMsg = error;
                 }
             } else if (region == Region::CANVAS && activeTool == Tool::NONE &&
                        currentPalette() != nullptr) {
@@ -311,6 +371,16 @@ void ScreenEditor::render() {
         LayoutRect b = terrenoBackRect();
         SDL2pp::Texture& back = textures.get(std::string(EDITOR_RES) + "BackTerreno.png");
         renderer.Copy(back, SDL2pp::NullOpt, SDL2pp::Rect(b.x, b.y, b.w, b.h));
+        if (selectedBlock != TerrainBlock::NONE) {
+            LayoutRect r = blockRect(regionForBlock(selectedBlock));
+            renderer.SetDrawColor(255, 235, 0, 255);
+            for (int i = 0; i < 4; ++i) {
+                renderer.DrawRect(SDL2pp::Rect(r.x + i, r.y + i, r.w - 2 * i, r.h - 2 * i));
+            }
+        }
+        if (!placeMsg.empty()) {
+            font.drawString(placeMsg, 70, 1000, SDL_Color{200, 60, 40, 255});
+        }
     }
     renderPalette();
     renderCurrentBrush();
@@ -590,6 +660,9 @@ void ScreenEditor::renderPalette() {
 }
 
 void ScreenEditor::renderCurrentBrush() {
+    if (screen == Screen::TERRENO) {
+        return;
+    }
     SDL_Color gold{240, 220, 120, 255};
     if (activeTool == Tool::ERASER) {
         smallFont.drawString("Goma", BRUSH_X, BRUSH_Y + BRUSH_TOOL_DY, gold);
@@ -605,14 +678,22 @@ void ScreenEditor::renderCurrentBrush() {
     }
     int sel = pal->getSelectedTile();
     std::string name;
+    int bx;
+    int by;
     if (screen == Screen::ITEMS) {
         name = getOverlayRegistry()[itemOverlays[sel]].name;
+        bx = BRUSH_ITEM_X;
+        by = BRUSH_ITEM_Y;
     } else if (screen == Screen::MONSTRUOS) {
         name = monsterDisplayName(getMonsterCatalog()[sel].type);
+        bx = BRUSH_MONSTER_X;
+        by = BRUSH_MONSTER_Y;
     } else {
         name = citizenDisplayName(getCitizenCatalog()[sel].type);
+        bx = BRUSH_CITIZEN_X;
+        by = BRUSH_CITIZEN_Y;
     }
-    smallFont.drawString(name, BRUSH_X, BRUSH_Y, gold);
+    smallFont.drawString(name, bx, by, gold);
 }
 
 void ScreenEditor::run() {
