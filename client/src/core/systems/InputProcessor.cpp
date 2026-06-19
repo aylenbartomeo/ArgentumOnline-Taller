@@ -178,11 +178,14 @@ void InputProcessor::processSelectSlotInput(const FrameInput& input) {
         hud.selectSlot(slot);
 }
 
-void InputProcessor::processUiInput(const FrameInput& input) {
+void InputProcessor::processUiInput(const FrameInput& input, AudioSystem& audio) {
     if (!input.mouseLeftJustPressed)
         return;
     if (hud.isManualButtonClicked(input.mouseX, input.mouseY))
         manualPanel.toggle();
+
+    if (hud.isAudioButtonClicked(input.mouseX, input.mouseY))
+        audio.toggleMute();
 }
 
 // ─── Chat drain / Move ────────────────────────────────────────────────────────

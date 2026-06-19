@@ -31,7 +31,7 @@ public:
     void processUseInput(const FrameInput& input, AudioSystem& audio);
     void processActionKeysInput(const FrameInput& input);
     void processSelectSlotInput(const FrameInput& input);
-    void processUiInput(const FrameInput& input);
+    void processUiInput(const FrameInput& input, AudioSystem& audio);
     void drainIncomingChat();
     void sendMoveIfDue(const FrameInput& input, const SnapshotDTO& snapshot, const TileMap& map);
 
