@@ -49,6 +49,13 @@ std::string dungeonStampError(const EditorMap& map, int originX, int originY) {
             return "se superpone con otra mazmorra";
         }
     }
+    for (const EditorForest& f: map.getForests()) {
+        bool apart = originX + prefab.width <= f.x || f.x + f.width <= originX ||
+                     originY + prefab.height <= f.y || f.y + f.height <= originY;
+        if (!apart) {
+            return "se superpone con un bosque";
+        }
+    }
     return "";
 }
 

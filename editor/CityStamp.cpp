@@ -65,6 +65,20 @@ std::string cityStampError(const EditorMap& map, int originX, int originY) {
             return "se superpone con otra ciudad";
         }
     }
+    for (const EditorDungeon& d: map.getDungeons()) {
+        bool apart = originX + prefab.width <= d.x || d.x + d.width <= originX ||
+                     originY + prefab.height <= d.y || d.y + d.height <= originY;
+        if (!apart) {
+            return "se superpone con una mazmorra";
+        }
+    }
+    for (const EditorForest& f: map.getForests()) {
+        bool apart = originX + prefab.width <= f.x || f.x + f.width <= originX ||
+                     originY + prefab.height <= f.y || f.y + f.height <= originY;
+        if (!apart) {
+            return "se superpone con un bosque";
+        }
+    }
     return "";
 }
 

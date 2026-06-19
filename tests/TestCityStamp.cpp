@@ -2,6 +2,8 @@
 
 #include "CityPrefab.h"
 #include "CityStamp.h"
+#include "DungeonStamp.h"
+#include "ForestStamp.h"
 
 namespace {
 constexpr int WATER = 109;
@@ -57,6 +59,20 @@ TEST(CityStampTest, RejectsWhenOverlappingAnotherCity) {
     applyCityPrefab(map, 10, 10, "Pueblo");
     EXPECT_NE(cityStampError(map, 30, 20), "");
     EXPECT_EQ(cityStampError(map, 54, 10), "");
+}
+
+TEST(CityStampTest, RejectsWhenOverlappingADungeon) {
+    EditorMap map = emptyMap();
+    applyDungeonPrefab(map, 60, 60);
+    EXPECT_NE(cityStampError(map, 40, 40), "");
+    EXPECT_EQ(cityStampError(map, 5, 5), "");
+}
+
+TEST(CityStampTest, RejectsWhenOverlappingAForest) {
+    EditorMap map = emptyMap();
+    applyForestPrefab(map, 60, 60);
+    EXPECT_NE(cityStampError(map, 40, 40), "");
+    EXPECT_EQ(cityStampError(map, 5, 5), "");
 }
 
 TEST(CityStampTest, ClearCityRestoresGrassAndRemovesEverything) {

@@ -2,6 +2,7 @@
 
 #include "CityStamp.h"
 #include "DungeonStamp.h"
+#include "ForestStamp.h"
 
 namespace {
 EditorMap emptyMap() { return EditorMap(100, 100, 32, "5108.png", 32); }
@@ -52,6 +53,13 @@ TEST(DungeonStampTest, RejectsWhenOverlappingAnotherDungeon) {
     applyDungeonPrefab(map, 10, 10);
     EXPECT_NE(dungeonStampError(map, 15, 15), "");
     EXPECT_EQ(dungeonStampError(map, 60, 60), "");
+}
+
+TEST(DungeonStampTest, RejectsWhenOverlappingAForest) {
+    EditorMap map = emptyMap();
+    applyForestPrefab(map, 60, 60);
+    EXPECT_NE(dungeonStampError(map, 55, 55), "");
+    EXPECT_EQ(dungeonStampError(map, 5, 5), "");
 }
 
 TEST(DungeonStampTest, OriginForClickCentersTheArena) {
