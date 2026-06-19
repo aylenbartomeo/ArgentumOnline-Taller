@@ -42,9 +42,9 @@ std::string readWholeFile(const std::string& path) {
 }
 }  // namespace
 
-Game::Game(Client& client):
+Game::Game(Client& client, int width, int height, bool fullscreen):
         sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
-        window("Argentum Online - Client", WINDOW_WIDTH, WINDOW_HEIGHT),
+        window("Argentum Online - Client", width, height, fullscreen),
         events(),
         client(client),
         textures(window.getRenderer()),
@@ -135,7 +135,7 @@ void Game::run() {
         inputProcessor.processCheats(input);
         inputProcessor.processEquipInput(input);
         inputProcessor.processUseInput(input, audio);
-        inputProcessor.processGrabDropInput(input);
+        inputProcessor.processActionKeysInput(input);
         inputProcessor.processSelectSlotInput(input);
         inputProcessor.processUiInput(input);
         if (input.toggleMute)

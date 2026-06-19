@@ -5,13 +5,26 @@
 
 #include "Client.h"
 #include "Game.h"
-int main(int argc, char* argv[]) try {
-    (void)argc;
-    (void)argv;
+int main(int argc, const char* argv[]) try {
+    int windowW = 800;
+    int windowH = 600;
+    bool fullscreen = false;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--fullscreen" || arg == "-f") {
+            fullscreen = true;
+        } else if (arg == "--width" && i + 1 < argc) {
+            windowW = std::stoi(argv[++i]);
+        } else if (arg == "--height" && i + 1 < argc) {
+            windowH = std::stoi(argv[++i]);
+        }
+    }
+
     while (true) {
         std::unique_ptr<Client> activeClient = nullptr;
         {
-            Launcher launcher;
+            Launcher launcher(windowW, windowH, fullscreen);
             launcher.run();
 
             if (!launcher.isAuthenticated()) {
@@ -27,7 +40,7 @@ int main(int argc, char* argv[]) try {
 
             activeClient->start();
 
-            Game game(*activeClient);
+            Game game(*activeClient, windowW, windowH, fullscreen);
             bool goToLogin = game.runStartupAndCreation();
 
             activeClient->stop();

@@ -82,7 +82,7 @@ run-server-load: check-config prepare-dirs
 	cd build && ./argentum_online_server $(PORT) --load "$(WORLD)"
 
 run-client: prepare-dirs
-	cd build && ./argentum_online_client
+	cd build && ./argentum_online_client $(ARGS)
 
 run-editor: prepare-dirs
 	cd build && ./argentum_online_editor

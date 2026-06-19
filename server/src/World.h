@@ -81,7 +81,7 @@ public:
     void playerCheat(uint32_t dbId, CheatType type);
 
     // Métodos lógicos: Entrar y salir del mundo virtual
-    bool addPlayer(uint32_t dbId, std::string& username, Race race, CharacterClass cls,
+    bool addPlayer(uint32_t dbId, const std::string& username, Race race, CharacterClass cls,
                    const std::optional<PlayerPersistData>& savedData = std::nullopt);
 
     // Extrae la data completa de un jugador para persistencia
@@ -197,6 +197,9 @@ public:
 
     void publishInteractionResult(uint32_t dbId, const InteractionResult& res);
 
+    void setUsernameCache(const std::unordered_map<uint32_t, std::string>& cache) {
+        entityManager.setUsernameCache(cache);
+    }
 
     ~World() override = default;
 };

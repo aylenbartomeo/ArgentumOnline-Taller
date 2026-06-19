@@ -8,25 +8,19 @@
 #include "model/entities/Player.h"
 #include "model/items/Consumable.h"
 
-static ServerConfig getTestServerConfig() {
-    ServerConfig config;
-    config.worldName = "";
-    config.mapPath = "";
-    config.clanBonusRange = 5;
-    config.criticalProbability = 0.10f;
-    config.clanAttackBonusPerMember = 0.05f;
-    config.clanDefenseBonusPerMember = 0.05f;
-    return config;
-}
+#include "TestHelpers.h"  // <--- Incluimos tu nuevo archivo unificado de helpers
 
+// =========================================================================
+// TEST 1: EJECUCIÓN ASÍNCRONA Y PROCESAMIENTO DE EVENTOS
+// =========================================================================
 TEST(GameLoopTest, GameLoop_RunsAndProcessesEventsAsynchronously) {
     // 1. Inicializamos la cola de eventos y el monitor
     Queue<GameEvent> gameQueue;
-    ConnectionMonitor monitor;  // Ajustá si tu constructor pide parámetros
+    ConnectionMonitor monitor;
 
-    // Creación del GameLoop (nace con isRunning = true pero sin morder el hilo aún)
+    // Creación del GameLoop usando la configuración centralizada de TestUtils
     WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
-    GameLoop loop(gameQueue, monitor, "../config", wConfig, getTestServerConfig());
+    GameLoop loop(gameQueue, monitor, "../config", wConfig, TestUtils::getTestServerConfig());
 
     // 2. Preparamos los datos de prueba: un JoinEvent y un comando de movimiento
     JoinEvent join;
@@ -42,37 +36,31 @@ TEST(GameLoopTest, GameLoop_RunsAndProcessesEventsAsynchronously) {
     pCmd.command = moveCmd;
     gameQueue.push(pCmd);
 
-    // 3. Lanzamos el GameLoop en un hilo separado para que empiece a iterar de verdad
+    // 3. Lanzamos el GameLoop en un hilo separado
     std::thread hiloGameLoop(&GameLoop::run, &loop);
 
-    // 4. Le damos un pequeño changüí de tiempo (ej. 100ms) para que el hilo
-    // procese al menos 2 o 3 frames (recordá que procesa 1 frame cada 33ms)
+    // 4. Le damos un pequeño changüí de tiempo (100ms) para procesar los frames
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    // En este punto, de forma interna y privada, el loop ya ejecutó:
-    // processInputs() -> consumió la cola, creó al jugador y lo movió.
-    // updateWorld()   -> actualizó físicas.
-    // broadcastState()-> le mandó el snapshot al monitor.
-
-    // 5. Frenamos el bucle de manera segura invocando el método público
+    // 5. Frenamos el bucle de manera segura
     loop.stop();
 
-    // 6. Esperamos que el hilo termine su última iteración y muera limpiamente
+    // 6. Esperamos que el hilo termine limpiamente
     if (hiloGameLoop.joinable()) {
         hiloGameLoop.join();
     }
 
-    // Si el test llega acá sin quedarse congelado (deadlock) y sin lanzar excepciones,
-    // significa que el pipeline interno (cola -> loop -> world -> monitor) funciona de punta a
-    // punta.
     SUCCEED();
 }
 
+// =========================================================================
+// TEST 2: APAGADO LIMPIO CON COLA VACÍA
+// =========================================================================
 TEST(GameLoopTest, GameLoop_StopsCleanlyEvenWithEmptyQueue) {
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
     WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
-    GameLoop loop(gameQueue, monitor, "../config", wConfig, getTestServerConfig());
+    GameLoop loop(gameQueue, monitor, "../config", wConfig, TestUtils::getTestServerConfig());
 
     // Lanzamos con la cola vacía
     std::thread hiloGameLoop(&GameLoop::run, &loop);
@@ -93,13 +81,10 @@ TEST(GameLoopTest, GameLoop_StopsCleanlyEvenWithEmptyQueue) {
 // TEST 3: EXPIRACIÓN DE CONSUMIBLES EN EL GAMELOOP
 // =========================================================================
 TEST(GameLoopTest, GameLoop_ConsumablesStopAffectingStatsAfterDuration) {
-    // Explicación: Verifica que al pasar el tiempo de duración de un consumible de boost,
-    // el GameLoop al actualizar el mundo (update ticks) provoque que el boost expire
-    // y las estadísticas del jugador vuelvan a su valor base.
     Queue<GameEvent> gameQueue;
     ConnectionMonitor monitor;
     WorldConfig wConfig{1, "Test", "maps/defaultMap.json", "game_data/", true};
-    GameLoop loop(gameQueue, monitor, "../config", wConfig, getTestServerConfig());
+    GameLoop loop(gameQueue, monitor, "../config", wConfig, TestUtils::getTestServerConfig());
 
     // 1. Unimos un jugador al mundo
     JoinEvent join;
@@ -119,10 +104,10 @@ TEST(GameLoopTest, GameLoop_ConsumablesStopAffectingStatsAfterDuration) {
     // 2. Iniciamos el GameLoop
     std::thread hiloGameLoop(&GameLoop::run, &loop);
 
-    // Damos un breve tiempo para que el loop procese el JoinEvent y cree al jugador en el mundo
+    // Damos un breve tiempo para procesar la creación
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-    // 3. Obtenemos al jugador del mundo (el GameLoop usa clientId como dbId temporal o final)
+    // 3. Obtenemos al jugador del mundo
     Player* player = loop.getWorld().getPlayerById(999);
 
     if (!player) {
@@ -143,12 +128,10 @@ TEST(GameLoopTest, GameLoop_ConsumablesStopAffectingStatsAfterDuration) {
     // 5. Verificamos que la estadística aumentó
     EXPECT_EQ(player->getStrength(), baseStrength + 5);
 
-    // 6. Esperamos más de la duración del consumible (ej. 150ms)
-    // El GameLoop corre en un hilo separado ejecutando updates cada 33ms,
-    // por lo que irá descontando tiempo del boost activo.
+    // 6. Esperamos más de la duración del consumible (150ms) para que actúen los update ticks
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
-    // 7. Verificamos que la estadística volvió a su estado base
+    // 7. Verificamos la expiración: volvió a su estado base
     EXPECT_EQ(player->getStrength(), baseStrength);
 
     // 8. Detener el bucle limpiamente

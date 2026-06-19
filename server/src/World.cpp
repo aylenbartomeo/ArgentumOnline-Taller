@@ -39,7 +39,7 @@ World::World(int worldId, const std::string& creatorPlayerName, const ItemRegist
             configPath = "../config/monsters.toml";
         }
         MonsterConfigs mc = MonsterConfigLoader::loadMonsterConfigs(configPath);
-        spawnSystem = SpawnSystem(std::move(mc), 5000.0f, 100);
+        spawnSystem = SpawnSystem(std::move(mc), 5000.0f, 50);
         bossSpawnSystem.setConfigs(&spawnSystem.getConfigs());
     } catch (const std::exception& e) {
         std::cerr << "[ERROR] No se pudo cargar monsters.toml en el inicio: " << e.what()
@@ -81,6 +81,9 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         // Setea el maná al máximo actual del jugador
         player->toggleInfiniteMana();
         eventPublisher.sendTo(dbId, "[CHEAT] Maná infinito toggled.");
+    } else if (type == CheatType::INFINITE_HEALTH) {
+        player->toggleInfiniteHealth();
+        eventPublisher.sendTo(dbId, "[CHEAT] Vida infinita toggled.");
     } else if (type == CheatType::GIVE_GOLD) {
         player->addGold(1000);
         eventPublisher.sendTo(dbId, "[CHEAT] +1.000 de oro agregados.");
@@ -93,15 +96,22 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         player->addItem(1012, 1);
         player->addItem(1020, 1);
         player->addItem(1021, 1);
+        player->addItem(4002, 1);
 
         eventPublisher.sendTo(dbId, "[CHEAT] Todas las armaduras agregadas.");
+    } else if (type == CheatType::GIVE_POTIONS) {
+        player->addItem(3000, 99);
+        player->addItem(3010, 99);
+        player->addItem(3020, 99);
+        player->addItem(3030, 99);
+        eventPublisher.sendTo(dbId, "[CHEAT] Pociones (x99) agregadas.");
     }
 }
 
 std::string World::getCreatorPlayerName() const { return this->creatorPlayerName; }
 int World::getWorldId() const { return this->worldId; }
 
-bool World::addPlayer(uint32_t dbId, std::string& username, Race race, CharacterClass cls,
+bool World::addPlayer(uint32_t dbId, const std::string& username, Race race, CharacterClass cls,
                       const std::optional<PlayerPersistData>& savedData) {
     if (entityManager.resolveEntityId(dbId) != 0) {
         return false;
@@ -171,6 +181,19 @@ bool World::addPlayer(uint32_t dbId, std::string& username, Race race, Character
 
     entityManager.registerPlayer(entityId, dbId, std::move(player));
     map.setEntityCollision(spawnPos.x, spawnPos.y, true);
+
+    auto clanIdOpt = clanRepo.getClanIdOfPlayer(dbId);
+    if (clanIdOpt) {
+        const Clan* clan = clanRepo.getClanById(*clanIdOpt);
+        if (clan) {
+            for (uint32_t memberId: clan->getMembers()) {
+                if (memberId != dbId) {
+                    eventPublisher.sendTo(memberId, "[Clan] " + username + " entró al juego.");
+                }
+            }
+        }
+    }
+
     return true;
 }
 
@@ -288,19 +311,6 @@ void World::playerShoot(uint32_t shooterDbId, float targetX, float targetY) {
         return;
     }
 
-    // --- Flauta élfica: curación instantánea en self ---
-    if (weapon->getId() == ITEM_FLAUTA_ELFICA) {
-        if (!shooter->consumeMana(weapon->getManaCost())) {
-            eventPublisher.sendTo(shooterDbId, "No tienes suficiente maná.");
-            return;
-        }
-        shooter->heal(FLAUTA_HEAL_AMOUNT);
-        eventPublisher.sendTo(shooterDbId,
-                              "Te curaste " + std::to_string(FLAUTA_HEAL_AMOUNT) + " HP.");
-        shooter->onActionStarted();
-        return;
-    }
-
     // --- Armas mágicas: consumir maná ---
     if (weapon->getType() == WeaponType::MAGIC) {
         if (!shooter->consumeMana(weapon->getManaCost())) {
@@ -319,6 +329,11 @@ void World::playerShoot(uint32_t shooterDbId, float targetX, float targetY) {
         case ITEM_VARA_FRESNO:
             pType = ProjectileType::MAGIC_ARROW;
             sprite = SPRITE_MAGIC_ARROW;
+            speed = 10.f;
+            break;
+        case ITEM_FLAUTA_ELFICA:
+            pType = ProjectileType::MAGIC_ARROW;
+            sprite = SPRITE_HEAL_PROJECTILE;
             speed = 10.f;
             break;
         case ITEM_BACULO_NUDOSO:

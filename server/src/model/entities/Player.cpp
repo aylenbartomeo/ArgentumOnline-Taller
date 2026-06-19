@@ -219,6 +219,8 @@ void Player::receiveDamage(int amount) {
     onActionStarted();
     if (amount < 0)
         return;
+    if (infiniteHealth)
+        return;
     stats.takeDamage(static_cast<uint16_t>(amount));
     if (stats.getHp() == 0) {
         handleDeath();

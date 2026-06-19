@@ -27,6 +27,7 @@ constexpr int BTN_CREAR_W = 250;
 constexpr int BTN_CREAR_H = 60;
 
 const SDL_Color COLOR_WHITE = {255, 255, 255, 255};
+const SDL_Color COLOR_GOLD = {228, 194, 159, 255};
 const SDL_Color COLOR_GREEN = {50, 200, 50, 255};
 const SDL_Color COLOR_RED = {200, 50, 50, 255};
 }  // namespace
@@ -90,10 +91,10 @@ void CharacterCreationScreen::drawText(const std::string& text, int x, int y, TT
 void CharacterCreationScreen::drawStatRow(const std::string& label, int value, float raceFactor,
                                           int xLeft, int xRight, int y) {
     // Label a la izquierda
-    drawText(label, xLeft, y, font, COLOR_WHITE);
+    drawText(label, xLeft, y, font, COLOR_GOLD);
 
     // Número a la derecha, con color según el factor
-    SDL_Color color = COLOR_WHITE;
+    SDL_Color color = COLOR_GOLD;
     if (raceFactor > 1.0f)
         color = COLOR_GREEN;
     else if (raceFactor < 1.0f)
@@ -110,24 +111,24 @@ void CharacterCreationScreen::drawStatRow(const std::string& label, int value, f
 }
 
 void CharacterCreationScreen::drawSelector(const std::string& title, const std::string& value,
-                                           int y) {
-    int centerX = 585 + 112;
+                                           int x, int y) {
+    int centerX = x;
 
     // Título centrado
     int tw = 0, th = 0;
     if (fontLarge)
         TTF_SizeUTF8(fontLarge, title.c_str(), &tw, &th);
-    drawText(title, centerX - tw / 2, y, fontLarge, COLOR_WHITE);
+    drawText(title, centerX - tw / 2, y, fontLarge, COLOR_GOLD);
 
     // Flechas fijas
-    drawText("<", centerX - 100, y + 40, font, COLOR_WHITE);
-    drawText(">", centerX + 80, y + 40, font, COLOR_WHITE);
+    drawText("<", centerX - 70, y + 40, font, COLOR_GOLD);
+    drawText(">", centerX + 60, y + 40, font, COLOR_GOLD);
 
     // Valor centrado entre las flechas
     int vw = 0, vh = 0;
     if (font)
         TTF_SizeUTF8(font, value.c_str(), &vw, &vh);
-    drawText(value, centerX - vw / 2, y + 40, font, COLOR_WHITE);
+    drawText(value, centerX - vw / 2, y + 40, font, COLOR_GOLD);
 }
 
 void CharacterCreationScreen::drawPreview(int x, int y) {
@@ -263,19 +264,27 @@ void CharacterCreationScreen::render() {
     }
 
     // Coordenadas ajustadas a 800x600 y centradas
-    drawSelector("Clase", CLASS_NAMES[selectedClass], 75 + offY);
-    drawSelector("Raza", RACE_NAMES[selectedRace], 165 + offY);
+    int rightColX = 550 + offX;
+    int leftColX = 280 + offX;
+
+    int claseY = 165 + offY;
+    int razaY = 240 + offY;
+    int attrY = 325 + offY;
+    int aspectoY = 195 + offY;
+    int previewY = 295 + offY;
+
+    drawSelector("Clase", CLASS_NAMES[selectedClass], rightColX, claseY);
+    drawSelector("Raza", RACE_NAMES[selectedRace], rightColX, razaY);
 
     // Atributos
-    int attrY = 285 + offY;
-    int xLeft = 470 + offX;
-    int xRight = 700 + offX;
-    int spacing = 30;
+    int xLeft = rightColX - 80;
+    int xRight = rightColX + 80;
+    int spacing = 22;
 
     int tw = 0, th = 0;
     if (fontLarge)
         TTF_SizeUTF8(fontLarge, "Atributos", &tw, &th);
-    drawText("Atributos", 585 + offX - tw / 2, attrY, fontLarge, COLOR_WHITE);
+    drawText("Atributos", rightColX - tw / 2, attrY, fontLarge, COLOR_GOLD);
 
     attrY += 50;
 
@@ -302,9 +311,8 @@ void CharacterCreationScreen::render() {
     if (fontLarge)
         TTF_SizeUTF8(fontLarge, "Aspecto", &tw, &th);
 
-    int aspectoCenterX = 235 + offX;  // El centro exacto de la palabra "Aspecto"
-    drawText("Aspecto", aspectoCenterX - tw / 2, 150 + offY, fontLarge, COLOR_WHITE);
-    drawPreview(aspectoCenterX, 240 + offY);  // Le pasamos el centro para que lo dibuje alineado
+    drawText("Aspecto", leftColX - tw / 2, aspectoY, fontLarge, COLOR_GOLD);
+    drawPreview(leftColX, previewY);  // Le pasamos el centro para que lo dibuje alineado
 
     renderer.Present();
 }
@@ -325,24 +333,27 @@ CharacterCreationScreen::CreationResult CharacterCreationScreen::run() {
                     int x = event.button.x - 112;
                     int y = event.button.y - 84;
 
-                    // Las flechas ahora están en posiciones fijas (X=485 y X=665 aprox)
-                    // Flechas Raza (Y=165 + 40 = 205)
-                    if (y >= 185 && y <= 230) {
-                        if (x >= 470 && x <= 510) {
+                    int rightColX = 550;
+                    int claseY = 165;
+                    int razaY = 240;
+
+                    // Flechas Raza
+                    if (y >= razaY + 20 && y <= razaY + 60) {
+                        if (x >= rightColX - 85 && x <= rightColX - 45) {
                             selectedRace = (selectedRace - 1 + 4) % 4;
                             updateStats();
-                        } else if (x >= 650 && x <= 690) {
+                        } else if (x >= rightColX + 45 && x <= rightColX + 85) {
                             selectedRace = (selectedRace + 1) % 4;
                             updateStats();
                         }
                     }
 
-                    // Flechas Clase (Y=75 + 35 = 110)
-                    if (y >= 90 && y <= 135) {
-                        if (x >= 470 && x <= 510) {
+                    // Flechas Clase
+                    if (y >= claseY + 20 && y <= claseY + 60) {
+                        if (x >= rightColX - 85 && x <= rightColX - 45) {
                             selectedClass = (selectedClass - 1 + 4) % 4;
                             updateStats();
-                        } else if (x >= 650 && x <= 690) {
+                        } else if (x >= rightColX + 45 && x <= rightColX + 85) {
                             selectedClass = (selectedClass + 1) % 4;
                             updateStats();
                         }

@@ -447,7 +447,7 @@ int Editor::mapListIndexAt(int x, int y) const {
         return -1;
     }
     int idx = (y - rowsTop) / MAPLIST_ROW_H;
-    if (idx < 0 || idx >= static_cast<int>(mapEntries.size())) {
+    if (idx >= static_cast<int>(mapEntries.size())) {
         return -1;
     }
     return idx;

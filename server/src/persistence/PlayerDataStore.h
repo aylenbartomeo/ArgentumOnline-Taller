@@ -68,6 +68,9 @@ public:
 
     // Guarda la data de un jugador. Si no existe, lo crea (append + actualiza índice).
     void savePlayerData(const std::string& username, const PlayerPersistData& data);
+
+    // Recuperar todos los IDs y sus nombres
+    std::unordered_map<uint32_t, std::string> loadAllUsernames() const;
 };
 
 #endif

@@ -11,11 +11,11 @@
 int main() {
     try {
         const std::string mapPath = MapDefaults::DEFAULT_MAP_PATH;
-        EditorMap map = std::filesystem::exists(mapPath) ?
-                                EditorMap(readMapFile(mapPath)) :
-                                EditorMap(MapDefaults::WIDTH, MapDefaults::HEIGHT,
-                                          MapDefaults::TILE_SIZE, MapDefaults::TILESET,
-                                          MapDefaults::TILESET_COLS);
+        EditorMap map =
+                std::filesystem::exists(mapPath) ?
+                        EditorMap(readMapFile(mapPath)) :
+                        EditorMap(MapDefaults::WIDTH, MapDefaults::HEIGHT, MapDefaults::TILE_SIZE,
+                                  MapDefaults::TILESET, MapDefaults::TILESET_COLS);
         Editor editor(std::move(map), mapPath);
         editor.run();
     } catch (const std::exception& e) {

@@ -15,6 +15,15 @@ void CombatNotifier::notifyCombatResult(const Attackable& attacker, const Attack
     const Player* pTarget = dynamic_cast<const Player*>(&target);
     const Monster* mTarget = dynamic_cast<const Monster*>(&target);
 
+    // Rama de curación: sin daño, sin evasión, sin crítico
+    if (res.isHeal) {
+        if (pAttacker)
+            eventPublisher.sendTo(pAttacker->getDbId(), "¡Curaste a " + target.getName() + "!");
+        if (pTarget)
+            eventPublisher.sendTo(pTarget->getDbId(), "¡" + attacker.getName() + " te curo!");
+        return;
+    }
+
     if (res.evaded) {
         // Notificar atacante (si es player)
         if (pAttacker) {

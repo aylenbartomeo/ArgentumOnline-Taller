@@ -63,12 +63,8 @@ CombatResult MagicDamageEffect::apply(Player& attacker, Attackable& target,
                                       const CombatModifiers& modifiers, const Weapon& weapon,
                                       CombatSystem& combatSystem) {
 
-    int manaCost = weapon.getManaCost();
-    if (!attacker.consumeMana(manaCost)) {
-        return CombatResult{false};
-    }
-
-    // Si pasó el filtro de maná, ejecutamos el daño mágico
+    // El maná ya se consumió en playerShoot() al lanzar el hechizo
+    // Ejecutamos el daño mágico
     AttackParams params{static_cast<uint16_t>(weapon.getMinDamage()),
                         static_cast<uint16_t>(weapon.getMaxDamage()),
                         weapon.getAttackRange(),
@@ -84,10 +80,7 @@ CombatResult MagicHealEffect::apply(Player& attacker, Attackable& target,
                                     const CombatModifiers& modifiers, const Weapon& weapon,
                                     CombatSystem& combatSystem) {
 
-    int manaCost = weapon.getManaCost();
-    if (!attacker.consumeMana(manaCost)) {
-        return CombatResult{false};
-    }
+    // El maná ya se consumió en playerShoot() al lanzar el hechizo
 
     Player* playerTarget = dynamic_cast<Player*>(&target);
     if (!playerTarget) {

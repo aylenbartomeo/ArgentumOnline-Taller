@@ -11,7 +11,7 @@ private:
     SDL2pp::Renderer renderer;
 
 public:
-    Window(const std::string& title, int width, int height);
+    Window(const std::string& title, int width, int height, bool fullscreen = false);
     ~Window() = default;
 
     SDL2pp::Renderer& getRenderer();

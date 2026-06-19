@@ -38,14 +38,17 @@ struct FrameInput {
     bool consumeKeyPressed = false;
     bool grabKeyPressed = false;
     bool dropKeyPressed = false;
+    bool meditateKeyPressed = false;
 
     // --- Cheats ---
     bool cheatLevelUp = false;
     bool cheatDie = false;
     bool cheatGiveRanged = false;
     bool cheatInfiniteMana = false;
+    bool cheatInfiniteHealth = false;
     bool cheatGiveGold = false;
     bool cheatGiveArmors = false;
+    bool cheatGivePotions = false;
 
     // --- Shoot ---
     bool shootPressed = false;

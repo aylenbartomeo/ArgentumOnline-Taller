@@ -117,3 +117,22 @@ void PlayerDataStore::savePlayerData(const std::string& username, const PlayerPe
         flushIndex();
     }
 }
+
+std::unordered_map<uint32_t, std::string> PlayerDataStore::loadAllUsernames() const {
+    std::unordered_map<uint32_t, std::string> result;
+    std::lock_guard<std::mutex> lock(this->storeMutex);
+
+    std::ifstream ifs(this->dataFilePath, std::ios::binary);
+    if (!ifs.is_open()) {
+        return result;
+    }
+
+    for (const auto& [uname, offset]: this->index) {
+        ifs.seekg(offset, std::ios::beg);
+        PlayerPersistData data;
+        if (ifs.read(reinterpret_cast<char*>(&data), sizeof(PlayerPersistData))) {
+            result[data.dbId] = uname;
+        }
+    }
+    return result;
+}

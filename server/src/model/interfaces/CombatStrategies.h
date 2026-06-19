@@ -37,6 +37,8 @@ public:
     virtual CombatResult apply(Player& attacker, Attackable& target,
                                const CombatModifiers& modifiers, const Weapon& weapon,
                                CombatSystem& combatSystem) = 0;
+    // Retorna true si el efecto es curativo (no ofensivo). Por defecto false.
+    virtual bool isHeal() const { return false; }
 };
 
 // ==========================================
@@ -86,4 +88,5 @@ public:
 
     CombatResult apply(Player& attacker, Attackable& target, const CombatModifiers& modifiers,
                        const Weapon& weapon, CombatSystem& combatSystem) override;
+    bool isHeal() const override { return true; }
 };
