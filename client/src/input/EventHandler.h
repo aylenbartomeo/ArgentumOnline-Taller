@@ -9,6 +9,7 @@
 struct FrameInput {
     // --- Movimiento ---
     bool quit = false;
+    bool escPressed = false;
     bool moveNorth = false;
     bool moveSouth = false;
     bool moveEast = false;
@@ -80,7 +81,13 @@ public:
     ~EventHandler() = default;
 
     FrameInput pollEvents();
-
+    void clearInputState() {
+        quitRequested = false;
+        pressedKeys.clear();
+        justPressedKeys.clear();
+        justPressedScancodes.clear();
+        mouseLeftHeld = false;
+    }
     /* No permito copias */
     EventHandler(const EventHandler&) = delete;
     EventHandler& operator=(const EventHandler&) = delete;

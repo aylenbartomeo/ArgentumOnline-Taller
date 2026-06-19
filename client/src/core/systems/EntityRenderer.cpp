@@ -289,8 +289,6 @@ void EntityRenderer::drawEntity(const EntityDTO& entity, const CameraOffset& cam
 
 // ─── drawHealthBar ────────────────────────────────────────────────────────────
 void EntityRenderer::drawHealthBar(const EntityDTO& entity, const CameraOffset& camera) {
-    if (isDead(entity.current_hp))
-        return;
     CharacterAnimator& anim = animators[entity.id];
     const int px = static_cast<int>(anim.getVirtualX() * GC::TILE_SIZE);
     const int py = static_cast<int>(anim.getVirtualY() * GC::TILE_SIZE);
@@ -346,6 +344,9 @@ void EntityRenderer::drawHealthBar(const EntityDTO& entity, const CameraOffset& 
             }
         }
     }
+
+    if (isDead(entity.current_hp))
+        return;
 
     const HealthBarLayout bar = computeHealthBar(entity.current_hp, entity.max_hp, px - camera.x,
                                                  py - camera.y, GC::TILE_SIZE);
@@ -992,8 +993,7 @@ void EntityRenderer::drawHelmet(const EntityDTO& entity, const PlayerStatsDTO* l
 
 void EntityRenderer::drawPlayerName(const EntityDTO& entity, const CameraOffset& camera, int px,
                                     int py) {
-    if (entity.type != EntityType::PLAYER || !font || entity.name.empty() ||
-        isDead(entity.current_hp))
+    if (entity.type != EntityType::PLAYER || !font || entity.name.empty())
         return;
 
     SDL_Color color = (entity.id == myId) ?

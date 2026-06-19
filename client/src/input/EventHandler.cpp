@@ -21,7 +21,7 @@ FrameInput EventHandler::pollEvents() {
     bool mouseLeftJustPressedThisFrame = false;
 
     bool toggleMuteThisFrame = false;
-
+    bool escThisFrame = false;
     bool shootThisFrame = false;
     int shootX = 0, shootY = 0;
 
@@ -91,7 +91,7 @@ FrameInput EventHandler::pollEvents() {
                 }
             } else {
                 if (key == SDLK_ESCAPE) {
-                    quitRequested = true;
+                    escThisFrame = true;
                 } else if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
                     inputActive = true;
                     SDL_StartTextInput();
@@ -127,6 +127,7 @@ FrameInput EventHandler::pollEvents() {
 
     input.mouseX = currentMouseX;
     input.mouseY = currentMouseY;
+    input.escPressed = escThisFrame;
     input.mouseLeftHeld = mouseLeftHeld;
     input.mouseLeftJustPressed = mouseLeftJustPressedThisFrame;
     input.mouseScroll = scrollThisFrame;

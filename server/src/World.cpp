@@ -74,9 +74,12 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         player->addItem(2021, 1);
         player->addItem(2022, 1);
         player->addItem(2023, 1);
+        player->addItem(4001, 1);
+        player->addItem(4003, 1);
+        player->addItem(4004, 1);
 
         eventPublisher.sendTo(
-                dbId, "[CHEAT] Armas de rango agregados al inventario. Equipalo con doble click.");
+                dbId, "[CHEAT] Todas las armas agregadas al inventario. Equipalo con doble click.");
     } else if (type == CheatType::INFINITE_MANA) {
         // Setea el maná al máximo actual del jugador
         player->toggleInfiniteMana();
@@ -104,7 +107,7 @@ void World::playerCheat(uint32_t dbId, CheatType type) {
         player->addItem(3010, 99);
         player->addItem(3020, 99);
         player->addItem(3030, 99);
-        eventPublisher.sendTo(dbId, "[CHEAT] Pociones (x99) agregadas.");
+        eventPublisher.sendTo(dbId, "[CHEAT] Todas las pociones agregadas.");
     }
 }
 

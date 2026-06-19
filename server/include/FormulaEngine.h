@@ -23,6 +23,8 @@ public:
         return instance;
     }
 
+    static constexpr uint16_t MAX_LEVEL = 99;
+
     // Calcula la vida máxima: Constitucion * FClaseVida * FRazaVida * Nivel
     uint16_t calculateMaxLife(uint16_t constitution, float class_factor, float race_factor,
                               uint16_t level) const;

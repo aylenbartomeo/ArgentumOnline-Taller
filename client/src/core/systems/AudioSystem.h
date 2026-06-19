@@ -28,7 +28,7 @@ public:
 
     void toggleMute();
     void updateMonsterSounds(const SnapshotDTO& snapshot, uint32_t nowMs, uint32_t myId);
-
+    bool getIsMuted() const { return isMuted; }
     void playSound(SoundEffect effect);
 
 private:
