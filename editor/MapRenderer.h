@@ -19,6 +19,7 @@ private:
     void drawItems(const EditorMap& map, const Camera& camera, int canvasW, int canvasH);
     void drawMonsters(const EditorMap& map, const Camera& camera, int canvasW, int canvasH);
     void drawCitizens(const EditorMap& map, const Camera& camera, int canvasW, int canvasH);
+    void drawSpawn(const EditorMap& map, const Camera& camera);
 
 public:
     MapRenderer(SDL2pp::Renderer& renderer, TextureManager& textures);
