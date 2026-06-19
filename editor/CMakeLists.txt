@@ -9,6 +9,7 @@ target_sources(lib_editor
     Toolbar.cpp
     EditorLayout.cpp
     MapRenderer.cpp
+    CatalogSprites.cpp
     ScreenEditor.cpp
     SpawnCatalogs.cpp
     Font.cpp
@@ -26,6 +27,7 @@ target_sources(lib_editor
     Toolbar.h
     EditorLayout.h
     MapRenderer.h
+    CatalogSprites.h
     ScreenEditor.h
     SpawnCatalogs.h
     Font.h
