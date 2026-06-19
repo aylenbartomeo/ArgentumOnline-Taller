@@ -88,3 +88,21 @@ TEST(EditorLayoutTest, MapasRectIsExposed) {
     EXPECT_EQ(m.w, 85);
     EXPECT_EQ(m.h, 120);
 }
+
+TEST(EditorLayoutTest, TerrainBlockButtonsOnTerreno) {
+    LayoutRect ciudad = blockRect(Region::BLOCK_CIUDAD);
+    LayoutRect bosque = blockRect(Region::BLOCK_BOSQUE);
+    LayoutRect mazmorra = blockRect(Region::BLOCK_MAZMORRA);
+    LayoutRect playa = blockRect(Region::BLOCK_PLAYA);
+    LayoutRect desierto = blockRect(Region::BLOCK_DESIERTO);
+    EXPECT_EQ(regionAtClick(Screen::TERRENO, cx(ciudad), cy(ciudad)), Region::BLOCK_CIUDAD);
+    EXPECT_EQ(regionAtClick(Screen::TERRENO, cx(bosque), cy(bosque)), Region::BLOCK_BOSQUE);
+    EXPECT_EQ(regionAtClick(Screen::TERRENO, cx(mazmorra), cy(mazmorra)), Region::BLOCK_MAZMORRA);
+    EXPECT_EQ(regionAtClick(Screen::TERRENO, cx(playa), cy(playa)), Region::BLOCK_PLAYA);
+    EXPECT_EQ(regionAtClick(Screen::TERRENO, cx(desierto), cy(desierto)), Region::BLOCK_DESIERTO);
+}
+
+TEST(EditorLayoutTest, TerrainBlockButtonsNotOnPrincipal) {
+    LayoutRect ciudad = blockRect(Region::BLOCK_CIUDAD);
+    EXPECT_NE(regionAtClick(Screen::PRINCIPAL, cx(ciudad), cy(ciudad)), Region::BLOCK_CIUDAD);
+}

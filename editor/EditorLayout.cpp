@@ -13,6 +13,16 @@ constexpr LayoutRect NAV_ITEMS = {1130, 478, 290, 117};
 constexpr LayoutRect NAV_MONSTRUOS = {1130, 638, 290, 117};
 constexpr LayoutRect NAV_TERRENO = {1130, 808, 290, 117};
 constexpr LayoutRect TOOLS = {35, 50, 300, 187};
+constexpr int BLOCK_X = 1160;
+constexpr int BLOCK_W = 195;
+constexpr int BLOCK_H = 120;
+constexpr int BLOCK_Y0 = 308;
+constexpr int BLOCK_STEP_Y = 150;
+constexpr LayoutRect BLOCK_PLAYA = {BLOCK_X, BLOCK_Y0, BLOCK_W, BLOCK_H};
+constexpr LayoutRect BLOCK_BOSQUE = {BLOCK_X, BLOCK_Y0 + BLOCK_STEP_Y, BLOCK_W, BLOCK_H};
+constexpr LayoutRect BLOCK_DESIERTO = {BLOCK_X, BLOCK_Y0 + 2 * BLOCK_STEP_Y, BLOCK_W, BLOCK_H};
+constexpr LayoutRect BLOCK_CIUDAD = {BLOCK_X, BLOCK_Y0 + 3 * BLOCK_STEP_Y, BLOCK_W, BLOCK_H};
+constexpr LayoutRect BLOCK_MAZMORRA = {BLOCK_X, BLOCK_Y0 + 4 * BLOCK_STEP_Y, BLOCK_W, BLOCK_H};
 
 bool inside(LayoutRect r, int x, int y) {
     return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
@@ -50,6 +60,21 @@ Region regionAtClick(Screen screen, int mx, int my) {
     } else if (screen == Screen::TERRENO) {
         if (inside(BACK_TERRENO, mx, my)) {
             return Region::BACK;
+        }
+        if (inside(BLOCK_PLAYA, mx, my)) {
+            return Region::BLOCK_PLAYA;
+        }
+        if (inside(BLOCK_BOSQUE, mx, my)) {
+            return Region::BLOCK_BOSQUE;
+        }
+        if (inside(BLOCK_DESIERTO, mx, my)) {
+            return Region::BLOCK_DESIERTO;
+        }
+        if (inside(BLOCK_CIUDAD, mx, my)) {
+            return Region::BLOCK_CIUDAD;
+        }
+        if (inside(BLOCK_MAZMORRA, mx, my)) {
+            return Region::BLOCK_MAZMORRA;
         }
     } else if (inside(BACK_PANEL, mx, my)) {
         return Region::BACK;
@@ -102,3 +127,20 @@ LayoutRect spawnRect() { return SPAWN; }
 LayoutRect guardarRect() { return GUARDAR; }
 
 LayoutRect mapasRect() { return MAPAS; }
+
+LayoutRect blockRect(Region region) {
+    switch (region) {
+        case Region::BLOCK_PLAYA:
+            return BLOCK_PLAYA;
+        case Region::BLOCK_BOSQUE:
+            return BLOCK_BOSQUE;
+        case Region::BLOCK_DESIERTO:
+            return BLOCK_DESIERTO;
+        case Region::BLOCK_CIUDAD:
+            return BLOCK_CIUDAD;
+        case Region::BLOCK_MAZMORRA:
+            return BLOCK_MAZMORRA;
+        default:
+            return {0, 0, 0, 0};
+    }
+}

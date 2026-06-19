@@ -18,6 +18,7 @@ target_sources(lib_editor
     DungeonStamp.cpp
     ForestStamp.cpp
     SmartEraser.cpp
+    BlockBrush.cpp
     MapChooser.cpp
     PUBLIC
     # .h files
@@ -36,6 +37,7 @@ target_sources(lib_editor
     DungeonStamp.h
     ForestStamp.h
     SmartEraser.h
+    BlockBrush.h
     MapChooser.h
     MapDefaults.h
     )

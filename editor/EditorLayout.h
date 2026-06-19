@@ -16,7 +16,12 @@ enum class Region {
     GOMA,
     SPAWN,
     GUARDAR,
-    MAPAS
+    MAPAS,
+    BLOCK_PLAYA,
+    BLOCK_BOSQUE,
+    BLOCK_DESIERTO,
+    BLOCK_CIUDAD,
+    BLOCK_MAZMORRA
 };
 
 struct LayoutRect {
@@ -36,5 +41,6 @@ LayoutRect gomaRect();
 LayoutRect spawnRect();
 LayoutRect guardarRect();
 LayoutRect mapasRect();
+LayoutRect blockRect(Region region);
 
 #endif
