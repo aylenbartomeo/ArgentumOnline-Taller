@@ -17,6 +17,8 @@ private:
                          const std::vector<std::vector<int>>& grid);
     void drawDecorationLayer(const EditorMap& map, const Camera& camera, int canvasW, int canvasH);
     void drawItems(const EditorMap& map, const Camera& camera, int canvasW, int canvasH);
+    void drawMonsters(const EditorMap& map, const Camera& camera, int canvasW, int canvasH);
+    void drawCitizens(const EditorMap& map, const Camera& camera, int canvasW, int canvasH);
 
 public:
     MapRenderer(SDL2pp::Renderer& renderer, TextureManager& textures);
