@@ -26,40 +26,40 @@ TEST(CharacterSpritesTest, PlayerAndNpcUseDifferentBodies) {
                  spriteForEntity(EntityType::NPC, 0).bodySheet);
 }
 
-TEST(CharacterSpritesTest, MonsterGoblinUses4015) {
+TEST(CharacterSpritesTest, MonsterGoblinUsesmonsters / goblin1) {
     EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOBLIN), 0)
                          .bodySheet,
-                 "4015.png");
+                 "monsters/goblin1.png");
 }
 
-TEST(CharacterSpritesTest, MonsterOrcUses4017) {
+TEST(CharacterSpritesTest, MonsterOrcUsesmonsters / orco1) {
     EXPECT_STREQ(
             spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ORC), 0).bodySheet,
-            "4017.png");
+            "monsters/orco1.png");
 }
 
-TEST(CharacterSpritesTest, MonsterZombieUses4044) {
+TEST(CharacterSpritesTest, MonsterZombieUsesmonsters / zombie1) {
     EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::ZOMBIE), 0)
                          .bodySheet,
-                 "4044.png");
+                 "monsters/zombie1.png");
 }
 
-TEST(CharacterSpritesTest, MonsterSpiderUses4151) {
+TEST(CharacterSpritesTest, MonsterSpiderUsesmonsters / spider1) {
     EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SPIDER), 0)
                          .bodySheet,
-                 "4151.png");
+                 "monsters/spider1.png");
 }
 
-TEST(CharacterSpritesTest, MonsterGolemUses4091) {
+TEST(CharacterSpritesTest, MonsterGolemUsesmonsters / golem1) {
     EXPECT_STREQ(
             spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::GOLEM), 0).bodySheet,
-            "4091.png");
+            "monsters/golem1.png");
 }
 
-TEST(CharacterSpritesTest, MonsterSkeletonUses4079) {
+TEST(CharacterSpritesTest, MonsterSkeletonUsesmonsters / skeleton1) {
     EXPECT_STREQ(spriteForEntity(EntityType::MONSTER, static_cast<uint8_t>(NPCType::SKELETON), 0)
                          .bodySheet,
-                 "4079.png");
+                 "monsters/skeleton1.png");
 }
 
 TEST(CharacterSpritesTest, ZombieHasNoHead) {

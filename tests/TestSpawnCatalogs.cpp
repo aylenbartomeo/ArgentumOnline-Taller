@@ -15,12 +15,12 @@ TEST(SpawnCatalogsTest, MonsterCatalogReferencesExpectedSheets) {
                                [&type](const auto& entry) { return entry.type == type; });
         return it != catalog.end() ? it->sheet : std::string("");
     };
-    EXPECT_EQ(find("goblin"), "4015.png");
-    EXPECT_EQ(find("orc"), "4017.png");
-    EXPECT_EQ(find("zombie"), "4044.png");
-    EXPECT_EQ(find("spider"), "4151.png");
-    EXPECT_EQ(find("golem"), "4091.png");
-    EXPECT_EQ(find("skeleton"), "4079.png");
+    EXPECT_EQ(find("goblin"), "monsters/goblin1.png");
+    EXPECT_EQ(find("orc"), "monsters/orco1.png");
+    EXPECT_EQ(find("zombie"), "monsters/zombie1.png");
+    EXPECT_EQ(find("spider"), "monsters/spider1.png");
+    EXPECT_EQ(find("golem"), "monsters/golem1.png");
+    EXPECT_EQ(find("skeleton"), "monsters/skeleton1.png");
 }
 
 TEST(SpawnCatalogsTest, CitizenCatalogHasMerchantBankerPriest) {

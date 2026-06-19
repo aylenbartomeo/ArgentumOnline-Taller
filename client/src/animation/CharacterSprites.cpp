@@ -91,81 +91,143 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
         case EntityType::NPC:
             return EntitySprite{"1200.png", true, 15, "420.png", 6, 13, 13, 15, 2, 4, 24, 44};
         case EntityType::MONSTER: {
-            // int goblinOrcHeadX = 6 + (entityId % 18) * 27;
             switch (static_cast<NPCType>(entityTypeId)) {
-                case NPCType::GOBLIN:
-                    return EntitySprite{.bodySheet = "4015.png",
+                case NPCType::GOBLIN: {
+                    struct SkinCfg {
+                        const char* sheet;
+                        int x, y, w, h, scale, strideX, strideY, cols;
+                    };
+                    static const SkinCfg skins[] = {
+                            {"monsters/goblin1.png", 2, 2, 22, 48, 120, 24, 51, 6},
+                            {"monsters/goblin2.png", 3, 3, 20, 29, 132, 25, 32, 8},
+                    };
+                    const SkinCfg& s = skins[entityId % (sizeof(skins) / sizeof(skins[0]))];
+                    return EntitySprite{.bodySheet = s.sheet,
                                         .drawHead = false,
-                                        .bodySrcX = 2,
-                                        .bodySrcY = 2,
-                                        .bodySrcW = 22,
-                                        .bodySrcH = 48,
-                                        .bodyScale = 120,
+                                        .bodySrcX = s.x,
+                                        .bodySrcY = s.y,
+                                        .bodySrcW = s.w,
+                                        .bodySrcH = s.h,
+                                        .bodyScale = s.scale,
                                         .customGrid = true,
-                                        .bodyStrideX = 24,
-                                        .bodyStrideY = 51,
-                                        .bodyCols = 6};
-                case NPCType::ORC:
-                    return EntitySprite{.bodySheet = "4017.png",
+                                        .bodyStrideX = s.strideX,
+                                        .bodyStrideY = s.strideY,
+                                        .bodyCols = s.cols};
+                }
+                case NPCType::ORC: {
+                    struct SkinCfg {
+                        const char* sheet;
+                        int x, y, w, h, scale, strideX, strideY, cols;
+                    };
+                    static const SkinCfg skins[] = {
+                            {"monsters/orco1.png", 2, 1, 22, 58, 125, 26, 69, 6},
+                            {"monsters/orco2.png", 1, 3, 22, 49, 125, 22, 55, 6},
+                    };
+                    const SkinCfg& s = skins[entityId % (sizeof(skins) / sizeof(skins[0]))];
+                    return EntitySprite{.bodySheet = s.sheet,
                                         .drawHead = false,
-                                        .bodySrcX = 2,
-                                        .bodySrcY = 1,
-                                        .bodySrcW = 22,
-                                        .bodySrcH = 58,
-                                        .bodyScale = 125,
+                                        .bodySrcX = s.x,
+                                        .bodySrcY = s.y,
+                                        .bodySrcW = s.w,
+                                        .bodySrcH = s.h,
+                                        .bodyScale = s.scale,
                                         .customGrid = true,
-                                        .bodyStrideX = 26,
-                                        .bodyStrideY = 69,
-                                        .bodyCols = 6};
-                case NPCType::ZOMBIE:
-                    return EntitySprite{.bodySheet = "4044.png",
+                                        .bodyStrideX = s.strideX,
+                                        .bodyStrideY = s.strideY,
+                                        .bodyCols = s.cols};
+                }
+                case NPCType::ZOMBIE: {
+                    struct SkinCfg {
+                        const char* sheet;
+                        int x, y, w, h, scale, strideX, strideY, cols;
+                    };
+                    static const SkinCfg skins[] = {
+                            {"monsters/zombie1.png", 5, 2, 20, 44, 130, 23, 47, 8},
+                            {"monsters/zombie2.png", 3, 0, 20, 51, 130, 25, 53, 6},
+                    };
+                    const SkinCfg& s = skins[entityId % (sizeof(skins) / sizeof(skins[0]))];
+                    return EntitySprite{.bodySheet = s.sheet,
                                         .drawHead = false,
                                         .headSheet = "420.png",
-                                        .bodySrcX = 5,
-                                        .bodySrcY = 2,
-                                        .bodySrcW = 20,
-                                        .bodySrcH = 44,
-                                        .bodyScale = 130,
+                                        .bodySrcX = s.x,
+                                        .bodySrcY = s.y,
+                                        .bodySrcW = s.w,
+                                        .bodySrcH = s.h,
+                                        .bodyScale = s.scale,
                                         .customGrid = true,
-                                        .bodyStrideX = 23,
-                                        .bodyStrideY = 47,
-                                        .bodyCols = 8};
-                case NPCType::SPIDER:
-                    return EntitySprite{.bodySheet = "4151.png",
+                                        .bodyStrideX = s.strideX,
+                                        .bodyStrideY = s.strideY,
+                                        .bodyCols = s.cols};
+                }
+                case NPCType::SPIDER: {
+                    struct SkinCfg {
+                        const char* sheet;
+                        int x, y, w, h, scale, strideX, strideY, cols;
+                    };
+                    static const SkinCfg skins[] = {
+                            {"monsters/spider1.png", 18, 42, 75, 54, 65, 95, 96, 5},
+                            {"monsters/spider2.png", 1, 0, 51, 37, 96, 54, 35, 4},
+                            {"monsters/spider3.png", 0, 8, 60, 39, 81, 64, 66, 5},
+                    };
+                    const SkinCfg& s = skins[entityId % (sizeof(skins) / sizeof(skins[0]))];
+                    return EntitySprite{.bodySheet = s.sheet,
                                         .drawHead = false,
-                                        .bodySrcX = 18,
-                                        .bodySrcY = 42,
-                                        .bodySrcW = 75,
-                                        .bodySrcH = 54,
-                                        .bodyScale = 65,
+                                        .bodySrcX = s.x,
+                                        .bodySrcY = s.y,
+                                        .bodySrcW = s.w,
+                                        .bodySrcH = s.h,
+                                        .bodyScale = s.scale,
                                         .customGrid = true,
-                                        .bodyStrideX = 95,
-                                        .bodyStrideY = 96,
-                                        .bodyCols = 5};
-                case NPCType::GOLEM:
-                    return EntitySprite{.bodySheet = "4091.png",
+                                        .bodyStrideX = s.strideX,
+                                        .bodyStrideY = s.strideY,
+                                        .bodyCols = s.cols};
+                }
+                case NPCType::GOLEM: {
+                    struct SkinCfg {
+                        const char* sheet;
+                        int x, y, w, h, scale, strideX, strideY, cols;
+                    };
+                    static const SkinCfg skins[] = {
+                            {"monsters/golem1.png", 4, 17, 46, 72, 100, 57, 99, 6},
+                            {"monsters/golem2.png", 11, 14, 120, 155, 130, 161, 159, 6},
+                            {"monsters/golem3.png", 11, 21, 130, 170, 130, 161, 198, 6},
+                    };
+                    const SkinCfg& s = skins[entityId % (sizeof(skins) / sizeof(skins[0]))];
+                    return EntitySprite{.bodySheet = s.sheet,
                                         .drawHead = false,
-                                        .bodySrcX = 4,
-                                        .bodySrcY = 17,
-                                        .bodySrcW = 46,
-                                        .bodySrcH = 72,
-                                        .bodyScale = 100,
+                                        .bodySrcX = s.x,
+                                        .bodySrcY = s.y,
+                                        .bodySrcW = s.w,
+                                        .bodySrcH = s.h,
+                                        .bodyScale = s.scale,
                                         .customGrid = true,
-                                        .bodyStrideX = 57,
-                                        .bodyStrideY = 99,
-                                        .bodyCols = 6};
-                case NPCType::SKELETON:
-                    return EntitySprite{.bodySheet = "4079.png",
+                                        .bodyStrideX = s.strideX,
+                                        .bodyStrideY = s.strideY,
+                                        .bodyCols = s.cols};
+                }
+                case NPCType::SKELETON: {
+                    struct SkinCfg {
+                        const char* sheet;
+                        int x, y, w, h, scale, strideX, strideY, cols;
+                    };
+                    static const SkinCfg skins[] = {
+                            {"monsters/skeleton1.png", 5, 3, 16, 48, 120, 25, 52, 6},
+                            {"monsters/skeleton2.png", 0, 1, 24, 50, 120, 26, 52, 6},
+                            {"monsters/skeleton3.png", 4, 2, 21, 45, 120, 25, 47, 6},
+                    };
+                    const SkinCfg& s = skins[entityId % (sizeof(skins) / sizeof(skins[0]))];
+                    return EntitySprite{.bodySheet = s.sheet,
                                         .drawHead = false,
-                                        .bodySrcX = 5,
-                                        .bodySrcY = 3,
-                                        .bodySrcW = 16,
-                                        .bodySrcH = 48,
-                                        .bodyScale = 120,
+                                        .bodySrcX = s.x,
+                                        .bodySrcY = s.y,
+                                        .bodySrcW = s.w,
+                                        .bodySrcH = s.h,
+                                        .bodyScale = s.scale,
                                         .customGrid = true,
-                                        .bodyStrideX = 25,
-                                        .bodyStrideY = 52,
-                                        .bodyCols = 6};
+                                        .bodyStrideX = s.strideX,
+                                        .bodyStrideY = s.strideY,
+                                        .bodyCols = s.cols};
+                }
                 case NPCType::BOSS_BALROG:
                     return EntitySprite{.bodySheet = "bosses/Balrog Infernal.png",
                                         .drawHead = false,
