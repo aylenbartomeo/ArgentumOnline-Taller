@@ -27,7 +27,7 @@
 
 class Game {
 public:
-    explicit Game(Client& client);
+    explicit Game(Client& client, int width, int height, bool fullscreen);
     ~Game();
 
     void run();

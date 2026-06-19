@@ -15,17 +15,19 @@ const SDL_Rect BTN_LOGIN = {450, 320, 200, 40};
 const SDL_Rect BTN_REGISTER = {120, 445, 200, 45};
 const SDL_Rect BTN_CLOSE = {500, 450, 200, 45};
 
-Launcher::Launcher():
+Launcher::Launcher(int width, int height, bool fullscreen):
         client(nullptr),
         authenticated(false),
         isOnline(false),
         errorMessage(""),
         sdl(SDL_INIT_VIDEO),
-        window("Argentum Online", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_W,
-               WINDOW_H, SDL_WINDOW_SHOWN),
+        window("Argentum Online", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height,
+               SDL_WINDOW_SHOWN | (fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)),
         renderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
         state(LauncherState::CONNECTION) {
+
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+    renderer.SetLogicalSize(800, 600);
 
     if (TTF_WasInit() == 0) {
         TTF_Init();

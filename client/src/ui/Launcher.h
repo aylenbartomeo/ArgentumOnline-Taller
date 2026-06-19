@@ -20,7 +20,7 @@ struct TextBox {
 
 class Launcher {
 public:
-    Launcher();
+    Launcher(int width, int height, bool fullscreen);
     ~Launcher();
 
     void run();
