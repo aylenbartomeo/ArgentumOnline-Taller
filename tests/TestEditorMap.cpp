@@ -257,3 +257,23 @@ TEST(EditorMapForestTest, ForestsSurviveJsonRoundTrip) {
     EXPECT_EQ(loaded.getForests()[0].x, 10);
     EXPECT_EQ(loaded.getForests()[0].width, 12);
 }
+
+TEST(EditorMapTest, RemoveMonsterAtRemovesOnlyThatTile) {
+    EditorMap map(10, 10, 32, "5108.png", 32);
+    map.addMonster("goblin", 3, 4);
+    map.addMonster("orco", 5, 6);
+    map.removeMonsterAt(3, 4);
+    ASSERT_EQ(map.getMonsters().size(), 1u);
+    EXPECT_EQ(map.getMonsters()[0].x, 5);
+    EXPECT_EQ(map.getMonsters()[0].y, 6);
+}
+
+TEST(EditorMapTest, RemoveCitizenAtLeavesMonsterOnSameTile) {
+    EditorMap map(10, 10, 32, "5108.png", 32);
+    map.addMonster("goblin", 7, 7);
+    map.addCitizen("priest", 7, 7);
+    map.removeCitizenAt(7, 7);
+    EXPECT_TRUE(map.getCitizens().empty());
+    ASSERT_EQ(map.getMonsters().size(), 1u);
+    EXPECT_EQ(map.getMonsters()[0].x, 7);
+}

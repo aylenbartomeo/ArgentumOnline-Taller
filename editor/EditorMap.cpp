@@ -362,6 +362,18 @@ void EditorMap::removeEntitiesAt(int x, int y) {
     matches(monsters);
 }
 
+void EditorMap::removeMonsterAt(int x, int y) {
+    monsters.erase(std::remove_if(monsters.begin(), monsters.end(),
+                                  [x, y](const MonsterSpawn& m) { return m.x == x && m.y == y; }),
+                   monsters.end());
+}
+
+void EditorMap::removeCitizenAt(int x, int y) {
+    citizens.erase(std::remove_if(citizens.begin(), citizens.end(),
+                                  [x, y](const CitizenSpawn& c) { return c.x == x && c.y == y; }),
+                   citizens.end());
+}
+
 const std::vector<EditorDungeon>& EditorMap::getDungeons() const { return dungeons; }
 
 void EditorMap::addDungeon(int x, int y, int width, int height) {

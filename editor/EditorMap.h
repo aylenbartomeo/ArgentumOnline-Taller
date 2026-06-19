@@ -117,9 +117,11 @@ public:
     void addCitizen(const std::string& type, int x, int y);
     void removeCitizensInRect(int x, int y, int width, int height);
     void removeEntitiesAt(int x, int y);
+    void removeCitizenAt(int x, int y);
 
     const std::vector<MonsterSpawn>& getMonsters() const;
     void addMonster(const std::string& type, int x, int y);
+    void removeMonsterAt(int x, int y);
 
     const std::vector<EditorDungeon>& getDungeons() const;
     void addDungeon(int x, int y, int width, int height);
