@@ -7,6 +7,7 @@ target_sources(lib_editor
     Camera.cpp
     Palette.cpp
     Toolbar.cpp
+    EditorLayout.cpp
     SpawnCatalogs.cpp
     Font.cpp
     Editor.cpp
@@ -20,6 +21,7 @@ target_sources(lib_editor
     Camera.h
     Palette.h
     Toolbar.h
+    EditorLayout.h
     SpawnCatalogs.h
     Font.h
     Editor.h
