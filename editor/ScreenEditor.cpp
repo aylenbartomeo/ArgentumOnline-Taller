@@ -71,10 +71,16 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
                 screen = Screen::PRINCIPAL;
             } else if (region == Region::GOMA) {
                 activeTool = Tool::ERASER;
-            } else if (region == Region::CANVAS && activeTool == Tool::ERASER) {
+            } else if (region == Region::SPAWN) {
+                activeTool = Tool::SPAWN;
+            } else if (region == Region::CANVAS && activeTool != Tool::NONE) {
                 LayoutRect c = canvasRect();
                 Position cell = camera.screenToCell(p.x - c.x, p.y - c.y);
-                smartEraseAt(map, cell.x, cell.y);
+                if (activeTool == Tool::ERASER) {
+                    smartEraseAt(map, cell.x, cell.y);
+                } else if (activeTool == Tool::SPAWN) {
+                    map.setSpawn(cell.x, cell.y);
+                }
             }
         } else if (event.button.button == SDL_BUTTON_RIGHT) {
             SDL2pp::Point p = toMockup(event.button.x, event.button.y);
@@ -99,6 +105,14 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
             camera.zoomIn();
         } else if (key == SDLK_MINUS || key == SDLK_KP_MINUS) {
             camera.zoomOut();
+        } else if (key == SDLK_LEFT) {
+            camera.move(-camera.getTileSize(), 0);
+        } else if (key == SDLK_RIGHT) {
+            camera.move(camera.getTileSize(), 0);
+        } else if (key == SDLK_UP) {
+            camera.move(0, -camera.getTileSize());
+        } else if (key == SDLK_DOWN) {
+            camera.move(0, camera.getTileSize());
         }
     }
 }
@@ -119,6 +133,13 @@ void ScreenEditor::render() {
     LayoutRect t = topLeftToolsRect();
     SDL2pp::Texture& tools = textures.get(std::string(EDITOR_RES) + "ToolsBar.png");
     renderer.Copy(tools, SDL2pp::NullOpt, SDL2pp::Rect(t.x, t.y, t.w, t.h));
+    if (activeTool != Tool::NONE) {
+        LayoutRect b = (activeTool == Tool::ERASER) ? gomaRect() : spawnRect();
+        renderer.SetDrawColor(255, 235, 0, 255);
+        for (int i = 0; i < 4; ++i) {
+            renderer.DrawRect(SDL2pp::Rect(b.x + i, b.y + i, b.w - 2 * i, b.h - 2 * i));
+        }
+    }
     if (screen == Screen::TERRENO) {
         LayoutRect b = terrenoBackRect();
         SDL2pp::Texture& back = textures.get(std::string(EDITOR_RES) + "BackTerreno.png");

@@ -11,7 +11,7 @@
 #include "EditorMap.h"
 #include "MapRenderer.h"
 
-enum class Tool { NONE, ERASER };
+enum class Tool { NONE, ERASER, SPAWN };
 
 class ScreenEditor {
 private:
