@@ -33,7 +33,7 @@ target_sources(lib_client
     src/ui/HudPanel.cpp
     src/ui/ManualPanel.cpp
     src/ui/CharacterCreationScreen.cpp
-
+    src/ui/QuitView.cpp
     # rendering
     src/rendering/TileMap.cpp
     src/rendering/IndoorRegions.cpp
@@ -84,7 +84,8 @@ target_sources(lib_client
     src/ui/HudPanel.h
     src/ui/ManualPanel.h
     src/ui/CharacterCreationScreen.h
-
+    src/ui/QuitView.h
+    
     # rendering
     src/rendering/TileMap.h
     src/rendering/Viewport.h
