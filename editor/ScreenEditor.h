@@ -13,6 +13,8 @@
 
 #include "Font.h"
 #include "MapChooser.h"
+#include "Palette.h"
+#include "CatalogSprites.h"
 
 enum class Tool { NONE, ERASER, SPAWN };
 
@@ -40,9 +42,21 @@ private:
     bool newMapInput;
     std::string newMapName;
     std::string mapErrorMsg;
+    std::vector<int> itemOverlays;
+    Palette itemPalette;
+    Palette monsterPalette;
+    Palette citizenPalette;
+    std::string placeMsg;
+    int goldAmount;
+    bool amountInput;
+    std::string amountText;
 
     void handleEvent(const SDL_Event& event, bool& running);
     void render();
+    void renderPalette();
+    Palette* currentPalette();
+    void placeAtCell(int col, int row);
+    bool selectedIsStackable() const;
     void saveMap();
     void openMapList();
     void closeMapList();

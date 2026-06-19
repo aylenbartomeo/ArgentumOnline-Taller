@@ -1,9 +1,12 @@
 #include "ScreenEditor.h"
 
+#include <algorithm>
 #include <filesystem>
+#include <string>
 
 #include "loop/ConstantRateLoop.h"
 
+#include "CityStamp.h"
 #include "MapChooser.h"
 #include "MapDefaults.h"
 #include "SmartEraser.h"
@@ -26,6 +29,12 @@ constexpr int LIST_TITLE_Y = PAPIRO_Y + 70;
 constexpr int LIST_ROWS_TOP = PAPIRO_Y + 130;
 constexpr int LIST_ROW_H = 44;
 constexpr LayoutRect MAP_BACK = {PAPIRO_X + PAPIRO_W - 120, PAPIRO_Y + 25, 100, 90};
+constexpr int SLOT_X = 1150;
+constexpr int SLOT_Y = 580;
+constexpr int SLOT_SIZE = 42;
+constexpr int SLOT_COLS = 5;
+constexpr int SLOT_VISIBLE_ROWS = 6;
+constexpr LayoutRect AMOUNT_FIELD = {1150, 880, 150, 40};
 
 bool insideRect(LayoutRect r, int x, int y) {
     return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
@@ -63,7 +72,15 @@ ScreenEditor::ScreenEditor():
         mapasFlashUntil(0),
         font(renderer, "resources/DejaVuSans-Bold.ttf", MAP_FONT_SIZE),
         mapListOpen(false),
-        newMapInput(false) {
+        newMapInput(false),
+        itemOverlays(itemOverlayIndices()),
+        itemPalette(SLOT_X, SLOT_Y, SLOT_SIZE, SLOT_COLS, static_cast<int>(itemOverlays.size())),
+        monsterPalette(SLOT_X, SLOT_Y, SLOT_SIZE, SLOT_COLS,
+                       static_cast<int>(getMonsterCatalog().size())),
+        citizenPalette(SLOT_X, SLOT_Y, SLOT_SIZE, SLOT_COLS,
+                       static_cast<int>(getCitizenCatalog().size())),
+        goldAmount(1),
+        amountInput(false) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 }
 
@@ -87,6 +104,30 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
         handleMapListEvent(event);
         return;
     }
+    if (amountInput) {
+        if (event.type == SDL_TEXTINPUT) {
+            for (const char* c = event.text.text; *c != '\0'; ++c) {
+                if (*c >= '0' && *c <= '9' && amountText.size() < 7) {
+                    amountText += *c;
+                }
+            }
+        } else if (event.type == SDL_KEYDOWN) {
+            SDL_Keycode sym = event.key.keysym.sym;
+            if (sym == SDLK_RETURN || sym == SDLK_KP_ENTER) {
+                goldAmount = amountText.empty() ? 1 : std::max(1, std::stoi(amountText));
+                amountInput = false;
+                SDL_StopTextInput();
+            } else if (sym == SDLK_BACKSPACE) {
+                if (!amountText.empty()) {
+                    amountText.pop_back();
+                }
+            } else if (sym == SDLK_ESCAPE) {
+                amountInput = false;
+                SDL_StopTextInput();
+            }
+        }
+        return;
+    }
     if (event.type == SDL_MOUSEBUTTONDOWN) {
         if (event.button.button == SDL_BUTTON_LEFT) {
             SDL2pp::Point p = toMockup(event.button.x, event.button.y);
@@ -105,6 +146,15 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
             } else if (region == Region::MAPAS) {
                 openMapList();
                 mapasFlashUntil = SDL_GetTicks() + 700;
+            } else if (selectedIsStackable() && insideRect(AMOUNT_FIELD, p.x, p.y)) {
+                amountInput = true;
+                amountText = "";
+                SDL_StartTextInput();
+            } else if (currentPalette() != nullptr && p.x >= SLOT_X &&
+                       p.x < SLOT_X + SLOT_COLS * SLOT_SIZE && p.y >= SLOT_Y &&
+                       p.y < SLOT_Y + SLOT_VISIBLE_ROWS * SLOT_SIZE) {
+                currentPalette()->selectFromClick(p.x, p.y);
+                activeTool = Tool::NONE;
             } else if (region == Region::CANVAS && activeTool != Tool::NONE) {
                 LayoutRect c = canvasRect();
                 Position cell = camera.screenToCell(p.x - c.x, p.y - c.y);
@@ -113,6 +163,11 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
                 } else if (activeTool == Tool::SPAWN) {
                     map.setSpawn(cell.x, cell.y);
                 }
+            } else if (region == Region::CANVAS && activeTool == Tool::NONE &&
+                       currentPalette() != nullptr) {
+                LayoutRect c = canvasRect();
+                Position cell = camera.screenToCell(p.x - c.x, p.y - c.y);
+                placeAtCell(cell.x, cell.y);
             }
         } else if (event.button.button == SDL_BUTTON_RIGHT) {
             SDL2pp::Point p = toMockup(event.button.x, event.button.y);
@@ -145,6 +200,11 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
             camera.move(0, -camera.getTileSize());
         } else if (key == SDLK_DOWN) {
             camera.move(0, camera.getTileSize());
+        }
+    } else if (event.type == SDL_MOUSEWHEEL) {
+        Palette* pal = currentPalette();
+        if (pal != nullptr) {
+            pal->scroll(event.wheel.y > 0 ? -1 : 1);
         }
     }
 }
@@ -204,6 +264,7 @@ void ScreenEditor::render() {
         SDL2pp::Texture& back = textures.get(std::string(EDITOR_RES) + "BackTerreno.png");
         renderer.Copy(back, SDL2pp::NullOpt, SDL2pp::Rect(b.x, b.y, b.w, b.h));
     }
+    renderPalette();
     if (mapListOpen) {
         renderMapList();
     }
@@ -377,6 +438,109 @@ void ScreenEditor::confirmNewMap() {
     newMapInput = false;
     SDL_StopTextInput();
     switchToMap(path, true);
+}
+
+Palette* ScreenEditor::currentPalette() {
+    if (screen == Screen::ITEMS) {
+        return &itemPalette;
+    }
+    if (screen == Screen::MONSTRUOS) {
+        return &monsterPalette;
+    }
+    if (screen == Screen::CIUDADANOS) {
+        return &citizenPalette;
+    }
+    return nullptr;
+}
+
+bool ScreenEditor::selectedIsStackable() const {
+    if (screen != Screen::ITEMS) {
+        return false;
+    }
+    return getOverlayRegistry()[itemOverlays[itemPalette.getSelectedTile()]].stackable;
+}
+
+void ScreenEditor::placeAtCell(int col, int row) {
+    placeMsg = "";
+    if (screen == Screen::ITEMS) {
+        int idx = itemOverlays[itemPalette.getSelectedTile()];
+        int amount = getOverlayRegistry()[idx].stackable ? goldAmount : 1;
+        map.setItem(col, row, idx, amount);
+    } else if (screen == Screen::MONSTRUOS) {
+        const std::string type = getMonsterCatalog()[monsterPalette.getSelectedTile()].type;
+        std::string error = monsterPlacementError(map, col, row);
+        if (error.empty()) {
+            map.addMonster(type, col, row);
+        } else {
+            placeMsg = error;
+        }
+    } else if (screen == Screen::CIUDADANOS) {
+        const std::string type = getCitizenCatalog()[citizenPalette.getSelectedTile()].type;
+        std::string error = citizenPlacementError(map, type, col, row);
+        if (error.empty()) {
+            map.addCitizen(type, col, row);
+        } else {
+            placeMsg = error;
+        }
+    }
+}
+
+void ScreenEditor::renderPalette() {
+    const Palette* pal = nullptr;
+    if (screen == Screen::ITEMS) {
+        pal = &itemPalette;
+    } else if (screen == Screen::MONSTRUOS) {
+        pal = &monsterPalette;
+    } else if (screen == Screen::CIUDADANOS) {
+        pal = &citizenPalette;
+    }
+    if (pal == nullptr) {
+        return;
+    }
+    const int ts = pal->getTileDrawSize();
+    for (int i = 0; i < pal->getTileCount(); ++i) {
+        int col = i % pal->getCols();
+        int row = i / pal->getCols() - pal->getScrollRow();
+        if (row < 0 || row >= SLOT_VISIBLE_ROWS) {
+            continue;
+        }
+        int dx = pal->getPanelX() + col * ts;
+        int dy = pal->getPanelY() + row * ts;
+        if (screen == Screen::ITEMS) {
+            drawOverlaySprite(renderer, textures, getOverlayRegistry()[itemOverlays[i]], dx, dy, ts);
+        } else if (screen == Screen::MONSTRUOS) {
+            drawMonsterSprite(renderer, textures, getMonsterCatalog()[i], dx, dy, ts);
+        } else {
+            drawCitizenSprite(renderer, textures, getCitizenCatalog()[i], dx, dy, ts);
+        }
+        if (i == pal->getSelectedTile()) {
+            renderer.SetDrawColor(255, 235, 0, 255);
+            for (int k = 0; k < 3; ++k) {
+                renderer.DrawRect(SDL2pp::Rect(dx + k, dy + k, ts - 2 * k, ts - 2 * k));
+            }
+        }
+    }
+    int sel = pal->getSelectedTile();
+    int px = 1175;
+    int py = 940;
+    if (screen == Screen::ITEMS) {
+        drawOverlaySprite(renderer, textures, getOverlayRegistry()[itemOverlays[sel]], px, py, 48);
+    } else if (screen == Screen::MONSTRUOS) {
+        drawMonsterSprite(renderer, textures, getMonsterCatalog()[sel], px, py, 48);
+    } else {
+        drawCitizenSprite(renderer, textures, getCitizenCatalog()[sel], px, py, 48);
+    }
+    if (!placeMsg.empty()) {
+        font.drawString(placeMsg, 70, 1000, SDL_Color{200, 60, 40, 255});
+    }
+    if (selectedIsStackable()) {
+        renderer.SetDrawColor(20, 20, 20, 255);
+        renderer.FillRect(
+                SDL2pp::Rect(AMOUNT_FIELD.x, AMOUNT_FIELD.y, AMOUNT_FIELD.w, AMOUNT_FIELD.h));
+        std::string txt =
+                amountInput ? (amountText + "_") : ("Cantidad: " + std::to_string(goldAmount));
+        font.drawString(txt, AMOUNT_FIELD.x + 6, AMOUNT_FIELD.y + 6, SDL_Color{240, 220, 120, 255});
+    }
 }
 
 void ScreenEditor::run() {
