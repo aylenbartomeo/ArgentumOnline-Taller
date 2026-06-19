@@ -1,15 +1,17 @@
 #include "EditorLayout.h"
 
 namespace {
-constexpr LayoutRect CANVAS = {130, 100, 950, 885};
+constexpr LayoutRect CANVAS = {64, 72, 1018, 960};
 constexpr LayoutRect GOMA = {48, 48, 152, 156};
-constexpr LayoutRect GUARDAR = {1130, 25, 110, 95};
-constexpr LayoutRect MAPAS = {1250, 25, 125, 95};
-constexpr LayoutRect BACK = {28, 895, 105, 95};
-constexpr LayoutRect NAV_CIUDADANOS = {1140, 195, 270, 95};
-constexpr LayoutRect NAV_ITEMS = {1140, 365, 270, 95};
-constexpr LayoutRect NAV_MONSTRUOS = {1140, 535, 270, 95};
-constexpr LayoutRect NAV_TERRENO = {1140, 705, 270, 95};
+constexpr LayoutRect GUARDAR = {1118, 148, 125, 95};
+constexpr LayoutRect MAPAS = {1255, 148, 135, 95};
+constexpr LayoutRect BACK_TERRENO = {35, 900, 165, 150};
+constexpr LayoutRect BACK_PANEL = {1098, 958, 95, 90};
+constexpr LayoutRect NAV_CIUDADANOS = {1130, 300, 290, 130};
+constexpr LayoutRect NAV_ITEMS = {1130, 478, 290, 117};
+constexpr LayoutRect NAV_MONSTRUOS = {1130, 638, 290, 117};
+constexpr LayoutRect NAV_TERRENO = {1130, 808, 290, 117};
+constexpr LayoutRect TOOLS = {35, 50, 300, 187};
 
 bool inside(LayoutRect r, int x, int y) {
     return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
@@ -41,7 +43,11 @@ Region regionAtClick(Screen screen, int mx, int my) {
         if (inside(NAV_CIUDADANOS, mx, my)) {
             return Region::GO_CIUDADANOS;
         }
-    } else if (inside(BACK, mx, my)) {
+    } else if (screen == Screen::TERRENO) {
+        if (inside(BACK_TERRENO, mx, my)) {
+            return Region::BACK;
+        }
+    } else if (inside(BACK_PANEL, mx, my)) {
         return Region::BACK;
     }
     if (inside(CANVAS, mx, my)) {
@@ -55,7 +61,7 @@ std::string mockupFile(Screen screen) {
         case Screen::PRINCIPAL:
             return "EditorPrincipal.png";
         case Screen::TERRENO:
-            return "EditorTerreno.png";
+            return "EditorTerrenos.png";
         case Screen::ITEMS:
             return "EditorItems.png";
         case Screen::MONSTRUOS:
@@ -80,3 +86,7 @@ Screen screenForRegion(Region region) {
             return Screen::PRINCIPAL;
     }
 }
+
+LayoutRect topLeftToolsRect() { return TOOLS; }
+
+LayoutRect terrenoBackRect() { return BACK_TERRENO; }

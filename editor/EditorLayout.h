@@ -29,5 +29,7 @@ LayoutRect canvasRect();
 Region regionAtClick(Screen screen, int mx, int my);
 std::string mockupFile(Screen screen);
 Screen screenForRegion(Region region);
+LayoutRect topLeftToolsRect();
+LayoutRect terrenoBackRect();
 
 #endif
