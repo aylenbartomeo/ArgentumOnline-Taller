@@ -37,6 +37,7 @@ private:
     Uint32 savedFlashUntil;
     Uint32 mapasFlashUntil;
     Font font;
+    Font smallFont;
     bool mapListOpen;
     std::vector<MapEntry> mapEntries;
     bool newMapInput;
@@ -54,6 +55,7 @@ private:
     void handleEvent(const SDL_Event& event, bool& running);
     void render();
     void renderPalette();
+    void renderCurrentBrush();
     Palette* currentPalette();
     void placeAtCell(int col, int row);
     bool selectedIsStackable() const;

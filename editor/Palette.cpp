@@ -24,6 +24,12 @@ void Palette::selectFromClick(int x, int y) {
     }
 }
 
+void Palette::setSelectedTile(int index) {
+    if (index >= 0 && index < tileCount) {
+        selectedTile = index;
+    }
+}
+
 void Palette::scroll(int deltaRows) {
     int totalRows = (tileCount + cols - 1) / cols;
     scrollRow += deltaRows;

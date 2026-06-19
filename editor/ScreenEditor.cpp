@@ -29,15 +29,59 @@ constexpr int LIST_TITLE_Y = PAPIRO_Y + 70;
 constexpr int LIST_ROWS_TOP = PAPIRO_Y + 130;
 constexpr int LIST_ROW_H = 44;
 constexpr LayoutRect MAP_BACK = {PAPIRO_X + PAPIRO_W - 120, PAPIRO_Y + 25, 100, 90};
-constexpr int SLOT_X = 1150;
-constexpr int SLOT_Y = 580;
-constexpr int SLOT_SIZE = 42;
+constexpr int SLOT_X = 1118;
+constexpr int SLOT_Y = 490;
+constexpr int SLOT_STEP = 56;
+constexpr int SLOT_STEP_Y = 64;
+constexpr int SLOT_ICON = 32;
+constexpr int ITEM_DX = 12;
+constexpr int MONSTER_DX = 16;
+constexpr int CITIZEN_DX = 14;
+constexpr int SLOT_HILITE = 42;
+constexpr int BRUSH_X = 1210;
+constexpr int BRUSH_Y = 990;
+constexpr int BRUSH_TOOL_DY = 8;
 constexpr int SLOT_COLS = 5;
 constexpr int SLOT_VISIBLE_ROWS = 6;
 constexpr LayoutRect AMOUNT_FIELD = {1150, 880, 150, 40};
 
 bool insideRect(LayoutRect r, int x, int y) {
     return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+}
+
+std::string citizenDisplayName(const std::string& type) {
+    if (type == "merchant") {
+        return "Comerciante";
+    }
+    if (type == "banker") {
+        return "Banquero";
+    }
+    if (type == "priest") {
+        return "Sacerdote";
+    }
+    return type;
+}
+
+std::string monsterDisplayName(const std::string& type) {
+    if (type == "goblin") {
+        return "Goblin";
+    }
+    if (type == "orc") {
+        return "Orco";
+    }
+    if (type == "zombie") {
+        return "Zombie";
+    }
+    if (type == "spider") {
+        return "Araña";
+    }
+    if (type == "golem") {
+        return "Golem";
+    }
+    if (type == "skeleton") {
+        return "Esqueleto";
+    }
+    return type;
 }
 
 EditorMap loadMap() {
@@ -71,13 +115,14 @@ ScreenEditor::ScreenEditor():
         savedFlashUntil(0),
         mapasFlashUntil(0),
         font(renderer, "resources/DejaVuSans-Bold.ttf", MAP_FONT_SIZE),
+        smallFont(renderer, "resources/DejaVuSans-Bold.ttf", 16),
         mapListOpen(false),
         newMapInput(false),
         itemOverlays(itemOverlayIndices()),
-        itemPalette(SLOT_X, SLOT_Y, SLOT_SIZE, SLOT_COLS, static_cast<int>(itemOverlays.size())),
-        monsterPalette(SLOT_X, SLOT_Y, SLOT_SIZE, SLOT_COLS,
+        itemPalette(SLOT_X, SLOT_Y, SLOT_STEP, SLOT_COLS, static_cast<int>(itemOverlays.size())),
+        monsterPalette(SLOT_X, SLOT_Y, SLOT_STEP, SLOT_COLS,
                        static_cast<int>(getMonsterCatalog().size())),
-        citizenPalette(SLOT_X, SLOT_Y, SLOT_SIZE, SLOT_COLS,
+        citizenPalette(SLOT_X, SLOT_Y, SLOT_STEP, SLOT_COLS,
                        static_cast<int>(getCitizenCatalog().size())),
         goldAmount(1),
         amountInput(false) {
@@ -151,9 +196,12 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
                 amountText = "";
                 SDL_StartTextInput();
             } else if (currentPalette() != nullptr && p.x >= SLOT_X &&
-                       p.x < SLOT_X + SLOT_COLS * SLOT_SIZE && p.y >= SLOT_Y &&
-                       p.y < SLOT_Y + SLOT_VISIBLE_ROWS * SLOT_SIZE) {
-                currentPalette()->selectFromClick(p.x, p.y);
+                       p.x < SLOT_X + SLOT_COLS * SLOT_STEP && p.y >= SLOT_Y &&
+                       p.y < SLOT_Y + SLOT_VISIBLE_ROWS * SLOT_STEP_Y) {
+                Palette* pal = currentPalette();
+                int col = (p.x - SLOT_X) / SLOT_STEP;
+                int row = (p.y - SLOT_Y) / SLOT_STEP_Y + pal->getScrollRow();
+                pal->setSelectedTile(row * SLOT_COLS + col);
                 activeTool = Tool::NONE;
             } else if (region == Region::CANVAS && activeTool != Tool::NONE) {
                 LayoutRect c = canvasRect();
@@ -265,6 +313,7 @@ void ScreenEditor::render() {
         renderer.Copy(back, SDL2pp::NullOpt, SDL2pp::Rect(b.x, b.y, b.w, b.h));
     }
     renderPalette();
+    renderCurrentBrush();
     if (mapListOpen) {
         renderMapList();
     }
@@ -505,30 +554,27 @@ void ScreenEditor::renderPalette() {
             continue;
         }
         int dx = pal->getPanelX() + col * ts;
-        int dy = pal->getPanelY() + row * ts;
+        int dy = pal->getPanelY() + row * SLOT_STEP_Y;
+        int iy = dy + (SLOT_STEP - SLOT_ICON) / 2;
         if (screen == Screen::ITEMS) {
-            drawOverlaySprite(renderer, textures, getOverlayRegistry()[itemOverlays[i]], dx, dy, ts);
+            drawOverlaySprite(renderer, textures, getOverlayRegistry()[itemOverlays[i]],
+                              dx + ITEM_DX, iy, SLOT_ICON);
         } else if (screen == Screen::MONSTRUOS) {
-            drawMonsterSprite(renderer, textures, getMonsterCatalog()[i], dx, dy, ts);
+            drawMonsterSprite(renderer, textures, getMonsterCatalog()[i], dx + MONSTER_DX, iy,
+                              SLOT_ICON);
         } else {
-            drawCitizenSprite(renderer, textures, getCitizenCatalog()[i], dx, dy, ts);
+            drawCitizenSprite(renderer, textures, getCitizenCatalog()[i], dx + CITIZEN_DX, iy,
+                              SLOT_ICON);
         }
         if (i == pal->getSelectedTile()) {
             renderer.SetDrawColor(255, 235, 0, 255);
+            int hx = dx + (SLOT_STEP - SLOT_HILITE) / 2;
+            int hy = dy + (SLOT_STEP - SLOT_HILITE) / 2;
             for (int k = 0; k < 3; ++k) {
-                renderer.DrawRect(SDL2pp::Rect(dx + k, dy + k, ts - 2 * k, ts - 2 * k));
+                renderer.DrawRect(
+                        SDL2pp::Rect(hx + k, hy + k, SLOT_HILITE - 2 * k, SLOT_HILITE - 2 * k));
             }
         }
-    }
-    int sel = pal->getSelectedTile();
-    int px = 1175;
-    int py = 940;
-    if (screen == Screen::ITEMS) {
-        drawOverlaySprite(renderer, textures, getOverlayRegistry()[itemOverlays[sel]], px, py, 48);
-    } else if (screen == Screen::MONSTRUOS) {
-        drawMonsterSprite(renderer, textures, getMonsterCatalog()[sel], px, py, 48);
-    } else {
-        drawCitizenSprite(renderer, textures, getCitizenCatalog()[sel], px, py, 48);
     }
     if (!placeMsg.empty()) {
         font.drawString(placeMsg, 70, 1000, SDL_Color{200, 60, 40, 255});
@@ -541,6 +587,32 @@ void ScreenEditor::renderPalette() {
                 amountInput ? (amountText + "_") : ("Cantidad: " + std::to_string(goldAmount));
         font.drawString(txt, AMOUNT_FIELD.x + 6, AMOUNT_FIELD.y + 6, SDL_Color{240, 220, 120, 255});
     }
+}
+
+void ScreenEditor::renderCurrentBrush() {
+    SDL_Color gold{240, 220, 120, 255};
+    if (activeTool == Tool::ERASER) {
+        smallFont.drawString("Goma", BRUSH_X, BRUSH_Y + BRUSH_TOOL_DY, gold);
+        return;
+    }
+    if (activeTool == Tool::SPAWN) {
+        smallFont.drawString("Spawn", BRUSH_X, BRUSH_Y + BRUSH_TOOL_DY, gold);
+        return;
+    }
+    Palette* pal = currentPalette();
+    if (pal == nullptr) {
+        return;
+    }
+    int sel = pal->getSelectedTile();
+    std::string name;
+    if (screen == Screen::ITEMS) {
+        name = getOverlayRegistry()[itemOverlays[sel]].name;
+    } else if (screen == Screen::MONSTRUOS) {
+        name = monsterDisplayName(getMonsterCatalog()[sel].type);
+    } else {
+        name = citizenDisplayName(getCitizenCatalog()[sel].type);
+    }
+    smallFont.drawString(name, BRUSH_X, BRUSH_Y, gold);
 }
 
 void ScreenEditor::run() {
