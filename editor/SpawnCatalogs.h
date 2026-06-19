@@ -38,4 +38,7 @@ struct CitizenCatalogEntry {
 const std::vector<MonsterCatalogEntry>& getMonsterCatalog();
 const std::vector<CitizenCatalogEntry>& getCitizenCatalog();
 
+const MonsterCatalogEntry* monsterEntryFor(const std::string& type);
+const CitizenCatalogEntry* citizenEntryFor(const std::string& type);
+
 #endif

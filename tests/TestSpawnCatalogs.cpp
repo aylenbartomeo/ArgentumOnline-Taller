@@ -35,3 +35,23 @@ TEST(SpawnCatalogsTest, CitizenCatalogHasMerchantBankerPriest) {
     EXPECT_EQ(find("banker"), "1071.png");
     EXPECT_EQ(find("priest"), "1910.png");
 }
+
+TEST(SpawnCatalogsTest, MonsterEntryForKnownTypeReturnsIt) {
+    const MonsterCatalogEntry* entry = monsterEntryFor("goblin");
+    ASSERT_NE(entry, nullptr);
+    EXPECT_EQ(entry->type, "goblin");
+}
+
+TEST(SpawnCatalogsTest, MonsterEntryForUnknownTypeReturnsNull) {
+    EXPECT_EQ(monsterEntryFor("no-existe"), nullptr);
+}
+
+TEST(SpawnCatalogsTest, CitizenEntryForKnownTypeReturnsIt) {
+    const CitizenCatalogEntry* entry = citizenEntryFor("priest");
+    ASSERT_NE(entry, nullptr);
+    EXPECT_EQ(entry->type, "priest");
+}
+
+TEST(SpawnCatalogsTest, CitizenEntryForUnknownTypeReturnsNull) {
+    EXPECT_EQ(citizenEntryFor("no-existe"), nullptr);
+}
