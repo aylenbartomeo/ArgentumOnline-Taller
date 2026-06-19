@@ -10,6 +10,7 @@ target_sources(lib_common
     src/OverlayRegistry.cpp
     src/CityPrefab.cpp
     src/DungeonPrefab.cpp
+    src/ForestPrefab.cpp
     src/loop/ConstantRateLoop.cpp
     PUBLIC
     # .h files
@@ -23,6 +24,7 @@ target_sources(lib_common
     include/OverlayRegistry.h
     include/CityPrefab.h
     include/DungeonPrefab.h
+    include/ForestPrefab.h
     include/SafeZoneRect.h
     include/loop/ConstantRateLoop.h
     src/protocol/Protocol.h
