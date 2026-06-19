@@ -8,6 +8,7 @@
 
 #include "CityPrefab.h"
 #include "DungeonPrefab.h"
+#include "ForestPrefab.h"
 
 namespace {
 constexpr int W = 150;
@@ -26,6 +27,7 @@ struct Builder {
     nlohmann::json safeZones = nlohmann::json::array();
     nlohmann::json items = nlohmann::json::array();
     nlohmann::json dungeons = nlohmann::json::array();
+    nlohmann::json forests = nlohmann::json::array();
 
     Builder():
             ground(H, std::vector<int>(W, GRASS)),
@@ -113,6 +115,18 @@ struct Builder {
                             {"width", prefab.dungeonW},
                             {"height", prefab.dungeonH}});
     }
+
+    void forest(int ox, int oy) {
+        const ForestPrefab& prefab = getForestPrefab();
+        for (const ForestCell& c: prefab.decoration) {
+            deco(ox + c.dx, oy + c.dy, c.value);
+        }
+        for (const ForestCell& c: prefab.obstacles) {
+            block(ox + c.dx, oy + c.dy);
+        }
+        forests.push_back(
+                {{"x", ox}, {"y", oy}, {"width", prefab.width}, {"height", prefab.height}});
+    }
 };
 }  // namespace
 
@@ -130,6 +144,11 @@ int main() {
     b.dungeon(126, 60);
     b.dungeon(40, 60);
     b.dungeon(94, 60);
+
+    b.forest(55, 45);
+    b.forest(88, 45);
+    b.forest(30, 90);
+    b.forest(108, 90);
 
     b.monster(75, 50, "goblin");
     b.monster(75, 100, "orc");
@@ -155,6 +174,7 @@ int main() {
     m["safeZones"] = b.safeZones;
     m["items"] = b.items;
     m["dungeons"] = b.dungeons;
+    m["forests"] = b.forests;
 
     std::ofstream out("maps/defaultMap.json");
     out << m.dump(4);
