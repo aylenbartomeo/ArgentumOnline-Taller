@@ -6,7 +6,8 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
-
+#include <typeindex>
+#include <functional>
 #include "../../common/include/dto/ClientCommands.h"
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
@@ -45,10 +46,21 @@ private:
     World world;
 
     std::unordered_map<uint32_t, std::string> pendingCreations;
-
+    // Mapa que asocia el tipo de DTO con su función ejecutora (Handler)
+    std::unordered_map<std::type_index, std::function<void(uint32_t, const PlayerCommand&)>> commandDispatcher;
     // Timer para guardado periódico
     static constexpr float SAVE_INTERVAL_SECONDS = 30.0f;
     float timeSinceLastSave = 0.0f;
+
+    void registerHandlers(); // Inicializa el mapa de comandos
+
+    // Helper en plantilla para registrar comandos de forma fluida y auto-gestionada
+    template <typename T>
+    void registerCommand(std::function<void(uint32_t, const T&)> handler) {
+        commandDispatcher[typeid(T)] = [handler](uint32_t clientId, const PlayerCommand& pCmd) {
+            handler(clientId, std::get<T>(pCmd.command));
+        };
+    }
 
     void processInputs();
     void dispatchWorldEvents();
