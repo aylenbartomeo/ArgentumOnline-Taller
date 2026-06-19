@@ -11,6 +11,8 @@
 #include "EditorMap.h"
 #include "MapRenderer.h"
 
+enum class Tool { NONE, ERASER };
+
 class ScreenEditor {
 private:
     SDL2pp::SDL sdl;
@@ -22,6 +24,7 @@ private:
     MapRenderer mapRenderer;
     SDL2pp::Texture canvasTarget;
     Screen screen;
+    Tool activeTool;
     bool rightDragging;
     int lastMouseX;
     int lastMouseY;

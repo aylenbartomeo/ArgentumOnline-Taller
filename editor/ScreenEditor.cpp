@@ -6,6 +6,7 @@
 
 #include "MapChooser.h"
 #include "MapDefaults.h"
+#include "SmartEraser.h"
 
 namespace {
 constexpr int MOCKUP_W = 1450;
@@ -38,6 +39,7 @@ ScreenEditor::ScreenEditor():
         canvasTarget(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, MOCKUP_W,
                      MOCKUP_H),
         screen(Screen::PRINCIPAL),
+        activeTool(Tool::NONE),
         rightDragging(false),
         lastMouseX(0),
         lastMouseY(0) {
@@ -67,6 +69,12 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
                 screen = screenForRegion(region);
             } else if (region == Region::BACK) {
                 screen = Screen::PRINCIPAL;
+            } else if (region == Region::GOMA) {
+                activeTool = Tool::ERASER;
+            } else if (region == Region::CANVAS && activeTool == Tool::ERASER) {
+                LayoutRect c = canvasRect();
+                Position cell = camera.screenToCell(p.x - c.x, p.y - c.y);
+                smartEraseAt(map, cell.x, cell.y);
             }
         } else if (event.button.button == SDL_BUTTON_RIGHT) {
             SDL2pp::Point p = toMockup(event.button.x, event.button.y);
