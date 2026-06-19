@@ -189,8 +189,8 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                     };
                     static const SkinCfg skins[] = {
                             {"monsters/golem1.png", 4, 17, 46, 72, 100, 57, 99, 6},
-                            {"monsters/golem2.png", 11, 14, 120, 155, 130, 161, 159, 6},
-                            {"monsters/golem3.png", 11, 21, 130, 170, 130, 161, 198, 6},
+                            {"monsters/golem2.png", 11, 14, 120, 155, 40, 161, 159, 6},
+                            {"monsters/golem3.png", 11, 21, 130, 170, 40, 161, 198, 6},
                     };
                     const SkinCfg& s = skins[entityId % (sizeof(skins) / sizeof(skins[0]))];
                     return EntitySprite{.bodySheet = s.sheet,
