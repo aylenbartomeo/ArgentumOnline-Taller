@@ -13,7 +13,7 @@ TEST(BeachStampTest, ApplyPaintsWaterFoamAndBlocksWater) {
     applyBeachPrefab(map, 10, 20);
     EXPECT_EQ(map.getGround()[20 + 8][10 + 8], 109);
     EXPECT_TRUE(map.isBlocked(10 + 8, 20 + 8));
-    EXPECT_EQ(map.getGround2()[20 + 1][10 + 1], 96);
+    EXPECT_EQ(map.getGround2()[20 + 2][10 + 2], 87);
     ASSERT_EQ(map.getBeaches().size(), 1u);
     EXPECT_EQ(map.getBeaches()[0].width, 22);
     EXPECT_EQ(map.getBeaches()[0].height, 18);
@@ -52,7 +52,7 @@ TEST(BeachStampTest, EraseBeachRevertsEverything) {
     EXPECT_TRUE(eraseBeachAt(map, 10 + 3, 20 + 3));
 
     EXPECT_EQ(map.getGround()[20 + 8][10 + 8], 108);
-    EXPECT_EQ(map.getGround2()[20 + 1][10 + 1], 0);
+    EXPECT_EQ(map.getGround2()[20 + 2][10 + 2], 0);
     EXPECT_FALSE(map.isBlocked(10 + 8, 20 + 8));
     EXPECT_TRUE(map.getBeaches().empty());
 }

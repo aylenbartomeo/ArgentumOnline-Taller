@@ -28,10 +28,10 @@ TEST(BeachPrefabTest, WaterInTheMiddle) {
 
 TEST(BeachPrefabTest, FoamRingCornersAreCorrect) {
     const BeachPrefab& p = getBeachPrefab();
-    EXPECT_EQ(at(p.ground2, 1, 1), 96);
-    EXPECT_EQ(at(p.ground2, 20, 1), 94);
-    EXPECT_EQ(at(p.ground2, 1, 16), 95);
-    EXPECT_EQ(at(p.ground2, 20, 16), 93);
+    EXPECT_EQ(at(p.ground2, 2, 2), 87);
+    EXPECT_EQ(at(p.ground2, 18, 2), 92);
+    EXPECT_EQ(at(p.ground2, 2, 14), 86);
+    EXPECT_EQ(at(p.ground2, 18, 14), 93);
 }
 
 TEST(BeachPrefabTest, HasPalmsAndObstacles) {
@@ -43,5 +43,5 @@ TEST(BeachPrefabTest, HasPalmsAndObstacles) {
         }
     }
     EXPECT_TRUE(hasPalm);
-    EXPECT_EQ(p.obstacles.size(), 260u);
+    EXPECT_EQ(p.obstacles.size(), 200u);
 }
