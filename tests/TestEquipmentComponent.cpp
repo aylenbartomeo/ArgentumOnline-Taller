@@ -8,12 +8,8 @@
 #include "model/items/Weapon.h"
 #include "model/items/WeaponFactory.h"
 
-// Centraliza la creaciÃ³n de Ã­tems para no repetirla en cada test.
-// Todos los Ã­tems tienen min == max para que getDefense()/calculateDamage() sean deterministas y
-// los EXPECT sean exactos.
 class EquipmentComponentTest: public ::testing::Test {
 protected:
-    // Armaduras (min == max â†’ rollDefense() siempre devuelve el mismo valor)
     BodyArmor armor{1001, "Armadura de cuero", 0, 5, 5};
     BodyArmor armor2{1002, "Armadura de placas", 0, 20, 20};
     Helmet helmet{2001, "Casco de hierro", 0, 6, 6};
@@ -55,7 +51,7 @@ protected:
 };
 
 // ============================================================================
-// 1. ESTADO INICIAL
+// ESTADO INICIAL
 // ============================================================================
 TEST_F(EquipmentComponentTest, StartsWithNoEquipment) {
     EXPECT_EQ(eq.getBodyArmor(), nullptr);
@@ -69,7 +65,7 @@ TEST_F(EquipmentComponentTest, DefenseIsZeroWithNothingEquipped) {
 }
 
 // ============================================================================
-// 2. EQUIPAR Y LEER DEFENSA POR SLOT
+// EQUIPAR Y LEER DEFENSA POR SLOT
 // ============================================================================
 TEST_F(EquipmentComponentTest, EquipBodyArmorAndCheckDefense) {
     eq.equipBodyArmor(&armor, 0);
@@ -95,7 +91,7 @@ TEST_F(EquipmentComponentTest, EquipWeaponAndCheckPointer) {
 }
 
 // ============================================================================
-// 3. DEFENSA ACUMULADA (varios slots a la vez)
+// DEFENSA ACUMULADA
 // ============================================================================
 TEST_F(EquipmentComponentTest, TotalDefenseIsTheSumOfAllSlots) {
     eq.equipBodyArmor(&armor, 0);  // +5
@@ -111,46 +107,8 @@ TEST_F(EquipmentComponentTest, DefenseWithOnlyArmorAndHelmet) {
     EXPECT_EQ(eq.calculateCurrentDefense(), 11);
 }
 
-// Tests de reemplazo eliminados porque el comportamiento cambió
-
 // ============================================================================
-// 5. DESEQUIPAR EXPLÃCITAMENTE
-// ============================================================================
-// TEST_F(EquipmentComponentTest, UnequipBodyArmorRestoresDefenseToZero) {
-//     eq.equipBodyArmor(&armor);
-//     ASSERT_EQ(eq.getDefense(), 5);
-
-//     uint32_t unequipped_id = eq.unequip_body_armor();
-//     EXPECT_EQ(unequipped_id,     static_cast<uint32_t>(armor.getId()));
-//     EXPECT_EQ(eq.getBodyArmor(), nullptr);
-//     EXPECT_EQ(eq.getDefense(),   0);
-// }
-
-// TEST_F(EquipmentComponentTest, UnequipHelmetRestoresDefense) {
-//     eq.equipBodyArmor(&armor);
-//     eq.equipHelmet(&helmet);
-//     ASSERT_EQ(eq.getDefense(), 11);
-
-//     eq.unequip_helmet();
-//     EXPECT_EQ(eq.getHelmet(),  nullptr);
-//     EXPECT_EQ(eq.getDefense(), 5);   // solo queda la armadura
-// }
-
-// TEST_F(EquipmentComponentTest, UnequipFromEmptySlotReturnsZero) {
-//     // Desequipar algo que nunca fue equipado no debe crashear ni devolver id vÃ¡lido
-//     uint32_t id = eq.unequip_helmet();
-//     EXPECT_EQ(id, 0u);
-// }
-
-// TEST_F(EquipmentComponentTest, UnequipWeaponLeavesNoWeaponEquipped) {
-//     eq.equipWeapon(&sword);
-//     eq.unequip_weapon();
-//     EXPECT_EQ(eq.getWeapon(),         nullptr);
-//     EXPECT_EQ(eq.getEquippedWeapon(), nullptr);
-// }
-
-// ============================================================================
-// 6. equipItem (despacho polimÃ³rfico por tipo de Ã­tem)
+// EQUIPAR
 // ============================================================================
 TEST_F(EquipmentComponentTest, EquipItemDispatchesToCorrectSlot) {
     // BodyArmor se despacha al slot de armadura
@@ -177,7 +135,7 @@ TEST_F(EquipmentComponentTest, EquipItemWithNullptrDoesNothing) {
 }
 
 // ============================================================================
-// 7. ARMAS MÃ GICAS (bÃ¡culos con coste de manÃ¡)
+// ARMAS MAGICAS
 // ============================================================================
 TEST_F(EquipmentComponentTest, MagicWeaponEquipsCorrectly) {
     eq.equipWeapon(&staff, 0);
@@ -187,7 +145,7 @@ TEST_F(EquipmentComponentTest, MagicWeaponEquipsCorrectly) {
 }
 
 // ============================================================================
-// 8. getEquippedWeapon (alias mutable)
+// getEquippedWeapon
 // ============================================================================
 TEST_F(EquipmentComponentTest, GetEquippedWeaponReturnsNullWhenEmpty) {
     EXPECT_EQ(eq.getEquippedWeapon(), nullptr);

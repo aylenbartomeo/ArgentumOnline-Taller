@@ -38,7 +38,7 @@ protected:
 
     void SetUp() override {
         notifs.clear();
-        service.setMinLevelToFound(1);  // Doble seguridad
+        service.setMinLevelToFound(1);
     }
 
     // --- Helpers de Lógica (Evalúan reglas de negocio) ---

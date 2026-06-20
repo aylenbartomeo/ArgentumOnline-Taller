@@ -11,26 +11,22 @@
 #include "dto/Snapshot.h"
 
 // =======================================================================
-// TESTS DE LA COLA CENTRAL (GameEvent y std::variant)
+// TESTS DE LA COLA CENTRAL
 // =======================================================================
 
 TEST(ServerArchitectureTest, Queue_CanPushAndPopJoinEvent) {
     Queue<GameEvent> gameQueue;
 
-    // Simulamos lo que hace el Receiver cuando alguien se loguea
     JoinEvent joinEvent;
     joinEvent.clientId = 100;
     joinEvent.username = "Franco";
 
     gameQueue.push(joinEvent);
 
-    // Simulamos lo que hace el GameLoop al procesar
     GameEvent poppedEvent = gameQueue.pop();
 
-    // Verificamos que el paquete sea efectivamente un JoinEvent
     ASSERT_TRUE(std::holds_alternative<JoinEvent>(poppedEvent));
 
-    // Extraemos y validamos los datos
     JoinEvent receivedJoin = std::get<JoinEvent>(poppedEvent);
     EXPECT_EQ(receivedJoin.clientId, (uint32_t)100);
     EXPECT_EQ(receivedJoin.username, "Franco");
@@ -39,11 +35,9 @@ TEST(ServerArchitectureTest, Queue_CanPushAndPopJoinEvent) {
 TEST(ServerArchitectureTest, Queue_CanPushAndPopPlayerCommand) {
     Queue<GameEvent> gameQueue;
 
-    // Simulamos lo que hace el Receiver en medio del juego usando la nueva arquitectura
     StartMoveDTO moveDto;
     moveDto.direction = Movement::UP;
 
-    // Envolvemos el movimiento en un PlayerCommand indicando quién lo envió
     PlayerCommand pCmd;
     pCmd.clientId = 50;
     pCmd.command = moveDto;
@@ -53,21 +47,18 @@ TEST(ServerArchitectureTest, Queue_CanPushAndPopPlayerCommand) {
     // Simulamos el GameLoop
     GameEvent poppedEvent = gameQueue.pop();
 
-    // Verificamos que el paquete sea un PlayerCommand
     ASSERT_TRUE(std::holds_alternative<PlayerCommand>(poppedEvent));
 
-    // Extraemos el PlayerCommand
     PlayerCommand receivedCmd = std::get<PlayerCommand>(poppedEvent);
     EXPECT_EQ(receivedCmd.clientId, (uint32_t)50);
 
-    // Verificamos que adentro del PlayerCommand haya un StartMoveDTO
     ASSERT_TRUE(std::holds_alternative<StartMoveDTO>(receivedCmd.command));
     StartMoveDTO receivedMove = std::get<StartMoveDTO>(receivedCmd.command);
     EXPECT_EQ(receivedMove.direction, Movement::UP);
 }
 
 // =======================================================================
-// TESTS DEL CONNECTION MONITOR (El Broadcaster)
+// TESTS DEL CONNECTION MONITOR
 // =======================================================================
 
 TEST(ServerArchitectureTest, ConnectionMonitor_BroadcastsToMultipleClients) {
@@ -106,18 +97,15 @@ TEST(ServerArchitectureTest, ConnectionMonitor_IgnoresRemovedClients) {
     monitor.addClient(1, &queuePlayer1);
     monitor.addClient(2, &queuePlayer2);
 
-    // El jugador 2 se desconecta
     monitor.removeClient(2);
 
     SnapshotDTO snap;
     monitor.broadcast(snap);
 
-    // El jugador 1 recibe el snapshot
     ServerMessageVariant received1;
     bool success = queuePlayer1.try_pop(received1);
     EXPECT_TRUE(success);
 
-    // La cola del jugador 2 DEBE estar vacía
     ServerMessageVariant received2;
     bool success2 = queuePlayer2.try_pop(received2);
     EXPECT_FALSE(success2);
@@ -128,18 +116,13 @@ TEST(ServerArchitectureTest, ConnectionMonitor_TracksActiveSessions) {
     Queue<ServerMessageVariant> dummyQueue;
     uint32_t playerId = 1;
 
-    // 1. Al principio no hay nadie conectado
     EXPECT_FALSE(monitor.isClientConnected(playerId));
 
-    // 2. El jugador se loguea exitosamente (se agrega al monitor)
     monitor.addClient(playerId, &dummyQueue);
 
-    // 3. El monitor debe reportar que el jugador ya está adentro (para rebotar el doble login)
     EXPECT_TRUE(monitor.isClientConnected(playerId));
 
-    // 4. El jugador cierra el juego (el Acceptor llama a removeClient)
     monitor.removeClient(playerId);
 
-    // 5. El monitor debe liberar el estado para que pueda volver a entrar más tarde
     EXPECT_FALSE(monitor.isClientConnected(playerId));
 }

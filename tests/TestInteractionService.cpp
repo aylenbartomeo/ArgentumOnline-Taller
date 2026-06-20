@@ -15,9 +15,6 @@ public:
     uint32_t getId() const override { return 1; }
 };
 
-// Player requires too many dependencies to mock easily here without TestEntityManager helper.
-// Since InteractionService mainly tests the map, we can rely on integration tests for the full
-// flow.
 TEST(InteractionServiceTest, HasActiveInteractionReturnsFalseInitially) {
     InteractionService svc;
     EXPECT_FALSE(svc.hasActiveInteraction(1));
@@ -25,8 +22,6 @@ TEST(InteractionServiceTest, HasActiveInteractionReturnsFalseInitially) {
 
 TEST(InteractionServiceTest, EndInteractionRemovesIt) {
     InteractionService svc;
-    // We cannot test startInteraction fully without a real Player object,
-    // but we can test that endInteraction cleans up.
     svc.endInteraction(1);
     EXPECT_FALSE(svc.hasActiveInteraction(1));
 }

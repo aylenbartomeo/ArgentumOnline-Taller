@@ -46,7 +46,6 @@ TEST(CombatSystemTest, ApplyDamageEffectBasicNoDefense) {
 
     uint16_t initialHp = victim.getHp();
 
-    // Daño min==max para que el roll de arma sea determinista (solo el esquive/crítico varía)
     AttackParams params{5, 5, 10, 0, false, 1.0f, 1.0f};
 
     CombatResult res = combatSystem.applyDamageEffect(attacker, victim, params);
@@ -77,7 +76,6 @@ TEST(CombatSystemTest, ApplyDamageEffectWithDefense) {
     Player victimWithArmor = TestUtils::makeTestPlayer(2);
     Player victimNoArmor = TestUtils::makeTestPlayer(3);
 
-    // Armadura con defensa fija min==max==10 para valores deterministas
     BodyArmor armor(1001, "Plates", 0, 10, 10);
     victimWithArmor.equipBodyArmor(&armor);
 
@@ -245,7 +243,7 @@ TEST(CombatSystemTest, MagicHealEffectTargetNotPlayer) {
     CombatSystem combatSystem(map, em, cr, ep, cb, bss, false, TestUtils::getTestServerConfig());
 
     Player attacker = TestUtils::makeTestPlayer(1);
-    Monster monster = TestUtils::makeTestMonster(2);  // 🚀 Usamos el builder del helper unificado
+    Monster monster = TestUtils::makeTestMonster(2);
 
     monster.setHealth(10);
     attacker.restoreMana();

@@ -1,4 +1,4 @@
-.PHONY: all test clean editor client common server compile-debug prepare-dirs run-tests valgrind-tests compile-and-tests install uninstall run-server-create run-server-load run-client run-editor clean-db-auth clean-db-world clean-db check-config
+.PHONY: all test clean editor client common server compile-debug prepare-dirs run-tests valgrind-tests compile-and-tests valgrind-server valgrind-stop-server valgrind-show install uninstall run-server-create run-server-load run-client run-editor clean-db-auth clean-db-world clean-db check-config
 
 default: all
 
@@ -67,13 +67,29 @@ valgrind-tests: prepare-dirs
 compile-and-tests: compile-debug
 	cd build && ./argentum_online_tests
 
+
+# ─── Monitoreo del Servidor con Valgrind ──────────────────────────────────────
+
+valgrind-server: check-config prepare-dirs
+	@mkdir -p build/valgrind
+	@echo "[INFO] Iniciando servidor con Valgrind en PRIMER PLANO..."
+	@echo "[INFO] Presioná Ctrl+C en esta terminal para detenerlo y generar el reporte."
+	cd build && valgrind --leak-check=full \
+		--show-leak-kinds=all \
+		--track-origins=yes \
+		--log-file=valgrind/reporte_server.log \
+		./argentum_online_server $(PORT) --create "$(WORLD)" --map "$(MAP)"
+
+valgrind-show:
+	@echo "=== REPORTE TESTS ===" && cat build/valgrind/reporte_tests.log 2>/dev/null || echo "(no existe)"
+	@echo "=== REPORTE SERVER ===" && cat build/valgrind/reporte_server.log 2>/dev/null || echo "(no existe)"
+
 all: clean run-tests
 
 clean:
 	rm -Rf build/
 
-
-# ─── Ejecución de Binarios (Modificados para usar las variables TOML) ──────────
+# ─── Ejecución de Binarios  ──────────
 
 run-server-create: check-config prepare-dirs
 	cd build && ./argentum_online_server $(PORT) --create "$(WORLD)" --map "$(MAP)"
@@ -82,6 +98,10 @@ run-server-load: check-config prepare-dirs
 	cd build && ./argentum_online_server $(PORT) --load "$(WORLD)"
 
 run-client: prepare-dirs
+	@# --- ARGS="-- fullscreen" pantalla completa
+	@# --- ARGS="--width 1920 --height 1080 --fullscreen" pantalla completa con resolucion especifica
+	@# --- ARGS="--width 1080 --height 720" resolucion especifica en modo ventana
+	@# --- Modifique los numeros segun la resolucion deseada
 	cd build && ./argentum_online_client $(ARGS)
 
 run-editor: prepare-dirs

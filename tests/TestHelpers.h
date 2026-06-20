@@ -17,7 +17,6 @@ CharacterClassConfig getTestClassConfig();
 InventoryConfig getTestInventoryConfig();
 ServerConfig getTestServerConfig();
 
-// Permitimos cambiar el ID y opcionalmente el nombre para tests de clanes/interacciones
 Player makeTestPlayer(uint32_t id = 1, const std::string& name = "TestPlayer");
 
 Monster makeTestMonster(uint32_t id = 2);
