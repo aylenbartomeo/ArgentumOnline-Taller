@@ -13,6 +13,8 @@ struct DesertPrefab {
     int width;
     int height;
     std::vector<DesertCell> ground;
+    std::vector<DesertCell> decoration;
+    std::vector<DesertCell> obstacles;
 };
 
 const DesertPrefab& getDesertPrefab();

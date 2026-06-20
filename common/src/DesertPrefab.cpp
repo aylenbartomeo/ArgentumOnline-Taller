@@ -3,45 +3,12 @@
 namespace {
 constexpr int SIZE = 16;
 constexpr int ARENA = 74;
-constexpr int BORDE_ARRIBA = 145;
-constexpr int BORDE_ABAJO = 144;
-constexpr int BORDE_IZQ = 142;
-constexpr int BORDE_DER = 143;
-constexpr int ESQ_TL = 138;
-constexpr int ESQ_TR = 140;
-constexpr int ESQ_BL = 139;
-constexpr int ESQ_BR = 141;
+constexpr int CACTUS = 137;
+constexpr int CARTEL = 162;
 
-int tileFor(int dx, int dy) {
-    bool top = dy == 0;
-    bool bottom = dy == SIZE - 1;
-    bool left = dx == 0;
-    bool right = dx == SIZE - 1;
-    if (top && left) {
-        return ESQ_TL;
-    }
-    if (top && right) {
-        return ESQ_TR;
-    }
-    if (bottom && left) {
-        return ESQ_BL;
-    }
-    if (bottom && right) {
-        return ESQ_BR;
-    }
-    if (top) {
-        return BORDE_ARRIBA;
-    }
-    if (bottom) {
-        return BORDE_ABAJO;
-    }
-    if (left) {
-        return BORDE_IZQ;
-    }
-    if (right) {
-        return BORDE_DER;
-    }
-    return ARENA;
+void addCactus(DesertPrefab& p, int dx, int dy) {
+    p.decoration.push_back({dx, dy, CACTUS});
+    p.obstacles.push_back({dx, dy, 0});
 }
 
 DesertPrefab buildPrefab() {
@@ -50,9 +17,18 @@ DesertPrefab buildPrefab() {
     p.height = SIZE;
     for (int dy = 0; dy < SIZE; ++dy) {
         for (int dx = 0; dx < SIZE; ++dx) {
-            p.ground.push_back({dx, dy, tileFor(dx, dy)});
+            p.ground.push_back({dx, dy, ARENA});
         }
     }
+    addCactus(p, 3, 3);
+    addCactus(p, 12, 2);
+    addCactus(p, 6, 6);
+    addCactus(p, 13, 8);
+    addCactus(p, 2, 10);
+    addCactus(p, 9, 12);
+    addCactus(p, 5, 13);
+    addCactus(p, 14, 13);
+    p.decoration.push_back({1, 14, CARTEL});
     return p;
 }
 }  // namespace

@@ -14,7 +14,7 @@ TEST(DesertStampTest, ApplyPaintsSandAndRect) {
     EditorMap map = emptyMap();
     applyDesertPrefab(map, 10, 20);
     EXPECT_EQ(map.getGround()[20 + 8][10 + 8], 74);
-    EXPECT_NE(map.getGround()[20][10], 74);
+    EXPECT_EQ(map.getGround()[20][10], 74);
     ASSERT_EQ(map.getDeserts().size(), 1u);
     EXPECT_EQ(map.getDeserts()[0].x, 10);
     EXPECT_EQ(map.getDeserts()[0].y, 20);
@@ -63,4 +63,26 @@ TEST(DesertStampTest, EraseDesertAtRepaintsGrassAndRemovesRect) {
 TEST(DesertStampTest, EraseDesertAtReturnsFalseWhenNoneThere) {
     EditorMap map = emptyMap();
     EXPECT_FALSE(eraseDesertAt(map, 5, 5));
+}
+
+TEST(DesertStampTest, ApplyPaintsDecorationAndEraseClearsIt) {
+    EditorMap map = emptyMap();
+    applyDesertPrefab(map, 10, 20);
+    const DesertCell& deco = getDesertPrefab().decoration.front();
+    EXPECT_EQ(map.getDecoration()[20 + deco.dy][10 + deco.dx], deco.value);
+
+    eraseDesertAt(map, 10 + 1, 20 + 1);
+
+    EXPECT_EQ(map.getDecoration()[20 + deco.dy][10 + deco.dx], 0);
+}
+
+TEST(DesertStampTest, CactiBlockAndEraseClearsThem) {
+    EditorMap map = emptyMap();
+    applyDesertPrefab(map, 10, 20);
+    const DesertCell& cactus = getDesertPrefab().obstacles.front();
+    EXPECT_TRUE(map.isBlocked(10 + cactus.dx, 20 + cactus.dy));
+
+    eraseDesertAt(map, 10 + 1, 20 + 1);
+
+    EXPECT_FALSE(map.isBlocked(10 + cactus.dx, 20 + cactus.dy));
 }

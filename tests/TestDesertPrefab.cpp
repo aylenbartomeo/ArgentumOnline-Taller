@@ -27,12 +27,35 @@ TEST(DesertPrefabTest, InteriorIsSand) {
     EXPECT_EQ(valueAt(p, 14, 14), 74);
 }
 
-TEST(DesertPrefabTest, BorderCellsAreNotSand) {
+TEST(DesertPrefabTest, AllCellsAreSand) {
     const DesertPrefab& p = getDesertPrefab();
-    EXPECT_NE(valueAt(p, 0, 0), 74);
-    EXPECT_NE(valueAt(p, 15, 0), 74);
-    EXPECT_NE(valueAt(p, 0, 15), 74);
-    EXPECT_NE(valueAt(p, 15, 15), 74);
-    EXPECT_NE(valueAt(p, 8, 0), 74);
-    EXPECT_NE(valueAt(p, 0, 8), 74);
+    EXPECT_EQ(valueAt(p, 0, 0), 74);
+    EXPECT_EQ(valueAt(p, 15, 0), 74);
+    EXPECT_EQ(valueAt(p, 0, 15), 74);
+    EXPECT_EQ(valueAt(p, 15, 15), 74);
+    EXPECT_EQ(valueAt(p, 8, 0), 74);
+    EXPECT_EQ(valueAt(p, 0, 8), 74);
+}
+
+TEST(DesertPrefabTest, HasCactiAndSign) {
+    const DesertPrefab& p = getDesertPrefab();
+    EXPECT_FALSE(p.decoration.empty());
+    bool hasCactus = false;
+    bool hasSign = false;
+    for (const DesertCell& c: p.decoration) {
+        if (c.value == 137) {
+            hasCactus = true;
+        }
+        if (c.value == 162) {
+            hasSign = true;
+        }
+    }
+    EXPECT_TRUE(hasCactus);
+    EXPECT_TRUE(hasSign);
+}
+
+TEST(DesertPrefabTest, CactiAreObstacles) {
+    const DesertPrefab& p = getDesertPrefab();
+    EXPECT_FALSE(p.obstacles.empty());
+    EXPECT_EQ(p.obstacles.size(), 8u);
 }

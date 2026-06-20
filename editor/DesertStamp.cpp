@@ -58,6 +58,12 @@ void applyDesertPrefab(EditorMap& map, int originX, int originY) {
     for (const DesertCell& c: prefab.ground) {
         map.setGround(originX + c.dx, originY + c.dy, c.value);
     }
+    for (const DesertCell& c: prefab.decoration) {
+        map.setDecoration(originX + c.dx, originY + c.dy, c.value);
+    }
+    for (const DesertCell& c: prefab.obstacles) {
+        map.addObstacle(originX + c.dx, originY + c.dy);
+    }
     map.addDesert(originX, originY, prefab.width, prefab.height);
 }
 
@@ -65,6 +71,12 @@ void clearDesert(EditorMap& map, int originX, int originY) {
     const DesertPrefab& prefab = getDesertPrefab();
     for (const DesertCell& c: prefab.ground) {
         map.setGround(originX + c.dx, originY + c.dy, GRASS);
+    }
+    for (const DesertCell& c: prefab.decoration) {
+        map.setDecoration(originX + c.dx, originY + c.dy, 0);
+    }
+    for (const DesertCell& c: prefab.obstacles) {
+        map.removeObstacle(originX + c.dx, originY + c.dy);
     }
     map.removeDesertAt(originX, originY);
 }
