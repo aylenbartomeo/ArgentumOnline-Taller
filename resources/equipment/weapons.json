@@ -1,0 +1,73 @@
+{
+  "weapons": [
+    { "itemId": 2000, "sheet": "items/espada.png", "kind": "grip", "pivot": { "x": 12, "y": 36 } },
+    { "itemId": 2001, "sheet": "items/hacha.png", "kind": "grip", "pivot": { "x": 12, "y": 36 } },
+    { "itemId": 2002, "sheet": "items/martillo.png", "kind": "grip", "pivot": { "x": 12, "y": 24 } },
+    { "itemId": 2010, "sheet": "items/arco-simple.png", "kind": "grip", "pivot": { "x": 12, "y": 24 } },
+    { "itemId": 2011, "sheet": "items/arco-compuesto.png", "kind": "grip", "pivot": { "x": 12, "y": 24 } },
+    { "itemId": 2020, "sheet": "items/vara-fresno.png", "kind": "grip", "pivot": { "x": 12, "y": 24 } },
+    { "itemId": 2022, "sheet": "items/baculo-nudoso.png", "kind": "grip", "pivot": { "x": 12, "y": 24 } },
+    { "itemId": 2023, "sheet": "items/baculo-engarzado.png", "kind": "grip", "pivot": { "x": 12, "y": 24 } },
+    { "itemId": 2021, "sheet": "items/flauta-elfica.png", "kind": "grip", "pivot": { "x": 12, "y": 24 } },
+    {
+      "itemId": 4001,
+      "sheet": "items/maza-de-titan-mov.png",
+      "kind": "custom",
+      "cellW": 26,
+      "cellH": 46,
+      "strideX": 31.6,
+      "strideY": 48,
+      "facings": {
+        "down": { "row": 2, "frames": 1 },
+        "up": { "row": 3, "frames": 1 },
+        "left": { "row": 3, "frames": 5 },
+        "right": { "row": 2, "frames": 5 }
+      }
+    },
+    {
+      "itemId": 4002,
+      "sheet": "items/escudo-infernal-mov.png",
+      "kind": "custom",
+      "cellW": 28,
+      "cellH": 43,
+      "strideX": 26.75,
+      "strideY": 43,
+      "facings": {
+        "down": { "row": 2, "frames": 4 },
+        "up": { "row": 3, "frames": 4 },
+        "left": { "row": 1, "frames": 4 },
+        "right": { "row": 0, "frames": 4 }
+      }
+    },
+    {
+      "itemId": 4003,
+      "sheet": "items/espada-de-magma-mov.png",
+      "kind": "custom",
+      "cellW": 24,
+      "cellH": 49,
+      "strideX": 27.4,
+      "strideY": 51,
+      "facings": {
+        "down": { "row": 2, "frames": 1 },
+        "up": { "row": 3, "frames": 1 },
+        "left": { "row": 3, "frames": 5 },
+        "right": { "row": 2, "frames": 5 }
+      }
+    },
+    {
+      "itemId": 4004,
+      "sheet": "items/arco-abismal-mov.png",
+      "kind": "custom",
+      "cellW": 24,
+      "cellH": 48,
+      "strideX": 26.0,
+      "strideY": 48,
+      "facings": {
+        "down": { "row": 0, "frames": 5 },
+        "up": { "row": 1, "frames": 5 },
+        "left": { "row": 2, "frames": 5 },
+        "right": { "row": 3, "frames": 5 }
+      }
+    }
+  ]
+}

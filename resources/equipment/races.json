@@ -1,0 +1,136 @@
+{
+  "races": [
+    {
+      "entityTypeId": 0,
+      "name": "human",
+      "armor": {
+        "cellW": 26, "stride": 44, "trimLeft": 2, "extraRight": -2,
+        "offsetX": 0, "offsetY": 2,
+        "walkDown": 2, "walkUp": 3, "walkLeft": 2, "walkRight": 2,
+        "usesCompactArmor": false
+      },
+      "helmet": {
+        "offsetX": 2, "offsetY": -3,
+        "walkDown": 0, "walkUp": -2, "walkLeft": 2, "walkRight": 0
+      },
+      "head": {
+        "extraOffsetY": -2,
+        "trimSrcXOnUp": 0,
+        "trimRenderWOnUp": 2,
+        "facingDelta": {
+          "down": { "idleDx": 0, "moveDx": -2 },
+          "up": { "idleDx": -5, "moveDx": -6 },
+          "left": { "idleDx": -5, "moveDx": -5 },
+          "right": { "idleDx": 0, "moveDx": 0 }
+        }
+      },
+      "shield": {
+        "offsetX": 0,
+        "offsetY": 3,
+        "walkDown": 0,
+        "walkUp": 0,
+        "walkLeft": 0,
+        "walkRight": 0
+      }
+    },
+    {
+      "entityTypeId": 1,
+      "name": "elf",
+      "armor": {
+        "cellW": 25, "stride": 45, "trimLeft": 5, "extraRight": -5,
+        "offsetX": -2, "offsetY": 2,
+        "walkDown": 0, "walkUp": 0, "walkLeft": 3, "walkRight": 0,
+        "usesCompactArmor": false
+      },
+      "helmet": {
+        "offsetX": 0, "offsetY": -3,
+        "walkDown": 0, "walkUp": -2, "walkLeft": 2, "walkRight": 0
+      },
+      "head": {
+        "extraOffsetY": -2,
+        "trimSrcXOnUp": 0,
+        "trimRenderWOnUp": 2,
+        "facingDelta": {
+          "down": { "idleDx": -2, "moveDx": -2 },
+          "up": { "idleDx": -5, "moveDx": -6 },
+          "left": { "idleDx": -5, "moveDx": -5 },
+          "right": { "idleDx": 0, "moveDx": 0 }
+        }
+      },
+      "shield": {
+        "offsetX": 0,
+        "offsetY": -6,
+        "walkDown": -5,
+        "walkUp": 0,
+        "walkLeft": 0,
+        "walkRight": 0
+      }
+    },
+    {
+      "entityTypeId": 2,
+      "name": "dwarf",
+      "armor": {
+        "cellW": 24, "stride": 44, "trimLeft": 1, "extraRight": -3,
+        "offsetX": -3, "offsetY": 2,
+        "walkDown": 0, "walkUp": 0, "walkLeft": -3, "walkRight": -3,
+        "usesCompactArmor": true
+      },
+      "helmet": {
+        "offsetX": 0, "offsetY": -6,
+        "walkDown": 0, "walkUp": -3, "walkLeft": -7, "walkRight": 0
+      },
+      "head": {
+        "extraOffsetY": 0,
+        "trimSrcXOnUp": 6,
+        "trimRenderWOnUp": 0,
+        "facingDelta": {
+          "down": { "idleDx": 0, "moveDx": 0 },
+          "up": { "idleDx": 3, "moveDx": 3 },
+          "left": { "idleDx": 5, "moveDx": 8 },
+          "right": { "idleDx": 3, "moveDx": 3 }
+        }
+      },
+      "shield": {
+        "offsetX": 0,
+        "offsetY": -8,
+        "walkDown": 0,
+        "walkUp": 0,
+        "walkLeft": 0,
+        "walkRight": 0
+      }
+    },
+    {
+      "entityTypeId": 3,
+      "name": "gnome",
+      "armor": {
+        "cellW": 24, "stride": 44, "trimLeft": 3, "extraRight": -3,
+        "offsetX": -2, "offsetY": 4,
+        "walkDown": 0, "walkUp": 5, "walkLeft": -3, "walkRight": -3,
+        "usesCompactArmor": true
+      },
+      "helmet": {
+        "offsetX": 0, "offsetY": -3,
+        "walkDown": 0, "walkUp": 0, "walkLeft": 2, "walkRight": 0
+      },
+      "head": {
+        "extraOffsetY": 0,
+        "trimSrcXOnUp": 0,
+        "trimRenderWOnUp": 0,
+        "facingDelta": {
+          "down": { "idleDx": 2, "moveDx": 1 },
+          "up": { "idleDx": 0, "moveDx": 1 },
+          "left": { "idleDx": 0, "moveDx": 0 },
+          "right": { "idleDx": 0, "moveDx": 0 }
+        }
+      },
+      "shield": {
+        "offsetX": 0,
+        "offsetY": -8,
+        "walkDown": 0,
+        "walkUp": 0,
+        "walkLeft": 0,
+        "walkRight": 0
+      }
+    }
+  ]
+}

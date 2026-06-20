@@ -1,0 +1,24 @@
+{
+  "shields": [
+    {
+      "itemId": 1020,
+      "sheet": "items/escudo-tortuga.png",
+      "facingOffset": {
+        "down": { "x": 6, "y": 2 },
+        "up": { "x": -6, "y": 2 },
+        "left": { "x": -2, "y": 2 },
+        "right": { "x": 2, "y": 2 }
+      }
+    },
+    {
+      "itemId": 1021,
+      "sheet": "items/escudo-hierro.png",
+      "facingOffset": {
+        "down": { "x": 6, "y": 2 },
+        "up": { "x": -6, "y": 2 },
+        "left": { "x": -2, "y": 2 },
+        "right": { "x": 2, "y": 2 }
+      }
+    }
+  ]
+}
