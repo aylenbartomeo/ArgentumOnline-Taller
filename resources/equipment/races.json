@@ -76,17 +76,17 @@
         "usesCompactArmor": true
       },
       "helmet": {
-        "offsetX": 0, "offsetY": -6,
-        "walkDown": 0, "walkUp": -3, "walkLeft": -7, "walkRight": 0
+        "offsetX": 0, "offsetY": -4,
+        "walkDown": 0, "walkUp": -1, "walkLeft": -2, "walkRight": 0
       },
       "head": {
         "extraOffsetY": 0,
-        "trimSrcXOnUp": 6,
+        "trimSrcXOnUp": -2,
         "trimRenderWOnUp": 0,
         "facingDelta": {
           "down": { "idleDx": 0, "moveDx": 0 },
-          "up": { "idleDx": 3, "moveDx": 3 },
-          "left": { "idleDx": 5, "moveDx": 8 },
+          "up": { "idleDx": 0, "moveDx": 0 },
+          "left": { "idleDx": -1, "moveDx": -1 },
           "right": { "idleDx": 3, "moveDx": 3 }
         }
       },
@@ -117,9 +117,9 @@
         "trimSrcXOnUp": 0,
         "trimRenderWOnUp": 0,
         "facingDelta": {
-          "down": { "idleDx": 2, "moveDx": 1 },
-          "up": { "idleDx": 0, "moveDx": 1 },
-          "left": { "idleDx": 0, "moveDx": 0 },
+          "down": { "idleDx": -1, "moveDx": 1 },
+          "up": { "idleDx": -3, "moveDx": -2 },
+          "left": { "idleDx": -1, "moveDx": -2 },
           "right": { "idleDx": 0, "moveDx": 0 }
         }
       },

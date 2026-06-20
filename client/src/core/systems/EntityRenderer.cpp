@@ -422,7 +422,7 @@ void EntityRenderer::drawHead(RenderContext& ctx) {
     int renderHeadX = ctx.headX;
     int renderHeadW = GC::HEAD_DRAW_W;
 
-    if (ctx.facing == Movement::UP && (headCfg.trimSrcXOnUp > 0 || headCfg.trimRenderWOnUp > 0)) {
+    if (ctx.facing == Movement::UP && (headCfg.trimSrcXOnUp != 0 || headCfg.trimRenderWOnUp != 0)) {
         hf.x += headCfg.trimSrcXOnUp;
         hf.w -= headCfg.trimSrcXOnUp;
 
