@@ -4,7 +4,7 @@
 #include "EditorMap.h"
 
 enum class EraseLayer { NONE, MONSTER, CITIZEN, ITEM, BLOCK };
-enum class BlockKind { NONE, CITY, DUNGEON, FOREST };
+enum class BlockKind { NONE, CITY, DUNGEON, FOREST, DESERT };
 
 struct EraseTarget {
     EraseLayer layer = EraseLayer::NONE;

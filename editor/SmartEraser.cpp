@@ -1,6 +1,7 @@
 #include "SmartEraser.h"
 
 #include "CityStamp.h"
+#include "DesertStamp.h"
 #include "DungeonStamp.h"
 #include "ForestStamp.h"
 
@@ -43,6 +44,11 @@ BlockKind blockAt(const EditorMap& map, int col, int row) {
             return BlockKind::FOREST;
         }
     }
+    for (const EditorDesert& d: map.getDeserts()) {
+        if (contains(d.x, d.y, d.width, d.height, col, row)) {
+            return BlockKind::DESERT;
+        }
+    }
     return BlockKind::NONE;
 }
 }  // namespace
@@ -83,6 +89,8 @@ void smartEraseAt(EditorMap& map, int col, int row) {
                 eraseDungeonAt(map, col, row);
             } else if (target.block == BlockKind::FOREST) {
                 eraseForestAt(map, col, row);
+            } else if (target.block == BlockKind::DESERT) {
+                eraseDesertAt(map, col, row);
             }
             break;
         case EraseLayer::NONE:

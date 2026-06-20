@@ -74,6 +74,16 @@ TEST(SmartEraserTest, DetectsAndErasesForestBlock) {
     EXPECT_TRUE(map.getForests().empty());
 }
 
+TEST(SmartEraserTest, DetectsAndErasesDesertBlock) {
+    EditorMap map = emptyMap();
+    map.addDesert(8, 8, 6, 6);
+    EraseTarget t = topErasableAt(map, 9, 9);
+    EXPECT_EQ(t.layer, EraseLayer::BLOCK);
+    EXPECT_EQ(t.block, BlockKind::DESERT);
+    smartEraseAt(map, 9, 9);
+    EXPECT_TRUE(map.getDeserts().empty());
+}
+
 TEST(SmartEraserTest, OutOfBoundsIsSafe) {
     EditorMap map = emptyMap();
     EXPECT_EQ(topErasableAt(map, -1, -1).layer, EraseLayer::NONE);
