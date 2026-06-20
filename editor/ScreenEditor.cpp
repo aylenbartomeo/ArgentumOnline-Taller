@@ -137,7 +137,7 @@ EditorMap loadMap() {
 ScreenEditor::ScreenEditor():
         sdl(SDL_INIT_VIDEO),
         window("Editor de mapas - Argentum Online", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-               WINDOW_W, WINDOW_H, SDL_WINDOW_SHOWN),
+               WINDOW_W, WINDOW_H, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE),
         renderer(window, -1, SDL_RENDERER_ACCELERATED),
         textures(renderer),
         map(loadMap()),
@@ -530,7 +530,8 @@ void ScreenEditor::renderMapList() {
         SDL_Color color = e.isNew ? accent : textColor;
         font.drawString(label, LIST_X, ry + 4, color);
     }
-    renderer.Copy(back, SDL2pp::NullOpt, SDL2pp::Rect(MAP_BACK.x, MAP_BACK.y, MAP_BACK.w, MAP_BACK.h));
+    renderer.Copy(back, SDL2pp::NullOpt,
+                  SDL2pp::Rect(MAP_BACK.x, MAP_BACK.y, MAP_BACK.w, MAP_BACK.h));
 }
 
 void ScreenEditor::beginNewMapInput() {
@@ -672,7 +673,7 @@ void ScreenEditor::renderCurrentBrush() {
         smallFont.drawString("Spawn", BRUSH_X, BRUSH_Y + BRUSH_TOOL_DY, gold);
         return;
     }
-    Palette* pal = currentPalette();
+    const Palette* pal = currentPalette();
     if (pal == nullptr) {
         return;
     }

@@ -1,0 +1,7 @@
+{
+  "armors": [
+    { "itemId": 1000, "sheet": "armor/pechera-cuero.png", "sheetCompact": "armor/pechera-cuero-gnomo.png" },
+    { "itemId": 1001, "sheet": "armor/pechera-hierro.png", "sheetCompact": "armor/pechera-hierro-gnomo.png" },
+    { "itemId": 1002, "sheet": "armor/tunica.png", "sheetCompact": "armor/tunica-gnomo.png" }
+  ]
+}

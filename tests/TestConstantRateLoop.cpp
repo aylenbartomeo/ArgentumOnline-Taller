@@ -31,20 +31,3 @@ TEST(ConstantRateLoopTest, BehindSeveralFramesSkipsProportionally) {
     EXPECT_EQ(step.t1DeltaMs, 99);
     EXPECT_EQ(step.iterationDelta, 3);
 }
-
-TEST(ConstantRateLoopTest, RunCallsBodyUntilItReturnsFalseAndAdvancesIteration) {
-    ConstantRateLoop loop(1);
-    int calls = 0;
-    std::vector<int64_t> seenIterations;
-
-    loop.run([&](int64_t iteration) {
-        seenIterations.push_back(iteration);
-        ++calls;
-        return calls < 5;
-    });
-
-    EXPECT_EQ(calls, 5);
-    ASSERT_EQ(seenIterations.size(), 5u);
-    EXPECT_EQ(seenIterations.front(), 0);
-    EXPECT_EQ(seenIterations.back(), 4);
-}

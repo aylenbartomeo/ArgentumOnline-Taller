@@ -18,6 +18,7 @@
 #include "common/include/dto/CreateCharacterDTO.h"
 #include "common/include/dto/JoinResponseDTO.h"
 #include "loop/ConstantRateLoop.h"
+#include "rendering/EquipmentVisualRegistry.h"  // <-- NUEVO INCLUDE
 #include "systems/StateAudioTrigger.h"
 
 using GameConstants::VIEW_H;
@@ -50,6 +51,7 @@ Game::Game(Client& client, int width, int height, bool fullscreen):
         client(client),
         textures(window.getRenderer()),
         map(readWholeFile("maps/defaultMap.json")),
+        equipmentRegistry(),
         miniChat(CHAT_FONT_PATH),
         hud(textures, HUD_FONT_PATH),
         manualPanel(HUD_FONT_PATH),
@@ -60,12 +62,14 @@ Game::Game(Client& client, int width, int height, bool fullscreen):
         audio(),
         camera(),
         worldRenderer(textures, window.getRenderer(), map),
-        entityRenderer(textures, window.getRenderer(), client.getClientId()),
+        entityRenderer(textures, window.getRenderer(), client.getClientId(), equipmentRegistry),
         fxSystem(textures, window.getRenderer()),
         inputProcessor(client, window, miniChat, hud, manualPanel, chatParser) {
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
     window.getRenderer().SetLogicalSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    equipmentRegistry.loadFromDir(GameConstants::RESOURCES_DIR);
 
     worldFont = TTF_OpenFont(HUD_FONT_PATH, 12);
     entityFont = TTF_OpenFont(HUD_FONT_PATH, 11);  // Font para nombres y nivel
@@ -129,17 +133,16 @@ void Game::run() {
         // 2. Si apretan la X de la ventana (quit) o la tecla ESC, mostramos el diálogo
         if (input.quit || input.escPressed) {
             // Instanciamos y ejecutamos la vista de salida de forma bloqueante
-            QuitView quitView; 
+            QuitView quitView;
             QuitViewAction action = quitView.run();
 
             if (action == QuitViewAction::Quit) {
                 // El usuario eligió ACEPTAR (Salir al Launcher)
-                returnToLauncher = true; // Seteamos el flag para ir al Launcher
-                return false;           
-            } 
-            else if (action == QuitViewAction::Resume) {
+                returnToLauncher = true;  // Seteamos el flag para ir al Launcher
+                return false;
+            } else if (action == QuitViewAction::Resume) {
                 // El usuario eligió VOLVER (Reanudar la partida)
-                input.quit = false;      
+                input.quit = false;
                 events.clearInputState();
             }
         }

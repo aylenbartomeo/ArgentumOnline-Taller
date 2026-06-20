@@ -18,27 +18,22 @@ TEST(PriestTest, Priest_ResurrectsDeadPlayerSuccessfully) {
     ItemRegistry registry("../config/items.toml");
     Priest sacerdote(1, {0, 0}, registry, {});
 
-    // 🚀 Instanciación limpia y unificada con TestUtils
     Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
 
-    // Gatillamos la muerte usando el método de la interfaz
     player.handleDeath();
     ASSERT_TRUE(player.isDead());
 
-    // Utiliza el generador de comandos centralizado en tus helpers
     NpcCommandDTO cmd = TestUtils::createTestCommand(NpcCommandType::RESPAWN);
 
-    // CAPTURAMOS EL RESULTADO
     InteractionResult res = sacerdote.handleCommand(player, cmd);
 
-    // VALIDACIONES DEL PROCESO:
     EXPECT_FALSE(player.isDead());
     EXPECT_GT(player.getHp(), 0u);
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
 }
 
 // =========================================================================
-// TEST 2: EL SACERDOTE CURA VIDA Y MANÁ AL MÁXIMO (/curar)
+// TEST 2: EL SACERDOTE CURA VIDA Y MANÁ AL MÁXIMO
 // =========================================================================
 TEST(PriestTest, Priest_HealsHpAndManaToMaximum) {
     ItemRegistry registry("../config/items.toml");
@@ -53,10 +48,8 @@ TEST(PriestTest, Priest_HealsHpAndManaToMaximum) {
 
     NpcCommandDTO cmd = TestUtils::createTestCommand(NpcCommandType::HEAL);
 
-    // CAPTURAMOS EL RESULTADO
     InteractionResult res = sacerdote.handleCommand(player, cmd);
 
-    // VALIDACIONES DEL PROCESO:
     EXPECT_EQ(player.getHp(), player.getMaxHp());
     EXPECT_EQ(player.getMana(), player.getMaxMana());
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
@@ -75,10 +68,8 @@ TEST(PriestTest, Priest_AllowsBuyingItemsInStock) {
     // Compra directa usando la firma reutilizable del helper
     NpcCommandDTO cmd = TestUtils::createTestCommand(NpcCommandType::BUY, "Armadura de placas");
 
-    // CAPTURAMOS EL RESULTADO
     InteractionResult res = sacerdote.handleCommand(player, cmd);
 
-    // VALIDACIONES DEL PROCESO:
     uint32_t expectedGold = 500u - registry.get_item(1001u)->getPrice();
     EXPECT_EQ(player.getGold(), expectedGold);
 
@@ -97,21 +88,19 @@ TEST(PriestTest, Priest_DeadPlayerCannotTrade) {
     Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
 
     player.addGold(500);
-    player.handleDeath();  // Lo convertimos en fantasma
+    player.handleDeath();
 
     ASSERT_TRUE(player.isDead());
 
     NpcCommandDTO cmd = TestUtils::createTestCommand(NpcCommandType::BUY, "Armadura de placas");
 
-    // CAPTURAMOS EL RESULTADO
     InteractionResult res = sacerdote.handleCommand(player, cmd);
 
-    // VALIDACIONES DEL PROCESO:
-    EXPECT_EQ(player.getGold(), 500u);  // No debe gastar oro
+    EXPECT_EQ(player.getGold(), 500u);
 
     if (player.getSize() > 0) {
         auto slotOpt = player.inspectSlot(0);
-        EXPECT_FALSE(slotOpt.has_value());  // No debe recibir ítems
+        EXPECT_FALSE(slotOpt.has_value());
     }
 
     EXPECT_EQ(res.status, InteractionStatus::FAILURE);
@@ -128,11 +117,9 @@ TEST(PriestTest, Priest_ListStockSuccessfully) {
     NpcCommandDTO cmd = TestUtils::createTestCommand(NpcCommandType::LIST, "");
     InteractionResult res = sacerdote.handleCommand(player, cmd);
 
-    // VALIDACIONES:
     EXPECT_EQ(res.status, InteractionStatus::SUCCESS);
     EXPECT_NE(res.msg.find("--- CATÁLOGO DISPONIBLE ---"), std::string::npos);
 
-    // Verificamos la existencia de las armaduras del Sacerdote en el catálogo string literal
     EXPECT_NE(res.msg.find("Armadura de placas"), std::string::npos);
     EXPECT_NE(res.msg.find("Tunica azul"), std::string::npos);
 }

@@ -11,7 +11,7 @@
 #include "TestHelpers.h"
 
 // =========================================================================
-// TEST 1: ENTRADA Y SALIDA DE ORO EN EL BANQUERO (/depositar oro X)
+// TEST 1: ENTRADA Y SALIDA DE ORO EN EL BANQUERO
 // =========================================================================
 TEST(BankerTest, Banker_HandlesGoldDepositAndWithdrawCommands) {
     ItemRegistry registry("../config/items.toml");
@@ -37,7 +37,7 @@ TEST(BankerTest, Banker_HandlesGoldDepositAndWithdrawCommands) {
 }
 
 // =========================================================================
-// TEST 2: DEPOSITAR UN ÍTEM DE LA MOCHILA AL BANCO (/depositar <id>)
+// TEST 2: DEPOSITAR UN ÍTEM DE LA MOCHILA AL BANCO
 // =========================================================================
 TEST(BankerTest, Banker_DepositsItemFromInventorySuccessfully) {
     ItemRegistry registry("../config/items.toml");
@@ -59,7 +59,7 @@ TEST(BankerTest, Banker_DepositsItemFromInventorySuccessfully) {
 }
 
 // =========================================================================
-// TEST 3: RETIRAR UN ÍTEM DE LA BÓVEDA POR ID (/retirar <id>)
+// TEST 3: RETIRAR UN ÍTEM DE LA BÓVEDA POR ID
 // =========================================================================
 TEST(BankerTest, Banker_WithdrawsItemByIdSuccessfully) {
     ItemRegistry registry("../config/items.toml");
@@ -104,7 +104,7 @@ TEST(BankerTest, Banker_WithdrawWithFullInventoryDoesNotLoseItem) {
 }
 
 // =========================================================================
-// TEST 5: EL BANQUERO LISTA EXTRACTO INDIVIDUAL (ORO E ÍTEMS EN BÓVEDA)
+// TEST 5: EL BANQUERO LISTA EXTRACTO INDIVIDUAL
 // =========================================================================
 TEST(BankerTest, Banker_ListAccountBalancesAndItemsSuccessfully) {
     ItemRegistry registry("../config/items.toml");

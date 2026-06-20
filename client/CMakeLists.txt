@@ -18,6 +18,7 @@ target_sources(lib_client
     src/core/systems/WorldRenderer.cpp
     src/core/systems/StateAudioTrigger.cpp
     src/core/systems/InputProcessor.cpp
+    src/core/rendering/EquipmentVisualRegistry.cpp
 
     # network
     src/network/Sender.cpp
@@ -34,6 +35,7 @@ target_sources(lib_client
     src/ui/ManualPanel.cpp
     src/ui/CharacterCreationScreen.cpp
     src/ui/QuitView.cpp
+    
     # rendering
     src/rendering/TileMap.cpp
     src/rendering/IndoorRegions.cpp
@@ -69,6 +71,7 @@ target_sources(lib_client
     src/core/common/GameConstants.h
     src/core/common/FxType.h
     src/core/common/WeaponHelper.h
+    src/core/rendering/EquipmentVisualRegistry.h
 
     # network
     src/network/Sender.h

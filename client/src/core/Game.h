@@ -17,6 +17,7 @@
 #include "../ui/Window.h"
 #include "common/include/dto/PlayerStatsDTO.h"
 #include "common/include/dto/Snapshot.h"
+#include "rendering/EquipmentVisualRegistry.h"
 #include "systems/AudioSystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/EntityRenderer.h"
@@ -51,6 +52,9 @@ private:
     // Resources
     TextureManager textures;
     TileMap map;
+
+    EquipmentVisualRegistry equipmentRegistry;
+
     TTF_Font* worldFont = nullptr;
     TTF_Font* entityFont = nullptr;
 

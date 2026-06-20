@@ -6,18 +6,13 @@
 
 class RegenerationComponentTest: public ::testing::Test {
 protected:
-    // Humano mago: recoveryFactor=2, meditationFactor=3, canUseMagic=true
     RaceConfig humanRace{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 2.0f};
     CharacterClassConfig mageClass{0.7f, 1.5f, 3.0f, true};
 
-    // Guerrero: canUseMagic=false, meditationFactor=0
     CharacterClassConfig warriorClass{1.8f, 0.0f, 0.0f, false};
 
-    // Nivel 5 para tener margen cómodo de HP/Mana
     PlayerConfig base{15, 15, 15, 15, 5, 0, 0};
 
-    // Helpers para construir stats+state+regen para cada test
-    // (no usamos un único set de miembros para evitar dependencias entre tests)
     static constexpr float ONE_SECOND = 1.0f;
     static constexpr float TEN_SECONDS = 10.0f;
 };
@@ -146,9 +141,7 @@ TEST_F(RegenerationComponentTest, ManaRecoveryDoesNotExceedMaxMana) {
 }
 
 // ============================================================================
-// 5. MEDITACIÓN — recuperación de maná mejorada
-// Fórmula: Mana = FClaseMeditacion * Inteligencia * segundos
-// Con meditationFactor=3.0, intelligence=15, 1s → recupera 45 mana
+// 5. MEDITACIÓN
 // ============================================================================
 TEST_F(RegenerationComponentTest, MeditationRecoversManaFaster) {
     StatsComponent stats(humanRace, mageClass, base);
@@ -162,7 +155,6 @@ TEST_F(RegenerationComponentTest, MeditationRecoversManaFaster) {
     RegenerationComponent regen(stats, state, humanRace, mageClass);
     regen.tick(ONE_SECOND);
 
-    // meditation recover = 3.0 * 15 * 1.0 = 45
     EXPECT_EQ(stats.getMana(), manaBefore + 45);
 }
 
@@ -186,14 +178,12 @@ TEST_F(RegenerationComponentTest, MeditationStopsAutomaticallyWhenManaFull) {
 TEST_F(RegenerationComponentTest, MeditationContinuesIfManaNotFull) {
     StatsComponent stats(humanRace, mageClass, base);
     StateComponent state;
-    stats.consumeMana(stats.getMaxMana());  // maná en 0
+    stats.consumeMana(stats.getMaxMana());
     state.startMeditating();
 
     RegenerationComponent regen(stats, state, humanRace, mageClass);
-    regen.tick(ONE_SECOND);  // recupera algo pero no llega al máximo
+    regen.tick(ONE_SECOND);
 
-    // Con mageClass.meditationFactor=3, int=15 → 45 por segundo
-    // maxMana = 15*1.5*1.0*5 = 112 → 45 < 112 → sigue meditando
     EXPECT_TRUE(state.isMeditating());
 }
 
@@ -204,8 +194,6 @@ TEST_F(RegenerationComponentTest, WarriorDoesNotRecoverMana) {
     StatsComponent stats(humanRace, warriorClass, base);
     StateComponent state;
 
-    // El guerrero tiene maxMana=0, consumeMana no hace nada, pero verificamos
-    // que tick tampoco cambia el maná (que es y sigue siendo 0)
     ASSERT_EQ(stats.getMana(), 0);
 
     RegenerationComponent regen(stats, state, humanRace, warriorClass);
@@ -224,7 +212,6 @@ TEST_F(RegenerationComponentTest, WarriorStillRecoversHp) {
     RegenerationComponent regen(stats, state, humanRace, warriorClass);
     regen.tick(ONE_SECOND);
 
-    // La vida se recupera igualmente (recoveryFactor es de la raza, no la clase)
     EXPECT_GT(stats.getHp(), hpBefore);
 }
 
@@ -243,6 +230,5 @@ TEST_F(RegenerationComponentTest, HpAlsoRecoversDuringMeditation) {
     RegenerationComponent regen(stats, state, humanRace, mageClass);
     regen.tick(ONE_SECOND);
 
-    // La vida pasiva sigue corriendo aun en meditación
     EXPECT_GT(stats.getHp(), hpBefore);
 }

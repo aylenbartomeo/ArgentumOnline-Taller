@@ -2,7 +2,6 @@
 
 #include "model/components/StatsComponent.h"
 
-// Configs representativas de la tabla del juego
 class StatsComponentTest: public ::testing::Test {
 protected:
     RaceConfig humanRace{1.0f, 1.0f, 1.0f};
@@ -143,7 +142,6 @@ TEST_F(StatsComponentTest, HealDoesNotExceedMaxHp) {
 }
 
 TEST_F(StatsComponentTest, HealOnDeadPlayerDoesNothing) {
-    // Según la implementación de StatsComponent::heal: if (health == 0) return
     auto stats = humanMageLv1();
     stats.takeDamage(9999);  // muere
     ASSERT_EQ(stats.getHp(), 0);
@@ -166,7 +164,7 @@ TEST_F(StatsComponentTest, ConsumeManaFailsIfInsufficient) {
     auto stats = humanMageLv1();
     uint16_t initialMana = stats.getMana();
     EXPECT_FALSE(stats.consumeMana(9999));
-    EXPECT_EQ(stats.getMana(), initialMana);  // Mana remains unchanged
+    EXPECT_EQ(stats.getMana(), initialMana);
 }
 
 TEST_F(StatsComponentTest, ConsumeManaReturnsTrueOnSuccess) {

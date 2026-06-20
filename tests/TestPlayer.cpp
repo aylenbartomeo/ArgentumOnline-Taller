@@ -31,12 +31,10 @@ TEST(PlayerTest, Player_DamageAndDeath) {
     Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
     uint16_t initialHp = player.getHp();
 
-    // Daño menor que la vida
     player.receiveDamage(initialHp / 2);
     EXPECT_EQ(player.getHp(), initialHp - (initialHp / 2));
     EXPECT_FALSE(player.isDead());
 
-    // Daño que supera la vida restante (provoca muerte)
     player.receiveDamage(initialHp);
     EXPECT_TRUE(player.isDead());
     EXPECT_EQ(player.getHp(), 0u);
@@ -61,27 +59,22 @@ TEST(PlayerTest, Player_Resurrection) {
 TEST(PlayerTest, Player_InventoryAndGoldOperations) {
     Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
 
-    // Adición de oro (mayor al límite seguro de 5000)
     EXPECT_TRUE(player.addGold(6000));
     EXPECT_EQ(player.getGold(), 6000u);
 
-    // Remoción de oro
     EXPECT_TRUE(player.removeGold(400));
     EXPECT_EQ(player.getGold(), 5600u);
 
-    // El exceso a tirar es 5600 - 5000 = 600.
     uint32_t droppedGold = player.dropExcessGold();
     EXPECT_EQ(droppedGold, 600u);
     EXPECT_EQ(player.getGold(), 5000u);
 
-    // Añadir items directamente al inventario (sin ItemRegistry)
     EXPECT_TRUE(player.addItem(100, 5));
     auto slotOpt = player.inspectSlot(0);
     ASSERT_TRUE(slotOpt.has_value());
     EXPECT_EQ(slotOpt->item_id, 100u);
     EXPECT_EQ(slotOpt->amount, 5);
 
-    // Remover item
     uint16_t removed = player.removeItem(0, 2);
     EXPECT_EQ(removed, 2);
     slotOpt = player.inspectSlot(0);
@@ -136,25 +129,20 @@ TEST(PlayerTest, Player_CombatRules) {
     Player newbie = TestUtils::makeTestPlayer(1, "Newbie");   // Nivel 1
     Player victim1 = TestUtils::makeTestPlayer(2, "Victim");  // Nivel 1
 
-    // Regla 1: Un novato (newbie, nivel <= 12) no puede entrar en combate con otro jugador
     EXPECT_FALSE(newbie.canEngageInCombatWith(victim1));
     EXPECT_FALSE(victim1.canEngageInCombatWith(newbie));
 
-    // Elevamos el nivel de los jugadores para que dejen de ser newbies
     newbie.addExperience(1000000);
     victim1.addExperience(1000000);
 
     ASSERT_GT(newbie.getLevel(), 12);
     ASSERT_GT(victim1.getLevel(), 12);
 
-    // Ahora que no son newbies, deberían poder combatir si tienen diferencia de nivel <= 10
     EXPECT_TRUE(newbie.canEngageInCombatWith(victim1));
 
-    // Creamos un tercer jugador de nivel alto para verificar la diferencia de nivel
     Player highLevel = TestUtils::makeTestPlayer(3, "HighLevel");
     highLevel.addExperience(10000000);
 
-    // Verificar que la diferencia de nivel es > 10 y por lo tanto no pueden combatir
     ASSERT_GT(highLevel.getLevel() - victim1.getLevel(), 10);
     EXPECT_FALSE(victim1.canEngageInCombatWith(highLevel));
     EXPECT_FALSE(highLevel.canEngageInCombatWith(victim1));
@@ -186,7 +174,6 @@ TEST(PlayerTest, Player_ExperienceLossOnDeathAndFloorProtection) {
 
     EXPECT_EQ(player.getLevel(), levelBeforeDeath);
 
-    // La experiencia debió estancarse exactamente en el piso requerido para su nivel actual.
     uint32_t expectedFloor =
             FormulaEngine::getInstance().calculateLevelUpLimit(levelBeforeDeath - 1);
     EXPECT_EQ(player.getExp(), expectedFloor);
