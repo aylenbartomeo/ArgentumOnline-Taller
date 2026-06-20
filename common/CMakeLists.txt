@@ -11,6 +11,7 @@ target_sources(lib_common
     src/CityPrefab.cpp
     src/DungeonPrefab.cpp
     src/ForestPrefab.cpp
+    src/DesertPrefab.cpp
     src/loop/ConstantRateLoop.cpp
     PUBLIC
     # .h files
@@ -25,6 +26,7 @@ target_sources(lib_common
     include/CityPrefab.h
     include/DungeonPrefab.h
     include/ForestPrefab.h
+    include/DesertPrefab.h
     include/SafeZoneRect.h
     include/loop/ConstantRateLoop.h
     src/protocol/Protocol.h
