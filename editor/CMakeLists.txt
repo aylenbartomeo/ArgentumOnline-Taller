@@ -17,6 +17,7 @@ target_sources(lib_editor
     CityStamp.cpp
     DungeonStamp.cpp
     ForestStamp.cpp
+    DesertStamp.cpp
     SmartEraser.cpp
     BlockBrush.cpp
     MapChooser.cpp
@@ -36,6 +37,7 @@ target_sources(lib_editor
     CityStamp.h
     DungeonStamp.h
     ForestStamp.h
+    DesertStamp.h
     SmartEraser.h
     BlockBrush.h
     MapChooser.h
