@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "BeachStamp.h"
 #include "BlockBrush.h"
 #include "CityStamp.h"
 #include "DesertStamp.h"
@@ -61,9 +62,13 @@ TEST(BlockBrushTest, StampErrorRejectsOutOfBoundsForest) {
     EXPECT_NE(blockStampError(map, TerrainBlock::FOREST, 2, 2), "");
 }
 
-TEST(BlockBrushTest, StampErrorReportsBeachNotReady) {
+TEST(BlockBrushTest, BeachStampsWaterAndRegistersRect) {
     EditorMap map = emptyMap();
-    EXPECT_NE(blockStampError(map, TerrainBlock::BEACH, 50, 50), "");
+    EXPECT_EQ(blockStampError(map, TerrainBlock::BEACH, 50, 50), "");
+    CellPos o = beachOriginForClick(50, 50);
+    applyBlock(map, TerrainBlock::BEACH, 50, 50);
+    EXPECT_EQ(map.getGround()[o.y + 8][o.x + 8], 109);
+    ASSERT_EQ(map.getBeaches().size(), 1u);
 }
 
 TEST(BlockBrushTest, DesertStampsSandAndRegistersRect) {

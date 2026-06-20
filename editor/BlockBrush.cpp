@@ -1,5 +1,6 @@
 #include "BlockBrush.h"
 
+#include "BeachStamp.h"
 #include "CityStamp.h"
 #include "DesertStamp.h"
 #include "DungeonStamp.h"
@@ -23,8 +24,10 @@ std::string blockStampError(const EditorMap& map, TerrainBlock block, int col, i
             CellPos o = desertOriginForClick(col, row);
             return desertStampError(map, o.x, o.y);
         }
-        case TerrainBlock::BEACH:
-            return "Playa: proximamente";
+        case TerrainBlock::BEACH: {
+            CellPos o = beachOriginForClick(col, row);
+            return beachStampError(map, o.x, o.y);
+        }
         case TerrainBlock::NONE:
             return "";
     }
@@ -54,7 +57,11 @@ void applyBlock(EditorMap& map, TerrainBlock block, int col, int row) {
             applyDesertPrefab(map, o.x, o.y);
             break;
         }
-        case TerrainBlock::BEACH:
+        case TerrainBlock::BEACH: {
+            CellPos o = beachOriginForClick(col, row);
+            applyBeachPrefab(map, o.x, o.y);
+            break;
+        }
         case TerrainBlock::NONE:
             break;
     }
