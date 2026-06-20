@@ -122,6 +122,13 @@ EditorMap::EditorMap(const std::string& jsonText) {
         }
     }
 
+    if (data.contains("deserts")) {
+        for (const auto& d: data.at("deserts")) {
+            deserts.push_back(EditorDesert{d.at("x").get<int>(), d.at("y").get<int>(),
+                                           d.at("width").get<int>(), d.at("height").get<int>()});
+        }
+    }
+
     if (data.contains("items")) {
         for (const auto& item: data.at("items")) {
             int overlayIndex = overlayIndexForItemId(item.at("id").get<int>());
@@ -212,6 +219,15 @@ std::string EditorMap::toJson() const {
                     {{"x", f.x}, {"y", f.y}, {"width", f.width}, {"height", f.height}});
         }
         data["forests"] = forestsJson;
+    }
+
+    if (!deserts.empty()) {
+        nlohmann::json desertsJson = nlohmann::json::array();
+        for (const EditorDesert& d: deserts) {
+            desertsJson.push_back(
+                    {{"x", d.x}, {"y", d.y}, {"width", d.width}, {"height", d.height}});
+        }
+        data["deserts"] = desertsJson;
     }
 
     return data.dump(4);
@@ -396,4 +412,16 @@ void EditorMap::removeForestAt(int x, int y) {
     forests.erase(std::remove_if(forests.begin(), forests.end(),
                                  [x, y](const EditorForest& f) { return f.x == x && f.y == y; }),
                   forests.end());
+}
+
+const std::vector<EditorDesert>& EditorMap::getDeserts() const { return deserts; }
+
+void EditorMap::addDesert(int x, int y, int width, int height) {
+    deserts.push_back({x, y, width, height});
+}
+
+void EditorMap::removeDesertAt(int x, int y) {
+    deserts.erase(std::remove_if(deserts.begin(), deserts.end(),
+                                 [x, y](const EditorDesert& d) { return d.x == x && d.y == y; }),
+                  deserts.end());
 }

@@ -44,6 +44,13 @@ struct EditorForest {
     int height;
 };
 
+struct EditorDesert {
+    int x;
+    int y;
+    int width;
+    int height;
+};
+
 struct PlacedItem {
     int overlayIndex;
     int amount;
@@ -69,6 +76,7 @@ private:
     std::map<std::pair<int, int>, PlacedItem> items;
     std::vector<EditorDungeon> dungeons;
     std::vector<EditorForest> forests;
+    std::vector<EditorDesert> deserts;
     nlohmann::json extraItems = nlohmann::json::array();
 
     bool inside(int col, int row) const;
@@ -130,6 +138,10 @@ public:
     const std::vector<EditorForest>& getForests() const;
     void addForest(int x, int y, int width, int height);
     void removeForestAt(int x, int y);
+
+    const std::vector<EditorDesert>& getDeserts() const;
+    void addDesert(int x, int y, int width, int height);
+    void removeDesertAt(int x, int y);
 };
 
 #endif

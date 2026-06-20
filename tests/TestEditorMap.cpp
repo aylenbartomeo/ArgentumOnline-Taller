@@ -277,3 +277,24 @@ TEST(EditorMapTest, RemoveCitizenAtLeavesMonsterOnSameTile) {
     ASSERT_EQ(map.getMonsters().size(), 1u);
     EXPECT_EQ(map.getMonsters()[0].x, 7);
 }
+
+TEST(EditorMapDesertTest, AddAndRemoveDesert) {
+    EditorMap map(100, 100, 32, "5108.png", 32);
+    map.addDesert(11, 21, 16, 16);
+    ASSERT_EQ(map.getDeserts().size(), 1u);
+    EXPECT_EQ(map.getDeserts()[0].x, 11);
+    EXPECT_EQ(map.getDeserts()[0].y, 21);
+    EXPECT_EQ(map.getDeserts()[0].width, 16);
+    EXPECT_EQ(map.getDeserts()[0].height, 16);
+    map.removeDesertAt(11, 21);
+    EXPECT_TRUE(map.getDeserts().empty());
+}
+
+TEST(EditorMapDesertTest, DesertsSurviveJsonRoundTrip) {
+    EditorMap map(100, 100, 32, "5108.png", 32);
+    map.addDesert(11, 21, 16, 16);
+    EditorMap loaded(map.toJson());
+    ASSERT_EQ(loaded.getDeserts().size(), 1u);
+    EXPECT_EQ(loaded.getDeserts()[0].x, 11);
+    EXPECT_EQ(loaded.getDeserts()[0].height, 16);
+}
