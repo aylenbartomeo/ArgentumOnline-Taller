@@ -13,10 +13,6 @@
 #include "TestHelpers.h"
 #include "World.h"
 
-// ---------------------------------------------------------------------------
-// Helper local: no pertenece a TestUtils porque es interna a TestWorld
-// ---------------------------------------------------------------------------
-
 static PlayerPersistData makeSpawnData(int x, int y) {
     PlayerPersistData d{};
     d.posX = x;
@@ -26,10 +22,6 @@ static PlayerPersistData makeSpawnData(int x, int y) {
     d.level = 1;
     return d;
 }
-
-// ---------------------------------------------------------------------------
-// Fixture
-// ---------------------------------------------------------------------------
 
 class WorldTest: public ::testing::Test {
 protected:
@@ -44,8 +36,6 @@ protected:
                 TestUtils::getTestInventoryConfig(),
                 TestUtils::getTestServerConfig()};
 
-    // World::addPlayer toma std::string& (lvalue ref), así que envolvemos
-    // la llamada para que los string literals del test no provoquen errores.
     bool addPlayer(uint32_t id, const char* name, Race race = Race::HUMAN,
                    CharacterClass cls = CharacterClass::WARRIOR,
                    std::optional<PlayerPersistData> spawnData = std::nullopt) {

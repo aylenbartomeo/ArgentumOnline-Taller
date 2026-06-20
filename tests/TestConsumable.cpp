@@ -10,7 +10,7 @@
 #include "TestHelpers.h"
 
 // =========================================================================
-// TEST 1: POCIÓN DE VIDA (HEALTH POTION)
+// TEST 1: POCIÓN DE VIDA
 // =========================================================================
 TEST(ConsumableTest, Consumable_HealthPotionRestoresHp) {
     Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
@@ -80,7 +80,6 @@ TEST(ConsumableTest, Consumable_StrengthBoostElixir) {
     Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
     uint8_t baseStrength = player.getStrength();
 
-    // Configurar elixir que da +5 de Fuerza por 5000ms
     Consumable strElixir(103, "Elixir de Fuerza", 150, ConsumableType::BOOST_STR, 5000, 5);
 
     EXPECT_TRUE(strElixir.use(player));
@@ -88,7 +87,7 @@ TEST(ConsumableTest, Consumable_StrengthBoostElixir) {
 }
 
 // =========================================================================
-// TEST 4: ELIXIR DE AGILIDAD (AGILITY BOOST)
+// TEST 4: ELIXIR DE AGILIDAD
 // =========================================================================
 TEST(ConsumableTest, Consumable_AgilityBoostElixir) {
     Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
@@ -102,7 +101,7 @@ TEST(ConsumableTest, Consumable_AgilityBoostElixir) {
 }
 
 // =========================================================================
-// TEST 5: USO EN JUGADOR MUERTO (CONSUME WHEN DEAD FAILS)
+// TEST 5: USO EN JUGADOR MUERTO
 // =========================================================================
 TEST(ConsumableTest, Consumable_UseWhenDeadFails) {
     Player player = TestUtils::makeTestPlayer(1, "TestPlayer");

@@ -22,7 +22,6 @@ TEST(EntityManagerTest, HandlesPlayerLifecycle) {
     uint32_t e1 = em.allocateEntityId();
     uint32_t e2 = em.allocateEntityId();
 
-    // 🚀 Instanciación directa y limpia delegada a los builders de TestUtils
     auto p1 = std::make_unique<Player>(TestUtils::makeTestPlayer(id1, "PlayerOne"));
     auto p2 = std::make_unique<Player>(TestUtils::makeTestPlayer(id2, "PlayerTwo"));
 
@@ -32,12 +31,10 @@ TEST(EntityManagerTest, HandlesPlayerLifecycle) {
     EXPECT_EQ(em.getPlayerCount(), 2);
     EXPECT_FALSE(em.isEmpty());
 
-    // Fallar al duplicar ID de base de datos
     uint32_t e3 = em.allocateEntityId();
     auto p3 = std::make_unique<Player>(TestUtils::makeTestPlayer(id1, "PlayerThree"));
     em.registerPlayer(e3, id1, std::move(p3));
 
-    // No debería agregar un nuevo jugador si ya existe el dbId duplicado
     EXPECT_EQ(em.getPlayerCount(), 2);
 
     EXPECT_TRUE(em.removePlayer(id1));
