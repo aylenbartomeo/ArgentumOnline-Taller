@@ -2,6 +2,7 @@
 
 #include "BlockBrush.h"
 #include "CityStamp.h"
+#include "DesertStamp.h"
 #include "DungeonStamp.h"
 #include "ForestStamp.h"
 
@@ -60,8 +61,16 @@ TEST(BlockBrushTest, StampErrorRejectsOutOfBoundsForest) {
     EXPECT_NE(blockStampError(map, TerrainBlock::FOREST, 2, 2), "");
 }
 
-TEST(BlockBrushTest, StampErrorReportsBeachAndDesertNotReady) {
+TEST(BlockBrushTest, StampErrorReportsBeachNotReady) {
     EditorMap map = emptyMap();
     EXPECT_NE(blockStampError(map, TerrainBlock::BEACH, 50, 50), "");
-    EXPECT_NE(blockStampError(map, TerrainBlock::DESERT, 50, 50), "");
+}
+
+TEST(BlockBrushTest, DesertStampsSandAndRegistersRect) {
+    EditorMap map = emptyMap();
+    EXPECT_EQ(blockStampError(map, TerrainBlock::DESERT, 50, 50), "");
+    CellPos o = desertOriginForClick(50, 50);
+    applyBlock(map, TerrainBlock::DESERT, 50, 50);
+    EXPECT_EQ(map.getGround()[o.y + 8][o.x + 8], 74);
+    ASSERT_EQ(map.getDeserts().size(), 1u);
 }
