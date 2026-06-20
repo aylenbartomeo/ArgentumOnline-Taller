@@ -10,8 +10,8 @@
         "usesCompactArmor": false
       },
       "helmet": {
-        "offsetX": 2, "offsetY": -3,
-        "walkDown": 0, "walkUp": -2, "walkLeft": 2, "walkRight": 0
+        "offsetX": 0, "offsetY": -1,
+        "walkDown": 0, "walkUp": 0, "walkLeft": 2, "walkRight": 0
       },
       "head": {
         "extraOffsetY": -2,
@@ -26,11 +26,11 @@
       },
       "shield": {
         "offsetX": 0,
-        "offsetY": 3,
+        "offsetY": -2,
         "walkDown": 0,
         "walkUp": 0,
         "walkLeft": 0,
-        "walkRight": 0
+        "walkRight": -2
       }
     },
     {
