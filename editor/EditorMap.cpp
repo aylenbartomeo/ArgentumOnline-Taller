@@ -129,6 +129,13 @@ EditorMap::EditorMap(const std::string& jsonText) {
         }
     }
 
+    if (data.contains("beaches")) {
+        for (const auto& b: data.at("beaches")) {
+            beaches.push_back(EditorBeach{b.at("x").get<int>(), b.at("y").get<int>(),
+                                          b.at("width").get<int>(), b.at("height").get<int>()});
+        }
+    }
+
     if (data.contains("items")) {
         for (const auto& item: data.at("items")) {
             int overlayIndex = overlayIndexForItemId(item.at("id").get<int>());
@@ -230,6 +237,15 @@ std::string EditorMap::toJson() const {
         data["deserts"] = desertsJson;
     }
 
+    if (!beaches.empty()) {
+        nlohmann::json beachesJson = nlohmann::json::array();
+        for (const EditorBeach& b: beaches) {
+            beachesJson.push_back(
+                    {{"x", b.x}, {"y", b.y}, {"width", b.width}, {"height", b.height}});
+        }
+        data["beaches"] = beachesJson;
+    }
+
     return data.dump(4);
 }
 
@@ -246,6 +262,12 @@ const std::vector<std::vector<int>>& EditorMap::getIndoor() const { return indoo
 void EditorMap::setGround(int col, int row, int value) {
     if (inside(col, row)) {
         ground[row][col] = value;
+    }
+}
+
+void EditorMap::setGround2(int col, int row, int value) {
+    if (inside(col, row)) {
+        ground2[row][col] = value;
     }
 }
 
@@ -424,4 +446,16 @@ void EditorMap::removeDesertAt(int x, int y) {
     deserts.erase(std::remove_if(deserts.begin(), deserts.end(),
                                  [x, y](const EditorDesert& d) { return d.x == x && d.y == y; }),
                   deserts.end());
+}
+
+const std::vector<EditorBeach>& EditorMap::getBeaches() const { return beaches; }
+
+void EditorMap::addBeach(int x, int y, int width, int height) {
+    beaches.push_back({x, y, width, height});
+}
+
+void EditorMap::removeBeachAt(int x, int y) {
+    beaches.erase(std::remove_if(beaches.begin(), beaches.end(),
+                                 [x, y](const EditorBeach& b) { return b.x == x && b.y == y; }),
+                  beaches.end());
 }

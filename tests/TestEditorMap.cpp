@@ -298,3 +298,29 @@ TEST(EditorMapDesertTest, DesertsSurviveJsonRoundTrip) {
     EXPECT_EQ(loaded.getDeserts()[0].x, 11);
     EXPECT_EQ(loaded.getDeserts()[0].height, 16);
 }
+
+TEST(EditorMapBeachTest, AddAndRemoveBeach) {
+    EditorMap map(100, 100, 32, "5108.png", 32);
+    map.addBeach(11, 21, 22, 18);
+    ASSERT_EQ(map.getBeaches().size(), 1u);
+    EXPECT_EQ(map.getBeaches()[0].x, 11);
+    EXPECT_EQ(map.getBeaches()[0].y, 21);
+    EXPECT_EQ(map.getBeaches()[0].width, 22);
+    EXPECT_EQ(map.getBeaches()[0].height, 18);
+    map.removeBeachAt(11, 21);
+    EXPECT_TRUE(map.getBeaches().empty());
+}
+
+TEST(EditorMapBeachTest, BeachesSurviveJsonRoundTrip) {
+    EditorMap map(100, 100, 32, "5108.png", 32);
+    map.addBeach(11, 21, 22, 18);
+    EditorMap loaded(map.toJson());
+    ASSERT_EQ(loaded.getBeaches().size(), 1u);
+    EXPECT_EQ(loaded.getBeaches()[0].height, 18);
+}
+
+TEST(EditorMapBeachTest, SetGround2Writes) {
+    EditorMap map(100, 100, 32, "5108.png", 32);
+    map.setGround2(5, 6, 89);
+    EXPECT_EQ(map.getGround2()[6][5], 89);
+}

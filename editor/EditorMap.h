@@ -51,6 +51,13 @@ struct EditorDesert {
     int height;
 };
 
+struct EditorBeach {
+    int x;
+    int y;
+    int width;
+    int height;
+};
+
 struct PlacedItem {
     int overlayIndex;
     int amount;
@@ -77,6 +84,7 @@ private:
     std::vector<EditorDungeon> dungeons;
     std::vector<EditorForest> forests;
     std::vector<EditorDesert> deserts;
+    std::vector<EditorBeach> beaches;
     nlohmann::json extraItems = nlohmann::json::array();
 
     bool inside(int col, int row) const;
@@ -94,6 +102,7 @@ public:
     const std::vector<std::vector<int>>& getIndoor() const;
 
     void setGround(int col, int row, int value);
+    void setGround2(int col, int row, int value);
     void setDecoration(int col, int row, int value);
     void setRoof(int col, int row, int value);
     void setIndoor(int col, int row, int value);
@@ -142,6 +151,10 @@ public:
     const std::vector<EditorDesert>& getDeserts() const;
     void addDesert(int x, int y, int width, int height);
     void removeDesertAt(int x, int y);
+
+    const std::vector<EditorBeach>& getBeaches() const;
+    void addBeach(int x, int y, int width, int height);
+    void removeBeachAt(int x, int y);
 };
 
 #endif
