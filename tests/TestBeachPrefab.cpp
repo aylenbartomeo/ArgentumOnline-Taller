@@ -1,0 +1,47 @@
+#include <gtest/gtest.h>
+
+#include "BeachPrefab.h"
+
+namespace {
+int at(const std::vector<BeachCell>& cells, int dx, int dy) {
+    for (const BeachCell& c: cells) {
+        if (c.dx == dx && c.dy == dy) {
+            return c.value;
+        }
+    }
+    return -1;
+}
+}  // namespace
+
+TEST(BeachPrefabTest, FootprintIs22x18) {
+    const BeachPrefab& p = getBeachPrefab();
+    EXPECT_EQ(p.width, 22);
+    EXPECT_EQ(p.height, 18);
+}
+
+TEST(BeachPrefabTest, WaterInTheMiddle) {
+    const BeachPrefab& p = getBeachPrefab();
+    EXPECT_EQ(at(p.ground, 8, 8), 109);
+    EXPECT_EQ(at(p.ground, 2, 2), 109);
+    EXPECT_EQ(at(p.ground, 19, 15), 109);
+}
+
+TEST(BeachPrefabTest, FoamRingCornersAreCorrect) {
+    const BeachPrefab& p = getBeachPrefab();
+    EXPECT_EQ(at(p.ground2, 1, 1), 96);
+    EXPECT_EQ(at(p.ground2, 20, 1), 94);
+    EXPECT_EQ(at(p.ground2, 1, 16), 95);
+    EXPECT_EQ(at(p.ground2, 20, 16), 93);
+}
+
+TEST(BeachPrefabTest, HasPalmsAndObstacles) {
+    const BeachPrefab& p = getBeachPrefab();
+    bool hasPalm = false;
+    for (const BeachCell& c: p.decoration) {
+        if (c.value == 42) {
+            hasPalm = true;
+        }
+    }
+    EXPECT_TRUE(hasPalm);
+    EXPECT_EQ(p.obstacles.size(), 260u);
+}

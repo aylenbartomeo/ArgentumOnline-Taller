@@ -26,6 +26,7 @@ target_sources(argentum_online_tests
     TestDungeonPrefab.cpp
     TestForestPrefab.cpp
     TestDesertPrefab.cpp
+    TestBeachPrefab.cpp
     TestCityStamp.cpp
     TestDungeonStamp.cpp
     TestForestStamp.cpp
