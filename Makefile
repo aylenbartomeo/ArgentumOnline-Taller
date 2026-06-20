@@ -1,4 +1,4 @@
-.PHONY: all test clean editor client common server compile-debug prepare-dirs run-tests valgrind-tests compile-and-tests install uninstall run-server-create run-server-load run-client run-editor clean-db-auth clean-db-world clean-db check-config
+.PHONY: all test clean editor client common server compile-debug prepare-dirs run-tests valgrind-tests compile-and-tests valgrind-server valgrind-stop-server valgrind-show install uninstall run-server-create run-server-load run-client run-editor clean-db-auth clean-db-world clean-db check-config
 
 default: all
 
@@ -66,6 +66,32 @@ valgrind-tests: prepare-dirs
 
 compile-and-tests: compile-debug
 	cd build && ./argentum_online_tests
+
+valgrind-server: check-config prepare-dirs
+	mkdir -p build/valgrind
+	cd build && valgrind --leak-check=full \
+	                     --show-leak-kinds=all \
+	                     --track-origins=yes \
+	                     --log-file=valgrind/reporte_server.log \
+	                     ./argentum_online_server $(PORT) --load "$(WORLD)" & \
+	echo $$! > build/valgrind/server.pid
+	@echo "Servidor bajo Valgrind corriendo (PID guardado en build/valgrind/server.pid)"
+	@echo "Jugá la partida, luego ejecutá: make valgrind-stop-server"
+
+valgrind-stop-server:
+	@PID=$$(cat build/valgrind/server.pid 2>/dev/null) && \
+	if [ -n "$$PID" ]; then \
+		kill -TERM $$PID && echo "Servidor detenido (PID $$PID). Esperando reporte..."; \
+		sleep 2; \
+		rm -f build/valgrind/server.pid; \
+	else \
+		echo "[WARN] No se encontró PID guardado."; \
+	fi
+	@echo "Reporte en: build/valgrind/reporte_server.log"
+
+valgrind-show:
+	@echo "=== REPORTE TESTS ===" && cat build/valgrind/reporte_tests.log 2>/dev/null || echo "(no existe)"
+	@echo "=== REPORTE SERVER ===" && cat build/valgrind/reporte_server.log 2>/dev/null || echo "(no existe)"
 
 all: clean run-tests
 
