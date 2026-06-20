@@ -18,6 +18,7 @@ target_sources(lib_editor
     DungeonStamp.cpp
     ForestStamp.cpp
     DesertStamp.cpp
+    BeachStamp.cpp
     SmartEraser.cpp
     BlockBrush.cpp
     MapChooser.cpp
@@ -38,6 +39,7 @@ target_sources(lib_editor
     DungeonStamp.h
     ForestStamp.h
     DesertStamp.h
+    BeachStamp.h
     SmartEraser.h
     BlockBrush.h
     MapChooser.h

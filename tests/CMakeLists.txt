@@ -31,6 +31,7 @@ target_sources(argentum_online_tests
     TestDungeonStamp.cpp
     TestForestStamp.cpp
     TestDesertStamp.cpp
+    TestBeachStamp.cpp
     TestBlockBrush.cpp
     TestMerchant.cpp
     TestPriest.cpp
