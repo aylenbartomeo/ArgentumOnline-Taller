@@ -10,6 +10,9 @@ constexpr int STALL = 203;
 constexpr int CHURCH_ROOF = 204;
 constexpr int BANK_ROOF = 205;
 constexpr int STORE_MARGIN = 2;
+constexpr int CHURCH_SIGN = 167;
+constexpr int BANK_SIGN = 168;
+constexpr int STORE_SIGN = 169;
 
 struct Recorder {
     CityPrefab prefab;
@@ -86,6 +89,9 @@ CityPrefab buildPrefab() {
     r.path(9, 22, 9, 23);
     r.path(20, 23, 20, 31);
     r.stall(16, 30, 9, "store", "merchant", 20, 32);
+    r.prefab.decoration.push_back({12, 23, CHURCH_SIGN});
+    r.prefab.decoration.push_back({30, 19, BANK_SIGN});
+    r.prefab.decoration.push_back({23, 31, STORE_SIGN});
     return r.prefab;
 }
 }  // namespace

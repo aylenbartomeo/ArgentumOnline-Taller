@@ -129,3 +129,24 @@ TEST(CityPrefabTest, BankBackWallBandIsBlocked) {
     }
     EXPECT_FALSE(hasObstacle(prefab, 30, 12));
 }
+
+TEST(CityPrefabTest, HasBuildingSigns) {
+    const CityPrefab& prefab = getCityPrefab();
+    bool church = false;
+    bool bank = false;
+    bool store = false;
+    for (const CityCell& c: prefab.decoration) {
+        if (c.value == 167) {
+            church = true;
+        }
+        if (c.value == 168) {
+            bank = true;
+        }
+        if (c.value == 169) {
+            store = true;
+        }
+    }
+    EXPECT_TRUE(church);
+    EXPECT_TRUE(bank);
+    EXPECT_TRUE(store);
+}
