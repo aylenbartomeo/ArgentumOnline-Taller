@@ -327,21 +327,6 @@ bool EditorMap::isBlocked(int col, int row) const {
                        });
 }
 
-void EditorMap::paintItem(int col, int row, int overlayIndex) {
-    const std::vector<OverlayDef>& registry = getOverlayRegistry();
-    if (!inside(col, row) || overlayIndex < 0 ||
-        overlayIndex >= static_cast<int>(registry.size())) {
-        return;
-    }
-    auto it = items.find({col, row});
-    if (it != items.end() && it->second.overlayIndex == overlayIndex &&
-        registry[overlayIndex].stackable) {
-        it->second.amount += 1;
-    } else {
-        items[{col, row}] = PlacedItem{overlayIndex, 1};
-    }
-}
-
 void EditorMap::setItem(int col, int row, int overlayIndex, int amount) {
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
     if (!inside(col, row) || overlayIndex < 0 ||
@@ -370,8 +355,6 @@ void EditorMap::setSpawn(int col, int row) {
 int EditorMap::getWidth() const { return width; }
 int EditorMap::getHeight() const { return height; }
 int EditorMap::getTileSize() const { return tileSize; }
-int EditorMap::getTilesetCols() const { return tilesetCols; }
-const std::string& EditorMap::getTileset() const { return tileset; }
 
 const std::vector<EditorSafeZone>& EditorMap::getSafeZones() const { return safeZones; }
 
@@ -405,16 +388,6 @@ const std::vector<MonsterSpawn>& EditorMap::getMonsters() const { return monster
 
 void EditorMap::addMonster(const std::string& type, int x, int y) {
     monsters.push_back({type, x, y});
-}
-
-void EditorMap::removeEntitiesAt(int x, int y) {
-    auto matches = [x, y](auto& v) {
-        v.erase(std::remove_if(v.begin(), v.end(),
-                               [x, y](const auto& e) { return e.x == x && e.y == y; }),
-                v.end());
-    };
-    matches(citizens);
-    matches(monsters);
 }
 
 void EditorMap::removeMonsterAt(int x, int y) {

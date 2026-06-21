@@ -123,45 +123,11 @@ TEST(EditorMapTest, IsBlockedMatchesObstacles) {
     EXPECT_FALSE(map.isBlocked(2, 1));
 }
 
-TEST(EditorMapTest, PaintGoldStacksAmount) {
-    EditorMap map(4, 4, 32, "world/tileset.png", 32);
-    int gold = goldOverlayIndex();
-    ASSERT_GE(gold, 0);
-    map.paintItem(2, 2, gold);
-    map.paintItem(2, 2, gold);
-    const PlacedItem* item = map.itemAt(2, 2);
-    ASSERT_NE(item, nullptr);
-    EXPECT_EQ(item->amount, 2);
-
-    map.removeItemAt(2, 2);
-    EXPECT_EQ(map.itemAt(2, 2), nullptr);
-}
-
-TEST(EditorMapTest, PaintNonStackableItemStaysAtOne) {
-    EditorMap map(4, 4, 32, "world/tileset.png", 32);
-    const std::vector<OverlayDef>& registry = getOverlayRegistry();
-    int sword = -1;
-    for (size_t i = 0; i < registry.size(); ++i) {
-        if (registry[i].itemId != 0 && !registry[i].stackable) {
-            sword = static_cast<int>(i);
-            break;
-        }
-    }
-    ASSERT_GE(sword, 0);
-    map.paintItem(1, 1, sword);
-    map.paintItem(1, 1, sword);
-    const PlacedItem* item = map.itemAt(1, 1);
-    ASSERT_NE(item, nullptr);
-    EXPECT_EQ(item->amount, 1);
-}
-
 TEST(EditorMapTest, SavedGoldKeepsIdAndAmount) {
     EditorMap map(4, 4, 32, "world/tileset.png", 32);
     int gold = goldOverlayIndex();
     ASSERT_GE(gold, 0);
-    map.paintItem(3, 1, gold);
-    map.paintItem(3, 1, gold);
-    map.paintItem(3, 1, gold);
+    map.setItem(3, 1, gold, 3);
 
     nlohmann::json saved = nlohmann::json::parse(map.toJson());
     ASSERT_EQ(saved["items"].size(), 1u);
@@ -183,17 +149,6 @@ TEST(EditorMapTest, UnknownItemIdsAreKeptVerbatim) {
         }
     }
     EXPECT_TRUE(kept);
-}
-
-TEST(EditorMapTest, AddRemoveEntitiesAtPosition) {
-    EditorMap map(4, 4, 32, "world/tileset.png", 32);
-    map.addCitizen("priest", 1, 1);
-    map.addMonster("goblin", 1, 1);
-    map.addCitizen("banker", 2, 2);
-    map.removeEntitiesAt(1, 1);
-    ASSERT_EQ(map.getCitizens().size(), 1u);
-    EXPECT_EQ(map.getCitizens()[0].type, "banker");
-    EXPECT_TRUE(map.getMonsters().empty());
 }
 
 TEST(OverlayRegistryTest, ContainsStackableGold) {

@@ -111,7 +111,6 @@ public:
     void removeObstacle(int col, int row);
     bool isBlocked(int col, int row) const;
 
-    void paintItem(int col, int row, int overlayIndex);
     void setItem(int col, int row, int overlayIndex, int amount);
     const PlacedItem* itemAt(int col, int row) const;
     void removeItemAt(int col, int row);
@@ -123,8 +122,6 @@ public:
     int getWidth() const;
     int getHeight() const;
     int getTileSize() const;
-    int getTilesetCols() const;
-    const std::string& getTileset() const;
 
     const std::vector<EditorSafeZone>& getSafeZones() const;
     void addSafeZone(const std::string& name, int x, int y, int width, int height);
@@ -133,7 +130,6 @@ public:
     const std::vector<CitizenSpawn>& getCitizens() const;
     void addCitizen(const std::string& type, int x, int y);
     void removeCitizensInRect(int x, int y, int width, int height);
-    void removeEntitiesAt(int x, int y);
     void removeCitizenAt(int x, int y);
 
     const std::vector<MonsterSpawn>& getMonsters() const;

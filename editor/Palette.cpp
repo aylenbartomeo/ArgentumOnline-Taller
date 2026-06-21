@@ -9,21 +9,6 @@ Palette::Palette(int panelX, int panelY, int tileDrawSize, int cols, int tileCou
         selectedTile(0),
         scrollRow(0) {}
 
-void Palette::selectFromClick(int x, int y) {
-    if (x < panelX || y < panelY) {
-        return;
-    }
-    int col = (x - panelX) / tileDrawSize;
-    int row = (y - panelY) / tileDrawSize + scrollRow;
-    if (col >= cols) {
-        return;
-    }
-    int index = row * cols + col;
-    if (index >= 0 && index < tileCount) {
-        selectedTile = index;
-    }
-}
-
 void Palette::setSelectedTile(int index) {
     if (index >= 0 && index < tileCount) {
         selectedTile = index;
