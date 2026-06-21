@@ -13,6 +13,7 @@ constexpr int FX1 = 18;
 constexpr int FY1 = 14;
 constexpr int WATER = 109;
 constexpr int PALM = 42;
+constexpr int PALM_COLLISION_DX = 2;
 constexpr int FOAM_TOP = 88;
 constexpr int FOAM_BOTTOM = 90;
 constexpr int FOAM_LEFT = 89;
@@ -24,7 +25,7 @@ constexpr int FOAM_BR = 93;
 
 void addPalm(BeachPrefab& p, int dx, int dy) {
     p.decoration.push_back({dx, dy, PALM});
-    p.obstacles.push_back({dx, dy, 0});
+    p.obstacles.push_back({dx + PALM_COLLISION_DX, dy, 0});
 }
 
 BeachPrefab buildPrefab() {

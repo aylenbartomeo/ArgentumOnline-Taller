@@ -45,3 +45,17 @@ TEST(BeachPrefabTest, HasPalmsAndObstacles) {
     EXPECT_TRUE(hasPalm);
     EXPECT_EQ(p.obstacles.size(), 200u);
 }
+
+TEST(BeachPrefabTest, PalmCollisionIsShiftedRightOntoTrunk) {
+    const BeachPrefab& p = getBeachPrefab();
+    auto hasObstacle = [&](int dx, int dy) {
+        for (const BeachCell& c: p.obstacles) {
+            if (c.dx == dx && c.dy == dy) {
+                return true;
+            }
+        }
+        return false;
+    };
+    EXPECT_TRUE(hasObstacle(2, 1));
+    EXPECT_FALSE(hasObstacle(0, 1));
+}
