@@ -7,8 +7,10 @@
 #include "loop/ConstantRateLoop.h"
 
 #include "CityStamp.h"
+#include "GoldPrompt.h"
 #include "MapChooser.h"
 #include "MapDefaults.h"
+#include "OverlayRegistry.h"
 #include "SmartEraser.h"
 
 namespace {
@@ -49,7 +51,6 @@ constexpr int BRUSH_CITIZEN_X = 1210;
 constexpr int BRUSH_CITIZEN_Y = 994;
 constexpr int SLOT_COLS = 5;
 constexpr int SLOT_VISIBLE_ROWS = 6;
-constexpr LayoutRect AMOUNT_FIELD = {1150, 880, 150, 40};
 
 bool insideRect(LayoutRect r, int x, int y) {
     return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
@@ -165,8 +166,7 @@ ScreenEditor::ScreenEditor():
                        static_cast<int>(getMonsterCatalog().size())),
         citizenPalette(SLOT_X, SLOT_Y, SLOT_STEP, SLOT_COLS,
                        static_cast<int>(getCitizenCatalog().size())),
-        goldAmount(1),
-        amountInput(false) {
+        goldAmount(1) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 }
 
@@ -190,7 +190,7 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
         handleMapListEvent(event);
         return;
     }
-    if (amountInput) {
+    if (goldPromptOpen) {
         if (event.type == SDL_TEXTINPUT) {
             for (const char* c = event.text.text; *c != '\0'; ++c) {
                 if (*c >= '0' && *c <= '9' && amountText.size() < 7) {
@@ -200,15 +200,17 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
         } else if (event.type == SDL_KEYDOWN) {
             SDL_Keycode sym = event.key.keysym.sym;
             if (sym == SDLK_RETURN || sym == SDLK_KP_ENTER) {
-                goldAmount = amountText.empty() ? 1 : std::max(1, std::stoi(amountText));
-                amountInput = false;
+                goldAmount = goldAmountFromText(amountText);
+                int idx = itemOverlays[itemPalette.getSelectedTile()];
+                map.setItem(pendingGoldX, pendingGoldY, idx, goldAmount);
+                goldPromptOpen = false;
                 SDL_StopTextInput();
             } else if (sym == SDLK_BACKSPACE) {
                 if (!amountText.empty()) {
                     amountText.pop_back();
                 }
             } else if (sym == SDLK_ESCAPE) {
-                amountInput = false;
+                goldPromptOpen = false;
                 SDL_StopTextInput();
             }
         }
@@ -240,10 +242,6 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
                 selectedBlock = blockForRegion(region);
                 activeTool = Tool::NONE;
                 placeMsg = "";
-            } else if (selectedIsStackable() && insideRect(AMOUNT_FIELD, p.x, p.y)) {
-                amountInput = true;
-                amountText = "";
-                SDL_StartTextInput();
             } else if (currentPalette() != nullptr && p.x >= SLOT_X &&
                        p.x < SLOT_X + SLOT_COLS * SLOT_STEP && p.y >= SLOT_Y &&
                        p.y < SLOT_Y + SLOT_VISIBLE_ROWS * SLOT_STEP_Y) {
@@ -327,7 +325,7 @@ void ScreenEditor::render() {
 
     SDL2pp::Rect canvas = canvasViewport();
     renderer.SetViewport(canvas);
-    mapRenderer.render(map, camera, canvas.w, canvas.h);
+    mapRenderer.render(map, camera, canvas.w, canvas.h, smallFont);
     renderer.SetViewport(SDL2pp::NullOpt);
 
     LayoutRect t = topLeftToolsRect();
@@ -386,6 +384,9 @@ void ScreenEditor::render() {
     renderCurrentBrush();
     if (mapListOpen) {
         renderMapList();
+    }
+    if (goldPromptOpen) {
+        renderGoldPrompt();
     }
     if (SDL_GetTicks() < mapasFlashUntil) {
         LayoutRect m = mapasRect();
@@ -573,24 +574,28 @@ Palette* ScreenEditor::currentPalette() {
     return nullptr;
 }
 
-bool ScreenEditor::selectedIsStackable() const {
-    if (screen != Screen::ITEMS) {
-        return false;
-    }
-    return getOverlayRegistry()[itemOverlays[itemPalette.getSelectedTile()]].stackable;
+void ScreenEditor::openGoldPrompt(int col, int row) {
+    goldPromptOpen = true;
+    amountText = "";
+    pendingGoldX = col;
+    pendingGoldY = row;
+    SDL_StartTextInput();
 }
 
 void ScreenEditor::placeAtCell(int col, int row) {
     placeMsg = "";
     if (screen == Screen::ITEMS) {
         std::string error = itemPlacementError(map, col, row);
-        if (error.empty()) {
-            int idx = itemOverlays[itemPalette.getSelectedTile()];
-            int amount = getOverlayRegistry()[idx].stackable ? goldAmount : 1;
-            map.setItem(col, row, idx, amount);
-        } else {
+        if (!error.empty()) {
             placeMsg = error;
+            return;
         }
+        int idx = itemOverlays[itemPalette.getSelectedTile()];
+        if (getOverlayRegistry()[idx].stackable) {
+            openGoldPrompt(col, row);
+            return;
+        }
+        map.setItem(col, row, idx, 1);
     } else if (screen == Screen::MONSTRUOS) {
         const std::string type = getMonsterCatalog()[monsterPalette.getSelectedTile()].type;
         std::string error = monsterPlacementError(map, type, col, row);
@@ -655,14 +660,22 @@ void ScreenEditor::renderPalette() {
     if (!placeMsg.empty()) {
         font.drawString(placeMsg, 70, 1000, SDL_Color{200, 60, 40, 255});
     }
-    if (selectedIsStackable()) {
-        renderer.SetDrawColor(20, 20, 20, 255);
-        renderer.FillRect(
-                SDL2pp::Rect(AMOUNT_FIELD.x, AMOUNT_FIELD.y, AMOUNT_FIELD.w, AMOUNT_FIELD.h));
-        std::string txt =
-                amountInput ? (amountText + "_") : ("Cantidad: " + std::to_string(goldAmount));
-        font.drawString(txt, AMOUNT_FIELD.x + 6, AMOUNT_FIELD.y + 6, SDL_Color{240, 220, 120, 255});
-    }
+}
+
+void ScreenEditor::renderGoldPrompt() {
+    renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+    renderer.SetDrawColor(0, 0, 0, 150);
+    renderer.FillRect(SDL2pp::Rect(0, 0, MOCKUP_W, MOCKUP_H));
+    renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
+
+    SDL2pp::Texture& papiro = textures.get(std::string(EDITOR_RES) + "papiro.bmp");
+    renderer.Copy(papiro, SDL2pp::NullOpt, SDL2pp::Rect(PAPIRO_X, PAPIRO_Y, PAPIRO_W, PAPIRO_H));
+
+    const SDL_Color textColor = {70, 45, 20, 255};
+    const SDL_Color accent = {150, 90, 20, 255};
+    font.drawString("¿Qué cantidad de oro querés aplicar?", LIST_X, LIST_TITLE_Y, textColor);
+    font.drawString(amountText + "_", LIST_X, LIST_ROWS_TOP, accent);
+    font.drawString("Enter aplica  ·  Esc cancela", LIST_X, LIST_ROWS_TOP + 80, textColor);
 }
 
 void ScreenEditor::renderCurrentBrush() {

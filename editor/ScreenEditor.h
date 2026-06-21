@@ -53,16 +53,19 @@ private:
     Palette citizenPalette;
     std::string placeMsg;
     int goldAmount;
-    bool amountInput;
+    bool goldPromptOpen = false;
     std::string amountText;
+    int pendingGoldX = 0;
+    int pendingGoldY = 0;
 
     void handleEvent(const SDL_Event& event, bool& running);
     void render();
     void renderPalette();
     void renderCurrentBrush();
+    void renderGoldPrompt();
     Palette* currentPalette();
     void placeAtCell(int col, int row);
-    bool selectedIsStackable() const;
+    void openGoldPrompt(int col, int row);
     void saveMap();
     void openMapList();
     void closeMapList();
