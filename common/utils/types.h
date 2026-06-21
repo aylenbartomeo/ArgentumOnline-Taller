@@ -32,8 +32,10 @@ enum class NPCType {
 enum class ZoneType { FOREST, DESERT, NORMAL };
 
 inline ZoneType zoneTypeFromString(const std::string& s) {
-    if (s == "forest") return ZoneType::FOREST;
-    if (s == "desert") return ZoneType::DESERT;
+    if (s == "forest")
+        return ZoneType::FOREST;
+    if (s == "desert")
+        return ZoneType::DESERT;
     return ZoneType::NORMAL;
 }
 

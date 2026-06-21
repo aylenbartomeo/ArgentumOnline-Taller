@@ -1,13 +1,15 @@
+#include <algorithm>
+
 #include <gtest/gtest.h>
 
 #include "DesertPrefab.h"
 
 namespace {
 int valueAt(const DesertPrefab& p, int dx, int dy) {
-    for (const DesertCell& c: p.ground) {
-        if (c.dx == dx && c.dy == dy) {
-            return c.value;
-        }
+    auto it = std::find_if(p.ground.begin(), p.ground.end(),
+                           [dx, dy](const DesertCell& c) { return c.dx == dx && c.dy == dy; });
+    if (it != p.ground.end()) {
+        return it->value;
     }
     return -1;
 }

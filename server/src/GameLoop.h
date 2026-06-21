@@ -3,11 +3,12 @@
 
 #include <atomic>
 #include <chrono>
+#include <functional>
 #include <string>
 #include <thread>
-#include <unordered_map>
 #include <typeindex>
-#include <functional>
+#include <unordered_map>
+
 #include "../../common/include/dto/ClientCommands.h"
 #include "../../common/include/queue.h"
 #include "../../common/include/thread.h"
@@ -47,12 +48,13 @@ private:
 
     std::unordered_map<uint32_t, std::string> pendingCreations;
     // Mapa que asocia el tipo de DTO con su función ejecutora (Handler)
-    std::unordered_map<std::type_index, std::function<void(uint32_t, const PlayerCommand&)>> commandDispatcher;
+    std::unordered_map<std::type_index, std::function<void(uint32_t, const PlayerCommand&)>>
+            commandDispatcher;
     // Timer para guardado periódico
     static constexpr float SAVE_INTERVAL_SECONDS = 30.0f;
     float timeSinceLastSave = 0.0f;
 
-    void registerHandlers(); // Inicializa el mapa de comandos
+    void registerHandlers();  // Inicializa el mapa de comandos
 
     // Helper en plantilla para registrar comandos de forma fluida y auto-gestionada
     template <typename T>

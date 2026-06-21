@@ -115,14 +115,16 @@ bool Map::loadSpawnFromJson(const std::string& path, const MapLoadOptions& optio
 
     if (data.contains("forests")) {
         for (const auto& f: data["forests"]) {
-            MapZoneRect rect{ZoneType::FOREST, f["x"].get<int>(), f["y"].get<int>(), f["width"].get<int>(), f["height"].get<int>()};
+            MapZoneRect rect{ZoneType::FOREST, f["x"].get<int>(), f["y"].get<int>(),
+                             f["width"].get<int>(), f["height"].get<int>()};
             zoneRects.push_back(rect);
         }
     }
 
     if (data.contains("deserts")) {
         for (const auto& d: data["deserts"]) {
-            MapZoneRect rect{ZoneType::DESERT, d["x"].get<int>(), d["y"].get<int>(), d["width"].get<int>(), d["height"].get<int>()};
+            MapZoneRect rect{ZoneType::DESERT, d["x"].get<int>(), d["y"].get<int>(),
+                             d["width"].get<int>(), d["height"].get<int>()};
             zoneRects.push_back(rect);
         }
     }

@@ -107,22 +107,22 @@ void Launcher::handleEvents(bool& quit) {
                 if (activeBox->isPassword) {
                     display = std::string(newText.length(), '*');
                 }
-                
+
                 int w = 0, h = 0;
                 if (font && TTF_SizeUTF8(font, display.c_str(), &w, &h) == 0) {
                     int max_w = activeBox->w - 30;
                     if (state == LauncherState::CONNECTION) {
-                        max_w -= 80; // Equivalente a ~8 caracteres menos para IP y Puerto
+                        max_w -= 80;  // Equivalente a ~8 caracteres menos para IP y Puerto
                     } else if (state == LauncherState::AUTHENTICATION) {
-                        max_w -= 60; // Equivalente a ~6 caracteres menos para Usuario y Contraseña
+                        max_w -= 60;  // Equivalente a ~6 caracteres menos para Usuario y Contraseña
                         if (activeBox->isPassword) {
-                            max_w -= 10; // 1 caracter menos para la contraseña
+                            max_w -= 10;  // 1 caracter menos para la contraseña
                         }
                     }
                     if (w <= max_w) {
                         activeBox->text = newText;
                     }
-                } else if (newText.length() < 50) { // Fallback en caso de error
+                } else if (newText.length() < 50) {  // Fallback en caso de error
                     activeBox->text = newText;
                 }
             }

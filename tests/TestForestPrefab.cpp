@@ -19,12 +19,8 @@ TEST(ForestPrefabTest, IsTwelveByTwelve) {
 
 TEST(ForestPrefabTest, HasSevenOaks) {
     const ForestPrefab& p = getForestPrefab();
-    int oaks = 0;
-    for (const ForestCell& c: p.decoration) {
-        if (c.value == 11) {
-            ++oaks;
-        }
-    }
+    int oaks = std::count_if(p.decoration.begin(), p.decoration.end(),
+                             [](const ForestCell& c) { return c.value == 11; });
     EXPECT_EQ(oaks, 7);
 }
 

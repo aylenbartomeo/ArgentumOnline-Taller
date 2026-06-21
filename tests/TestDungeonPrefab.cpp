@@ -73,7 +73,7 @@ TEST(DungeonPrefabTest, SmallGraveBlocksOneCell) {
 TEST(DungeonPrefabTest, HasFourWalkableSkeletons) {
     const DungeonPrefab& p = getDungeonPrefab();
     int count = 0;
-    for (const DungeonCell& c : p.decoration) {
+    for (const DungeonCell& c: p.decoration) {
         if (c.value == 99) {
             ++count;
             EXPECT_FALSE(hasObstacle(p, c.dx, c.dy));
@@ -85,7 +85,7 @@ TEST(DungeonPrefabTest, HasFourWalkableSkeletons) {
 TEST(DungeonPrefabTest, HasGuardedGold) {
     const DungeonPrefab& p = getDungeonPrefab();
     ASSERT_EQ(p.gold.size(), 2u);
-    for (const DungeonItem& g : p.gold) {
+    for (const DungeonItem& g: p.gold) {
         EXPECT_EQ(g.itemId, 1);
         EXPECT_EQ(g.amount, 5000);
         EXPECT_EQ(g.dy, 1);

@@ -10,8 +10,12 @@
 #include "loop/ConstantRateLoop.h"
 
 // Helper clásico para el patrón Visitor de std::visit
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+template <class... Ts>
+struct overloaded: Ts... {
+    using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 GameLoop::GameLoop(Queue<GameEvent>& gameQueue, ConnectionMonitor& monitor,
                    const std::filesystem::path& configDir, const WorldConfig& wConfig,
@@ -76,17 +80,14 @@ void GameLoop::registerHandlers() {
         world.dropItem(clientId, dto.slot, dto.amount);
     });
 
-    registerCommand<GrabItemDTO>([this](uint32_t clientId, const GrabItemDTO&) {
-        world.pickUpItem(clientId);
-    });
+    registerCommand<GrabItemDTO>(
+            [this](uint32_t clientId, const GrabItemDTO&) { world.pickUpItem(clientId); });
 
-    registerCommand<MeditateDTO>([this](uint32_t clientId, const MeditateDTO&) {
-        world.playerMeditate(clientId);
-    });
+    registerCommand<MeditateDTO>(
+            [this](uint32_t clientId, const MeditateDTO&) { world.playerMeditate(clientId); });
 
-    registerCommand<ResurrectDTO>([this](uint32_t clientId, const ResurrectDTO&) {
-        world.playerResurrect(clientId);
-    });
+    registerCommand<ResurrectDTO>(
+            [this](uint32_t clientId, const ResurrectDTO&) { world.playerResurrect(clientId); });
 
     registerCommand<SelectNpcDTO>([this](uint32_t clientId, const SelectNpcDTO& dto) {
         world.playerInteract(clientId, dto.npcId);
@@ -111,7 +112,8 @@ void GameLoop::registerHandlers() {
 
     registerCommand<PrivateChatDTO>([this](uint32_t clientId, const PrivateChatDTO& dto) {
         auto senderName = world.getPlayerUsername(clientId);
-        if (!senderName.has_value()) return;
+        if (!senderName.has_value())
+            return;
 
         uint32_t recipientId = world.resolveNickToDbId(dto.recipientNick);
         if (recipientId == 0) {
@@ -188,66 +190,82 @@ void GameLoop::processInputs() {
     GameEvent event;
 
     while (gameQueue.try_pop(event)) {
-        std::visit(overloaded{
-            [this](const JoinEvent& joinData) {
-                std::cout << "[GAMELOOP] Jugador conectado: " << joinData.username << std::endl;
-                auto savedData = playerDataStore.loadPlayerData(joinData.username);
-                
-                if (savedData.has_value()) {
-                    Race race = static_cast<Race>(savedData->race);
-                    CharacterClass cls = static_cast<CharacterClass>(savedData->characterClass);
-                    world.addPlayer(joinData.clientId, joinData.username, race, cls, savedData);
+        std::visit(
+                overloaded{[this](const JoinEvent& joinData) {
+                               std::cout << "[GAMELOOP] Jugador conectado: " << joinData.username
+                                         << std::endl;
+                               auto savedData = playerDataStore.loadPlayerData(joinData.username);
 
-                    JoinResponseDTO resp;
-                    resp.needsCreation = false;
-                    monitor.sendToClient(joinData.clientId, resp);
-                } else {
-                    pendingCreations[joinData.clientId] = joinData.username;
-                    JoinResponseDTO resp;
-                    resp.needsCreation = true;
-                    resp.baseStrength = characterConfigs.player.baseStrength;
-                    resp.baseAgility = characterConfigs.player.baseAgility;
-                    resp.baseIntelligence = characterConfigs.player.baseIntelligence;
-                    resp.baseConstitution = characterConfigs.player.baseConstitution;
+                               if (savedData.has_value()) {
+                                   Race race = static_cast<Race>(savedData->race);
+                                   CharacterClass cls =
+                                           static_cast<CharacterClass>(savedData->characterClass);
+                                   world.addPlayer(joinData.clientId, joinData.username, race, cls,
+                                                   savedData);
 
-                    for (int i = 0; i < 4; ++i) {
-                        auto r = static_cast<Race>(i);
-                        resp.raceFactors.push_back(characterConfigs.races[r].lifeFactor);
-                        resp.raceFactors.push_back(characterConfigs.races[r].manaFactor);
-                        resp.raceFactors.push_back(characterConfigs.races[r].strengthFactor);
-                        resp.raceFactors.push_back(characterConfigs.races[r].agilityFactor);
-                        resp.raceFactors.push_back(characterConfigs.races[r].intelligenceFactor);
-                    }
-                    for (int i = 0; i < 4; ++i) {
-                        auto c = static_cast<CharacterClass>(i);
-                        resp.classFactors.push_back(characterConfigs.classes[c].lifeFactor);
-                        resp.classFactors.push_back(characterConfigs.classes[c].manaFactor);
-                    }
-                    monitor.sendToClient(joinData.clientId, resp);
-                }
-            },
-            [this](const DisconnectEvent& discData) {
-                std::cout << "[GAMELOOP] Jugador " << discData.clientId << " solicitó desconexión." << std::endl;
-                auto username = world.getPlayerUsername(discData.clientId);
-                auto persistData = world.getPlayerPersistData(discData.clientId);
+                                   JoinResponseDTO resp;
+                                   resp.needsCreation = false;
+                                   monitor.sendToClient(joinData.clientId, resp);
+                               } else {
+                                   pendingCreations[joinData.clientId] = joinData.username;
+                                   JoinResponseDTO resp;
+                                   resp.needsCreation = true;
+                                   resp.baseStrength = characterConfigs.player.baseStrength;
+                                   resp.baseAgility = characterConfigs.player.baseAgility;
+                                   resp.baseIntelligence = characterConfigs.player.baseIntelligence;
+                                   resp.baseConstitution = characterConfigs.player.baseConstitution;
 
-                if (username.has_value() && persistData.has_value()) {
-                    playerDataStore.savePlayerData(username.value(), persistData.value());
-                }
-                world.removePlayer(discData.clientId);
-                pendingCreations.erase(discData.clientId);
-            },
-            [this](const PlayerCommand& pCmd) {
-                std::visit([this, &pCmd](const auto& concreteCmd) {
-                    auto it = commandDispatcher.find(typeid(concreteCmd));
-                    if (it != commandDispatcher.end()) {
-                        it->second(pCmd.clientId, pCmd);
-                    } else {
-                        std::cerr << "[GAMELOOP] Alerta: Comando sin handler registrado." << std::endl;
-                    }
-                }, pCmd.command);
-            }
-        }, event);
+                                   for (int i = 0; i < 4; ++i) {
+                                       auto r = static_cast<Race>(i);
+                                       resp.raceFactors.push_back(
+                                               characterConfigs.races[r].lifeFactor);
+                                       resp.raceFactors.push_back(
+                                               characterConfigs.races[r].manaFactor);
+                                       resp.raceFactors.push_back(
+                                               characterConfigs.races[r].strengthFactor);
+                                       resp.raceFactors.push_back(
+                                               characterConfigs.races[r].agilityFactor);
+                                       resp.raceFactors.push_back(
+                                               characterConfigs.races[r].intelligenceFactor);
+                                   }
+                                   for (int i = 0; i < 4; ++i) {
+                                       auto c = static_cast<CharacterClass>(i);
+                                       resp.classFactors.push_back(
+                                               characterConfigs.classes[c].lifeFactor);
+                                       resp.classFactors.push_back(
+                                               characterConfigs.classes[c].manaFactor);
+                                   }
+                                   monitor.sendToClient(joinData.clientId, resp);
+                               }
+                           },
+                           [this](const DisconnectEvent& discData) {
+                               std::cout << "[GAMELOOP] Jugador " << discData.clientId
+                                         << " solicitó desconexión." << std::endl;
+                               auto username = world.getPlayerUsername(discData.clientId);
+                               auto persistData = world.getPlayerPersistData(discData.clientId);
+
+                               if (username.has_value() && persistData.has_value()) {
+                                   playerDataStore.savePlayerData(username.value(),
+                                                                  persistData.value());
+                               }
+                               world.removePlayer(discData.clientId);
+                               pendingCreations.erase(discData.clientId);
+                           },
+                           [this](const PlayerCommand& pCmd) {
+                               std::visit(
+                                       [this, &pCmd](const auto& concreteCmd) {
+                                           auto it = commandDispatcher.find(typeid(concreteCmd));
+                                           if (it != commandDispatcher.end()) {
+                                               it->second(pCmd.clientId, pCmd);
+                                           } else {
+                                               std::cerr << "[GAMELOOP] Alerta: Comando sin "
+                                                            "handler registrado."
+                                                         << std::endl;
+                                           }
+                                       },
+                                       pCmd.command);
+                           }},
+                event);
     }
 }
 

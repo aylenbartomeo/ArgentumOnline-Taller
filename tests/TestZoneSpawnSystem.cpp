@@ -2,6 +2,7 @@
 
 #include "model/entities/EntityManager.h"
 #include "model/systems/ZoneSpawnSystem.h"
+
 #include "Map.h"
 
 TEST(ZoneSpawnSystemTest, SpawnsMonsterWhenCooldownElapsed) {

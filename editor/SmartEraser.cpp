@@ -1,5 +1,7 @@
 #include "SmartEraser.h"
 
+#include <algorithm>
+
 #include "BeachStamp.h"
 #include "CityStamp.h"
 #include "DesertStamp.h"
@@ -8,21 +10,15 @@
 
 namespace {
 bool hasMonsterAt(const EditorMap& map, int col, int row) {
-    for (const MonsterSpawn& m: map.getMonsters()) {
-        if (m.x == col && m.y == row) {
-            return true;
-        }
-    }
-    return false;
+    const auto& monsters = map.getMonsters();
+    return std::any_of(monsters.begin(), monsters.end(),
+                       [col, row](const MonsterSpawn& m) { return m.x == col && m.y == row; });
 }
 
 bool hasCitizenAt(const EditorMap& map, int col, int row) {
-    for (const CitizenSpawn& c: map.getCitizens()) {
-        if (c.x == col && c.y == row) {
-            return true;
-        }
-    }
-    return false;
+    const auto& citizens = map.getCitizens();
+    return std::any_of(citizens.begin(), citizens.end(),
+                       [col, row](const CitizenSpawn& c) { return c.x == col && c.y == row; });
 }
 
 bool contains(int x, int y, int w, int h, int col, int row) {
@@ -30,30 +26,35 @@ bool contains(int x, int y, int w, int h, int col, int row) {
 }
 
 BlockKind blockAt(const EditorMap& map, int col, int row) {
-    for (const EditorSafeZone& z: map.getSafeZones()) {
-        if (contains(z.x, z.y, z.width, z.height, col, row)) {
-            return BlockKind::CITY;
-        }
+    const auto& safeZones = map.getSafeZones();
+    if (std::any_of(safeZones.begin(), safeZones.end(), [col, row](const EditorSafeZone& z) {
+            return contains(z.x, z.y, z.width, z.height, col, row);
+        })) {
+        return BlockKind::CITY;
     }
-    for (const EditorDungeon& d: map.getDungeons()) {
-        if (contains(d.x, d.y, d.width, d.height, col, row)) {
-            return BlockKind::DUNGEON;
-        }
+    const auto& dungeons = map.getDungeons();
+    if (std::any_of(dungeons.begin(), dungeons.end(), [col, row](const EditorDungeon& d) {
+            return contains(d.x, d.y, d.width, d.height, col, row);
+        })) {
+        return BlockKind::DUNGEON;
     }
-    for (const EditorForest& f: map.getForests()) {
-        if (contains(f.x, f.y, f.width, f.height, col, row)) {
-            return BlockKind::FOREST;
-        }
+    const auto& forests = map.getForests();
+    if (std::any_of(forests.begin(), forests.end(), [col, row](const EditorForest& f) {
+            return contains(f.x, f.y, f.width, f.height, col, row);
+        })) {
+        return BlockKind::FOREST;
     }
-    for (const EditorDesert& d: map.getDeserts()) {
-        if (contains(d.x, d.y, d.width, d.height, col, row)) {
-            return BlockKind::DESERT;
-        }
+    const auto& deserts = map.getDeserts();
+    if (std::any_of(deserts.begin(), deserts.end(), [col, row](const EditorDesert& d) {
+            return contains(d.x, d.y, d.width, d.height, col, row);
+        })) {
+        return BlockKind::DESERT;
     }
-    for (const EditorBeach& b: map.getBeaches()) {
-        if (contains(b.x, b.y, b.width, b.height, col, row)) {
-            return BlockKind::BEACH;
-        }
+    const auto& beaches = map.getBeaches();
+    if (std::any_of(beaches.begin(), beaches.end(), [col, row](const EditorBeach& b) {
+            return contains(b.x, b.y, b.width, b.height, col, row);
+        })) {
+        return BlockKind::BEACH;
     }
     return BlockKind::NONE;
 }

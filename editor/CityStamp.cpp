@@ -182,11 +182,12 @@ std::string monsterPlacementError(const EditorMap& map, int col, int row) {
     if (zoneContaining(map, col, row) != nullptr) {
         return "no se pueden poner monstruos en la ciudad";
     }
-    for (const EditorDungeon& dungeon: map.getDungeons()) {
-        if (col >= dungeon.x && col < dungeon.x + dungeon.width && row >= dungeon.y &&
-            row < dungeon.y + dungeon.height) {
-            return "no se pueden poner monstruos en la mazmorra";
-        }
+    const auto& dungeons = map.getDungeons();
+    if (std::any_of(dungeons.begin(), dungeons.end(), [col, row](const EditorDungeon& dungeon) {
+            return col >= dungeon.x && col < dungeon.x + dungeon.width && row >= dungeon.y &&
+                   row < dungeon.y + dungeon.height;
+        })) {
+        return "no se pueden poner monstruos en la mazmorra";
     }
     return "";
 }

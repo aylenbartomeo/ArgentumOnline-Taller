@@ -1,21 +1,23 @@
 #ifndef SCREEN_EDITOR_H
 #define SCREEN_EDITOR_H
 
+#include <string>
+#include <vector>
+
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
 #include "../client/src/rendering/TextureManager.h"
 
+#include "BlockBrush.h"
 #include "Camera.h"
+#include "CatalogSprites.h"
 #include "EditorLayout.h"
 #include "EditorMap.h"
-#include "MapRenderer.h"
-
 #include "Font.h"
 #include "MapChooser.h"
+#include "MapRenderer.h"
 #include "Palette.h"
-#include "CatalogSprites.h"
-#include "BlockBrush.h"
 
 enum class Tool { NONE, ERASER, SPAWN };
 

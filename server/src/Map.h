@@ -47,7 +47,7 @@ private:
     std::vector<MapElement> mapElements;
     GroundItemLayer groundItems;
     SafeZoneLayer safeZones;
-    NPCType lastNpcType; // dummy ? No
+    NPCType lastNpcType;  // dummy ? No
     NPCLayer npcs;
     std::vector<MapZoneRect> zoneRects;
     std::vector<MapMonsterSpawn> monsterSpawns;

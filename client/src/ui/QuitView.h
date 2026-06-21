@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
+
 #include "../rendering/TextureManager.h"
 
 enum class QuitViewAction {
@@ -22,7 +23,7 @@ public:
 private:
     SDL2pp::Window window;
     SDL2pp::Renderer renderer;
-    TextureManager textures; // Instancia local para esta ventana independiente
+    TextureManager textures;  // Instancia local para esta ventana independiente
 
     // Hitboxes absolutas idénticas a las posiciones del Launcher
     static const SDL_Rect BTN_VOLVER;   // Ubicación de BTN_REGISTER {120, 445, 200, 45}

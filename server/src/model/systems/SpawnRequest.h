@@ -11,4 +11,4 @@ struct SpawnRequest {
     const MonsterConfig* config;
 };
 
-#endif // SPAWN_REQUEST_H
+#endif  // SPAWN_REQUEST_H

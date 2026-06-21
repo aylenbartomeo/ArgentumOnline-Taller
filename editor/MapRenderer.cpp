@@ -1,10 +1,12 @@
 #include "MapRenderer.h"
 
 #include <cmath>
+#include <string>
+#include <vector>
 
+#include "CatalogSprites.h"
 #include "OverlayRegistry.h"
 #include "SpawnCatalogs.h"
-#include "CatalogSprites.h"
 
 namespace {
 constexpr const char* RESOURCES_DIR = "resources/";
@@ -29,7 +31,8 @@ constexpr int MARKER_SHIFT_X = 3;
 void drawCharacterSprite(SDL2pp::Renderer& renderer, TextureManager& textures, int dstX, int dstY,
                          int dstW, int dstH) {
     SDL2pp::Texture& tex = textures.get(CHARACTER_SHEET_PATH);
-    SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W, CHARACTER_FRAME_H);
+    SDL2pp::Rect srcRect(CHARACTER_FRAME_X, CHARACTER_FRAME_Y, CHARACTER_FRAME_W,
+                         CHARACTER_FRAME_H);
     renderer.Copy(tex, srcRect, SDL2pp::Rect(dstX, dstY, dstW, dstH));
 }
 }  // namespace
@@ -77,7 +80,8 @@ void MapRenderer::drawDecorationLayer(const EditorMap& map, const Camera& camera
             const int dstW = tex.GetWidth() * ts / TILE_NATIVE;
             const int dstH = tex.GetHeight() * ts / TILE_NATIVE;
             const int dstY = screen.y + ts - dstH;
-            if (screen.x + dstW <= 0 || screen.x >= canvasW || dstY + dstH <= 0 || dstY >= canvasH) {
+            if (screen.x + dstW <= 0 || screen.x >= canvasW || dstY + dstH <= 0 ||
+                dstY >= canvasH) {
                 continue;
             }
             renderer.Copy(tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
@@ -94,7 +98,8 @@ void MapRenderer::drawItems(const EditorMap& map, const Camera& camera, int canv
         int row = entry.first.second;
         const PlacedItem& item = entry.second;
         Position screen = camera.cellToScreen(col, row);
-        if (screen.x + ts <= 0 || screen.x >= canvasW || screen.y + ts <= 0 || screen.y >= canvasH) {
+        if (screen.x + ts <= 0 || screen.x >= canvasW || screen.y + ts <= 0 ||
+            screen.y >= canvasH) {
             continue;
         }
         drawOverlaySprite(renderer, textures, registry[item.overlayIndex], screen.x, screen.y, ts);
@@ -110,7 +115,8 @@ void MapRenderer::drawMonsters(const EditorMap& map, const Camera& camera, int c
             continue;
         }
         Position screen = camera.cellToScreen(spawn.x, spawn.y);
-        if (screen.x + ts <= 0 || screen.x >= canvasW || screen.y + ts <= 0 || screen.y >= canvasH) {
+        if (screen.x + ts <= 0 || screen.x >= canvasW || screen.y + ts <= 0 ||
+            screen.y >= canvasH) {
             continue;
         }
         drawMonsterSprite(renderer, textures, *entry, screen.x, screen.y, ts);
@@ -126,7 +132,8 @@ void MapRenderer::drawCitizens(const EditorMap& map, const Camera& camera, int c
             continue;
         }
         Position screen = camera.cellToScreen(spawn.x, spawn.y);
-        if (screen.x + ts <= 0 || screen.x >= canvasW || screen.y + ts <= 0 || screen.y >= canvasH) {
+        if (screen.x + ts <= 0 || screen.x >= canvasW || screen.y + ts <= 0 ||
+            screen.y >= canvasH) {
             continue;
         }
         drawCitizenSprite(renderer, textures, *entry, screen.x, screen.y, ts);
