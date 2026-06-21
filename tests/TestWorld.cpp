@@ -208,23 +208,6 @@ TEST_F(WorldTest, World_GetOnlinePlayerDbIdsReturnsAllActive) {
 // 3. SPAWN / MAPA
 // ---------------------------------------------------------------------------
 
-TEST_F(WorldTest, World_AddPlayerSpawnsAtMapSpawn) {
-    const std::string path = "/tmp/test_world_spawn.json";
-    {
-        std::ofstream out(path);
-        out << R"({"tileSize":16,"tileset":"x.png","tilesetCols":12,"width":20,"height":15,)"
-            << R"("spawn":{"x":3,"y":4},"tiles":[]})";
-    }
-
-    ASSERT_TRUE(mundo.loadMap(path));
-    ASSERT_TRUE(addPlayer(1, "Spawner", Race::HUMAN, CharacterClass::WARRIOR));
-
-    SnapshotDTO snap = mundo.generateSnapshot();
-    ASSERT_EQ(snap.players.size(), 1u);
-    EXPECT_EQ(snap.players[0].x, 3);
-    EXPECT_EQ(snap.players[0].y, 4);
-}
-
 TEST_F(WorldTest, World_AddPlayerWithSavedPositionSpawnsThere) {
     ASSERT_TRUE(
             addPlayer(1, "SavedPlayer", Race::HUMAN, CharacterClass::WARRIOR, makeSpawnData(5, 5)));

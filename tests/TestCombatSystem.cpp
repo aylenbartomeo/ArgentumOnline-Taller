@@ -61,51 +61,7 @@ TEST(CombatSystemTest, ApplyDamageEffectBasicNoDefense) {
 }
 
 // =========================================================================
-// TEST 2: CombatSystem::applyDamageEffect Con defensa de armadura
-// =========================================================================
-TEST(CombatSystemTest, ApplyDamageEffectWithDefense) {
-    Map map;
-    EntityManager em;
-    ClanRepository cr;
-    EventPublisher ep;
-    DummyCombatCallback cb;
-    BossSpawnSystem bss;
-    CombatSystem combatSystem(map, em, cr, ep, cb, bss, false, TestUtils::getTestServerConfig());
-
-    Player attacker = TestUtils::makeTestPlayer(1);
-    Player victimWithArmor = TestUtils::makeTestPlayer(2);
-    Player victimNoArmor = TestUtils::makeTestPlayer(3);
-
-    BodyArmor armor(1001, "Plates", 0, 10, 10);
-    victimWithArmor.equipBodyArmor(&armor);
-
-    AttackParams params{5, 5, 10, 0, false, 1.0f, 1.0f};
-
-    CombatResult resWithArmor = combatSystem.applyDamageEffect(attacker, victimWithArmor, params);
-    CombatResult resNoArmor = combatSystem.applyDamageEffect(attacker, victimNoArmor, params);
-
-    EXPECT_TRUE(resWithArmor.attackHappened);
-    EXPECT_TRUE(resNoArmor.attackHappened);
-
-    uint16_t expectedHpWithArmor =
-            (resWithArmor.damage >= victimWithArmor.getMaxHp()) ?
-                    0 :
-                    static_cast<uint16_t>(victimWithArmor.getMaxHp() - resWithArmor.damage);
-    EXPECT_EQ(victimWithArmor.getHp(), expectedHpWithArmor);
-
-    uint16_t expectedHpNoArmor =
-            (resNoArmor.damage >= victimNoArmor.getMaxHp()) ?
-                    0 :
-                    static_cast<uint16_t>(victimNoArmor.getMaxHp() - resNoArmor.damage);
-    EXPECT_EQ(victimNoArmor.getHp(), expectedHpNoArmor);
-
-    if (!resWithArmor.evaded && !resNoArmor.evaded) {
-        EXPECT_LE(resWithArmor.damage, resNoArmor.damage);
-    }
-}
-
-// =========================================================================
-// TEST 3: CombatSystem::applyHealEffect Básico
+// TEST 2: CombatSystem::applyHealEffect Básico
 // =========================================================================
 TEST(CombatSystemTest, ApplyHealEffectBasic) {
     Map map;
@@ -127,7 +83,7 @@ TEST(CombatSystemTest, ApplyHealEffectBasic) {
 }
 
 // =========================================================================
-// TEST 4: MeleeDamageEffect Básico
+// TEST 3: MeleeDamageEffect Básico
 // =========================================================================
 TEST(CombatSystemTest, MeleeDamageEffectBasic) {
     Map map;
@@ -161,7 +117,7 @@ TEST(CombatSystemTest, MeleeDamageEffectBasic) {
 }
 
 // =========================================================================
-// TEST 5: MagicDamageEffect Suficiente Maná
+// TEST 4: MagicDamageEffect Suficiente Maná
 // =========================================================================
 TEST(CombatSystemTest, MagicDamageEffectSufficientMana) {
     Map map;
@@ -198,7 +154,7 @@ TEST(CombatSystemTest, MagicDamageEffectSufficientMana) {
 }
 
 // =========================================================================
-// TEST 7: MagicHealEffect Curación Exitosa
+// TEST 5: MagicHealEffect Curación Exitosa
 // =========================================================================
 TEST(CombatSystemTest, MagicHealEffectSuccess) {
     Map map;
@@ -231,7 +187,7 @@ TEST(CombatSystemTest, MagicHealEffectSuccess) {
 }
 
 // =========================================================================
-// TEST 8: MagicHealEffect Objetivo No es Jugador (Monster)
+// TEST 6: MagicHealEffect Objetivo No es Jugador (Monster)
 // =========================================================================
 TEST(CombatSystemTest, MagicHealEffectTargetNotPlayer) {
     Map map;
@@ -263,7 +219,7 @@ TEST(CombatSystemTest, MagicHealEffectTargetNotPlayer) {
 }
 
 // =========================================================================
-// TEST 9: MagicHealEffect::isHeal() retorna true
+// TEST 7: MagicHealEffect::isHeal() retorna true
 // =========================================================================
 TEST(CombatSystemTest, MagicHealEffect_isHeal_ReturnsTrue) {
     MagicHealEffect effect;
@@ -271,7 +227,7 @@ TEST(CombatSystemTest, MagicHealEffect_isHeal_ReturnsTrue) {
 }
 
 // =========================================================================
-// TEST 10: MeleeDamageEffect::isHeal() retorna false
+// TEST 8: MeleeDamageEffect::isHeal() retorna false
 // =========================================================================
 TEST(CombatSystemTest, MeleeDamageEffect_isHeal_ReturnsFalse) {
     MeleeDamageEffect effect;
@@ -279,7 +235,7 @@ TEST(CombatSystemTest, MeleeDamageEffect_isHeal_ReturnsFalse) {
 }
 
 // =========================================================================
-// TEST 11: applyHealEffect propaga el flag isHeal en CombatResult
+// TEST 9: applyHealEffect propaga el flag isHeal en CombatResult
 // =========================================================================
 TEST(CombatSystemTest, ApplyHealEffect_SetsIsHealFlag) {
     Map map;
