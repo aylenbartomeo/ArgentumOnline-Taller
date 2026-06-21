@@ -40,8 +40,7 @@ private:
 
 public:
     Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config);
-
-    void move(const Position& new_pos);
+    
     void setPosition(const Position& newPos);
     int getDetectionRange() const;
     int getAttackRange() const;

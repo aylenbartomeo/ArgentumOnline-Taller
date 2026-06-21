@@ -190,15 +190,6 @@ int Map::heightLimit() const { return this->height; }
 
 int Map::widthLimit() const { return this->width; }
 
-/*Area Map::initArea(const int x, const int y, const int width, const int height) {
-    Area area;
-    area.x = x;
-    area.y = this->height - y - height;
-    area.width = width;
-    area.height = height;
-    return area;
-}*/
-
 void Map::generate_collision_grid() {
     // Marcamos en la matriz qué celdas específicas están ocupadas
     collisionLayer.clear();
