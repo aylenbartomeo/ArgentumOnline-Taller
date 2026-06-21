@@ -4,7 +4,6 @@ namespace {
 constexpr int SIZE = 16;
 constexpr int ARENA = 74;
 constexpr int CACTUS = 137;
-constexpr int CARTEL = 162;
 
 void addCactus(DesertPrefab& p, int dx, int dy) {
     p.decoration.push_back({dx, dy, CACTUS});
@@ -28,7 +27,6 @@ DesertPrefab buildPrefab() {
     addCactus(p, 9, 12);
     addCactus(p, 5, 13);
     addCactus(p, 14, 13);
-    p.decoration.push_back({1, 14, CARTEL});
     return p;
 }
 }  // namespace

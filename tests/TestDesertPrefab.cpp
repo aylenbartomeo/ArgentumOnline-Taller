@@ -37,7 +37,7 @@ TEST(DesertPrefabTest, AllCellsAreSand) {
     EXPECT_EQ(valueAt(p, 0, 8), 74);
 }
 
-TEST(DesertPrefabTest, HasCactiAndSign) {
+TEST(DesertPrefabTest, HasCactiButNoSign) {
     const DesertPrefab& p = getDesertPrefab();
     EXPECT_FALSE(p.decoration.empty());
     bool hasCactus = false;
@@ -51,7 +51,7 @@ TEST(DesertPrefabTest, HasCactiAndSign) {
         }
     }
     EXPECT_TRUE(hasCactus);
-    EXPECT_TRUE(hasSign);
+    EXPECT_FALSE(hasSign);
 }
 
 TEST(DesertPrefabTest, CactiAreObstacles) {
