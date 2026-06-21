@@ -42,6 +42,7 @@ target_sources(lib_client
     src/rendering/Viewport.cpp
     src/rendering/TextureManager.cpp
     src/rendering/BuildingFronts.cpp
+    src/rendering/TallFlora.cpp
 
     # animation
     src/animation/CharacterAnimator.cpp
@@ -95,6 +96,7 @@ target_sources(lib_client
     src/rendering/TextureManager.h
     src/rendering/NpcVisuals.h
     src/rendering/BuildingFronts.h
+    src/rendering/TallFlora.h
 
     # animation
     src/animation/CharacterAnimator.h

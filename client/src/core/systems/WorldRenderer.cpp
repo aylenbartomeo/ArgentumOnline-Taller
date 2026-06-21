@@ -9,6 +9,7 @@
 #include "../common/GameConstants.h"
 #include "../rendering/BuildingFronts.h"
 #include "../rendering/NpcVisuals.h"
+#include "../rendering/TallFlora.h"
 #include "../rendering/TileDraw.h"
 #include "../ui/GroundItemLabel.h"
 
@@ -22,10 +23,6 @@ constexpr int CHARACTER_FRAME_Y = 4;
 constexpr int CHARACTER_FRAME_W = 24;
 constexpr int CHARACTER_FRAME_H = 44;
 constexpr int CITIZEN_HEAD_OVERLAP = 6;
-constexpr int TREE_TILE_ID = 10;
-constexpr int PALM_TILE_ID = 41;
-
-bool isTallFlora(int id) { return id == TREE_TILE_ID || id == PALM_TILE_ID; }
 }  // namespace
 
 // ─── Constructor ──────────────────────────────────────────────────────────────

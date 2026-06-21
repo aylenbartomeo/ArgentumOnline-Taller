@@ -22,6 +22,7 @@ target_sources(argentum_online_tests
     TestTileDraw.cpp
     TestIndoorRegions.cpp
     TestBuildingFronts.cpp
+    TestTallFlora.cpp
     TestCityPrefab.cpp
     TestDungeonPrefab.cpp
     TestForestPrefab.cpp
