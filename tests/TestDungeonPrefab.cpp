@@ -53,14 +53,15 @@ TEST(DungeonPrefabTest, LavaIsBlockedButFloorAndOpeningAreNot) {
     EXPECT_FALSE(hasObstacle(p, 7, 16));
 }
 
-TEST(DungeonPrefabTest, GraveWithHoleBlocksAFourCellColumn) {
+TEST(DungeonPrefabTest, GraveWithHoleBlocksAFourCellColumnShiftedRight) {
     const DungeonPrefab& p = getDungeonPrefab();
     EXPECT_EQ(decorationAt(p, 2, 7), 102);
-    EXPECT_TRUE(hasObstacle(p, 2, 7));
-    EXPECT_TRUE(hasObstacle(p, 2, 6));
-    EXPECT_TRUE(hasObstacle(p, 2, 5));
-    EXPECT_TRUE(hasObstacle(p, 2, 4));
-    EXPECT_FALSE(hasObstacle(p, 2, 3));
+    EXPECT_FALSE(hasObstacle(p, 2, 7));
+    EXPECT_TRUE(hasObstacle(p, 3, 7));
+    EXPECT_TRUE(hasObstacle(p, 3, 6));
+    EXPECT_TRUE(hasObstacle(p, 3, 5));
+    EXPECT_TRUE(hasObstacle(p, 3, 4));
+    EXPECT_FALSE(hasObstacle(p, 3, 3));
 }
 
 TEST(DungeonPrefabTest, SmallGraveBlocksOneCell) {
@@ -82,12 +83,21 @@ TEST(DungeonPrefabTest, HasFourWalkableSkeletons) {
     EXPECT_EQ(count, 4);
 }
 
-TEST(DungeonPrefabTest, HasGuardedGold) {
+TEST(DungeonPrefabTest, GoldGuardedBehindBossAndAtEntrance) {
     const DungeonPrefab& p = getDungeonPrefab();
-    ASSERT_EQ(p.gold.size(), 2u);
+    ASSERT_EQ(p.gold.size(), 3u);
+    int guarded = 0;
+    int entrance = 0;
     for (const DungeonItem& g: p.gold) {
         EXPECT_EQ(g.itemId, 1);
-        EXPECT_EQ(g.amount, 5000);
-        EXPECT_EQ(g.dy, 1);
+        if (g.amount == 300) {
+            ++guarded;
+            EXPECT_EQ(g.dy, 1);
+        } else if (g.amount == 50) {
+            ++entrance;
+            EXPECT_GE(g.dy, 16);
+        }
     }
+    EXPECT_EQ(guarded, 2);
+    EXPECT_EQ(entrance, 1);
 }

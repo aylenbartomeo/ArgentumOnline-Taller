@@ -5,9 +5,12 @@ constexpr int FLOOR = 4;
 constexpr int LAVA = 45;
 constexpr int GRAVE_HOLE = 102;
 constexpr int GRAVE_SMALL = 100;
+constexpr int GRAVE_HOLE_CELLS = 4;
+constexpr int GRAVE_HOLE_COLLISION_DX = 1;
 constexpr int SKELETON = 99;
 constexpr int GOLD_ITEM_ID = 1;
-constexpr int GOLD_AMOUNT = 5000;
+constexpr int GOLD_GUARDED = 300;
+constexpr int GOLD_ENTRANCE = 50;
 constexpr int ARENA = 16;
 constexpr int CORRIDOR_LEN = 6;
 
@@ -20,9 +23,12 @@ void lavaCell(DungeonPrefab& p, int dx, int dy) {
 
 void addGrave(DungeonPrefab& p, int id, int dx, int dy) {
     p.decoration.push_back({dx, dy, id});
-    int cells = (id == GRAVE_HOLE) ? 4 : 1;
-    for (int k = 0; k < cells; ++k) {
-        p.obstacles.push_back({dx, dy - k, 0});
+    if (id == GRAVE_HOLE) {
+        for (int k = 0; k < GRAVE_HOLE_CELLS; ++k) {
+            p.obstacles.push_back({dx + GRAVE_HOLE_COLLISION_DX, dy - k, 0});
+        }
+    } else {
+        p.obstacles.push_back({dx, dy, 0});
     }
 }
 
@@ -60,12 +66,13 @@ DungeonPrefab buildPrefab() {
     addGrave(p, GRAVE_SMALL, 12, 12);
 
     p.decoration.push_back({5, 4, SKELETON});
-    p.decoration.push_back({10, 4, SKELETON});
+    p.decoration.push_back({11, 4, SKELETON});
     p.decoration.push_back({5, 11, SKELETON});
-    p.decoration.push_back({10, 11, SKELETON});
+    p.decoration.push_back({11, 11, SKELETON});
 
-    p.gold.push_back({7, 1, GOLD_ITEM_ID, GOLD_AMOUNT});
-    p.gold.push_back({8, 1, GOLD_ITEM_ID, GOLD_AMOUNT});
+    p.gold.push_back({7, 1, GOLD_ITEM_ID, GOLD_GUARDED});
+    p.gold.push_back({8, 1, GOLD_ITEM_ID, GOLD_GUARDED});
+    p.gold.push_back({7, ARENA + 3, GOLD_ITEM_ID, GOLD_ENTRANCE});
 
     return p;
 }
