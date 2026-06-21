@@ -178,7 +178,16 @@ std::string citizenPlacementError(const EditorMap& map, const std::string& citiz
     return "";
 }
 
-std::string monsterPlacementError(const EditorMap& map, int col, int row) {
+static bool inBeach(const EditorMap& map, int col, int row) {
+    const auto& beaches = map.getBeaches();
+    return std::any_of(beaches.begin(), beaches.end(), [col, row](const EditorBeach& beach) {
+        return col >= beach.x && col < beach.x + beach.width && row >= beach.y &&
+               row < beach.y + beach.height;
+    });
+}
+
+std::string monsterPlacementError(const EditorMap& map, const std::string& monsterType, int col,
+                                  int row) {
     if (zoneContaining(map, col, row) != nullptr) {
         return "no se pueden poner monstruos en la ciudad";
     }
@@ -188,6 +197,34 @@ std::string monsterPlacementError(const EditorMap& map, int col, int row) {
                    row < dungeon.y + dungeon.height;
         })) {
         return "no se pueden poner monstruos en la mazmorra";
+    }
+    if (inBeach(map, col, row)) {
+        return "no se puede poner nada en la playa";
+    }
+    if (monsterType == "spider" || monsterType == "goblin") {
+        const auto& forests = map.getForests();
+        if (!std::any_of(forests.begin(), forests.end(), [col, row](const EditorForest& forest) {
+                return col >= forest.x && col < forest.x + forest.width && row >= forest.y &&
+                       row < forest.y + forest.height;
+            })) {
+            return "las arañas y goblins solo van en el bosque";
+        }
+    }
+    if (monsterType == "skeleton" || monsterType == "golem") {
+        const auto& deserts = map.getDeserts();
+        if (!std::any_of(deserts.begin(), deserts.end(), [col, row](const EditorDesert& desert) {
+                return col >= desert.x && col < desert.x + desert.width && row >= desert.y &&
+                       row < desert.y + desert.height;
+            })) {
+            return "los esqueletos y golems solo van en el desierto";
+        }
+    }
+    return "";
+}
+
+std::string itemPlacementError(const EditorMap& map, int col, int row) {
+    if (inBeach(map, col, row)) {
+        return "no se puede poner nada en la playa";
     }
     return "";
 }

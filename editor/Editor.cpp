@@ -264,14 +264,20 @@ void Editor::handleLeftClick(int x, int y) {
         Position cell = camera.screenToCell(x, y);
         if (cell.x >= 0 && cell.x < map.getWidth() && cell.y >= 0 && cell.y < map.getHeight()) {
             switch (toolbar.getActiveTool()) {
-                case Tool::OVERLAY:
-                    map.paintItem(cell.x, cell.y, itemOverlays[itemPalette.getSelectedTile()]);
-                    statusMsg = "";
+                case Tool::OVERLAY: {
+                    std::string error = itemPlacementError(map, cell.x, cell.y);
+                    if (error.empty()) {
+                        map.paintItem(cell.x, cell.y, itemOverlays[itemPalette.getSelectedTile()]);
+                        statusMsg = "";
+                    } else {
+                        statusMsg = error;
+                    }
                     break;
+                }
                 case Tool::MONSTER: {
                     const std::string type =
                             getMonsterCatalog()[monsterPalette.getSelectedTile()].type;
-                    std::string error = monsterPlacementError(map, cell.x, cell.y);
+                    std::string error = monsterPlacementError(map, type, cell.x, cell.y);
                     if (error.empty()) {
                         map.addMonster(type, cell.x, cell.y);
                         statusMsg = "";

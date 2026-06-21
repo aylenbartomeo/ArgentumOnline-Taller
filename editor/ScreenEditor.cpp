@@ -583,12 +583,17 @@ bool ScreenEditor::selectedIsStackable() const {
 void ScreenEditor::placeAtCell(int col, int row) {
     placeMsg = "";
     if (screen == Screen::ITEMS) {
-        int idx = itemOverlays[itemPalette.getSelectedTile()];
-        int amount = getOverlayRegistry()[idx].stackable ? goldAmount : 1;
-        map.setItem(col, row, idx, amount);
+        std::string error = itemPlacementError(map, col, row);
+        if (error.empty()) {
+            int idx = itemOverlays[itemPalette.getSelectedTile()];
+            int amount = getOverlayRegistry()[idx].stackable ? goldAmount : 1;
+            map.setItem(col, row, idx, amount);
+        } else {
+            placeMsg = error;
+        }
     } else if (screen == Screen::MONSTRUOS) {
         const std::string type = getMonsterCatalog()[monsterPalette.getSelectedTile()].type;
-        std::string error = monsterPlacementError(map, col, row);
+        std::string error = monsterPlacementError(map, type, col, row);
         if (error.empty()) {
             map.addMonster(type, col, row);
         } else {
