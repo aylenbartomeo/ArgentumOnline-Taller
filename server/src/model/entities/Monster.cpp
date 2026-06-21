@@ -30,8 +30,6 @@ Monster::Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& c
     this->attack_max = static_cast<int>(config.attackMax * scale);
 }
 
-void Monster::move(const Position& new_pos) { this->pos = new_pos; }
-
 void Monster::update(float deltaMs) {
     time_since_last_attack += deltaMs;
     time_since_last_move += deltaMs;

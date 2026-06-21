@@ -53,8 +53,7 @@ private:
     std::vector<MapMonsterSpawn> monsterSpawns;
     std::vector<BossZoneConfig> bossZones;
     std::pair<float, float> spawn_point;
-    // Area initArea(const int x, const int y, const int weight, const int height);
-    // void load_from_toml(const std::string& filepath);
+
     //  Inicializa la matriz de colisiones en base a los mapElements cargados
     void generate_collision_grid();
     void loadFromToml(const std::string& filepath);
