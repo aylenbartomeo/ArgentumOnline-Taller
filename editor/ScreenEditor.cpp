@@ -51,6 +51,7 @@ constexpr int BRUSH_CITIZEN_X = 1210;
 constexpr int BRUSH_CITIZEN_Y = 994;
 constexpr int SLOT_COLS = 5;
 constexpr int SLOT_VISIBLE_ROWS = 6;
+constexpr int GOLD_MAX_DIGITS = 5;
 
 bool insideRect(LayoutRect r, int x, int y) {
     return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
@@ -193,7 +194,7 @@ void ScreenEditor::handleEvent(const SDL_Event& event, bool& running) {
     if (goldPromptOpen) {
         if (event.type == SDL_TEXTINPUT) {
             for (const char* c = event.text.text; *c != '\0'; ++c) {
-                if (*c >= '0' && *c <= '9' && amountText.size() < 7) {
+                if (*c >= '0' && *c <= '9' && amountText.size() < GOLD_MAX_DIGITS) {
                     amountText += *c;
                 }
             }
@@ -675,7 +676,8 @@ void ScreenEditor::renderGoldPrompt() {
     const SDL_Color accent = {150, 90, 20, 255};
     font.drawString("¿Qué cantidad de oro querés aplicar?", LIST_X, LIST_TITLE_Y, textColor);
     font.drawString(amountText + "_", LIST_X, LIST_ROWS_TOP, accent);
-    font.drawString("Enter aplica  ·  Esc cancela", LIST_X, LIST_ROWS_TOP + 80, textColor);
+    font.drawString("Enter aplica  ·  Esc cancela  ·  máx " + std::to_string(GOLD_MAX), LIST_X,
+                    LIST_ROWS_TOP + 80, textColor);
 }
 
 void ScreenEditor::renderCurrentBrush() {

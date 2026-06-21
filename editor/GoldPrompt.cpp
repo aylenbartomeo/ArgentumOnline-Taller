@@ -7,8 +7,8 @@ int goldAmountFromText(const std::string& text) {
         return 1;
     }
     try {
-        return std::max(1, std::stoi(text));
+        return std::min(GOLD_MAX, std::max(1, std::stoi(text)));
     } catch (...) {
-        return 1;
+        return GOLD_MAX;
     }
 }
