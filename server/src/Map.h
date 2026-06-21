@@ -29,6 +29,11 @@ struct MapElement {
     MapElementType type;
 };
 
+struct MapZoneRect {
+    ZoneType type;
+    int x, y, width, height;
+};
+
 struct MapMonsterSpawn {
     NPCType type;
     Position pos;
@@ -42,7 +47,9 @@ private:
     std::vector<MapElement> mapElements;
     GroundItemLayer groundItems;
     SafeZoneLayer safeZones;
+    NPCType lastNpcType; // dummy ? No
     NPCLayer npcs;
+    std::vector<MapZoneRect> zoneRects;
     std::vector<MapMonsterSpawn> monsterSpawns;
     std::vector<BossZoneConfig> bossZones;
     std::pair<float, float> spawn_point;
@@ -100,6 +107,7 @@ public:
     /* Monstruos cargados desde el mapa */
     const std::vector<MapMonsterSpawn>& getMonsterSpawns() const;
     const std::vector<BossZoneConfig>& getBossZones() const { return bossZones; }
+    const std::vector<MapZoneRect>& getZoneRects() const { return zoneRects; }
 
     /* Expone los elementos para que el GameLoop arme los snapshots compartidos */
     const std::vector<MapElement>& getElements() const;

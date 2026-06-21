@@ -8,7 +8,7 @@
 #include "../map/BossZone.h"
 
 #include "RandomNumberGenerator.h"
-#include "SpawnSystem.h"  // For SpawnRequest
+#include "SpawnRequest.h"
 
 struct BossSpawnResult {
     size_t zoneIndex;

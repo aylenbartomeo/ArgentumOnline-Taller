@@ -41,7 +41,8 @@ target_sources(lib_server
     src/model/entities/EntityManager.cpp
     src/model/entities/Projectile.cpp
     src/model/systems/ProjectileSystem.cpp
-    src/model/systems/SpawnSystem.cpp
+    src/model/systems/ZoneSpawnSystem.cpp
+    src/model/map/SpawnZone.cpp
     src/model/systems/BossSpawnSystem.cpp
     src/model/systems/ResurrectionService.cpp
     src/model/systems/InteractionService.cpp
@@ -117,7 +118,9 @@ target_sources(lib_server
     src/model/entities/Banker.h
     src/model/entities/GlobalBank.h
     src/model/entities/EntityManager.h
-    src/model/systems/SpawnSystem.h
+    src/model/systems/ZoneSpawnSystem.h
+    src/model/map/SpawnZone.h
+    src/model/systems/SpawnRequest.h
     src/model/systems/BossSpawnSystem.h
     src/model/systems/ResurrectionService.h
     src/model/systems/InteractionService.h

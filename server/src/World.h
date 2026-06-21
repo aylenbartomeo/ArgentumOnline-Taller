@@ -28,7 +28,7 @@
 #include "model/systems/InteractionService.h"
 #include "model/systems/ProjectileSystem.h"
 #include "model/systems/ResurrectionService.h"
-#include "model/systems/SpawnSystem.h"
+#include "model/systems/ZoneSpawnSystem.h"
 #include "persistence/PlayerDataStore.h"
 #include "persistence/WorldPersistData.h"
 #include "server/src/config/ServerConfigLoader.h"
@@ -59,7 +59,7 @@ private:
     bool enforceFairPlay = true;  // Regla de mundo: Modo arena
 
     CharacterConfigs characterConfigs;
-    SpawnSystem spawnSystem;
+    ZoneSpawnSystem zoneSpawnSystem;
     BossSpawnSystem bossSpawnSystem;
     CombatSystem combatSystem;
     ProjectileSystem projectileSystem;
