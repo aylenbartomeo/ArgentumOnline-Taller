@@ -11,7 +11,7 @@ CharacterClassConfig getTestClassConfig() { return {1.0f, 1.0f, 1.0f, false}; }
 InventoryConfig getTestInventoryConfig() { return {16, 0, 10000, 5000}; }
 
 ServerConfig getTestServerConfig() {
-    ServerConfig config;
+    ServerConfig config{};
     config.worldName = "";
     config.mapPath = "";
     config.clanBonusRange = 5;

@@ -8,8 +8,8 @@
 #include "model/items/ItemRegistry.h"
 #include "persistence/PlayerDataStore.h"
 
-#include "World.h"
 #include "TestHelpers.h"
+#include "World.h"
 
 namespace fs = std::filesystem;
 
@@ -21,16 +21,16 @@ static CharacterConfigs makeTestConfigs() {
     return CharacterConfigs{
             TestUtils::getTestPlayerConfig(),
             {
-                    {Race::HUMAN,  TestUtils::getTestRaceConfig()},
-                    {Race::ELF,    {0.8f, 1.3f, 1.1f}},
-                    {Race::DWARF,  {1.3f, 0.7f, 0.9f}},
-                    {Race::GNOME,  {1.1f, 1.2f, 1.0f}},
+                    {Race::HUMAN, TestUtils::getTestRaceConfig()},
+                    {Race::ELF, {0.8f, 1.3f, 1.1f}},
+                    {Race::DWARF, {1.3f, 0.7f, 0.9f}},
+                    {Race::GNOME, {1.1f, 1.2f, 1.0f}},
             },
             {
-                    {CharacterClass::MAGE,    {0.7f, 1.5f, 1.5f, true}},
+                    {CharacterClass::MAGE, {0.7f, 1.5f, 1.5f, true}},
                     {CharacterClass::WARRIOR, TestUtils::getTestClassConfig()},
                     {CharacterClass::PALADIN, {1.2f, 0.7f, 0.6f, true}},
-                    {CharacterClass::CLERIC,  {1.0f, 1.1f, 1.1f, true}},
+                    {CharacterClass::CLERIC, {1.0f, 1.1f, 1.1f, true}},
             },
     };
 }
@@ -255,12 +255,14 @@ protected:
 // --- getPlayerPersistData ---
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsNulloptForUnknownId) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     EXPECT_FALSE(mundo.getPlayerPersistData(999).has_value());
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsData_AfterAddPlayer) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Arden";
     ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR));
 
@@ -270,7 +272,8 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsData_AfterAddPlayer) {
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsNullopt_AfterRemovePlayer) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Arden";
     ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR));
     mundo.removePlayer(1);
@@ -279,7 +282,8 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_ReturnsNullopt_AfterRemovePlay
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_Position_MatchesCurrentPosition) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Mover";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -295,7 +299,8 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Position_MatchesCurrentPositio
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_Race_MatchesSavedRace) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Elara";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -308,7 +313,8 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Race_MatchesSavedRace) {
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_Class_MatchesSavedClass) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Archmage";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -321,7 +327,8 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Class_MatchesSavedClass) {
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_Level_MatchesSavedLevel) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Veteran";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -334,7 +341,8 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Level_MatchesSavedLevel) {
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_Gold_MatchesSavedGold) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "RichPlayer";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -347,7 +355,8 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_Gold_MatchesSavedGold) {
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_GhostState_IsPersisted) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "DeadPlayer";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -360,7 +369,8 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_GhostState_IsPersisted) {
 }
 
 TEST_F(WorldPersistenceTest, GetPlayerPersistData_MeditatingState_IsPersisted) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Monk";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -375,7 +385,8 @@ TEST_F(WorldPersistenceTest, GetPlayerPersistData_MeditatingState_IsPersisted) {
 // --- Round-trip completo (simula disconnect → reconnect) ---
 
 TEST_F(WorldPersistenceTest, RoundTrip_NewPlayer_DefaultsAreConsistent) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Newbie";
     ASSERT_TRUE(mundo.addPlayer(1, user, Race::HUMAN, CharacterClass::WARRIOR));
 
@@ -388,7 +399,8 @@ TEST_F(WorldPersistenceTest, RoundTrip_NewPlayer_DefaultsAreConsistent) {
 }
 
 TEST_F(WorldPersistenceTest, RoundTrip_Position_IsRestoredAfterReconnect) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Traveler";
 
     // Primera sesión: añadir y mover
@@ -412,7 +424,8 @@ TEST_F(WorldPersistenceTest, RoundTrip_Position_IsRestoredAfterReconnect) {
 }
 
 TEST_F(WorldPersistenceTest, RoundTrip_RaceAndClass_SurviveReconnect) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Elven Mage";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -433,7 +446,8 @@ TEST_F(WorldPersistenceTest, RoundTrip_RaceAndClass_SurviveReconnect) {
 }
 
 TEST_F(WorldPersistenceTest, RoundTrip_Level_SurvivesReconnect) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Veteran";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -454,7 +468,8 @@ TEST_F(WorldPersistenceTest, RoundTrip_Level_SurvivesReconnect) {
 }
 
 TEST_F(WorldPersistenceTest, RoundTrip_Equipment_SurvivesReconnect) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Knight";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -476,7 +491,8 @@ TEST_F(WorldPersistenceTest, RoundTrip_Equipment_SurvivesReconnect) {
 }
 
 TEST_F(WorldPersistenceTest, RoundTrip_EquipmentWithGap_SurvivesReconnect) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Mage";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -502,7 +518,8 @@ TEST_F(WorldPersistenceTest, RoundTrip_EquipmentWithGap_SurvivesReconnect) {
 }
 
 TEST_F(WorldPersistenceTest, RoundTrip_Inventory_SurvivesReconnect) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
     std::string user = "Collector";
 
     PlayerPersistData seed = makeFullPersistData(1, 0, 0);
@@ -526,7 +543,8 @@ TEST_F(WorldPersistenceTest, RoundTrip_Inventory_SurvivesReconnect) {
 }
 
 TEST_F(WorldPersistenceTest, RoundTrip_MultipleAllRaces_AllClasses) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
 
     struct Case {
         uint32_t id;
@@ -741,7 +759,8 @@ TEST_F(WorldDataStorePersistenceTest, SaveAndLoad_NpcStates) {
 // ============================================================================
 
 TEST_F(WorldPersistenceTest, World_BankPersistence_RoundTrip) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
 
     std::vector<BankAccountHeaderPersistData> headers;
     std::vector<std::vector<BankSlotPersistData>> slots;
@@ -770,7 +789,8 @@ TEST_F(WorldPersistenceTest, World_BankPersistence_RoundTrip) {
 }
 
 TEST_F(WorldPersistenceTest, World_ClanPersistence_RoundTrip) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
 
     std::vector<ClanHeaderPersistData> headers;
     std::vector<std::vector<ClanPlayerPersistData>> members, pending, banned;
@@ -802,7 +822,8 @@ TEST_F(WorldPersistenceTest, World_ClanPersistence_RoundTrip) {
 }
 
 TEST_F(WorldPersistenceTest, World_NpcPersistence_Robustness_RoundTrip) {
-    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(), TestUtils::getTestServerConfig());
+    World mundo(1, "Tester", registry, configs, TestUtils::getTestInventoryConfig(),
+                TestUtils::getTestServerConfig());
 
     std::vector<NpcHeaderPersistData> headers;
     std::vector<std::vector<NpcStockPersistData>> stocks;

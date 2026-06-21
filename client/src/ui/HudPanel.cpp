@@ -265,9 +265,9 @@ void HudPanel::render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats,
     drawInventory(renderer, stats);
     drawEquipment(renderer, stats);
     drawItemTooltip(renderer, stats);
-    
+
     std::string levelStr = "Nivel: " + std::to_string(stats.level);
-    if (stats.level >= 99) { // Nivel máximo, se usa 99 según MAX_LEVEL
+    if (stats.level >= 99) {  // Nivel máximo, se usa 99 según MAX_LEVEL
         levelStr += " (Máx)";
     }
     drawText(renderer, levelStr, LEVEL_X, LEVEL_Y);

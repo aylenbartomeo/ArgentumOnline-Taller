@@ -4,10 +4,10 @@
 
 namespace {
 int at(const std::vector<BeachCell>& cells, int dx, int dy) {
-    for (const BeachCell& c: cells) {
-        if (c.dx == dx && c.dy == dy) {
-            return c.value;
-        }
+    auto it = std::find_if(cells.begin(), cells.end(),
+                           [dx, dy](const BeachCell& c) { return c.dx == dx && c.dy == dy; });
+    if (it != cells.end()) {
+        return it->value;
     }
     return -1;
 }

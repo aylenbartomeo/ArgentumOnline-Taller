@@ -180,6 +180,5 @@ TEST(MapTest, Map_PlaceItemNearby_overflows_to_adjacent) {
     auto pos2 = mapa.placeItemNearby(pos, 2, 1);
     ASSERT_TRUE(pos2.has_value());
     EXPECT_NE(pos2.value(), pos);
-    EXPECT_LE(pos2->distance_to(pos),
-              2);
+    EXPECT_LE(pos2->distance_to(pos), 2);
 }

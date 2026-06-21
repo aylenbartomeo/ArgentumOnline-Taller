@@ -1,6 +1,8 @@
 #ifndef MAP_RENDERER_H
 #define MAP_RENDERER_H
 
+#include <vector>
+
 #include <SDL2pp/SDL2pp.hh>
 
 #include "../client/src/rendering/TextureManager.h"

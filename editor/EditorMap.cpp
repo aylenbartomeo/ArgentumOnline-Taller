@@ -109,31 +109,40 @@ EditorMap::EditorMap(const std::string& jsonText) {
     }
 
     if (data.contains("dungeons")) {
-        for (const auto& d: data.at("dungeons")) {
-            dungeons.push_back(EditorDungeon{d.at("x").get<int>(), d.at("y").get<int>(),
-                                             d.at("width").get<int>(), d.at("height").get<int>()});
-        }
+        const auto& dData = data.at("dungeons");
+        std::transform(dData.begin(), dData.end(), std::back_inserter(dungeons),
+                       [](const nlohmann::json& d) {
+                           return EditorDungeon{d.at("x").get<int>(), d.at("y").get<int>(),
+                                                d.at("width").get<int>(),
+                                                d.at("height").get<int>()};
+                       });
     }
 
     if (data.contains("forests")) {
-        for (const auto& f: data.at("forests")) {
-            forests.push_back(EditorForest{f.at("x").get<int>(), f.at("y").get<int>(),
-                                           f.at("width").get<int>(), f.at("height").get<int>()});
-        }
+        const auto& fData = data.at("forests");
+        std::transform(fData.begin(), fData.end(), std::back_inserter(forests),
+                       [](const nlohmann::json& f) {
+                           return EditorForest{f.at("x").get<int>(), f.at("y").get<int>(),
+                                               f.at("width").get<int>(), f.at("height").get<int>()};
+                       });
     }
 
     if (data.contains("deserts")) {
-        for (const auto& d: data.at("deserts")) {
-            deserts.push_back(EditorDesert{d.at("x").get<int>(), d.at("y").get<int>(),
-                                           d.at("width").get<int>(), d.at("height").get<int>()});
-        }
+        const auto& dData = data.at("deserts");
+        std::transform(dData.begin(), dData.end(), std::back_inserter(deserts),
+                       [](const nlohmann::json& d) {
+                           return EditorDesert{d.at("x").get<int>(), d.at("y").get<int>(),
+                                               d.at("width").get<int>(), d.at("height").get<int>()};
+                       });
     }
 
     if (data.contains("beaches")) {
-        for (const auto& b: data.at("beaches")) {
-            beaches.push_back(EditorBeach{b.at("x").get<int>(), b.at("y").get<int>(),
-                                          b.at("width").get<int>(), b.at("height").get<int>()});
-        }
+        const auto& bData = data.at("beaches");
+        std::transform(bData.begin(), bData.end(), std::back_inserter(beaches),
+                       [](const nlohmann::json& b) {
+                           return EditorBeach{b.at("x").get<int>(), b.at("y").get<int>(),
+                                              b.at("width").get<int>(), b.at("height").get<int>()};
+                       });
     }
 
     if (data.contains("items")) {
@@ -212,37 +221,45 @@ std::string EditorMap::toJson() const {
 
     if (!dungeons.empty()) {
         nlohmann::json dungeonsJson = nlohmann::json::array();
-        for (const EditorDungeon& d: dungeons) {
-            dungeonsJson.push_back(
-                    {{"x", d.x}, {"y", d.y}, {"width", d.width}, {"height", d.height}});
-        }
+        std::transform(
+                dungeons.begin(), dungeons.end(), std::back_inserter(dungeonsJson),
+                [](const EditorDungeon& d) {
+                    return nlohmann::json{
+                            {"x", d.x}, {"y", d.y}, {"width", d.width}, {"height", d.height}};
+                });
         data["dungeons"] = dungeonsJson;
     }
 
     if (!forests.empty()) {
         nlohmann::json forestsJson = nlohmann::json::array();
-        for (const EditorForest& f: forests) {
-            forestsJson.push_back(
-                    {{"x", f.x}, {"y", f.y}, {"width", f.width}, {"height", f.height}});
-        }
+        std::transform(
+                forests.begin(), forests.end(), std::back_inserter(forestsJson),
+                [](const EditorForest& f) {
+                    return nlohmann::json{
+                            {"x", f.x}, {"y", f.y}, {"width", f.width}, {"height", f.height}};
+                });
         data["forests"] = forestsJson;
     }
 
     if (!deserts.empty()) {
         nlohmann::json desertsJson = nlohmann::json::array();
-        for (const EditorDesert& d: deserts) {
-            desertsJson.push_back(
-                    {{"x", d.x}, {"y", d.y}, {"width", d.width}, {"height", d.height}});
-        }
+        std::transform(
+                deserts.begin(), deserts.end(), std::back_inserter(desertsJson),
+                [](const EditorDesert& d) {
+                    return nlohmann::json{
+                            {"x", d.x}, {"y", d.y}, {"width", d.width}, {"height", d.height}};
+                });
         data["deserts"] = desertsJson;
     }
 
     if (!beaches.empty()) {
         nlohmann::json beachesJson = nlohmann::json::array();
-        for (const EditorBeach& b: beaches) {
-            beachesJson.push_back(
-                    {{"x", b.x}, {"y", b.y}, {"width", b.width}, {"height", b.height}});
-        }
+        std::transform(
+                beaches.begin(), beaches.end(), std::back_inserter(beachesJson),
+                [](const EditorBeach& b) {
+                    return nlohmann::json{
+                            {"x", b.x}, {"y", b.y}, {"width", b.width}, {"height", b.height}};
+                });
         data["beaches"] = beachesJson;
     }
 

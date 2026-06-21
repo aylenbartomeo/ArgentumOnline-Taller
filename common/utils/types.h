@@ -29,6 +29,16 @@ enum class NPCType {
     BOSS_ARACNE   // Aracne Abismal
 };
 
+enum class ZoneType { FOREST, DESERT, NORMAL };
+
+inline ZoneType zoneTypeFromString(const std::string& s) {
+    if (s == "forest")
+        return ZoneType::FOREST;
+    if (s == "desert")
+        return ZoneType::DESERT;
+    return ZoneType::NORMAL;
+}
+
 inline bool isBossType(NPCType type) {
     return type == NPCType::BOSS_BALROG || type == NPCType::BOSS_TITAN ||
            type == NPCType::BOSS_COLOSO || type == NPCType::BOSS_ARACNE;

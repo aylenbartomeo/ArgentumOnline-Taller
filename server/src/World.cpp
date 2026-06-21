@@ -39,8 +39,8 @@ World::World(int worldId, const std::string& creatorPlayerName, const ItemRegist
             configPath = "../config/monsters.toml";
         }
         MonsterConfigs mc = MonsterConfigLoader::loadMonsterConfigs(configPath);
-        spawnSystem = SpawnSystem(std::move(mc), 5000.0f, 50);
-        bossSpawnSystem.setConfigs(&spawnSystem.getConfigs());
+        zoneSpawnSystem = ZoneSpawnSystem(std::move(mc), 15000.0f, 50);
+        bossSpawnSystem.setConfigs(&zoneSpawnSystem.getConfigs());
     } catch (const std::exception& e) {
         std::cerr << "[ERROR] No se pudo cargar monsters.toml en el inicio: " << e.what()
                   << std::endl;
@@ -241,7 +241,8 @@ bool World::loadMap(const std::string& path, bool spawnMonstersAndItems) {
         }
 
         if (spawnMonstersAndItems) {
-            for (const auto& req: spawnSystem.getInitialSpawns(map)) {
+            zoneSpawnSystem.initializeZones(map);
+            for (const auto& req: zoneSpawnSystem.getInitialSpawns(map)) {
                 addMonster(req.type, req.pos, *req.config);
             }
         }
@@ -591,8 +592,7 @@ void World::update(float delta_time) {
     }
     deadMonsterIds.clear();
 
-    auto newSpawns =
-            spawnSystem.tick(delta_time, entityManager.getMonsterCount(), map, entityManager);
+    auto newSpawns = zoneSpawnSystem.tick(delta_time, map);
     for (const auto& req: newSpawns) {
         entityManager.addMonster(req.type, req.pos, *req.config);
         map.setEntityCollision(req.pos.x, req.pos.y, true);
@@ -869,8 +869,8 @@ void World::onMonsterDeath(const Monster& monster, uint32_t killerDbId) {
     Position pos = monster.getPosition();
 
     if (monster.isBoss()) {
-        auto it = spawnSystem.getConfigs().find(monster.getType());
-        if (it != spawnSystem.getConfigs().end()) {
+        auto it = zoneSpawnSystem.getConfigs().find(monster.getType());
+        if (it != zoneSpawnSystem.getConfigs().end()) {
             BossLootResult loot = LootResolver::resolveBossLoot(it->second);
 
             if (loot.uniqueItemId > 0) {
@@ -895,6 +895,7 @@ void World::onMonsterDeath(const Monster& monster, uint32_t killerDbId) {
             bossSpawnSystem.onBossDeath(monster.getId());
         }
     } else {
+        zoneSpawnSystem.onMonsterDeath(monster.getPosition());
         auto potionIds = itemRegistry.getPotionIds();
         auto allItemIds = itemRegistry.getAllDroppableItemIds();
 

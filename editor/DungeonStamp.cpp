@@ -1,6 +1,7 @@
 #include "DungeonStamp.h"
 
 #include <algorithm>
+#include <vector>
 
 #include "DungeonPrefab.h"
 #include "OverlayRegistry.h"

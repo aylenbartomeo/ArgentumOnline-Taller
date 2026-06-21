@@ -152,9 +152,9 @@ TEST(ProtocolTest, UseItemSerializationIsSymmetric) {
 
     CommandVariant received_cmd = server_protocol.receive_command();
 
-    ASSERT_TRUE(std::holds_alternative<UseItemDTO>(received_cmd)); 
-    UseItemDTO received_dto = std::get<UseItemDTO>(received_cmd);   
-    EXPECT_EQ(original_dto.slot, received_dto.slot);               
+    ASSERT_TRUE(std::holds_alternative<UseItemDTO>(received_cmd));
+    UseItemDTO received_dto = std::get<UseItemDTO>(received_cmd);
+    EXPECT_EQ(original_dto.slot, received_dto.slot);
 }
 
 // --- TEST PARA GRAB ITEM (DTO Vacío) ---
@@ -191,7 +191,7 @@ TEST(ProtocolTest, ChatSerializationIsSymmetric) {
 
     ASSERT_TRUE(std::holds_alternative<ChatDTO>(received_cmd));
     ChatDTO received_dto = std::get<ChatDTO>(received_cmd);
-    EXPECT_EQ(original_dto.message, received_dto.message); 
+    EXPECT_EQ(original_dto.message, received_dto.message);
 }
 
 // =================================================================
