@@ -152,7 +152,7 @@ RaceHeadVisualConfig parseRaceHead(const json& obj) {
 }  // namespace
 
 void EquipmentVisualRegistry::loadFromDir(const std::string& resourcesDir) {
-    const std::string base = resourcesDir + "equipment/";
+    const std::string base = resourcesDir + "data/equipment/";
     loadWeapons(base + "weapons.json");
     loadArmors(base + "armors.json");
     loadHelmets(base + "helmets.json");

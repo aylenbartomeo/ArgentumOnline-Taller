@@ -15,12 +15,12 @@ constexpr const char* RESOURCES_DIR = "resources/";
 constexpr int TILE_NATIVE = 32;
 constexpr int HEAD_DRAW_W = 18;
 constexpr int HEAD_DRAW_H = 20;
-constexpr const char* CHARACTER_SHEET_PATH = "resources/1500.png";
+constexpr const char* CHARACTER_SHEET_PATH = "resources/characters/player-body.png";
 constexpr int CHARACTER_FRAME_X = 2;
 constexpr int CHARACTER_FRAME_Y = 4;
 constexpr int CHARACTER_FRAME_W = 24;
 constexpr int CHARACTER_FRAME_H = 44;
-constexpr const char* HEAD_SHEET_PATH = "resources/420.png";
+constexpr const char* HEAD_SHEET_PATH = "resources/characters/heads.png";
 constexpr int HEAD_FRAME_X = 6;
 constexpr int HEAD_FRAME_Y = 13;
 constexpr int HEAD_FRAME_W = 13;
@@ -51,7 +51,7 @@ void MapRenderer::drawGroundLayer(const EditorMap& map, const Camera& camera, in
             if (v <= 0) {
                 continue;
             }
-            SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + "ground/" +
+            SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + "world/ground/" +
                                                 std::to_string(v - 1) + ".png");
             Position screen = camera.cellToScreen(col, row);
             const int dstW = tex.GetWidth() * ts / TILE_NATIVE;
@@ -76,7 +76,7 @@ void MapRenderer::drawDecorationLayer(const EditorMap& map, const Camera& camera
             if (v <= 0) {
                 continue;
             }
-            SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + "decoration/" +
+            SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + "world/decoration/" +
                                                 std::to_string(v - 1) + ".png");
             Position screen = camera.cellToScreen(col, row);
             const int dstW = tex.GetWidth() * ts / TILE_NATIVE;

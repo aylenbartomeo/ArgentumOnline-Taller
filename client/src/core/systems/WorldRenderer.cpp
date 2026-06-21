@@ -82,7 +82,7 @@ void WorldRenderer::renderDecorationFront(const CameraOffset& camera, int player
 }
 
 void WorldRenderer::drawDecorationTile(int id, int col, int row, const CameraOffset& camera) const {
-    SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "decoration/" +
+    SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "world/decoration/" +
                                         std::to_string(id) + ".png");
     TileRect r = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE, camera.x,
                               camera.y);
@@ -98,7 +98,7 @@ void WorldRenderer::renderGroundLayer(const std::vector<std::vector<int>>& grid,
             if (v <= 0) {
                 continue;
             }
-            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "ground/" +
+            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "world/ground/" +
                                                 std::to_string(v - 1) + ".png");
             renderer.Copy(
                     tex, SDL2pp::Rect(0, 0, tex.GetWidth(), tex.GetHeight()),
@@ -119,7 +119,7 @@ void WorldRenderer::renderRoofs(const CameraOffset& camera, int playerCol, int p
             if (indoorRegions.roofHidden(col, row, playerCol, playerRow)) {
                 continue;
             }
-            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "decoration/" +
+            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "world/decoration/" +
                                                 std::to_string(v - 1) + ".png");
             TileRect r = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE,
                                       camera.x, camera.y);
@@ -144,7 +144,7 @@ void WorldRenderer::renderBuildingFronts(const CameraOffset& camera, int playerC
             if (!indoorRegions.sameRegion(col, row, playerCol, playerRow)) {
                 continue;
             }
-            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "decoration/" +
+            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "world/decoration/" +
                                                 std::to_string(v - 1) + ".png");
             TileRect full = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE,
                                          camera.x, camera.y);

@@ -4,7 +4,7 @@
 #include "SmartEraser.h"
 
 namespace {
-EditorMap emptyMap() { return EditorMap(30, 30, 32, "5108.png", 32); }
+EditorMap emptyMap() { return EditorMap(30, 30, 32, "world/tileset.png", 32); }
 }  // namespace
 
 TEST(SmartEraserTest, EmptyCellClassifiesAsNone) {

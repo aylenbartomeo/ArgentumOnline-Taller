@@ -5,7 +5,7 @@
 #include "ForestStamp.h"
 
 namespace {
-EditorMap emptyMap() { return EditorMap(100, 100, 32, "5108.png", 32); }
+EditorMap emptyMap() { return EditorMap(100, 100, 32, "world/tileset.png", 32); }
 }  // namespace
 
 TEST(DungeonStampTest, ApplyStampsFloorLavaDecorationGoldAndRect) {

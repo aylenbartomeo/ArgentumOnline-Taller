@@ -17,7 +17,7 @@ namespace GC = GameConstants;
 namespace {
 constexpr int CHARACTER_FRAME_W = 24;
 constexpr int CHARACTER_FRAME_H = 44;
-constexpr const char* HEALTHBAR_SHEET = "en_barradevida.bmp";
+constexpr const char* HEALTHBAR_SHEET = "ui/en_barradevida.bmp";
 
 constexpr int WEAPON_COLS = 5;
 constexpr int ITEM_CELL_W = 25;

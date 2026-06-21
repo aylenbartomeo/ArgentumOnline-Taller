@@ -12,7 +12,7 @@
 namespace {
 constexpr int FONT_SIZE = 12;
 constexpr const char* RESOURCES_DIR = "resources/";
-constexpr const char* BACKGROUND = "resources/ventanaprincipal.png";
+constexpr const char* BACKGROUND = "resources/ui/ventanaprincipal.png";
 
 const OverlayDef* itemDef(uint32_t itemId) {
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
@@ -22,9 +22,9 @@ const OverlayDef* itemDef(uint32_t itemId) {
     return it != registry.end() ? &(*it) : nullptr;
 }
 
-constexpr const char* HP_BAR = "resources/en_barradevida.bmp";
-constexpr const char* MP_BAR = "resources/en_barrademana.bmp";
-constexpr const char* XP_BAR = "resources/en_barraexperiencia.bmp";
+constexpr const char* HP_BAR = "resources/ui/en_barradevida.bmp";
+constexpr const char* MP_BAR = "resources/ui/en_barrademana.bmp";
+constexpr const char* XP_BAR = "resources/ui/en_barraexperiencia.bmp";
 
 constexpr int HP_X = 796, HP_Y = 542, HP_FULL = 200, BAR_H = 15;
 constexpr int MP_X = 796, MP_Y = 581, MP_FULL = 200;
@@ -153,14 +153,17 @@ void HudPanel::drawItemSprite(SDL2pp::Renderer& renderer, uint32_t itemId, int x
                               int h) {
     const OverlayDef* def = itemDef(itemId);
     if (def == nullptr) {
-        SDL2pp::Texture& tex = textures.get(iconForItem(itemId));
+        SDL2pp::Texture* tex = textures.tryGet(iconForItem(itemId));
+        if (tex == nullptr) {
+            return;
+        }
         if (itemId >= 4000 && itemId <= 4004) {
             // Option 1: extract bottom-left icon from 6x6 sheet
-            int wTex = tex.GetWidth() / 6;
-            int hTex = tex.GetHeight() / 6;
-            renderer.Copy(tex, SDL2pp::Rect(0, 5 * hTex, wTex, hTex), SDL2pp::Rect(x, y, w, h));
+            int wTex = tex->GetWidth() / 6;
+            int hTex = tex->GetHeight() / 6;
+            renderer.Copy(*tex, SDL2pp::Rect(0, 5 * hTex, wTex, hTex), SDL2pp::Rect(x, y, w, h));
         } else {
-            renderer.Copy(tex, SDL2pp::NullOpt, SDL2pp::Rect(x, y, w, h));
+            renderer.Copy(*tex, SDL2pp::NullOpt, SDL2pp::Rect(x, y, w, h));
         }
         return;
     }
@@ -253,7 +256,7 @@ bool HudPanel::isAudioButtonClicked(int x, int y) const {
 
 void HudPanel::drawAudioButton(SDL2pp::Renderer& renderer, bool isMuted) {
     const std::string path =
-            isMuted ? "resources/button/audio-off.jpg" : "resources/button/audio-on.jpg";
+            isMuted ? "resources/ui/button/audio-off.jpg" : "resources/ui/button/audio-on.jpg";
     SDL2pp::Texture& tex = textures.get(path);
     renderer.Copy(tex, SDL2pp::NullOpt,
                   SDL2pp::Rect(AUDIO_BTN_X, AUDIO_BTN_Y, AUDIO_BTN_W, AUDIO_BTN_H));

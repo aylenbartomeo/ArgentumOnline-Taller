@@ -5,7 +5,7 @@
 #
 #  Binarios: argentum_online_server | argentum_online_client | argentum_online_editor
 #  Tests:    argentum_online_tests
-#  Íconos:   resources/logos/clientLogo.png | editorLogo.png
+#  Íconos:   resources/ui/logos/clientLogo.png | editorLogo.png
 # =============================================================================
 
 set -euo pipefail
@@ -220,8 +220,8 @@ log_ok "Configuración instalada en ${CONFIG_DIR}."
 ICONS_DIR="$HOME/.local/share/icons"
 mkdir -p "${ICONS_DIR}"
 
-CLIENT_ICON_SRC="resources/logos/clientLogo.png"
-EDITOR_ICON_SRC="resources/logos/editorLogo.png"
+CLIENT_ICON_SRC="resources/ui/logos/clientLogo.png"
+EDITOR_ICON_SRC="resources/ui/logos/editorLogo.png"
 
 CLIENT_ICON_DST="${ICONS_DIR}/clientLogo.png"
 EDITOR_ICON_DST="${ICONS_DIR}/editorLogo.png"

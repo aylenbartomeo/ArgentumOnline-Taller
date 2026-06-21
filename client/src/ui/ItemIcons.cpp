@@ -56,41 +56,41 @@ const char* iconForItem(uint32_t itemId) {
 
     // --- ARMADURAS ---
     if (itemId == 1000)
-        return "resources/armor/pechera-cuero.png";
+        return "resources/items/armor/pechera-cuero.png";
     if (itemId == 1001)
-        return "resources/armor/pechera-hierro.png";
+        return "resources/items/armor/pechera-hierro.png";
     if (itemId == 1002)
-        return "resources/armor/tunica.png";
+        return "resources/items/armor/tunica.png";
 
     // --- ESCUDOS ---
     if (itemId == 1020)
-        return "resources/armor/escudo-tortuga.png";
+        return "resources/items/armor/escudo-tortuga.png";
     if (itemId == 1021)
-        return "resources/armor/escudo-hierro.png";
+        return "resources/items/armor/escudo-hierro.png";
 
     // --- CASCOS Y SOMBREROS ---
     if (itemId == 1010)
-        return "resources/armor/capucha.png";
+        return "resources/items/armor/capucha.png";
     if (itemId == 1011)
-        return "resources/armor/casco-hierro.png";
+        return "resources/items/armor/casco-hierro.png";
     if (itemId == 1012)
-        return "resources/armor/sombrero-magico.png";
+        return "resources/items/armor/sombrero-magico.png";
 
     switch (equipSlotForItem(itemId)) {
         case EquipSlot::WEAPON:
-            return "resources/icon_weapon.png";
+            return "resources/items/icon_weapon.png";
         case EquipSlot::ARMOR:
-            return "resources/icon_armor.png";
+            return "resources/items/icon_armor.png";
         case EquipSlot::HELMET:
-            return "resources/icon_helmet.png";
+            return "resources/items/icon_helmet.png";
         case EquipSlot::SHIELD:
-            return "resources/icon_shield.png";
+            return "resources/items/icon_shield.png";
         case EquipSlot::NONE:
             break;
     }
 
     if (itemId >= 3000 && itemId <= 3099) {
-        return "resources/icon_potion.png";
+        return "resources/items/icon_potion.png";
     }
-    return "resources/icon_unknown.png";
+    return "resources/items/icon_unknown.png";
 }

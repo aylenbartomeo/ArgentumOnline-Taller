@@ -24,7 +24,7 @@ nlohmann::json builderStyleJson() {
     m["width"] = 6;
     m["height"] = 6;
     m["tileSize"] = 32;
-    m["tileset"] = "5108.png";
+    m["tileset"] = "world/tileset.png";
     m["tilesetCols"] = 32;
     m["spawn"] = {{"x", 2}, {"y", 3}};
     m["ground"] = std::vector<std::vector<int>>(6, std::vector<int>(6, 108));
@@ -46,7 +46,7 @@ nlohmann::json builderStyleJson() {
 }  // namespace
 
 TEST(EditorMapTest, NewMapStartsWithGrassAndNoContent) {
-    EditorMap map(4, 5, 32, "5108.png", 32);
+    EditorMap map(4, 5, 32, "world/tileset.png", 32);
     EXPECT_EQ(map.getWidth(), 4);
     EXPECT_EQ(map.getHeight(), 5);
     EXPECT_EQ(map.getGround()[0][0], 108);
@@ -87,7 +87,7 @@ TEST(EditorMapTest, MissingLayersDefaultToGrassAndZeros) {
     m["width"] = 4;
     m["height"] = 4;
     m["tileSize"] = 32;
-    m["tileset"] = "5108.png";
+    m["tileset"] = "world/tileset.png";
     m["tilesetCols"] = 32;
     EditorMap map(m.dump());
 
@@ -102,21 +102,21 @@ TEST(EditorMapTest, LoadJsonWithWrongRowCountThrows) {
     m["width"] = 4;
     m["height"] = 4;
     m["tileSize"] = 32;
-    m["tileset"] = "5108.png";
+    m["tileset"] = "world/tileset.png";
     m["tilesetCols"] = 32;
     m["ground"] = std::vector<std::vector<int>>(2, std::vector<int>(4, 108));
     EXPECT_THROW(EditorMap map(m.dump()), std::runtime_error);
 }
 
 TEST(EditorMapTest, SetAndGetSpawn) {
-    EditorMap map(4, 4, 32, "5108.png", 32);
+    EditorMap map(4, 4, 32, "world/tileset.png", 32);
     map.setSpawn(2, 3);
     EXPECT_EQ(map.getSpawn().x, 2);
     EXPECT_EQ(map.getSpawn().y, 3);
 }
 
 TEST(EditorMapTest, IsBlockedMatchesObstacles) {
-    EditorMap map(4, 4, 32, "5108.png", 32);
+    EditorMap map(4, 4, 32, "world/tileset.png", 32);
     EXPECT_FALSE(map.isBlocked(1, 1));
     map.addObstacle(1, 1);
     EXPECT_TRUE(map.isBlocked(1, 1));
@@ -124,7 +124,7 @@ TEST(EditorMapTest, IsBlockedMatchesObstacles) {
 }
 
 TEST(EditorMapTest, PaintGoldStacksAmount) {
-    EditorMap map(4, 4, 32, "5108.png", 32);
+    EditorMap map(4, 4, 32, "world/tileset.png", 32);
     int gold = goldOverlayIndex();
     ASSERT_GE(gold, 0);
     map.paintItem(2, 2, gold);
@@ -138,7 +138,7 @@ TEST(EditorMapTest, PaintGoldStacksAmount) {
 }
 
 TEST(EditorMapTest, PaintNonStackableItemStaysAtOne) {
-    EditorMap map(4, 4, 32, "5108.png", 32);
+    EditorMap map(4, 4, 32, "world/tileset.png", 32);
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
     int sword = -1;
     for (size_t i = 0; i < registry.size(); ++i) {
@@ -156,7 +156,7 @@ TEST(EditorMapTest, PaintNonStackableItemStaysAtOne) {
 }
 
 TEST(EditorMapTest, SavedGoldKeepsIdAndAmount) {
-    EditorMap map(4, 4, 32, "5108.png", 32);
+    EditorMap map(4, 4, 32, "world/tileset.png", 32);
     int gold = goldOverlayIndex();
     ASSERT_GE(gold, 0);
     map.paintItem(3, 1, gold);
@@ -186,7 +186,7 @@ TEST(EditorMapTest, UnknownItemIdsAreKeptVerbatim) {
 }
 
 TEST(EditorMapTest, AddRemoveEntitiesAtPosition) {
-    EditorMap map(4, 4, 32, "5108.png", 32);
+    EditorMap map(4, 4, 32, "world/tileset.png", 32);
     map.addCitizen("priest", 1, 1);
     map.addMonster("goblin", 1, 1);
     map.addCitizen("banker", 2, 2);
@@ -208,7 +208,7 @@ TEST(OverlayRegistryTest, ContainsStackableGold) {
 }
 
 TEST(EditorMapDungeonTest, AddAndRemoveDungeon) {
-    EditorMap map(50, 50, 32, "5108.png", 32);
+    EditorMap map(50, 50, 32, "world/tileset.png", 32);
     map.addDungeon(11, 21, 14, 14);
     ASSERT_EQ(map.getDungeons().size(), 1u);
     EXPECT_EQ(map.getDungeons()[0].x, 11);
@@ -220,7 +220,7 @@ TEST(EditorMapDungeonTest, AddAndRemoveDungeon) {
 }
 
 TEST(EditorMapDungeonTest, DungeonsSurviveJsonRoundTrip) {
-    EditorMap map(50, 50, 32, "5108.png", 32);
+    EditorMap map(50, 50, 32, "world/tileset.png", 32);
     map.addDungeon(11, 21, 14, 14);
     EditorMap loaded(map.toJson());
     ASSERT_EQ(loaded.getDungeons().size(), 1u);
@@ -229,7 +229,7 @@ TEST(EditorMapDungeonTest, DungeonsSurviveJsonRoundTrip) {
 }
 
 TEST(EditorMapDungeonTest, SetItemStoresGivenAmount) {
-    EditorMap map(50, 50, 32, "5108.png", 32);
+    EditorMap map(50, 50, 32, "world/tileset.png", 32);
     map.setItem(5, 6, goldOverlayIndex(), 5000);
     const PlacedItem* item = map.itemAt(5, 6);
     ASSERT_NE(item, nullptr);
@@ -238,7 +238,7 @@ TEST(EditorMapDungeonTest, SetItemStoresGivenAmount) {
 }
 
 TEST(EditorMapForestTest, AddAndRemoveForest) {
-    EditorMap map(50, 50, 32, "5108.png", 32);
+    EditorMap map(50, 50, 32, "world/tileset.png", 32);
     map.addForest(10, 20, 12, 12);
     ASSERT_EQ(map.getForests().size(), 1u);
     EXPECT_EQ(map.getForests()[0].x, 10);
@@ -250,7 +250,7 @@ TEST(EditorMapForestTest, AddAndRemoveForest) {
 }
 
 TEST(EditorMapForestTest, ForestsSurviveJsonRoundTrip) {
-    EditorMap map(50, 50, 32, "5108.png", 32);
+    EditorMap map(50, 50, 32, "world/tileset.png", 32);
     map.addForest(10, 20, 12, 12);
     EditorMap loaded(map.toJson());
     ASSERT_EQ(loaded.getForests().size(), 1u);
@@ -259,7 +259,7 @@ TEST(EditorMapForestTest, ForestsSurviveJsonRoundTrip) {
 }
 
 TEST(EditorMapTest, RemoveMonsterAtRemovesOnlyThatTile) {
-    EditorMap map(10, 10, 32, "5108.png", 32);
+    EditorMap map(10, 10, 32, "world/tileset.png", 32);
     map.addMonster("goblin", 3, 4);
     map.addMonster("orco", 5, 6);
     map.removeMonsterAt(3, 4);
@@ -269,7 +269,7 @@ TEST(EditorMapTest, RemoveMonsterAtRemovesOnlyThatTile) {
 }
 
 TEST(EditorMapTest, RemoveCitizenAtLeavesMonsterOnSameTile) {
-    EditorMap map(10, 10, 32, "5108.png", 32);
+    EditorMap map(10, 10, 32, "world/tileset.png", 32);
     map.addMonster("goblin", 7, 7);
     map.addCitizen("priest", 7, 7);
     map.removeCitizenAt(7, 7);
@@ -279,7 +279,7 @@ TEST(EditorMapTest, RemoveCitizenAtLeavesMonsterOnSameTile) {
 }
 
 TEST(EditorMapDesertTest, AddAndRemoveDesert) {
-    EditorMap map(100, 100, 32, "5108.png", 32);
+    EditorMap map(100, 100, 32, "world/tileset.png", 32);
     map.addDesert(11, 21, 16, 16);
     ASSERT_EQ(map.getDeserts().size(), 1u);
     EXPECT_EQ(map.getDeserts()[0].x, 11);
@@ -291,7 +291,7 @@ TEST(EditorMapDesertTest, AddAndRemoveDesert) {
 }
 
 TEST(EditorMapDesertTest, DesertsSurviveJsonRoundTrip) {
-    EditorMap map(100, 100, 32, "5108.png", 32);
+    EditorMap map(100, 100, 32, "world/tileset.png", 32);
     map.addDesert(11, 21, 16, 16);
     EditorMap loaded(map.toJson());
     ASSERT_EQ(loaded.getDeserts().size(), 1u);
@@ -300,7 +300,7 @@ TEST(EditorMapDesertTest, DesertsSurviveJsonRoundTrip) {
 }
 
 TEST(EditorMapBeachTest, AddAndRemoveBeach) {
-    EditorMap map(100, 100, 32, "5108.png", 32);
+    EditorMap map(100, 100, 32, "world/tileset.png", 32);
     map.addBeach(11, 21, 22, 18);
     ASSERT_EQ(map.getBeaches().size(), 1u);
     EXPECT_EQ(map.getBeaches()[0].x, 11);
@@ -312,7 +312,7 @@ TEST(EditorMapBeachTest, AddAndRemoveBeach) {
 }
 
 TEST(EditorMapBeachTest, BeachesSurviveJsonRoundTrip) {
-    EditorMap map(100, 100, 32, "5108.png", 32);
+    EditorMap map(100, 100, 32, "world/tileset.png", 32);
     map.addBeach(11, 21, 22, 18);
     EditorMap loaded(map.toJson());
     ASSERT_EQ(loaded.getBeaches().size(), 1u);
@@ -320,7 +320,7 @@ TEST(EditorMapBeachTest, BeachesSurviveJsonRoundTrip) {
 }
 
 TEST(EditorMapBeachTest, SetGround2Writes) {
-    EditorMap map(100, 100, 32, "5108.png", 32);
+    EditorMap map(100, 100, 32, "world/tileset.png", 32);
     map.setGround2(5, 6, 89);
     EXPECT_EQ(map.getGround2()[6][5], 89);
 }

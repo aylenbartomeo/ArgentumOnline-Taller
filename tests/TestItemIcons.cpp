@@ -14,10 +14,10 @@ TEST(ItemIconsTest, EquipSlotPorRango) {
 }
 
 TEST(ItemIconsTest, IconoPorCategoria) {
-    EXPECT_EQ(std::string(iconForItem(2007)), "resources/icon_weapon.png");
-    EXPECT_EQ(std::string(iconForItem(1005)), "resources/icon_armor.png");
-    EXPECT_EQ(std::string(iconForItem(1015)), "resources/icon_helmet.png");
-    EXPECT_EQ(std::string(iconForItem(1025)), "resources/icon_shield.png");
-    EXPECT_EQ(std::string(iconForItem(3001)), "resources/icon_potion.png");
-    EXPECT_EQ(std::string(iconForItem(99999)), "resources/icon_unknown.png");
+    EXPECT_EQ(std::string(iconForItem(2007)), "resources/items/icon_weapon.png");
+    EXPECT_EQ(std::string(iconForItem(1005)), "resources/items/icon_armor.png");
+    EXPECT_EQ(std::string(iconForItem(1015)), "resources/items/icon_helmet.png");
+    EXPECT_EQ(std::string(iconForItem(1025)), "resources/items/icon_shield.png");
+    EXPECT_EQ(std::string(iconForItem(3001)), "resources/items/icon_potion.png");
+    EXPECT_EQ(std::string(iconForItem(99999)), "resources/items/icon_unknown.png");
 }

@@ -160,7 +160,7 @@ int main() {
     m["width"] = W;
     m["height"] = H;
     m["tileSize"] = 32;
-    m["tileset"] = "5108.png";
+    m["tileset"] = "world/tileset.png";
     m["tilesetCols"] = 32;
     m["spawn"] = {{"x", 75}, {"y", 95}};
     m["ground"] = b.ground;

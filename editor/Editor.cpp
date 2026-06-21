@@ -53,14 +53,14 @@ constexpr int MAPLIST_ROW_H = 32;
 constexpr int MAPLIST_TITLE_H = 36;
 
 constexpr const char* RESOURCES_DIR = "resources/";
-constexpr const char* FONT_TTF_PATH = "resources/DejaVuSans-Bold.ttf";
+constexpr const char* FONT_TTF_PATH = "resources/ui/fonts/DejaVuSans-Bold.ttf";
 constexpr int LABEL_FONT_SIZE = 14;
 constexpr SDL_Color LABEL_COLOR = {240, 240, 240, 255};
-constexpr const char* GRASS_SHEET_PATH = "resources/5108.png";
+constexpr const char* GRASS_SHEET_PATH = "resources/world/tileset.png";
 constexpr int GRASS_SRC_X = 416;
 constexpr int GRASS_SRC_Y = 384;
 constexpr int GRASS_SRC_SIZE = 32;
-constexpr const char* CHARACTER_SHEET_PATH = "resources/1500.png";
+constexpr const char* CHARACTER_SHEET_PATH = "resources/characters/player-body.png";
 constexpr int CHARACTER_FRAME_X = 2;
 constexpr int CHARACTER_FRAME_Y = 4;
 constexpr int CHARACTER_FRAME_W = 24;
@@ -69,7 +69,7 @@ constexpr double TAU = 6.283185307179586;
 constexpr int MARKER_SEGMENTS = 24;
 constexpr int MARKER_SHIFT_X = 3;
 
-constexpr const char* HEAD_SHEET_PATH = "resources/420.png";
+constexpr const char* HEAD_SHEET_PATH = "resources/characters/heads.png";
 constexpr int HEAD_FRAME_X = 6;
 constexpr int HEAD_FRAME_Y = 13;
 constexpr int HEAD_FRAME_W = 13;
@@ -549,7 +549,7 @@ void Editor::drawGroundLayer(const std::vector<std::vector<int>>& grid) {
             if (v <= 0) {
                 continue;
             }
-            SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + "ground/" +
+            SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + "world/ground/" +
                                                 std::to_string(v - 1) + ".png");
             Position screen = camera.cellToScreen(col, row);
             const int dstW = tex.GetWidth() * ts / TILE_NATIVE;
@@ -573,7 +573,7 @@ void Editor::drawDecorationLayer() {
             if (v <= 0) {
                 continue;
             }
-            SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + "decoration/" +
+            SDL2pp::Texture& tex = textures.get(std::string(RESOURCES_DIR) + "world/decoration/" +
                                                 std::to_string(v - 1) + ".png");
             Position screen = camera.cellToScreen(col, row);
             const int dstW = tex.GetWidth() * ts / TILE_NATIVE;

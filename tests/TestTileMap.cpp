@@ -49,7 +49,7 @@ TEST(TileMapTest, ThrowsWhenTilesDoNotMatchDimensions) {
 TEST(TileMapTest, ParsesSafeZones) {
     std::string json = R"({
         "tileSize": 32,
-        "tileset": "5108.png",
+        "tileset": "world/tileset.png",
         "tilesetCols": 32,
         "width": 2,
         "height": 2,
@@ -73,7 +73,7 @@ TEST(TileMapTest, ParsesSafeZones) {
 TEST(TileMapTest, NoSafeZonesWhenAbsent) {
     std::string json = R"({
         "tileSize": 32,
-        "tileset": "5108.png",
+        "tileset": "world/tileset.png",
         "tilesetCols": 32,
         "width": 1,
         "height": 1,
@@ -86,7 +86,7 @@ TEST(TileMapTest, NoSafeZonesWhenAbsent) {
 TEST(TileMapTest, ParsesCitizens) {
     std::string json = R"({
         "tileSize": 32,
-        "tileset": "5108.png",
+        "tileset": "world/tileset.png",
         "tilesetCols": 32,
         "width": 2,
         "height": 2,
@@ -107,7 +107,7 @@ TEST(TileMapTest, ParsesCitizens) {
 TEST(TileMapTest, NoCitizensWhenAbsent) {
     std::string json = R"({
         "tileSize": 32,
-        "tileset": "5108.png",
+        "tileset": "world/tileset.png",
         "tilesetCols": 32,
         "width": 1,
         "height": 1,
@@ -119,7 +119,7 @@ TEST(TileMapTest, NoCitizensWhenAbsent) {
 
 TEST(TileMapTest, ParsesTerrainLayer) {
     std::string json = R"({
-        "tileSize": 32, "tileset": "5108.png", "tilesetCols": 32,
+        "tileSize": 32, "tileset": "world/tileset.png", "tilesetCols": 32,
         "width": 2, "height": 2,
         "tiles": [[0, 0], [0, 0]],
         "terrain": [[0, 1], [2, 3]]
@@ -135,7 +135,7 @@ TEST(TileMapTest, ParsesTerrainLayer) {
 
 TEST(TileMapTest, DefaultsTerrainToGrassWhenAbsent) {
     std::string json = R"({
-        "tileSize": 32, "tileset": "5108.png", "tilesetCols": 32,
+        "tileSize": 32, "tileset": "world/tileset.png", "tilesetCols": 32,
         "width": 2, "height": 2,
         "tiles": [[0, 0], [0, 0]]
     })";

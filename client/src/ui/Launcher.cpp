@@ -32,19 +32,19 @@ Launcher::Launcher(int width, int height, bool fullscreen):
     if (TTF_WasInit() == 0) {
         TTF_Init();
     }
-    font = TTF_OpenFont("resources/DejaVuSans-Bold.ttf", 16);
+    font = TTF_OpenFont("resources/ui/fonts/DejaVuSans-Bold.ttf", 16);
     if (!font) {
         std::cerr << "[Launcher] Error al cargar fuente: " << TTF_GetError() << std::endl;
     }
 
-    SDL_Texture* tConn = IMG_LoadTexture(renderer.Get(), "resources/pantallas/IP-PUERTO.png");
+    SDL_Texture* tConn = IMG_LoadTexture(renderer.Get(), "resources/ui/pantallas/IP-PUERTO.png");
     if (tConn) {
         bgConnection = std::make_unique<SDL2pp::Texture>(tConn);
     } else {
         std::cerr << "[Launcher] No se pudo cargar IP-PUERTO.png: " << IMG_GetError() << std::endl;
     }
 
-    SDL_Texture* tAuth = IMG_LoadTexture(renderer.Get(), "resources/pantallas/REGISTRO-LOGIN.png");
+    SDL_Texture* tAuth = IMG_LoadTexture(renderer.Get(), "resources/ui/pantallas/REGISTRO-LOGIN.png");
     if (tAuth) {
         bgAuthentication = std::make_unique<SDL2pp::Texture>(tAuth);
     } else {

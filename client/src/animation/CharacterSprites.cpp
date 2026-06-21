@@ -8,10 +8,10 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
         case EntityType::PLAYER: {
             switch (entityTypeId) {
                 case 0:  // Humano
-                    return EntitySprite{"race/human/human-body.png",
+                    return EntitySprite{"characters/race/human/human-body.png",
                                         true,
                                         15,
-                                        "race/human/human-head.png",
+                                        "characters/race/human/human-head.png",
                                         0,
                                         0,
                                         16,
@@ -27,10 +27,10 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         45,
                                         6};
                 case 1:  // Elfo
-                    return EntitySprite{"race/elf/elf-body.png",
+                    return EntitySprite{"characters/race/elf/elf-body.png",
                                         true,
                                         14,
-                                        "race/elf/elf-head.png",
+                                        "characters/race/elf/elf-head.png",
                                         0,
                                         0,
                                         16,
@@ -46,10 +46,10 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         45,
                                         6};
                 case 2:  // Enano
-                    return EntitySprite{"race/dwarf/dwarf-body.png",
+                    return EntitySprite{"characters/race/dwarf/dwarf-body.png",
                                         true,
                                         28,
-                                        "race/dwarf/dwarf-head.png",
+                                        "characters/race/dwarf/dwarf-head.png",
                                         0,
                                         0,
                                         17,
@@ -65,10 +65,10 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         36,
                                         6};
                 case 3:  // Gnomo
-                    return EntitySprite{"race/gnome/gnome-body.png",
+                    return EntitySprite{"characters/race/gnome/gnome-body.png",
                                         true,
                                         28,
-                                        "race/gnome/gnome-head.png",
+                                        "characters/race/gnome/gnome-head.png",
                                         2,
                                         2,
                                         10,
@@ -84,12 +84,12 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         36,
                                         6};
                 default:  // Fallback por defecto si viene otro ID
-                    return EntitySprite{"1500.png", true, 6, "420.png", 6,  13,
+                    return EntitySprite{"characters/player-body.png", true, 6, "characters/heads.png", 6,  13,
                                         13,         15,   2, 4,         24, 44};
             }
         }
         case EntityType::NPC:
-            return EntitySprite{"1200.png", true, 15, "420.png", 6, 13, 13, 15, 2, 4, 24, 44};
+            return EntitySprite{"characters/npc-body.png", true, 15, "characters/heads.png", 6, 13, 13, 15, 2, 4, 24, 44};
         case EntityType::MONSTER: {
             switch (static_cast<NPCType>(entityTypeId)) {
                 case NPCType::GOBLIN: {
@@ -98,8 +98,8 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                         int x, y, w, h, scale, strideX, strideY, cols;
                     };
                     static const SkinCfg skins[] = {
-                            {"monsters/goblin1.png", 2, 2, 22, 48, 120, 24, 51, 6},
-                            {"monsters/goblin2.png", 3, 3, 20, 29, 132, 25, 32, 8},
+                            {"characters/monsters/goblin1.png", 2, 2, 22, 48, 120, 24, 51, 6},
+                            {"characters/monsters/goblin2.png", 3, 3, 20, 29, 132, 25, 32, 8},
                     };
                     const SkinCfg& s = skins[entityId % (sizeof(skins) / sizeof(skins[0]))];
                     return EntitySprite{.bodySheet = s.sheet,
@@ -120,8 +120,8 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                         int x, y, w, h, scale, strideX, strideY, cols;
                     };
                     static const SkinCfg skins[] = {
-                            {"monsters/orco1.png", 2, 1, 22, 58, 125, 26, 69, 6},
-                            {"monsters/orco2.png", 1, 3, 22, 49, 125, 22, 55, 6},
+                            {"characters/monsters/orco1.png", 2, 1, 22, 58, 125, 26, 69, 6},
+                            {"characters/monsters/orco2.png", 1, 3, 22, 49, 125, 22, 55, 6},
                     };
                     const SkinCfg& s = skins[entityId % (sizeof(skins) / sizeof(skins[0]))];
                     return EntitySprite{.bodySheet = s.sheet,
@@ -142,13 +142,13 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                         int x, y, w, h, scale, strideX, strideY, cols;
                     };
                     static const SkinCfg skins[] = {
-                            {"monsters/zombie1.png", 5, 2, 20, 44, 130, 23, 47, 8},
-                            {"monsters/zombie2.png", 3, 0, 20, 51, 130, 25, 53, 6},
+                            {"characters/monsters/zombie1.png", 5, 2, 20, 44, 130, 23, 47, 8},
+                            {"characters/monsters/zombie2.png", 3, 0, 20, 51, 130, 25, 53, 6},
                     };
                     const SkinCfg& s = skins[entityId % (sizeof(skins) / sizeof(skins[0]))];
                     return EntitySprite{.bodySheet = s.sheet,
                                         .drawHead = false,
-                                        .headSheet = "420.png",
+                                        .headSheet = "characters/heads.png",
                                         .bodySrcX = s.x,
                                         .bodySrcY = s.y,
                                         .bodySrcW = s.w,
@@ -165,9 +165,9 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                         int x, y, w, h, scale, strideX, strideY, cols;
                     };
                     static const SkinCfg skins[] = {
-                            {"monsters/spider1.png", 18, 42, 75, 54, 65, 95, 96, 5},
-                            {"monsters/spider2.png", 1, 0, 51, 37, 96, 54, 35, 4},
-                            {"monsters/spider3.png", 0, 8, 60, 39, 81, 64, 66, 5},
+                            {"characters/monsters/spider1.png", 18, 42, 75, 54, 65, 95, 96, 5},
+                            {"characters/monsters/spider2.png", 1, 0, 51, 37, 96, 54, 35, 4},
+                            {"characters/monsters/spider3.png", 0, 8, 60, 39, 81, 64, 66, 5},
                     };
                     const SkinCfg& s = skins[entityId % (sizeof(skins) / sizeof(skins[0]))];
                     return EntitySprite{.bodySheet = s.sheet,
@@ -188,9 +188,9 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                         int x, y, w, h, scale, strideX, strideY, cols;
                     };
                     static const SkinCfg skins[] = {
-                            {"monsters/golem1.png", 4, 17, 46, 72, 100, 57, 99, 6},
-                            {"monsters/golem2.png", 11, 14, 120, 155, 40, 161, 159, 6},
-                            {"monsters/golem3.png", 11, 21, 130, 170, 40, 161, 198, 6},
+                            {"characters/monsters/golem1.png", 4, 17, 46, 72, 100, 57, 99, 6},
+                            {"characters/monsters/golem2.png", 11, 14, 120, 155, 40, 161, 159, 6},
+                            {"characters/monsters/golem3.png", 11, 21, 130, 170, 40, 161, 198, 6},
                     };
                     const SkinCfg& s = skins[entityId % (sizeof(skins) / sizeof(skins[0]))];
                     return EntitySprite{.bodySheet = s.sheet,
@@ -211,9 +211,9 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                         int x, y, w, h, scale, strideX, strideY, cols;
                     };
                     static const SkinCfg skins[] = {
-                            {"monsters/skeleton1.png", 5, 3, 16, 48, 120, 25, 52, 6},
-                            {"monsters/skeleton2.png", 0, 1, 24, 50, 120, 26, 52, 6},
-                            {"monsters/skeleton3.png", 4, 2, 21, 45, 120, 25, 47, 6},
+                            {"characters/monsters/skeleton1.png", 5, 3, 16, 48, 120, 25, 52, 6},
+                            {"characters/monsters/skeleton2.png", 0, 1, 24, 50, 120, 26, 52, 6},
+                            {"characters/monsters/skeleton3.png", 4, 2, 21, 45, 120, 25, 47, 6},
                     };
                     const SkinCfg& s = skins[entityId % (sizeof(skins) / sizeof(skins[0]))];
                     return EntitySprite{.bodySheet = s.sheet,
@@ -229,7 +229,7 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         .bodyCols = s.cols};
                 }
                 case NPCType::BOSS_BALROG:
-                    return EntitySprite{.bodySheet = "bosses/Balrog Infernal.png",
+                    return EntitySprite{.bodySheet = "characters/bosses/Balrog Infernal.png",
                                         .drawHead = false,
                                         .bodySrcX = 0,
                                         .bodySrcY = 0,
@@ -242,7 +242,7 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         .bodyCols = 4,
                                         .rowOrder = 1};
                 case NPCType::BOSS_TITAN:
-                    return EntitySprite{.bodySheet = "bosses/Titan de Piedra.png",
+                    return EntitySprite{.bodySheet = "characters/bosses/Titan de Piedra.png",
                                         .drawHead = false,
                                         .bodySrcX = 0,
                                         .bodySrcY = 0,
@@ -255,7 +255,7 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         .bodyCols = 4,
                                         .rowOrder = 1};
                 case NPCType::BOSS_ARACNE:
-                    return EntitySprite{.bodySheet = "bosses/Aracne Abismal.png",
+                    return EntitySprite{.bodySheet = "characters/bosses/Aracne Abismal.png",
                                         .drawHead = false,
                                         .bodySrcX = 0,
                                         .bodySrcY = 0,
@@ -268,7 +268,7 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         .bodyCols = 6,
                                         .rowOrder = 1};
                 case NPCType::BOSS_COLOSO:
-                    return EntitySprite{.bodySheet = "bosses/Coloso de Magma.png",
+                    return EntitySprite{.bodySheet = "characters/bosses/Coloso de Magma.png",
                                         .drawHead = false,
                                         .bodySrcX = 0,
                                         .bodySrcY = 0,
@@ -281,12 +281,12 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         .bodyCols = 4,
                                         .rowOrder = 1};
                 default:
-                    return EntitySprite{"1200.png", false, 0, "420.png", 6,  13,
+                    return EntitySprite{"characters/npc-body.png", false, 0, "characters/heads.png", 6,  13,
                                         13,         15,    2, 4,         24, 44};
             }
         }
     }
-    return EntitySprite{"1500.png", true, 6, "420.png", 6, 13, 13, 15, 2, 4, 24, 44};
+    return EntitySprite{"characters/player-body.png", true, 6, "characters/heads.png", 6, 13, 13, 15, 2, 4, 24, 44};
 }
 
 FrameRect bodyFrameRectFor(const EntitySprite& sprite, Movement facing, int col) {

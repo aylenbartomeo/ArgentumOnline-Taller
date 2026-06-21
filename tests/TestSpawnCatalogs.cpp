@@ -15,12 +15,12 @@ TEST(SpawnCatalogsTest, MonsterCatalogReferencesExpectedSheets) {
                                [&type](const auto& entry) { return entry.type == type; });
         return it != catalog.end() ? it->sheet : std::string("");
     };
-    EXPECT_EQ(find("goblin"), "monsters/goblin1.png");
-    EXPECT_EQ(find("orc"), "monsters/orco1.png");
-    EXPECT_EQ(find("zombie"), "monsters/zombie1.png");
-    EXPECT_EQ(find("spider"), "monsters/spider1.png");
-    EXPECT_EQ(find("golem"), "monsters/golem1.png");
-    EXPECT_EQ(find("skeleton"), "monsters/skeleton1.png");
+    EXPECT_EQ(find("goblin"), "characters/monsters/goblin1.png");
+    EXPECT_EQ(find("orc"), "characters/monsters/orco1.png");
+    EXPECT_EQ(find("zombie"), "characters/monsters/zombie1.png");
+    EXPECT_EQ(find("spider"), "characters/monsters/spider1.png");
+    EXPECT_EQ(find("golem"), "characters/monsters/golem1.png");
+    EXPECT_EQ(find("skeleton"), "characters/monsters/skeleton1.png");
 }
 
 TEST(SpawnCatalogsTest, CitizenCatalogHasMerchantBankerPriest) {
@@ -31,9 +31,9 @@ TEST(SpawnCatalogsTest, CitizenCatalogHasMerchantBankerPriest) {
                                [&type](const auto& entry) { return entry.type == type; });
         return it != catalog.end() ? it->sheet : std::string("");
     };
-    EXPECT_EQ(find("merchant"), "1077.png");
-    EXPECT_EQ(find("banker"), "1071.png");
-    EXPECT_EQ(find("priest"), "1910.png");
+    EXPECT_EQ(find("merchant"), "characters/npc-merchant.png");
+    EXPECT_EQ(find("banker"), "characters/npc-banker.png");
+    EXPECT_EQ(find("priest"), "characters/npc-priest.png");
 }
 
 TEST(SpawnCatalogsTest, MonsterEntryForKnownTypeReturnsIt) {

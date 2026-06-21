@@ -1,0 +1,7 @@
+{
+  "helmets": [
+    { "itemId": 1010, "sheet": "items/armor/capucha.png", "frameW": 17, "frameH": 16 },
+    { "itemId": 1011, "sheet": "items/armor/casco-hierro.png", "frameW": 17, "frameH": 15 },
+    { "itemId": 1012, "sheet": "items/armor/sombrero-magico.png", "frameW": 17, "frameH": 25 }
+  ]
+}

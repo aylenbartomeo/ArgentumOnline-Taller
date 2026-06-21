@@ -46,7 +46,7 @@ QuitViewAction QuitView::run() {
         renderer.Clear();
 
         // CORRECCIÓN: Le pedimos la textura cargada/cacheada al TextureManager
-        renderer.Copy(textures.get("resources/pantallas/SALIR.png"), SDL2pp::NullOpt,
+        renderer.Copy(textures.get("resources/ui/pantallas/SALIR.png"), SDL2pp::NullOpt,
                       SDL2pp::NullOpt);
 
         renderer.Present();

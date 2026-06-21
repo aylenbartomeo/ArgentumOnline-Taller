@@ -2,7 +2,7 @@
 
 <p align="center">
   <img width="560" alt="Argentum Online Logo" 
-       src="resources/logos/gameLogo.png"/>
+       src="resources/ui/logos/gameLogo.png"/>
 </p>
 
 Trabajo Práctico Final de **Taller de Programación** (FIUBA): un juego

@@ -8,8 +8,8 @@
 
 namespace {
 constexpr int MENU_FRAME_DURATION_MS = 33;
-constexpr const char* FONT_PATH = "resources/DejaVuSans-Bold.ttf";
-constexpr const char* BACKGROUND = "resources/pantallas/CREAR-PERSONAJE.png";
+constexpr const char* FONT_PATH = "resources/ui/fonts/DejaVuSans-Bold.ttf";
+constexpr const char* BACKGROUND = "resources/ui/pantallas/CREAR-PERSONAJE.png";
 
 const std::vector<std::string> RACE_NAMES = {"Humano", "Elfo", "Enano", "Gnomo"};
 const std::vector<std::string> CLASS_NAMES = {"Mago", "Guerrero", "Paladín", "Clérigo"};
@@ -170,20 +170,20 @@ void CharacterCreationScreen::drawPreview(int x, int y) {
     std::string headSheet;
     switch (selectedRace) {
         case 0:
-            bodySheet = "resources/race/human/human-body.png";
-            headSheet = "resources/race/human/human-head.png";
+            bodySheet = "resources/characters/race/human/human-body.png";
+            headSheet = "resources/characters/race/human/human-head.png";
             break;
         case 1:
-            bodySheet = "resources/race/elf/elf-body.png";
-            headSheet = "resources/race/elf/elf-head.png";
+            bodySheet = "resources/characters/race/elf/elf-body.png";
+            headSheet = "resources/characters/race/elf/elf-head.png";
             break;
         case 2:
-            bodySheet = "resources/race/dwarf/dwarf-body.png";
-            headSheet = "resources/race/dwarf/dwarf-head.png";
+            bodySheet = "resources/characters/race/dwarf/dwarf-body.png";
+            headSheet = "resources/characters/race/dwarf/dwarf-head.png";
             break;
         case 3:
-            bodySheet = "resources/race/gnome/gnome-body.png";
-            headSheet = "resources/race/gnome/gnome-head.png";
+            bodySheet = "resources/characters/race/gnome/gnome-body.png";
+            headSheet = "resources/characters/race/gnome/gnome-head.png";
             break;
     }
 

@@ -21,12 +21,12 @@ namespace NpcVisuals {
 
 inline const char* bodySheet(const std::string& type) {
     if (type == "merchant")
-        return "1077.png";
+        return "characters/npc-merchant.png";
     if (type == "banker")
-        return "1071.png";
+        return "characters/npc-banker.png";
     if (type == "priest")
-        return "1910.png";
-    return "1200.png";
+        return "characters/npc-priest.png";
+    return "characters/npc-body.png";
 }
 
 inline FrameRect headRect(const std::string& type) {
