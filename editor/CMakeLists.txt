@@ -22,6 +22,7 @@ target_sources(lib_editor
     SmartEraser.cpp
     BlockBrush.cpp
     MapChooser.cpp
+    GoldPrompt.cpp
     PUBLIC
     # .h files
     EditorMap.h
@@ -44,6 +45,7 @@ target_sources(lib_editor
     BlockBrush.h
     MapChooser.h
     MapDefaults.h
+    GoldPrompt.h
     )
 
 # Exponemos los directorios de inclusión del editor públicamente

@@ -173,17 +173,67 @@ TEST(CitizenPlacementTest, AnyCitizenRejectedOutsideAnyCity) {
 TEST(MonsterPlacementTest, RejectedInsideACityBuilding) {
     EditorMap map = emptyMap();
     applyCityPrefab(map, 10, 20, "Pueblo");
-    EXPECT_NE(monsterPlacementError(map, 10 + 9, 20 + 14), "");
+    EXPECT_NE(monsterPlacementError(map, "orc", 10 + 9, 20 + 14), "");
 }
 
 TEST(MonsterPlacementTest, RejectedAnywhereInTheCityNotJustBuildings) {
     EditorMap map = emptyMap();
     applyCityPrefab(map, 10, 20, "Pueblo");
-    EXPECT_NE(monsterPlacementError(map, 10 + 2, 20 + 26), "");
+    EXPECT_NE(monsterPlacementError(map, "orc", 10 + 2, 20 + 26), "");
 }
 
 TEST(MonsterPlacementTest, AllowedOutsideAnyCity) {
     EditorMap map = emptyMap();
     applyCityPrefab(map, 10, 20, "Pueblo");
-    EXPECT_EQ(monsterPlacementError(map, 5, 5), "");
+    EXPECT_EQ(monsterPlacementError(map, "orc", 5, 5), "");
+}
+
+TEST(MonsterPlacementTest, SpiderAndGoblinOnlyInForest) {
+    EditorMap map = emptyMap();
+    map.addForest(40, 40, 12, 12);
+    EXPECT_EQ(monsterPlacementError(map, "spider", 45, 45), "");
+    EXPECT_EQ(monsterPlacementError(map, "goblin", 45, 45), "");
+    EXPECT_NE(monsterPlacementError(map, "spider", 5, 5), "");
+    EXPECT_NE(monsterPlacementError(map, "goblin", 5, 5), "");
+}
+
+TEST(MonsterPlacementTest, SkeletonAndGolemOnlyInDesert) {
+    EditorMap map = emptyMap();
+    map.addDesert(60, 60, 12, 12);
+    EXPECT_EQ(monsterPlacementError(map, "skeleton", 65, 65), "");
+    EXPECT_EQ(monsterPlacementError(map, "golem", 65, 65), "");
+    EXPECT_NE(monsterPlacementError(map, "skeleton", 5, 5), "");
+    EXPECT_NE(monsterPlacementError(map, "golem", 5, 5), "");
+}
+
+TEST(MonsterPlacementTest, ForestMonstersRejectedInDesertAndViceversa) {
+    EditorMap map = emptyMap();
+    map.addForest(40, 40, 12, 12);
+    map.addDesert(60, 60, 12, 12);
+    EXPECT_NE(monsterPlacementError(map, "spider", 65, 65), "");
+    EXPECT_NE(monsterPlacementError(map, "skeleton", 45, 45), "");
+}
+
+TEST(MonsterPlacementTest, UnrestrictedMonstersGoAnywhereOutsideCity) {
+    EditorMap map = emptyMap();
+    EXPECT_EQ(monsterPlacementError(map, "orc", 5, 5), "");
+    EXPECT_EQ(monsterPlacementError(map, "zombie", 5, 5), "");
+}
+
+TEST(MonsterPlacementTest, RejectedInsideABeach) {
+    EditorMap map = emptyMap();
+    map.addBeach(30, 30, 22, 18);
+    EXPECT_NE(monsterPlacementError(map, "orc", 35, 35), "");
+}
+
+TEST(ItemPlacementTest, RejectedInsideABeach) {
+    EditorMap map = emptyMap();
+    map.addBeach(30, 30, 22, 18);
+    EXPECT_NE(itemPlacementError(map, 35, 35), "");
+}
+
+TEST(ItemPlacementTest, AllowedOutsideABeach) {
+    EditorMap map = emptyMap();
+    map.addBeach(30, 30, 22, 18);
+    EXPECT_EQ(itemPlacementError(map, 5, 5), "");
 }

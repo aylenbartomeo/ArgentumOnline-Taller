@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "../client/src/ui/GroundItemLabel.h"
+
 #include "CatalogSprites.h"
 #include "OverlayRegistry.h"
 #include "SpawnCatalogs.h"
@@ -90,7 +92,8 @@ void MapRenderer::drawDecorationLayer(const EditorMap& map, const Camera& camera
     }
 }
 
-void MapRenderer::drawItems(const EditorMap& map, const Camera& camera, int canvasW, int canvasH) {
+void MapRenderer::drawItems(const EditorMap& map, const Camera& camera, int canvasW, int canvasH,
+                           Font& labelFont) {
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
     const int ts = camera.getTileSize();
     for (const auto& entry: map.getItems()) {
@@ -103,6 +106,12 @@ void MapRenderer::drawItems(const EditorMap& map, const Camera& camera, int canv
             continue;
         }
         drawOverlaySprite(renderer, textures, registry[item.overlayIndex], screen.x, screen.y, ts);
+        if (auto label = groundAmountLabel(static_cast<uint16_t>(item.amount))) {
+            const SDL_Color shadow{0, 0, 0, 255};
+            const SDL_Color white{255, 255, 255, 255};
+            labelFont.drawString(*label, screen.x + 3, screen.y + 3, shadow);
+            labelFont.drawString(*label, screen.x + 2, screen.y + 2, white);
+        }
     }
 }
 
@@ -173,11 +182,12 @@ void MapRenderer::drawSpawn(const EditorMap& map, const Camera& camera) {
     }
 }
 
-void MapRenderer::render(const EditorMap& map, const Camera& camera, int canvasW, int canvasH) {
+void MapRenderer::render(const EditorMap& map, const Camera& camera, int canvasW, int canvasH,
+                         Font& labelFont) {
     drawGroundLayer(map, camera, canvasW, canvasH, map.getGround());
     drawGroundLayer(map, camera, canvasW, canvasH, map.getGround2());
     drawDecorationLayer(map, camera, canvasW, canvasH);
-    drawItems(map, camera, canvasW, canvasH);
+    drawItems(map, camera, canvasW, canvasH, labelFont);
     drawMonsters(map, camera, canvasW, canvasH);
     drawCitizens(map, camera, canvasW, canvasH);
     drawSpawn(map, camera);

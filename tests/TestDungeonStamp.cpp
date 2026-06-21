@@ -19,12 +19,16 @@ TEST(DungeonStampTest, ApplyStampsFloorLavaDecorationGoldAndRect) {
 
     EXPECT_EQ(map.getDecoration()[20 + 7][10 + 2], 102);
     EXPECT_EQ(map.getDecoration()[20 + 4][10 + 5], 99);
-    EXPECT_TRUE(map.isBlocked(10 + 2, 20 + 4));
+    EXPECT_TRUE(map.isBlocked(10 + 3, 20 + 4));
+    EXPECT_FALSE(map.isBlocked(10 + 2, 20 + 4));
     EXPECT_FALSE(map.isBlocked(10 + 5, 20 + 4));
 
     const PlacedItem* gold = map.itemAt(10 + 7, 20 + 1);
     ASSERT_NE(gold, nullptr);
-    EXPECT_EQ(gold->amount, 5000);
+    EXPECT_EQ(gold->amount, 300);
+    const PlacedItem* entranceGold = map.itemAt(10 + 7, 20 + 19);
+    ASSERT_NE(entranceGold, nullptr);
+    EXPECT_EQ(entranceGold->amount, 50);
 
     ASSERT_EQ(map.getDungeons().size(), 1u);
     EXPECT_EQ(map.getDungeons()[0].x, 11);
@@ -90,8 +94,8 @@ TEST(DungeonStampTest, EraseDungeonAtReturnsFalseWhenNoneThere) {
 TEST(DungeonStampTest, MonstersRejectedInsideTheDungeon) {
     EditorMap map = emptyMap();
     applyDungeonPrefab(map, 10, 20);
-    EXPECT_NE(monsterPlacementError(map, 10 + 5, 20 + 5), "");
-    EXPECT_EQ(monsterPlacementError(map, 80, 80), "");
+    EXPECT_NE(monsterPlacementError(map, "orc", 10 + 5, 20 + 5), "");
+    EXPECT_EQ(monsterPlacementError(map, "orc", 80, 80), "");
 }
 
 TEST(DungeonStampTest, CitizensAlreadyRejectedInsideTheDungeon) {

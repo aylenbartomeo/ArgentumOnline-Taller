@@ -62,6 +62,7 @@ target_sources(argentum_online_tests
     TestItemIcons.cpp
     TestEditorMap.cpp
     TestSmartEraser.cpp
+    TestGoldPrompt.cpp
     TestCatalogSprites.cpp
     TestCamera.cpp
     TestPalette.cpp
