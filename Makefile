@@ -98,7 +98,7 @@ run-server-load: check-config prepare-dirs
 	cd build && ./argentum_online_server $(PORT) --load "$(WORLD)"
 
 run-client: prepare-dirs
-	@# --- ARGS="-- fullscreen" pantalla completa
+	@# --- ARGS="--fullscreen" pantalla completa
 	@# --- ARGS="--width 1920 --height 1080 --fullscreen" pantalla completa con resolucion especifica
 	@# --- ARGS="--width 1080 --height 720" resolucion especifica en modo ventana
 	@# --- Modifique los numeros segun la resolucion deseada
