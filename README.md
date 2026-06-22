@@ -26,7 +26,8 @@ server/      Servidor de juego
 editor/      Editor de mapas
 common/      Código compartido (protocolo, sockets, DTOs, etc.)
 tests/       Tests (GoogleTest)
-config/      Configuración del juego (.toml: personajes, items, monstruos, inventario)
+config/      Archivos de configuracion del juego
+documents/   Enunciado y manuales del juego
 maps/        Mapas en JSON (mapa canónico: maps/defaultMap.json)
 resources/   Assets gráficos del cliente y el editor
 ```
@@ -58,74 +59,77 @@ casos más comunes:
 
 | Comando | Qué hace |
 |---|---|
-| `make compile-debug` | Compila el proyecto (con símbolos de depuración y sin optimizaciones, para poder debuggear) |
-| `make run-tests` | Compila y corre los tests |
-| `make valgrind-tests` | Compila y corre los tests bajo Valgrind (reporte en `build/valgrind/`) |
-| `make all` | Recompila todo desde cero y corre los tests |
-| `make clean` | Borra `build/` |
+| Instalar dependencias | `make install` |
+| Desinstalar | `make uninstall` |
+| Compilar (debug) | `make compile-debug` |
+| Correr tests | `make run-tests` |
+| Tests con Valgrind (reporte en `build/valgrind`) | `make valgrind-tests` |
+| Limpiar `build/` | `make clean` |
+| Recompilar + tests | `make all` |
+
+> Al desinstalar se preguntará si conservar la base de datos y la carpeta `build/`.
 
 ---
 
-## Guía paso a paso: ejecución y pruebas manuales
+## Configuración
 
-### Ingreso al juego
+El archivo de configuración central se ubica en:
 
-#### Paso 1: Limpiar la base de datos (opcional pero recomendado)
-
-Si venís de pruebas anteriores y querés arrancar con un entorno limpio, borrá los
-datos de usuarios y progresos previos. Parado en la raíz del proyecto:
-
-| Comando | Qué borra |
-|---|---|
-| `make clean-db-auth` | Solo las cuentas registradas y los personajes creados (`auth_data`, `users_data`) |
-| `make clean-db-world` | Solo los mundos guardados (carpeta `worlds`) |
-| `make clean-db` | Todo junto de una sola vez |
-
-> Nota: los mapas se borran manualmente por seguridad.
-
-#### Paso 2: Iniciar el servidor
-
-Para levantar el juego, primero hay que encender el servidor indicando en qué
-puerto va a escuchar las conexiones. Parado en la raíz del proyecto:
-
-**Crear un mundo nuevo (personalizado):**
-
-```bash
-make run-server-create WORLD="MiMundo" PORT=8080 MAP="maps/defaultMap.json"
+```
+~/.config/argentum_online/config/config.toml
 ```
 
-o más rápido, con parámetros por default:
+Parámetros principales: `port` (TCP), `world` (nombre del mundo activo), `map` (archivo `.map` inicial).
+
+Los assets estáticos se despliegan en `~/.local/share/argentum_online/`, con la siguiente estructura:
+
+- `maps/` — mapas y matrices de terreno
+- `resources/` — sprites, GUI, fuentes y audio
+- `game_data/` — tablas de balance, ítems, NPCs (YAML)
+
+---
+
+## Uso del Sistema
+
+### Servidor
 
 ```bash
-make run-server-create
+make run-server-create                              # Nuevo mundo con valores por defecto
+make run-server-create 8080 "MiMundo" "maps/x.json" # Mundo personalizado
+make run-server-load                                # Cargar mundo existente
+make valgrind-server                                # Servidor con Valgrind
 ```
 
-**Cargar un mundo existente (personalizado):**
+Ejecución global: `argentum_online_server <puerto> --load <nombre_mundo>`
+
+**Base de datos:**
 
 ```bash
-make run-server-load WORLD="MiMundo" PORT=8080
+make clean-db-auth    # Borra cuentas y personajes
+make clean-db-world   # Borra mundos guardados
+make clean-db         # Borra todo
 ```
 
-o más rápido, cargando el mundo por default:
+### Cliente
 
 ```bash
-make run-server-load
+make run-client                          # Desarrollo estándar
+make run-client ARGS="-- fullscreen"     # Pantalla completa
+make run-client ARGS="--width 1080 --height 720"
 ```
 
-> Nota: si se omiten las variables, el `Makefile` usa automáticamente
-> `DefaultWorld`, puerto `8080` y `maps/defaultMap.json` como valores
-> predeterminados. Así se puede levantar un servidor rápido con solo tipear
-> `make run-server-create` o `make run-server-load`.
+Ejecución global: `argentum_online_client` (pantalla completa por defecto desde ícono de escritorio).
 
-#### Paso 3: Abrir el cliente
-
-En una nueva pestaña de la terminal, parado en la raíz del proyecto:
+### Editor de Mapas
 
 ```bash
-make run-client
+make run-editor          # Local
+argentum_online_editor   # Global
 ```
 
-#### Paso 4: Conexión al host
+---
+
+#### Conexión al host
 
 Al abrirse la ventana del juego, la primera pantalla solicita la IP y el puerto
 del servidor.
@@ -139,7 +143,7 @@ Validaciones en esta etapa:
   rechaza la conexión (no te deja avanzar a la siguiente pantalla).
 - Solo avanza cuando logra establecer el *handshake* inicial con el servidor.
 
-#### Paso 5: Autenticación (login / registro)
+## Autenticación (login / registro)
 
 Una vez conectados al servidor, aparece la pantalla de autenticación, con dos
 opciones:
@@ -164,53 +168,85 @@ opciones:
      jugadores duplicados.
    - Si todo es correcto y la cuenta no está en uso, ingresás al mundo.
 
-### Funcionalidades pasivas del juego
+---
 
-Comportamiento que funciona de fondo, sin que el jugador apriete botones.
+## Controles en Juego
 
-**Persistencia y guardado de posición:**
-
-- **Ingreso inicial:** la primera vez que jugás con tu usuario, el personaje
-  aparece en las coordenadas iniciales por defecto (el *spawn point* definido en
-  el mapa).
-- **Autoguardado:** mientras te movés por el mundo, el servidor hace un barrido
-  periódico de todos los jugadores conectados y guarda automáticamente sus
-  posiciones cada 30 segundos.
-- **Desconexión segura:** al cerrar el juego (cerrando la ventana del cliente),
-  el servidor detecta la salida y guarda inmediatamente la última posición exacta
-  en la carpeta `game_data/`.
-- **Reconexión:** para comprobar la persistencia, cerrá el cliente y volvé a
-  ingresar con login (Paso 5). El personaje aparece exactamente en la misma
-  baldosa donde lo dejaste, persistiendo también así todo su progreso y estado al momento de desconectarse.
-- **Progreso por cuenta, por mundo:** note que cada jugador tendrá su propio progreso asociado a su cuenta POR CADA MUNDO en el que haya jugado, es decir un mismo usuario puede tener varios progresos (estados) en distintos mundos, cada uno persistido por separado.
+| Tecla / Acción | Efecto |
+|---|---|
+| `W` `A` `S` `D` | Mover personaje |
+| Click izquierdo | Interactuar / atacar cuerpo a cuerpo |
+| Doble click izquierdo | Equipar/desequipar ítem del inventario |
+| Click derecho | Disparar proyectil o lanzar hechizo |
+| `Enter` | Abrir/enviar chat |
+| `Esc` | Salir (abre confirmación) |
+| `F2` | Mostrar/ocultar ventana de chat |
 
 ---
 
-## Editor de mapas
+## Comandos de Chat
 
-Una vez compilado el proyecto (`make compile-debug`), parado en la raíz del repo:
+Abrir con `Enter`, escribir y confirmar con `Enter`.
 
-```bash
-make run-editor
-```
+**Generales:** `/tomar` · `/meditar` · `/resucitar`  
+**Mensajería privada:** `@<nick> <mensaje>`
 
-Se abre una ventana con el mapa y, a la derecha, la paleta de tiles. Se puede:
+**NPCs** (Banquero / Comerciante / Sacerdote — requiere estar cerca y hacer click):
 
-- **Pintar el piso:** elegir un tile de la paleta de la derecha y pintar con clic
-  izquierdo sobre el mapa.
-- **Elegir herramienta** (arriba a la derecha): *pincel* para pintar terreno, o
-  *spawn* para definir dónde aparece el jugador. La opción activa queda con borde
-  amarillo.
-- Con *spawn*, el clic pone el muñequito en la celda donde arranca el jugador.
-- **Moverse por el mapa** con las flechas del teclado, o arrastrando con el botón
-  derecho del mouse.
-- **Guardar** con el botón verde o la tecla `S`.
+`/listar` · `/comprar <item>` · `/vender <item>` · `/curar`  
+`/depositar <item|oro <cantidad>>` · `/retirar <item|oro <cantidad>>`
 
-Para saber si guardó: el título de la ventana dice "guardado" y "* sin guardar"
-cuando hay cambios, el botón verde parpadea, y en la terminal aparece
-`Mapa guardado en maps/defaultMap.json`.
+**Clanes:**
 
-El mapa se guarda en `maps/defaultMap.json`, que es el mapa del juego: el cliente lee ese mismo archivo.
+`/fundar-clan <nombre>` · `/unirse <clan>` · `/dejar-clan`  
+`/revisar-clan` · `/clan-aceptar|rechazar|kick|ban <nick>` *(solo líderes)*
+
+---
+
+## Cheats / Administrador
+
+Mantener `Shift` + letra:
+
+| Atajo | Efecto |
+|---|---|
+| `Shift+L` | Subir nivel |
+| `Shift+K` | Morir (kill) |
+| `Shift+B` | Arco en inventario |
+| `Shift+M` | Maná infinito |
+| `Shift+H` | Vida infinita |
+| `Shift+G` | Oro en inventario |
+| `Shift+P` | Set de pociones |
+| `Shift+A` | Armaduras |
+| `Shift+W` | Armas y munición |
+
+> Reservados para QA y testeo de balance en entornos controlados.
+
+---
+
+## Funcionalidades Pasivas
+
+- **Spawn:** primera conexión posiciona al personaje en el spawn point del mapa.
+- **Autoguardado:** cada 30 segundos el Game Loop persiste posición y stats de todos los jugadores activos.
+- **Desconexión segura:** al cerrar el cliente se fuerza un guardado atómico inmediato.
+- **Reconexión determinista:** al volver a ingresar, el personaje reaparece en la tile exacta donde estaba.
+- **Persistencia Cuenta-Mundo:** cada cuenta tiene estados independientes por mundo.
+
+---
+
+## Editor de Mapas
+
+- **Pintar terreno:** seleccionar tile de la paleta derecha → click izquierdo sobre la grilla.
+- **Herramientas** (borde amarillo = activa): **Pincel** (pintar textura) · **Spawn** (definir punto de inicio).
+- **Navegar:** flechas del teclado o arrastrar con click derecho.
+- **Guardar:** botón verde o tecla `S`. El título indica `"* sin guardar"` si hay cambios pendientes.
+
+Salida en: `maps/defaultMap.json`
+
+---
+
+## Salir del Juego
+
+Cerrar la ventana (×) o presionar `Esc` abre un diálogo de confirmación: **Aceptar** para salir o **Volver** para continuar. Luego cerrar el servidor con `q` + `Enter` en su terminal.
 
 ## Documentacion
 Dentro de la carpeta ***documentation*** se encuentran los 3 manuales del juego y el enunciado del mismo.
