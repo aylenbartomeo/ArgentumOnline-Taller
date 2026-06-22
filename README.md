@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-  <img src="Launcher.png" alt="Cliente" width="45%" style="margin-right: 40px;" />
-  <img src="editor.jpg" alt="Editor" width="45%" />
+  <img src="resources/ui/pantallas/game.jpg" alt="Cliente" width="45%" style="margin-right: 40px;" />
+  <img src="resources/ui/pantallas/editor.jpg" alt="Editor" width="45%" />
 </p>
 <p align="center">
   <sub><i>Izquierda: Interfaz del Cliente de Juego. Derecha: Vista general del Editor de Mapas.</i></sub>
