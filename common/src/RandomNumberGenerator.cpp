@@ -3,9 +3,27 @@
 #include <random>
 #include <utility>
 
+#include <optional>
+
+static std::optional<unsigned int> global_fixed_seed;
+
+void RandomNumberGenerator::setFixedSeed(unsigned int seed) {
+    global_fixed_seed = seed;
+}
+
 static std::mt19937& get_engine() {
-    thread_local std::random_device rd;
-    thread_local std::mt19937 generator(rd());
+    thread_local bool initialized = false;
+    thread_local std::mt19937 generator;
+
+    if (!initialized) {
+        if (global_fixed_seed.has_value()) {
+            generator.seed(global_fixed_seed.value());
+        } else {
+            std::random_device rd;
+            generator.seed(rd());
+        }
+        initialized = true;
+    }
     return generator;
 }
 

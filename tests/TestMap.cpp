@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 
 #include <gtest/gtest.h>
@@ -98,35 +99,45 @@ TEST(MapTest, Map_CorrectlyIdentifiesCitizenArea) {
 }
 
 TEST(MapTest, Map_LoadsSpawnAndDimensionsFromJson) {
-    const std::string path = "/tmp/test_map_loadspawn.json";
+    // Arrange
+    const std::string path = std::string("/tmp/") + ::testing::UnitTest::GetInstance()->current_test_info()->name() + ".json";
     std::ofstream out(path);
     out << R"({"tileSize":16,"tileset":"x.png","tilesetCols":12,"width":25,"height":18,)"
         << R"("spawn":{"x":7,"y":9},"tiles":[]})";
     out.close();
-
     Map mapa;
-    ASSERT_TRUE(mapa.loadSpawnFromJson(path));
 
+    // Act
+    bool success = mapa.loadSpawnFromJson(path);
+    std::pair<float, float> spawn = mapa.getInitialPosition();
+
+    // Assert
+    ASSERT_TRUE(success);
     EXPECT_EQ(mapa.widthLimit(), 25);
     EXPECT_EQ(mapa.heightLimit(), 18);
-
-    std::pair<float, float> spawn = mapa.getInitialPosition();
     EXPECT_FLOAT_EQ(spawn.first, 7.0f);
     EXPECT_FLOAT_EQ(spawn.second, 9.0f);
+
+    std::filesystem::remove(path);
 }
 
 TEST(MapTest, Map_DungeonFromJsonBecomesBossZoneCenteredInArena) {
-    const std::string path = "/tmp/test_map_dungeon_boss.json";
+    // Arrange
+    const std::string path = std::string("/tmp/") + ::testing::UnitTest::GetInstance()->current_test_info()->name() + ".json";
     std::ofstream out(path);
     out << R"({"width":100,"height":100,"spawn":{"x":0,"y":0},)"
         << R"("dungeons":[{"x":40,"y":50,"width":14,"height":14}]})";
     out.close();
-
     Map mapa;
-    ASSERT_TRUE(mapa.loadSpawnFromJson(path));
 
-    ASSERT_EQ(mapa.getBossZones().size(), 1u);
-    const BossZoneConfig& bz = mapa.getBossZones()[0];
+    // Act
+    bool success = mapa.loadSpawnFromJson(path);
+    const auto& bossZones = mapa.getBossZones();
+
+    // Assert
+    ASSERT_TRUE(success);
+    ASSERT_EQ(bossZones.size(), 1u);
+    const BossZoneConfig& bz = bossZones[0];
     EXPECT_EQ(bz.x, 40);
     EXPECT_EQ(bz.y, 50);
     EXPECT_EQ(bz.width, 14);
@@ -134,6 +145,8 @@ TEST(MapTest, Map_DungeonFromJsonBecomesBossZoneCenteredInArena) {
     EXPECT_EQ(bz.spawnX, 47);
     EXPECT_EQ(bz.spawnY, 57);
     EXPECT_FLOAT_EQ(bz.respawnCooldownMs, 300000.0f);
+
+    std::filesystem::remove(path);
 }
 
 TEST(MapTest, Map_LoadSpawnFromJsonFailsOnMissingFile) {

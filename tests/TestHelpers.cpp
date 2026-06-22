@@ -1,7 +1,16 @@
 #include "TestHelpers.h"
 
-#include "FormulaEngine.h"  // Si lo necesitás para el player
+#include "FormulaEngine.h"
+#include "RandomNumberGenerator.h"
 
+namespace {
+struct TestEnvironmentInitializer {
+    TestEnvironmentInitializer() {
+        // Fijamos la semilla a 42 para todos los tests
+        RandomNumberGenerator::setFixedSeed(42);
+    }
+} initializer;
+}  // namespace
 
 namespace TestUtils {
 

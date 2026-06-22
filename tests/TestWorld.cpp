@@ -64,7 +64,8 @@ TEST_F(WorldTest, World_InitializesCorrectly) {
 }
 
 TEST_F(WorldTest, LoadMapSpawnsEditorMonsters) {
-    const std::string mapPath = "test_world_monsters_map.json";
+    // Arrange
+    const std::string mapPath = std::string("/tmp/") + ::testing::UnitTest::GetInstance()->current_test_info()->name() + ".json";
     {
         std::ofstream out(mapPath);
         out << R"({
@@ -75,11 +76,15 @@ TEST_F(WorldTest, LoadMapSpawnsEditorMonsters) {
         })";
     }
 
-    ASSERT_TRUE(mundo.loadMap(mapPath, true));
-
+    // Act
+    bool success = mundo.loadMap(mapPath, true);
     SnapshotDTO snap = mundo.generateSnapshot();
+
+    // Assert
+    ASSERT_TRUE(success);
     EXPECT_FALSE(snap.monsters.empty());
 
+    // Cleanup
     std::filesystem::remove(mapPath);
 }
 

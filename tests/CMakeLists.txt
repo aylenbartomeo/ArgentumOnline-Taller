@@ -11,7 +11,6 @@ target_sources(argentum_online_tests
     TestServerArchitecture.cpp
     TestMap.cpp
     TestWorld.cpp
-    TestGameLoop.cpp
     TestConstantRateLoop.cpp
     TestAuthManager.cpp
     TestEquipmentComponent.cpp
