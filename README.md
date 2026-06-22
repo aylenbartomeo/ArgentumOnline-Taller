@@ -256,7 +256,7 @@ Salida en: `maps/defaultMap.json`
 Cerrar la ventana (×) o presionar `Esc` abre un diálogo de confirmación: **Aceptar** para salir o **Volver** para continuar. Luego cerrar el servidor con `q` + `Enter` en su terminal.
 
 ## Documentacion
-Dentro de la carpeta ***documentation*** se encuentran los 3 manuales del juego y el enunciado del mismo.
+Dentro de la carpeta `documents/` se encuentran los 3 manuales del juego y el enunciado del mismo.
 
 - [Enunciado Argentum Online](documents/enunciado.pdf).
 - 'Manual de Usuario'.
