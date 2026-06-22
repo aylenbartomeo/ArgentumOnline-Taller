@@ -1,13 +1,11 @@
 # Argentum Online
 
-# Argentum Online
-
 <p align="center">
   <img width="560" alt="Argentum Online Logo" src="resources/ui/logos/gameLogo.png"/>
 </p>
 
 <p align="center">
-  <img src="Launcher.png" alt="Cliente" width="45%" style="margin-right: 10px;" />
+  <img src="Launcher.png" alt="Cliente" width="45%" style="margin-right: 40px;" />
   <img src="editor.jpg" alt="Editor" width="45%" />
 </p>
 <p align="center">
