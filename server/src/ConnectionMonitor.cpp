@@ -41,9 +41,9 @@ void ConnectionMonitor::sendToClient(uint32_t clientId, const ServerMessageVaria
 
 void ConnectionMonitor::broadcastChat(const ChatDTO& msg) {
     std::lock_guard<std::mutex> lock(mtx);
-    for (auto& [id, queue]: clientQueues) {
+    for (auto& pair: clientQueues) {
         try {
-            queue->push(msg);
+            pair.second->push(msg);
         } catch (...) {}
     }
 }

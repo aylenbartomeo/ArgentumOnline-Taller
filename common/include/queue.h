@@ -97,7 +97,6 @@ public:
         q.push(val);
     }
 
-    // cppcheck-suppress duplInheritedMember
     T pop() {
         std::unique_lock<std::mutex> lck(mtx);
 
@@ -117,7 +116,6 @@ public:
 
         return val;
     }
-    // cppcheck-suppress duplInheritedMember
     void close() {
         std::unique_lock<std::mutex> lck(mtx);
 
@@ -252,16 +250,13 @@ public:
 
     bool try_push(T* const& val) { return Queue<void*>::try_push(val); }
 
-    // cppcheck-suppress cstyleCast
     bool try_pop(T*& val) { return Queue<void*>::try_pop((void*&)val); }
 
     void push(T* const& val) { return Queue<void*>::push(val); }
 
 
-    // cppcheck-suppress duplInheritedMember
     T* pop() { return (T*)Queue<void*>::pop(); }
 
-    // cppcheck-suppress duplInheritedMember
     void close() { return Queue<void*>::close(); }
 
 private:

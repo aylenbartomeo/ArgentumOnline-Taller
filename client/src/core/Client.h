@@ -60,7 +60,7 @@ public:
     }
 
     std::optional<uint32_t> getSelectedNpc() const { return selectedNpcId; }
-    std::string getSelectedNpcType() const { return selectedNpcType; }
+    const std::string& getSelectedNpcType() const { return selectedNpcType; }
 
     uint32_t getClientId() const;
 

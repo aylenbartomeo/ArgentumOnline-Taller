@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -142,23 +143,16 @@ TEST(EditorMapTest, UnknownItemIdsAreKeptVerbatim) {
     m["items"].push_back({{"id", 99999}, {"x", 5}, {"y", 0}, {"amount", 2}});
     EditorMap map(m.dump());
     nlohmann::json saved = nlohmann::json::parse(map.toJson());
-    bool kept = false;
-    for (const auto& item: saved["items"]) {
-        if (item["id"] == 99999) {
-            kept = true;
-        }
-    }
+    bool kept = std::any_of(saved["items"].begin(), saved["items"].end(),
+                            [](const auto& item) { return item["id"] == 99999; });
     EXPECT_TRUE(kept);
 }
 
 TEST(OverlayRegistryTest, ContainsStackableGold) {
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
-    bool found = false;
-    for (const OverlayDef& def: registry) {
-        if (def.itemId == 1 && def.stackable) {
-            found = true;
-        }
-    }
+    bool found = std::any_of(registry.begin(), registry.end(), [](const OverlayDef& def) {
+        return def.itemId == 1 && def.stackable;
+    });
     EXPECT_TRUE(found);
 }
 

@@ -532,10 +532,9 @@ void EntityRenderer::drawPlayerName(const EntityDTO& entity, const CameraOffset&
     SDL_Surface* surfBg = TTF_RenderUTF8_Blended(font, entity.name.c_str(), black);
     if (surfBg) {
         SDL_Texture* texBg = SDL_CreateTextureFromSurface(renderer.Get(), surfBg);
-        int textW = surfBg->w;
-        int textH = surfBg->h;
-        SDL_FreeSurface(surfBg);
         if (texBg) {
+            int textW = surfBg->w;
+            int textH = surfBg->h;
             int textX = px - camera.x + (GC::TILE_SIZE - textW) / 2;
             int textY = py - camera.y + GC::TILE_SIZE + 2;
             SDL_Rect dst1{textX - 1, textY - 1, textW, textH};
@@ -548,21 +547,22 @@ void EntityRenderer::drawPlayerName(const EntityDTO& entity, const CameraOffset&
             SDL_RenderCopy(renderer.Get(), texBg, nullptr, &dst4);
             SDL_DestroyTexture(texBg);
         }
+        SDL_FreeSurface(surfBg);
     }
 
     SDL_Surface* surf = TTF_RenderUTF8_Blended(font, entity.name.c_str(), color);
     if (surf) {
         SDL_Texture* textTex = SDL_CreateTextureFromSurface(renderer.Get(), surf);
-        int textW = surf->w;
-        int textH = surf->h;
-        SDL_FreeSurface(surf);
         if (textTex) {
+            int textW = surf->w;
+            int textH = surf->h;
             int textX = px - camera.x + (GC::TILE_SIZE - textW) / 2;
             int textY = py - camera.y + GC::TILE_SIZE + 2;
             SDL_Rect dst{textX, textY, textW, textH};
             SDL_RenderCopy(renderer.Get(), textTex, nullptr, &dst);
             SDL_DestroyTexture(textTex);
         }
+        SDL_FreeSurface(surf);
     }
 }
 
@@ -582,10 +582,9 @@ void EntityRenderer::drawHealthBar(const EntityDTO& entity, const CameraOffset& 
         SDL_Surface* surfBg = TTF_RenderUTF8_Blended(font, lvlText.c_str(), black);
         if (surfBg) {
             SDL_Texture* texBg = SDL_CreateTextureFromSurface(renderer.Get(), surfBg);
-            int textW = surfBg->w;
-            int textH = surfBg->h;
-            SDL_FreeSurface(surfBg);
             if (texBg) {
+                int textW = surfBg->w;
+                int textH = surfBg->h;
                 int textX = px - camera.x + (GC::TILE_SIZE - textW) / 2;
                 int textY = py - camera.y - 36 - textH - 2;
                 SDL_Rect dst1{textX - 1, textY - 1, textW, textH};
@@ -598,21 +597,22 @@ void EntityRenderer::drawHealthBar(const EntityDTO& entity, const CameraOffset& 
                 SDL_RenderCopy(renderer.Get(), texBg, nullptr, &dst4);
                 SDL_DestroyTexture(texBg);
             }
+            SDL_FreeSurface(surfBg);
         }
 
         SDL_Surface* surf = TTF_RenderUTF8_Blended(font, lvlText.c_str(), color);
         if (surf) {
             SDL_Texture* textTex = SDL_CreateTextureFromSurface(renderer.Get(), surf);
-            int textW = surf->w;
-            int textH = surf->h;
-            SDL_FreeSurface(surf);
             if (textTex) {
+                int textW = surf->w;
+                int textH = surf->h;
                 int textX = px - camera.x + (GC::TILE_SIZE - textW) / 2;
                 int textY = py - camera.y - 36 - textH - 2;
                 SDL_Rect dst{textX, textY, textW, textH};
                 SDL_RenderCopy(renderer.Get(), textTex, nullptr, &dst);
                 SDL_DestroyTexture(textTex);
             }
+            SDL_FreeSurface(surf);
         }
     }
 
