@@ -49,7 +49,9 @@ AudioSystem::AudioSystem() {
 
 
     // Cargar todos los sonidos automáticamente
-    for (const auto& [effect, config]: sfxRegistry) {
+    for (const auto& pair: sfxRegistry) {
+        const auto& effect = pair.first;
+        const auto& config = pair.second;
         Mix_Chunk* chunk = Mix_LoadWAV(config.path.c_str());
         if (chunk) {
             sfxMap[effect] = chunk;
@@ -69,7 +71,9 @@ AudioSystem::AudioSystem() {
             {NPCType::ORC, "resources/audio/monsters/orc.ogg"},
     };
 
-    for (const auto& [type, path]: soundPaths) {
+    for (const auto& pair: soundPaths) {
+        const auto& type = pair.first;
+        const auto& path = pair.second;
         Mix_Chunk* chunk = Mix_LoadWAV(path.c_str());
         if (!chunk)
             std::cerr << "[AUDIO] No se pudo cargar sonido: " << path << " - " << Mix_GetError()
@@ -85,15 +89,15 @@ AudioSystem::~AudioSystem() {
         Mix_FreeMusic(bgMusic);
     }
 
-    for (auto& [effect, chunk]: sfxMap) {
-        if (chunk)
-            Mix_FreeChunk(chunk);
+    for (auto& pair: sfxMap) {
+        if (pair.second)
+            Mix_FreeChunk(pair.second);
     }
     sfxMap.clear();
 
-    for (auto& [type, chunk]: monsterSounds) {
-        if (chunk)
-            Mix_FreeChunk(chunk);
+    for (auto& pair: monsterSounds) {
+        if (pair.second)
+            Mix_FreeChunk(pair.second);
     }
     monsterSounds.clear();
     Mix_CloseAudio();

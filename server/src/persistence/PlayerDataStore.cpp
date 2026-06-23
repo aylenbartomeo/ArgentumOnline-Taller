@@ -52,7 +52,9 @@ void PlayerDataStore::flushIndex() {
         return;
     }
 
-    for (const auto& [username, offset]: this->index) {
+    for (const auto& pair: this->index) {
+        const auto& username = pair.first;
+        const auto& offset = pair.second;
         PlayerIndexEntry entry{};
         std::strncpy(entry.username, username.c_str(), MAX_USERNAME_LENGTH - 1);
         entry.offset = offset;
@@ -127,7 +129,9 @@ std::unordered_map<uint32_t, std::string> PlayerDataStore::loadAllUsernames() co
         return result;
     }
 
-    for (const auto& [uname, offset]: this->index) {
+    for (const auto& pair: this->index) {
+        const auto& uname = pair.first;
+        const auto& offset = pair.second;
         ifs.seekg(offset, std::ios::beg);
         PlayerPersistData data;
         if (ifs.read(reinterpret_cast<char*>(&data), sizeof(PlayerPersistData))) {

@@ -413,7 +413,8 @@ Interactable* World::resolveNpcTarget(uint32_t targetId, const Player& player) c
         int targetX = (targetId >> 16) & 0xFFFF;
         int targetY = targetId & 0xFFFF;
 
-        for (auto& [id, npc]: entityManager.getCityNPCs()) {
+        for (auto& pair: entityManager.getCityNPCs()) {
+            const auto& npc = pair.second;
             const Position& pos = npc->getPosition();
             if (pos.x == targetX && (pos.y == targetY || pos.y - 1 == targetY))
                 return npc.get();
@@ -429,7 +430,8 @@ Interactable* World::resolveNpcTarget(uint32_t targetId, const Player& player) c
     Interactable* nearest = nullptr;
     int minDist = INTERACTION_RANGE;
 
-    for (auto& [id, npc]: entityManager.getCityNPCs()) {
+    for (auto& pair: entityManager.getCityNPCs()) {
+        const auto& npc = pair.second;
         int dist = player.getPosition().chebyshev_distance_to(npc->getPosition());
         if (dist < minDist) {
             minDist = dist;
@@ -457,7 +459,8 @@ Player* World::findNearestPlayer(const Monster& monster, int range) {
     Player* nearest = nullptr;
     int minDist = range + 1;
 
-    for (auto& [id, player]: entityManager.getPlayers()) {
+    for (auto& pair: entityManager.getPlayers()) {
+        const auto& player = pair.second;
         if (player->isDead())
             continue;
 
@@ -530,11 +533,13 @@ void World::moveMonsterTowards(Monster& monster, const Position& targetPos) {
 }
 
 void World::update(float delta_time) {
-    for (auto& [id, player]: entityManager.getPlayers()) {
+    for (auto& pair: entityManager.getPlayers()) {
+        auto& player = pair.second;
         player->update(delta_time);
     }
 
-    for (auto& [id, monster]: entityManager.getMonsters()) {
+    for (auto& pair: entityManager.getMonsters()) {
+        auto& monster = pair.second;
         if (monster->isDead())
             continue;
 
@@ -843,7 +848,8 @@ void World::playerResurrect(uint32_t dbId) {
     }
 
     std::vector<Position> priestPositions;
-    for (auto& [id, npc]: entityManager.getCityNPCs()) {
+    for (auto& pair: entityManager.getCityNPCs()) {
+        auto& npc = pair.second;
         if (dynamic_cast<Priest*>(npc.get())) {
             priestPositions.push_back(npc->getPosition());
         }
@@ -990,7 +996,8 @@ std::pair<std::vector<NpcHeaderPersistData>, std::vector<std::vector<NpcStockPer
     std::vector<std::vector<NpcStockPersistData>> allStocks;
 
     // Recorremos los NPCs de la ciudad indexados por el EntityManager
-    for (const auto& [id, npc]: entityManager.getCityNPCs()) {
+    for (const auto& pair: entityManager.getCityNPCs()) {
+        const auto& npc = pair.second;
         // Intentamos castear a las clases que manejan stock dinámico
         std::unordered_map<uint32_t, int> currentStock;
         uint8_t npcType = 0;
@@ -1013,7 +1020,9 @@ std::pair<std::vector<NpcHeaderPersistData>, std::vector<std::vector<NpcStockPer
         header.stockCount = static_cast<uint32_t>(currentStock.size());
 
         std::vector<NpcStockPersistData> stockData;
-        for (const auto& [itemId, amount]: currentStock) {
+        for (const auto& stockPair: currentStock) {
+            const auto& itemId = stockPair.first;
+            const auto& amount = stockPair.second;
             stockData.push_back(NpcStockPersistData{itemId, amount});
         }
 
@@ -1038,7 +1047,8 @@ void World::restoreNpcStates(const std::vector<NpcHeaderPersistData>& headers,
         }
 
         // Buscamos cuál de los NPCs recién spawneados por el mapa coincide en posición
-        for (auto& [id, npc]: entityManager.getCityNPCs()) {
+        for (auto& pair: entityManager.getCityNPCs()) {
+            auto& npc = pair.second;
             if (npc->getPosition().x == header.posX && npc->getPosition().y == header.posY) {
                 if (header.type == 1) {
                     if (auto* merchant = dynamic_cast<Merchant*>(npc.get())) {

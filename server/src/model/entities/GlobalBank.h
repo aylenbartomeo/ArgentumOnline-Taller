@@ -114,7 +114,9 @@ public:
     // --- PERSISTENCIA ---
     BankPersistData toPersistData() const {
         BankPersistData data{};
-        for (const auto& [playerId, account]: accounts) {
+        for (const auto& pair: accounts) {
+            const auto& playerId = pair.first;
+            const auto& account = pair.second;
             std::vector<BankSlotPersistData> accountSlots;
             for (const auto& slot: account.slots) {
                 if (!slot.is_empty()) {

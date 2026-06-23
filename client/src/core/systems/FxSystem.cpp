@@ -272,7 +272,8 @@ void FxSystem::renderProjectiles(const CameraOffset& camera, uint32_t nowMs) {
         return;
     SDL2pp::Texture& defaultSheet = textures.get(defaultPath);
 
-    for (auto& [id, anim]: projAnimators) {
+    for (auto& pair: projAnimators) {
+        auto& anim = pair.second;
         anim.extrapolate(nowMs);
 
         const int px = static_cast<int>(anim.getVirtualX() * GC::TILE_SIZE) - camera.x;
