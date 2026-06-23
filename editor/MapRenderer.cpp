@@ -93,7 +93,7 @@ void MapRenderer::drawDecorationLayer(const EditorMap& map, const Camera& camera
 }
 
 void MapRenderer::drawItems(const EditorMap& map, const Camera& camera, int canvasW, int canvasH,
-                           Font& labelFont) {
+                            Font& labelFont) {
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
     const int ts = camera.getTileSize();
     for (const auto& entry: map.getItems()) {

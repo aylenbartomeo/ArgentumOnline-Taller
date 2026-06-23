@@ -1,15 +1,12 @@
 #include "RandomNumberGenerator.h"
 
+#include <optional>
 #include <random>
 #include <utility>
 
-#include <optional>
-
 static std::optional<unsigned int> global_fixed_seed;
 
-void RandomNumberGenerator::setFixedSeed(unsigned int seed) {
-    global_fixed_seed = seed;
-}
+void RandomNumberGenerator::setFixedSeed(unsigned int seed) { global_fixed_seed = seed; }
 
 static std::mt19937& get_engine() {
     thread_local bool initialized = false;

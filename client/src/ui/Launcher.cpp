@@ -44,7 +44,8 @@ Launcher::Launcher(int width, int height, bool fullscreen):
         std::cerr << "[Launcher] No se pudo cargar IP-PUERTO.png: " << IMG_GetError() << std::endl;
     }
 
-    SDL_Texture* tAuth = IMG_LoadTexture(renderer.Get(), "resources/ui/pantallas/REGISTRO-LOGIN.png");
+    SDL_Texture* tAuth =
+            IMG_LoadTexture(renderer.Get(), "resources/ui/pantallas/REGISTRO-LOGIN.png");
     if (tAuth) {
         bgAuthentication = std::make_unique<SDL2pp::Texture>(tAuth);
     } else {

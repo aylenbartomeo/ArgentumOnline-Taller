@@ -20,8 +20,8 @@ int main(int argc, char* argv[]) try {
 
     if (argc < 4) {
         std::cerr << "Uso:\n";
-        std::cerr
-                << "  Para crear: ./argentum_online_server <puerto> --create <nombre_mundo> [--map <ruta_mapa>]\n";
+        std::cerr << "  Para crear: ./argentum_online_server <puerto> --create <nombre_mundo> "
+                     "[--map <ruta_mapa>]\n";
         std::cerr << "  Para cargar: ./argentum_online_server <puerto> --load <nombre_mundo>\n";
         return EXIT_FAILURE;
     }

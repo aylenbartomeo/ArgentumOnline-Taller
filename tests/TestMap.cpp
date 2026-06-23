@@ -100,7 +100,9 @@ TEST(MapTest, Map_CorrectlyIdentifiesCitizenArea) {
 
 TEST(MapTest, Map_LoadsSpawnAndDimensionsFromJson) {
     // Arrange
-    const std::string path = std::string("/tmp/") + ::testing::UnitTest::GetInstance()->current_test_info()->name() + ".json";
+    const std::string path = std::string("/tmp/") +
+                             ::testing::UnitTest::GetInstance()->current_test_info()->name() +
+                             ".json";
     std::ofstream out(path);
     out << R"({"tileSize":16,"tileset":"x.png","tilesetCols":12,"width":25,"height":18,)"
         << R"("spawn":{"x":7,"y":9},"tiles":[]})";
@@ -123,7 +125,9 @@ TEST(MapTest, Map_LoadsSpawnAndDimensionsFromJson) {
 
 TEST(MapTest, Map_DungeonFromJsonBecomesBossZoneCenteredInArena) {
     // Arrange
-    const std::string path = std::string("/tmp/") + ::testing::UnitTest::GetInstance()->current_test_info()->name() + ".json";
+    const std::string path = std::string("/tmp/") +
+                             ::testing::UnitTest::GetInstance()->current_test_info()->name() +
+                             ".json";
     std::ofstream out(path);
     out << R"({"width":100,"height":100,"spawn":{"x":0,"y":0},)"
         << R"("dungeons":[{"x":40,"y":50,"width":14,"height":14}]})";

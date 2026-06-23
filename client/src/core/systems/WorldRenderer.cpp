@@ -119,8 +119,9 @@ void WorldRenderer::renderRoofs(const CameraOffset& camera, int playerCol, int p
             if (indoorRegions.roofHidden(col, row, playerCol, playerRow)) {
                 continue;
             }
-            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "world/decoration/" +
-                                                std::to_string(v - 1) + ".png");
+            SDL2pp::Texture& tex =
+                    textures.get(std::string(GC::RESOURCES_DIR) + "world/decoration/" +
+                                 std::to_string(v - 1) + ".png");
             TileRect r = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE,
                                       camera.x, camera.y);
             r.y += roofDropPixels(v);
@@ -144,8 +145,9 @@ void WorldRenderer::renderBuildingFronts(const CameraOffset& camera, int playerC
             if (!indoorRegions.sameRegion(col, row, playerCol, playerRow)) {
                 continue;
             }
-            SDL2pp::Texture& tex = textures.get(std::string(GC::RESOURCES_DIR) + "world/decoration/" +
-                                                std::to_string(v - 1) + ".png");
+            SDL2pp::Texture& tex =
+                    textures.get(std::string(GC::RESOURCES_DIR) + "world/decoration/" +
+                                 std::to_string(v - 1) + ".png");
             TileRect full = tileDestRect(col, row, tex.GetWidth(), tex.GetHeight(), GC::TILE_SIZE,
                                          camera.x, camera.y);
             TileRect band = bottomBandRect(full, *bandTiles, GC::TILE_SIZE);

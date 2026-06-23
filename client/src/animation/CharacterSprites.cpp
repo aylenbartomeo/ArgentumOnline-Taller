@@ -84,12 +84,33 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         36,
                                         6};
                 default:  // Fallback por defecto si viene otro ID
-                    return EntitySprite{"characters/player-body.png", true, 6, "characters/heads.png", 6,  13,
-                                        13,         15,   2, 4,         24, 44};
+                    return EntitySprite{"characters/player-body.png",
+                                        true,
+                                        6,
+                                        "characters/heads.png",
+                                        6,
+                                        13,
+                                        13,
+                                        15,
+                                        2,
+                                        4,
+                                        24,
+                                        44};
             }
         }
         case EntityType::NPC:
-            return EntitySprite{"characters/npc-body.png", true, 15, "characters/heads.png", 6, 13, 13, 15, 2, 4, 24, 44};
+            return EntitySprite{"characters/npc-body.png",
+                                true,
+                                15,
+                                "characters/heads.png",
+                                6,
+                                13,
+                                13,
+                                15,
+                                2,
+                                4,
+                                24,
+                                44};
         case EntityType::MONSTER: {
             switch (static_cast<NPCType>(entityTypeId)) {
                 case NPCType::GOBLIN: {
@@ -281,12 +302,33 @@ EntitySprite spriteForEntity(EntityType type, uint8_t entityTypeId, uint32_t ent
                                         .bodyCols = 4,
                                         .rowOrder = 1};
                 default:
-                    return EntitySprite{"characters/npc-body.png", false, 0, "characters/heads.png", 6,  13,
-                                        13,         15,    2, 4,         24, 44};
+                    return EntitySprite{"characters/npc-body.png",
+                                        false,
+                                        0,
+                                        "characters/heads.png",
+                                        6,
+                                        13,
+                                        13,
+                                        15,
+                                        2,
+                                        4,
+                                        24,
+                                        44};
             }
         }
     }
-    return EntitySprite{"characters/player-body.png", true, 6, "characters/heads.png", 6, 13, 13, 15, 2, 4, 24, 44};
+    return EntitySprite{"characters/player-body.png",
+                        true,
+                        6,
+                        "characters/heads.png",
+                        6,
+                        13,
+                        13,
+                        15,
+                        2,
+                        4,
+                        24,
+                        44};
 }
 
 FrameRect bodyFrameRectFor(const EntitySprite& sprite, Movement facing, int col) {

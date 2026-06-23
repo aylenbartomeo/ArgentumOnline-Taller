@@ -38,12 +38,8 @@ TEST(BeachPrefabTest, FoamRingCornersAreCorrect) {
 
 TEST(BeachPrefabTest, HasPalmsAndObstacles) {
     const BeachPrefab& p = getBeachPrefab();
-    bool hasPalm = false;
-    for (const BeachCell& c: p.decoration) {
-        if (c.value == 42) {
-            hasPalm = true;
-        }
-    }
+    bool hasPalm = std::any_of(p.decoration.begin(), p.decoration.end(),
+                               [](const BeachCell& c) { return c.value == 42; });
     EXPECT_TRUE(hasPalm);
     EXPECT_EQ(p.obstacles.size(), 200u);
 }
@@ -51,12 +47,8 @@ TEST(BeachPrefabTest, HasPalmsAndObstacles) {
 TEST(BeachPrefabTest, PalmCollisionIsShiftedRightOntoTrunk) {
     const BeachPrefab& p = getBeachPrefab();
     auto hasObstacle = [&](int dx, int dy) {
-        for (const BeachCell& c: p.obstacles) {
-            if (c.dx == dx && c.dy == dy) {
-                return true;
-            }
-        }
-        return false;
+        return std::any_of(p.obstacles.begin(), p.obstacles.end(),
+                           [&](const BeachCell& c) { return c.dx == dx && c.dy == dy; });
     };
     EXPECT_TRUE(hasObstacle(2, 1));
     EXPECT_FALSE(hasObstacle(0, 1));

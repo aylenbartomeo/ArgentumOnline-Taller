@@ -21,7 +21,8 @@ SDL2pp::Texture* TextureManager::tryGet(const std::string& path) {
 SDL2pp::Texture& TextureManager::get(const std::string& path) {
     SDL2pp::Texture* tex = tryGet(path);
     if (tex == nullptr) {
-        throw std::runtime_error("No pude cargar la textura: " + path + " (" + IMG_GetError() + ")");
+        throw std::runtime_error("No pude cargar la textura: " + path + " (" + IMG_GetError() +
+                                 ")");
     }
     return *tex;
 }

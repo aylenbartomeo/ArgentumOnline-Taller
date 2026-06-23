@@ -65,7 +65,9 @@ TEST_F(WorldTest, World_InitializesCorrectly) {
 
 TEST_F(WorldTest, LoadMapSpawnsEditorMonsters) {
     // Arrange
-    const std::string mapPath = std::string("/tmp/") + ::testing::UnitTest::GetInstance()->current_test_info()->name() + ".json";
+    const std::string mapPath = std::string("/tmp/") +
+                                ::testing::UnitTest::GetInstance()->current_test_info()->name() +
+                                ".json";
     {
         std::ofstream out(mapPath);
         out << R"({
