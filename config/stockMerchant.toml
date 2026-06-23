@@ -1,0 +1,47 @@
+[[stock]]
+item_id = 1000  # Armadura de cuero
+amount = 10
+
+[[stock]]
+item_id = 1001  # Armadura de placas
+amount = 10
+
+[[stock]]
+item_id = 1011  # Casco de hierro
+amount = 10
+
+[[stock]]
+item_id = 1020  # Escudo de tortuga
+amount = 10
+
+[[stock]]
+item_id = 1021  # Escudo de hierro
+amount = 10
+
+[[stock]]
+item_id = 2000  # Espada
+amount = 10
+
+[[stock]]
+item_id = 2001  # Hacha
+amount = 10
+
+[[stock]]
+item_id = 2002  # Martillo
+amount = 10
+
+[[stock]]
+item_id = 2010  # Arco simple
+amount = 10
+
+[[stock]]
+item_id = 2011  # Arco compuesto
+amount = 10
+
+[[stock]]
+item_id = 3020  # Pócima de fuerza
+amount = 25
+
+[[stock]]
+item_id = 3030  # Pócima de agilidad
+amount = 25

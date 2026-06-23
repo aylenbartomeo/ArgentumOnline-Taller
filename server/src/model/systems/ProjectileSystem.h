@@ -9,14 +9,17 @@
 
 #include "Map.h"
 
+class IHitEffect;
+
 class ProjectileSystem {
 public:
     ProjectileSystem(Map& map, EntityManager& em, CombatSystem& cs);
 
     uint32_t spawnProjectile(uint32_t ownerDbId, float startX, float startY, float targetX,
                              float targetY, uint16_t spriteId, int minDmg, int maxDmg,
-                             bool isMagical, ProjectileType type = ProjectileType::ARROW,
-                             float speed = 12.f, float maxRange = 15.f);
+                             bool isMagical, IHitEffect* hitEffect,
+                             ProjectileType type = ProjectileType::ARROW, float speed = 12.f,
+                             float maxRange = 15.f);
 
     void update(float dtMs);
     std::vector<ProjectileDTO> getProjectileDTOs() const;

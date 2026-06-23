@@ -12,6 +12,7 @@ Client::Client(const char* hostname, const char* servname):
         skt(hostname, servname),
         protocol(skt),
         snapshotQueue(),
+        joinResponseQueue(),
         commandQueue(),
         receiver(protocol, *this),
         sender(protocol, commandQueue),
@@ -25,12 +26,12 @@ bool Client::authenticate(const std::string& action, const std::string& username
 
         LoginResponseDTO response = protocol.recvLoginResponse();
         if (response.success) {
-            std::cout << "[CLIENT] Login successful. Entering the world...\n";
+            std::cout << "[CLIENTE] Ingreso exitoso. Entrando al mundo...\n";
             this->clientId = response.clientId;
             this->username = username;
             return true;
         } else {
-            std::cerr << "[CLIENT] Login error: " << response.errorMessage << "\n";
+            std::cerr << "[CLIENTE] Error de ingreso: " << response.errorMessage << "\n";
             errorMessage = response.errorMessage;
             return false;
         }
@@ -40,19 +41,19 @@ bool Client::authenticate(const std::string& action, const std::string& username
         protocol.sendRegister(dto);
         LoginResponseDTO response = protocol.recvRegisterResponse();
         if (response.success) {
-            std::cout << "[CLIENT] Registration successful. Entering the world...\n";
+            std::cout << "[CLIENTE] Registro exitoso. Entrando al mundo...\n";
             this->clientId = response.clientId;
             this->username = username;
             return true;
         } else {
-            std::cerr << "[CLIENT] Registration error: " << response.errorMessage << "\n";
+            std::cerr << "[CLIENTE] Error de registro: " << response.errorMessage << "\n";
             errorMessage = response.errorMessage;
             return false;
         }
     }
 
-    errorMessage = "Unknown action.";
-    std::cerr << "[CLIENT] Unknown action.\n";
+    errorMessage = "Acción desconocida.";
+    std::cerr << "[CLIENTE] Acción desconocida.\n";
     return false;
 }
 
@@ -60,7 +61,7 @@ void Client::start() {
     receiver.start();
     sender.start();
     wasStarted = true;
-    std::cout << "[CLIENT] Connected as " << this->username << " (id=" << this->clientId << ")"
+    std::cout << "[CLIENTE] Conectado como " << this->username << " (id=" << this->clientId << ")"
               << std::endl;
 }
 
@@ -72,6 +73,7 @@ void Client::stop() {
         skt.close();
     } catch (...) {}
     snapshotQueue.close();
+    joinResponseQueue.close();
     commandQueue.close();
     receiver.stop();
     sender.stop();
@@ -91,6 +93,12 @@ bool Client::tryPopChatMessage(ChatDTO& out) { return this->chatQueue.try_pop(ou
 void Client::pushPlayerStats(const PlayerStatsDTO& stats) { this->statsQueue.push(stats); }
 
 bool Client::tryPopPlayerStats(PlayerStatsDTO& out) { return this->statsQueue.try_pop(out); }
+
+void Client::pushJoinResponse(const JoinResponseDTO& dto) { this->joinResponseQueue.push(dto); }
+
+bool Client::tryPopJoinResponse(JoinResponseDTO& out) {
+    return this->joinResponseQueue.try_pop(out);
+}
 
 void Client::sendCommand(const CommandVariant& cmd) {
     try {

@@ -11,13 +11,28 @@ target_sources(argentum_online_tests
     TestServerArchitecture.cpp
     TestMap.cpp
     TestWorld.cpp
-    TestGameLoop.cpp
+    TestConstantRateLoop.cpp
     TestAuthManager.cpp
     TestEquipmentComponent.cpp
     TestInventoryComponent.cpp
     TestStatsComponent.cpp
     TestRegenerationComponent.cpp
     TestTileMap.cpp
+    TestTileDraw.cpp
+    TestIndoorRegions.cpp
+    TestBuildingFronts.cpp
+    TestTallFlora.cpp
+    TestCityPrefab.cpp
+    TestDungeonPrefab.cpp
+    TestForestPrefab.cpp
+    TestDesertPrefab.cpp
+    TestBeachPrefab.cpp
+    TestCityStamp.cpp
+    TestDungeonStamp.cpp
+    TestForestStamp.cpp
+    TestDesertStamp.cpp
+    TestBeachStamp.cpp
+    TestBlockBrush.cpp
     TestMerchant.cpp
     TestPriest.cpp
     TestGlobalBank.cpp
@@ -27,7 +42,7 @@ target_sources(argentum_online_tests
     TestNPCLayer.cpp
     TestPlayer.cpp
     TestConsumable.cpp
-    TestSpawnSystem.cpp
+    TestZoneSpawnSystem.cpp
     TestEntityManager.cpp
     TestResurrectionService.cpp
     TestInteractionService.cpp
@@ -45,12 +60,19 @@ target_sources(argentum_online_tests
     TestHudLayout.cpp
     TestItemIcons.cpp
     TestEditorMap.cpp
+    TestSmartEraser.cpp
+    TestGoldPrompt.cpp
+    TestCatalogSprites.cpp
     TestCamera.cpp
     TestPalette.cpp
-    TestToolbar.cpp
+    TestEditorLayout.cpp
+    TestMapChooser.cpp
     TestSpawnCatalogs.cpp
     TestPersistence.cpp
-    TestEntityCollision.cpp
+    TestCombatSystem.cpp
+    TestHelpers.cpp
+    PUBLIC
+    TestHelpers.h
 )
 
 # Solo incluimos directorios ajenos al servidor (los del server ya los provee lib_server por herencia)

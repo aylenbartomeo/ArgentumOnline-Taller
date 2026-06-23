@@ -105,6 +105,9 @@ void Protocol::sendSnapshot(const SnapshotDTO& snap) {
         sendUint16(entity.helmetItemId);
         sendUint16(entity.shieldItemId);
         sendUint16(entity.bodyArmorItemId);
+        sendUint16(entity.level);
+        sendUint8(entity.stateId);  // ID de estado del jugador (vivo, fantasma, meditando)
+        sendString(entity.name);
     }
 
     sendUint16(static_cast<uint16_t>(snap.monsters.size()));
@@ -121,6 +124,7 @@ void Protocol::sendSnapshot(const SnapshotDTO& snap) {
         sendUint16(entity.helmetItemId);
         sendUint16(entity.shieldItemId);
         sendUint16(entity.bodyArmorItemId);
+        sendUint16(entity.level);
     }
 
     sendUint16(static_cast<uint16_t>(snap.groundItems.size()));
@@ -155,12 +159,18 @@ void Protocol::sendPlayerStats(const PlayerStatsDTO& stats) {
     sendUint32(stats.expIntoLevel);
     sendUint32(stats.expForLevel);
 
+    sendUint8(static_cast<uint8_t>(stats.race));
+    sendUint8(static_cast<uint8_t>(stats.characterClass));
+    sendUint32(stats.agilityBuffTimeLeftMs);
+    sendUint32(stats.strengthBuffTimeLeftMs);
+
     sendUint16(static_cast<uint16_t>(stats.inventory.size()));
     for (const auto& item: stats.inventory) {
         sendUint8(item.slot);
         sendUint32(item.itemId);
         sendUint16(item.amount);
         sendUint8(item.isEquipped ? 1 : 0);
+        sendString(item.description);
     }
 }
 
@@ -220,6 +230,53 @@ LoginResponseDTO Protocol::recvRegisterResponse() {
     }
 }
 
+void Protocol::sendJoinResponse(const JoinResponseDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::JOIN_RESPONSE));
+    sendUint8(dto.needsCreation ? 1 : 0);
+
+    if (dto.needsCreation) {
+        sendUint32(dto.baseStrength);
+        sendUint32(dto.baseAgility);
+        sendUint32(dto.baseIntelligence);
+        sendUint32(dto.baseConstitution);
+
+        sendUint16(static_cast<uint16_t>(dto.raceFactors.size()));
+        for (float f: dto.raceFactors) {
+            sendFloat(f);
+        }
+
+        sendUint16(static_cast<uint16_t>(dto.classFactors.size()));
+        for (float f: dto.classFactors) {
+            sendFloat(f);
+        }
+    }
+}
+
+JoinResponseDTO Protocol::receiveJoinResponseBody() {
+
+    JoinResponseDTO dto;
+    dto.needsCreation = (recvUint8() == 1);
+
+    if (dto.needsCreation) {
+        dto.baseStrength = recvUint32();
+        dto.baseAgility = recvUint32();
+        dto.baseIntelligence = recvUint32();
+        dto.baseConstitution = recvUint32();
+
+        uint16_t raceFactorsSize = recvUint16();
+        for (uint16_t i = 0; i < raceFactorsSize; ++i) {
+            dto.raceFactors.push_back(recvFloat());
+        }
+
+        uint16_t classFactorsSize = recvUint16();
+        for (uint16_t i = 0; i < classFactorsSize; ++i) {
+            dto.classFactors.push_back(recvFloat());
+        }
+    }
+
+    return dto;
+}
+
 SnapshotDTO Protocol::receiveSnapshotBody() {
     SnapshotDTO snap;
 
@@ -238,6 +295,9 @@ SnapshotDTO Protocol::receiveSnapshotBody() {
         entity.helmetItemId = recvUint16();
         entity.shieldItemId = recvUint16();
         entity.bodyArmorItemId = recvUint16();
+        entity.level = recvUint16();
+        entity.stateId = recvUint8();  // ID de estado del jugador (vivo, fantasma, meditando)
+        entity.name = recvString();
         snap.players.push_back(entity);
     }
 
@@ -256,6 +316,7 @@ SnapshotDTO Protocol::receiveSnapshotBody() {
         entity.helmetItemId = recvUint16();
         entity.shieldItemId = recvUint16();
         entity.bodyArmorItemId = recvUint16();
+        entity.level = recvUint16();
         snap.monsters.push_back(entity);
     }
 
@@ -296,6 +357,11 @@ PlayerStatsDTO Protocol::receivePlayerStatsBody() {
     stats.expIntoLevel = recvUint32();
     stats.expForLevel = recvUint32();
 
+    stats.race = static_cast<Race>(recvUint8());
+    stats.characterClass = static_cast<CharacterClass>(recvUint8());
+    stats.agilityBuffTimeLeftMs = recvUint32();
+    stats.strengthBuffTimeLeftMs = recvUint32();
+
     uint16_t items_count = recvUint16();
     for (uint16_t i = 0; i < items_count; ++i) {
         InventorySlotDTO item;
@@ -303,6 +369,7 @@ PlayerStatsDTO Protocol::receivePlayerStatsBody() {
         item.itemId = recvUint32();
         item.amount = recvUint16();
         item.isEquipped = (recvUint8() == 1);
+        item.description = recvString();
         stats.inventory.push_back(item);
     }
 
@@ -332,6 +399,11 @@ void Protocol::sendStartMove(const StartMoveDTO& dto) {
 
 void Protocol::sendAttack(uint32_t targetId) {
     sendUint8(static_cast<uint8_t>(OPCODE::ATTACK));
+    sendUint32(targetId);
+}
+
+void Protocol::sendSelectNpc(uint32_t targetId) {
+    sendUint8(static_cast<uint8_t>(OPCODE::SELECT_NPC));
     sendUint32(targetId);
 }
 
@@ -392,12 +464,14 @@ void Protocol::sendNpcCommand(const NpcCommandDTO& dto) {
     sendUint8(static_cast<uint8_t>(OPCODE::NPC_CMD));
     sendUint8(static_cast<uint8_t>(dto.type));
     sendString(dto.arg);
+    sendUint32(dto.npcId);
 }
 
 NpcCommandDTO Protocol::receiveNpcCommandBody() {
     NpcCommandDTO dto;
     dto.type = static_cast<NpcCommandType>(recvUint8());
     dto.arg = recvString();
+    dto.npcId = recvUint32();
     return dto;
 }
 
@@ -434,6 +508,12 @@ void Protocol::sendShoot(const ShootDTO& dto) {
     sendFloat(dto.targetY);
 }
 
+void Protocol::sendCreateCharacter(const CreateCharacterDTO& dto) {
+    sendUint8(static_cast<uint8_t>(OPCODE::CREATE_CHARACTER));
+    sendUint8(dto.race);
+    sendUint8(dto.characterClass);
+}
+
 // =======================================================
 // CAPA SEMÁNTICA (RECEPCIÓN DEL SERVIDOR)
 // =======================================================
@@ -464,9 +544,12 @@ CommandVariant Protocol::receive_command() {
             return StopMoveDTO{};
         }
         case OPCODE::ATTACK: {
-            AttackDTO dto;
-            dto.targetId = recvUint32();
-            return dto;
+            uint32_t targetId = recvUint32();
+            return AttackDTO{targetId};
+        }
+        case OPCODE::SELECT_NPC: {
+            uint32_t targetId = recvUint32();
+            return SelectNpcDTO{targetId};
         }
         case OPCODE::DROP_ITEM: {
             DropItemDTO dto;
@@ -518,6 +601,12 @@ CommandVariant Protocol::receive_command() {
             ShootDTO dto;
             dto.targetX = recvFloat();
             dto.targetY = recvFloat();
+            return dto;
+        }
+        case OPCODE::CREATE_CHARACTER: {
+            CreateCharacterDTO dto;
+            dto.race = recvUint8();
+            dto.characterClass = recvUint8();
             return dto;
         }
         default:

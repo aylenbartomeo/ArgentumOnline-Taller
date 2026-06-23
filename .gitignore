@@ -5,4 +5,5 @@ tags.*
 auth_data/
 game_data/
 worlds/
-maps/
+maps/*
+!maps/defaultMap.json

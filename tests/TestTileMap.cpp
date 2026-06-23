@@ -49,7 +49,7 @@ TEST(TileMapTest, ThrowsWhenTilesDoNotMatchDimensions) {
 TEST(TileMapTest, ParsesSafeZones) {
     std::string json = R"({
         "tileSize": 32,
-        "tileset": "5108.png",
+        "tileset": "world/tileset.png",
         "tilesetCols": 32,
         "width": 2,
         "height": 2,
@@ -73,7 +73,7 @@ TEST(TileMapTest, ParsesSafeZones) {
 TEST(TileMapTest, NoSafeZonesWhenAbsent) {
     std::string json = R"({
         "tileSize": 32,
-        "tileset": "5108.png",
+        "tileset": "world/tileset.png",
         "tilesetCols": 32,
         "width": 1,
         "height": 1,
@@ -86,7 +86,7 @@ TEST(TileMapTest, NoSafeZonesWhenAbsent) {
 TEST(TileMapTest, ParsesCitizens) {
     std::string json = R"({
         "tileSize": 32,
-        "tileset": "5108.png",
+        "tileset": "world/tileset.png",
         "tilesetCols": 32,
         "width": 2,
         "height": 2,
@@ -107,7 +107,7 @@ TEST(TileMapTest, ParsesCitizens) {
 TEST(TileMapTest, NoCitizensWhenAbsent) {
     std::string json = R"({
         "tileSize": 32,
-        "tileset": "5108.png",
+        "tileset": "world/tileset.png",
         "tilesetCols": 32,
         "width": 1,
         "height": 1,
@@ -115,4 +115,64 @@ TEST(TileMapTest, NoCitizensWhenAbsent) {
     })";
     TileMap map(json);
     EXPECT_TRUE(map.getCitizens().empty());
+}
+
+TEST(TileMapTest, ParsesTerrainLayer) {
+    std::string json = R"({
+        "tileSize": 32, "tileset": "world/tileset.png", "tilesetCols": 32,
+        "width": 2, "height": 2,
+        "tiles": [[0, 0], [0, 0]],
+        "terrain": [[0, 1], [2, 3]]
+    })";
+
+    TileMap map(json);
+
+    EXPECT_EQ(map.terrainAt(0, 0), 0);
+    EXPECT_EQ(map.terrainAt(1, 0), 1);
+    EXPECT_EQ(map.terrainAt(0, 1), 2);
+    EXPECT_EQ(map.terrainAt(1, 1), 3);
+}
+
+TEST(TileMapTest, DefaultsTerrainToGrassWhenAbsent) {
+    std::string json = R"({
+        "tileSize": 32, "tileset": "world/tileset.png", "tilesetCols": 32,
+        "width": 2, "height": 2,
+        "tiles": [[0, 0], [0, 0]]
+    })";
+
+    TileMap map(json);
+
+    EXPECT_EQ(map.terrainAt(0, 0), 0);
+    EXPECT_EQ(map.terrainAt(1, 1), 0);
+}
+
+TEST(TileMapTest, ParsesLayerGrids) {
+    std::string json = R"({
+        "tileSize": 32, "tileset": "x.png", "tilesetCols": 32,
+        "width": 2, "height": 2,
+        "tiles": [[0, 0], [0, 0]],
+        "ground": [[1, 2], [3, 4]],
+        "decoration": [[0, 5], [0, 0]],
+        "indoor": [[0, 1], [0, 0]]
+    })";
+
+    TileMap map(json);
+
+    EXPECT_EQ(map.getGround()[0][0], 1);
+    EXPECT_EQ(map.getGround()[1][1], 4);
+    EXPECT_EQ(map.getDecoration()[0][1], 5);
+    EXPECT_EQ(map.getIndoor()[0][1], 1);
+}
+
+TEST(TileMapTest, LayersDefaultToEmpty) {
+    std::string json = R"({
+        "tileSize": 32, "tileset": "x.png", "tilesetCols": 32,
+        "width": 2, "height": 2,
+        "tiles": [[0, 0], [0, 0]]
+    })";
+
+    TileMap map(json);
+
+    EXPECT_EQ(map.getGround()[1][1], 0);
+    EXPECT_EQ(map.getRoofs()[0][0], 0);
 }

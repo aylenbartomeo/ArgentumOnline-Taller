@@ -87,12 +87,12 @@ public:
     uint16_t getLevel() const { return level; }
 
     uint32_t getExpIntoCurrentLevel() const {
-        uint32_t prev = level > 1 ? formulaEngine.calculate_level_up_limit(level - 1) : 0;
+        uint32_t prev = level > 1 ? formulaEngine.calculateLevelUpLimit(level - 1) : 0;
         return exp > prev ? exp - prev : 0;
     }
     uint32_t getExpForCurrentLevel() const {
-        uint32_t prev = level > 1 ? formulaEngine.calculate_level_up_limit(level - 1) : 0;
-        return formulaEngine.calculate_level_up_limit(level) - prev;
+        uint32_t prev = level > 1 ? formulaEngine.calculateLevelUpLimit(level - 1) : 0;
+        return formulaEngine.calculateLevelUpLimit(level) - prev;
     }
 
     // -- Modificadores de atributos --
@@ -104,7 +104,7 @@ public:
     void restoreHp();
     bool consumeMana(uint16_t amount);
     void recoverMana(uint16_t amount);
-
+    void loseExperienceUponDeath();
     Race getRace() const { return race; }
     CharacterClass getCharacterClass() const { return characterClass; }
 
@@ -144,5 +144,19 @@ public:
                 ++it;
             }
         }
+    }
+
+    uint32_t getAgilityBoostTimeLeft() const {
+        auto it =
+                std::find_if(activeBoosts.begin(), activeBoosts.end(),
+                             [](const TemporaryBoost& b) { return b.type == BoostType::AGILITY; });
+        return it != activeBoosts.end() ? it->timeLeftMs : 0;
+    }
+
+    uint32_t getStrengthBoostTimeLeft() const {
+        auto it =
+                std::find_if(activeBoosts.begin(), activeBoosts.end(),
+                             [](const TemporaryBoost& b) { return b.type == BoostType::STRENGTH; });
+        return it != activeBoosts.end() ? it->timeLeftMs : 0;
     }
 };

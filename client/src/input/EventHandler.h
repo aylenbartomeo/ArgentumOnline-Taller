@@ -9,6 +9,7 @@
 struct FrameInput {
     // --- Movimiento ---
     bool quit = false;
+    bool escPressed = false;
     bool moveNorth = false;
     bool moveSouth = false;
     bool moveEast = false;
@@ -35,18 +36,28 @@ struct FrameInput {
     bool equipPressed = false;
     int equipX = 0;
     int equipY = 0;
+    bool consumeKeyPressed = false;
+    bool grabKeyPressed = false;
+    bool dropKeyPressed = false;
+    bool meditateKeyPressed = false;
 
     // --- Cheats ---
     bool cheatLevelUp = false;
     bool cheatDie = false;
     bool cheatGiveRanged = false;
     bool cheatInfiniteMana = false;
+    bool cheatInfiniteHealth = false;
     bool cheatGiveGold = false;
+    bool cheatGiveArmors = false;
+    bool cheatGivePotions = false;
 
     // --- Shoot ---
     bool shootPressed = false;
     int shootScreenX = 0;
     int shootScreenY = 0;
+
+    // --- In game ---
+    bool toggleMute = false;
 };
 
 class EventHandler {
@@ -70,7 +81,13 @@ public:
     ~EventHandler() = default;
 
     FrameInput pollEvents();
-
+    void clearInputState() {
+        quitRequested = false;
+        pressedKeys.clear();
+        justPressedKeys.clear();
+        justPressedScancodes.clear();
+        mouseLeftHeld = false;
+    }
     /* No permito copias */
     EventHandler(const EventHandler&) = delete;
     EventHandler& operator=(const EventHandler&) = delete;

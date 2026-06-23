@@ -14,15 +14,12 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race r
         dbId(dbId),
         name(name),
         pos(spawn),
-        // Stats ahora solo maneja combate (sin max_gold)
         stats(race, cls, raceConfig, classConfig, playerBase),
-        // Inventario ahora absorbe la economía: 20 slots, 5000 seguro, 100000 tope máximo
         inventory(inventoryConfig),
         equipment(),
         state(),
         regeneration(stats, state, raceConfig, classConfig),
         itemRegistry(&itemRegistry) {
-    // Restauramos el oro inicial que arregló el test
     this->addGold(playerBase.startingGold);
 }
 
@@ -49,27 +46,27 @@ Player::Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race r
 
 // Eliminado: equipItemById
 
-bool Player::equipFromSlot(uint8_t slotIndex) {
+Player::EquipResult Player::equipFromSlot(uint8_t slotIndex) {
     onActionStarted();
 
     // 1. Si el slot ya está equipado, el jugador quiere desequiparlo (doble clic)
     if (equipment.isSlotEquipped(slotIndex)) {
         equipment.unequipSlot(slotIndex);
-        return true;
+        return EquipResult::UNEQUIPPED;
     }
 
     // 2. Si no estaba equipado, intentamos equiparlo
     auto slotOpt = inventory.inspectSlot(slotIndex);
     if (!slotOpt)
-        return false;
+        return EquipResult::FAILED;
 
     uint32_t itemId = slotOpt->item_id;
     if (!itemRegistry)
-        return false;
+        return EquipResult::FAILED;
 
     const Item* item = itemRegistry->get_item(static_cast<int>(itemId));
     if (!item || !item->is_wearable())
-        return false;
+        return EquipResult::FAILED;
 
     // si es un arma y ya hay otra equipada en un slot distinto, desequiparla primero
     const Weapon* asWeapon = dynamic_cast<const Weapon*>(item);
@@ -80,7 +77,7 @@ bool Player::equipFromSlot(uint8_t slotIndex) {
     // Equipamos el ítem pero NO lo sacamos del inventario
     equipment.equipItem(item, slotIndex);
 
-    return true;
+    return EquipResult::EQUIPPED;
 }
 
 void Player::update(float dtMs) {
@@ -88,9 +85,7 @@ void Player::update(float dtMs) {
         stats.clearBoosts();  // Regla AO: al morir se pierden los elixires
         currentAction = 0;
         actionTimerMs = 0.0f;
-        return;
-    }
-    if (actionTimerMs > 0.0f) {
+    } else if (actionTimerMs > 0.0f) {
         actionTimerMs -= dtMs;
         if (actionTimerMs <= 0.0f) {
             currentAction = 0;
@@ -98,7 +93,8 @@ void Player::update(float dtMs) {
         }
     }
     stats.updateTicks(dtMs);
-    regeneration.tick(dtMs / 1000.0f);  // tick espera segundos, dtMs viene en ms
+    this->updateResurrectionTimer(dtMs);
+    regeneration.tick(dtMs / 1000.0f);
 }
 
 bool Player::canEngageInCombatWith(const Attackable& other) const {
@@ -108,14 +104,14 @@ bool Player::canEngageInCombatWith(const Attackable& other) const {
     }
 
     // Regla 1: newbie no puede atacar ni ser atacado por jugadores
-    if (FormulaEngine::getInstance().is_newbie(this->stats.getLevel()) ||
-        FormulaEngine::getInstance().is_newbie(otherPlayer->stats.getLevel())) {
+    if (FormulaEngine::getInstance().isNewbie(this->stats.getLevel()) ||
+        FormulaEngine::getInstance().isNewbie(otherPlayer->stats.getLevel())) {
         return false;
     }
 
     // Regla 2: diferencia de nivel máxima de 10
-    if (!FormulaEngine::getInstance().is_pvp_level_valid(this->stats.getLevel(),
-                                                         otherPlayer->stats.getLevel())) {
+    if (!FormulaEngine::getInstance().isPvpLevelValid(this->stats.getLevel(),
+                                                      otherPlayer->stats.getLevel())) {
         return false;
     }
     return true;
@@ -124,6 +120,7 @@ bool Player::canEngageInCombatWith(const Attackable& other) const {
 void Player::handleDeath() {
     state.die();
     stats.takeDamage(stats.getHp());
+    stats.loseExperienceUponDeath();
 }
 
 void Player::resurrect() {
@@ -142,7 +139,11 @@ PlayerStatsDTO Player::getStatsDTO() const {
     dto.level = stats.getLevel();
     dto.expIntoLevel = stats.getExpIntoCurrentLevel();
     dto.expForLevel = stats.getExpForCurrentLevel();
-    dto.inventory = inventory.getInventoryDTO(equipment);
+    dto.race = stats.getRace();
+    dto.characterClass = stats.getCharacterClass();
+    dto.agilityBuffTimeLeftMs = stats.getAgilityBoostTimeLeft();
+    dto.strengthBuffTimeLeftMs = stats.getStrengthBoostTimeLeft();
+    dto.inventory = inventory.getInventoryDTO(equipment, itemRegistry);
     return dto;
 }
 
@@ -150,13 +151,15 @@ EntityDTO Player::toEntityDTO() const {
     EntityDTO dto;
     dto.id = dbId;
     dto.type = EntityType::PLAYER;
+    dto.name = this->name;
     dto.x = pos.x;
     dto.y = pos.y;
     dto.current_hp = stats.getHp();
     dto.max_hp = stats.getMaxHp();
     dto.entityTypeId = static_cast<uint8_t>(stats.getRace());
     dto.action = currentAction;
-
+    dto.level = stats.getLevel();
+    dto.stateId = state.isGhost() ? 1 : 0;
     // Equipamiento visual
     const Weapon* w = equipment.getWeapon();
     dto.weaponItemId = w ? static_cast<uint16_t>(w->getId()) : 0;
@@ -211,10 +214,17 @@ uint32_t Player::dropExcessGold() { return this->inventory.dropExcessGold(); }
 void Player::onActionStarted() { state.stopMeditating(); }
 
 void Player::receiveDamage(int amount) {
+    if (isDead())
+        return;
     onActionStarted();
     if (amount < 0)
         return;
+    if (infiniteHealth)
+        return;
     stats.takeDamage(static_cast<uint16_t>(amount));
+    if (stats.getHp() == 0) {
+        handleDeath();
+    }
 }
 
 Position Player::tryMove(Movement direction) const {
@@ -242,7 +252,21 @@ void Player::applyBoost(BoostType type, uint8_t value, uint32_t durationMs) {
     stats.addBoost(type, value, durationMs);
 }
 
-// Exporta el estado completo del jugador a un struct de persistencia binaria
+void Player::immobilizeForResurrection(float durationMs) {
+    this->resurrectionImmobilizedTimeMs = durationMs;
+}
+
+bool Player::isImmobilized() const { return this->resurrectionImmobilizedTimeMs > 0.0f; }
+
+void Player::updateResurrectionTimer(float deltaTimeMs) {
+    if (this->resurrectionImmobilizedTimeMs > 0.0f) {
+        this->resurrectionImmobilizedTimeMs -= deltaTimeMs;
+        if (this->resurrectionImmobilizedTimeMs < 0.0f) {
+            this->resurrectionImmobilizedTimeMs = 0.0f;
+        }
+    }
+}
+
 PlayerPersistData Player::toPersistData() const {
     PlayerPersistData d{};
     d.dbId = this->dbId;
@@ -268,7 +292,7 @@ PlayerPersistData Player::toPersistData() const {
 
     // Inventario
     const auto& slots = inventory.getSlots();
-    d.inventorySize = static_cast<uint8_t>(std::min(slots.size(), size_t(16)));
+    d.inventorySize = static_cast<uint8_t>(std::min(slots.size(), size_t(32)));
     for (uint8_t i = 0; i < d.inventorySize; ++i) {
         d.inventory[i].item_id = slots[i].item_id;
         d.inventory[i].amount = slots[i].amount;
@@ -284,13 +308,11 @@ PlayerPersistData Player::toPersistData() const {
     return d;
 }
 
-// Restaura el estado del jugador desde un struct de persistencia binaria
 void Player::fromPersistData(const PlayerPersistData& data) {
-    // Restaurar stats usando el método dedicado de StatsComponent
     stats.restoreFromPersist(data.hp, data.mana, data.exp, data.level);
+    inventory.setGold(data.gold);
 
-    // Inventario
-    uint8_t slots = std::min<uint8_t>(data.inventorySize, 16);
+    uint8_t slots = std::min<uint8_t>(data.inventorySize, 32);
     for (uint8_t i = 0; i < slots; ++i) {
         inventory.restoreSlot(i, data.inventory[i].item_id, data.inventory[i].amount);
     }
@@ -301,7 +323,6 @@ void Player::fromPersistData(const PlayerPersistData& data) {
         }
     }
 
-    // Estado
     if (data.stateId == 1)
         handleDeath();
     else if (data.stateId == 2)

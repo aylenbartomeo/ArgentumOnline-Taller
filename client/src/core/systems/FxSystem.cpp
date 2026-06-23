@@ -16,7 +16,7 @@ namespace GC = GameConstants;
 
 // Constantes privadas (Solo le importan al FxSystem)
 namespace {
-constexpr const char* FX_SHEET = "19052.png";
+constexpr const char* FX_SHEET = "fx/impact/dash-imp.png";
 constexpr int FX_FRAME_W = 64;
 constexpr int FX_FRAME_H = 96;
 constexpr int FX_COLS = 8;
@@ -25,7 +25,7 @@ constexpr uint32_t FX_FRAME_DUR_MS = 50;
 constexpr int FX_DRAW_W = GC::TILE_SIZE * 3 / 2;
 constexpr int FX_DRAW_H = FX_DRAW_W * FX_FRAME_H / FX_FRAME_W;
 
-constexpr const char* SWORD_FX_SHEET = "2101.png";
+constexpr const char* SWORD_FX_SHEET = "fx/impact/sword-imp.png";
 constexpr int SWORD_FRAME_W = 32;
 constexpr int SWORD_FRAME_H = 32;
 constexpr int SWORD_FRAME_COLS = 5;
@@ -34,13 +34,13 @@ constexpr uint32_t SWORD_FRAME_DUR_MS = 40;
 constexpr int SWORD_DRAW_W = GC::TILE_SIZE * 2;
 constexpr int SWORD_DRAW_H = GC::TILE_SIZE * 2;
 
-constexpr const char* PROJ_SHEET = "projectiles.png";
+constexpr const char* PROJ_SHEET = "fx/projectile/default-proj.png";
 constexpr int PROJ_DRAW_W = 64;
 constexpr int PROJ_DRAW_H = 64;
 constexpr int PROJ_FRAME_COLS = 8;
 constexpr int PROJ_FRAME_SIZE = 64;
 
-constexpr const char* ARROW_SHEET = "2046.png";
+constexpr const char* ARROW_SHEET = "fx/projectile/arrow-proj.png";
 constexpr int ARROW_FRAME_COLS = 2;
 constexpr int ARROW_FRAME_W = 32;
 constexpr int ARROW_FRAME_H = 32;
@@ -50,7 +50,7 @@ constexpr int ARROW_DRAW_W = 48;
 constexpr int ARROW_DRAW_H = 48;
 constexpr uint16_t ARROW_SPRITE_ID = 200;
 
-constexpr const char* STAFF_PROJ_SHEET = "3492.png";
+constexpr const char* STAFF_PROJ_SHEET = "fx/projectile/baculo-engarzado-proj.png";
 constexpr int STAFF_PROJ_FRAME_W = 128;
 constexpr int STAFF_PROJ_FRAME_H = 128;
 constexpr int STAFF_PROJ_COLS = 4;
@@ -59,47 +59,63 @@ constexpr uint32_t STAFF_PROJ_DUR_MS = 60;
 constexpr int STAFF_PROJ_DRAW = GC::TILE_SIZE * 2;
 constexpr uint16_t STAFF_SPRITE_ID = 203;
 
-constexpr const char* EXPL_SHEET = "3471.png";
-constexpr int EXPL_FRAME_W = 204;
-constexpr int EXPL_FRAME_H = 204;
+constexpr const char* EXPL_SHEET = "fx/impact/baculo-engarzado-imp.png";
+constexpr int EXPL_FRAME_W = 192;
+constexpr int EXPL_FRAME_H = 192;
 constexpr int EXPL_COLS = 5;
-constexpr int EXPL_FRAMES = 22;
+constexpr int EXPL_FRAMES = 23;
 constexpr uint32_t EXPL_DUR_MS = 55;
 constexpr int EXPL_DRAW = GC::TILE_SIZE * 4;
 
-constexpr const char* NUDOSO_PROJ_SHEET = "3483.png";
-constexpr int NUDOSO_PROJ_FRAME_W = 102;
-constexpr int NUDOSO_PROJ_FRAME_H = 102;
+constexpr const char* NUDOSO_PROJ_SHEET = "fx/projectile/baculo-nudoso-proj.png";
+constexpr int NUDOSO_PROJ_FRAME_W = 144;
+constexpr int NUDOSO_PROJ_FRAME_H = 144;
 constexpr int NUDOSO_PROJ_COLS = 5;
-constexpr int NUDOSO_PROJ_FRAMES = 19;
+constexpr int NUDOSO_PROJ_FRAMES = 20;
 constexpr uint32_t NUDOSO_PROJ_DUR_MS = 60;
 constexpr int NUDOSO_PROJ_DRAW = GC::TILE_SIZE * 2;
 constexpr uint16_t NUDOSO_SPRITE_ID = 202;
 
-constexpr const char* NUDOSO_IMPACT_SHEET = "3534.png";
-constexpr int NUDOSO_IMPACT_FRAME_W = 204;
-constexpr int NUDOSO_IMPACT_FRAME_H = 204;
+constexpr const char* NUDOSO_IMPACT_SHEET = "fx/impact/baculo-nudoso-imp.png";
+constexpr int NUDOSO_IMPACT_FRAME_W = 192;
+constexpr int NUDOSO_IMPACT_FRAME_H = 192;
 constexpr int NUDOSO_IMPACT_COLS = 5;
-constexpr int NUDOSO_IMPACT_FRAMES = 25;
+constexpr int NUDOSO_IMPACT_FRAMES = 30;
 constexpr uint32_t NUDOSO_IMPACT_DUR_MS = 40;
 constexpr int NUDOSO_IMPACT_DRAW = GC::TILE_SIZE * 3;
 
-constexpr const char* FRESNO_IMPACT_SHEET = "3490.png";
-constexpr int FRESNO_IMPACT_FRAME_W = 128;
-constexpr int FRESNO_IMPACT_FRAME_H = 128;
-constexpr int FRESNO_IMPACT_COLS = 4;
-constexpr int FRESNO_IMPACT_FRAMES = 28;
+constexpr const char* FRESNO_IMPACT_SHEET = "fx/impact/vara-fresno-imp.png";
+constexpr int FRESNO_IMPACT_FRAME_W = 192;
+constexpr int FRESNO_IMPACT_FRAME_H = 192;
+constexpr int FRESNO_IMPACT_COLS = 5;
+constexpr int FRESNO_IMPACT_FRAMES = 39;
 constexpr uint32_t FRESNO_IMPACT_DUR_MS = 35;
 constexpr int FRESNO_IMPACT_DRAW = GC::TILE_SIZE * 3;
 constexpr uint16_t VARA_SPRITE_ID = 201;
 
-constexpr const char* FLAUTA_HEAL_SHEET = "3456.png";
+constexpr const char* FLAUTA_HEAL_SHEET = "fx/impact/flauta-elfica-imp.png";
 constexpr int FLAUTA_HEAL_FRAME_W = 32;
 constexpr int FLAUTA_HEAL_FRAME_H = 32;
 constexpr int FLAUTA_HEAL_COLS = 5;
 constexpr int FLAUTA_HEAL_FRAMES = 5;
 constexpr uint32_t FLAUTA_HEAL_DUR_MS = 60;
 constexpr int FLAUTA_HEAL_DRAW = GC::TILE_SIZE * 2;
+constexpr uint16_t HEAL_SPRITE_ID = 204;
+
+constexpr const char* FLAUTA_PROJ_SHEET = "fx/projectile/vara-fresno-proj.png";
+constexpr int FLAUTA_PROJ_FRAME_W = 128;
+constexpr int FLAUTA_PROJ_FRAME_H = 128;
+constexpr int FLAUTA_PROJ_COLS = 4;
+constexpr int FLAUTA_PROJ_FRAMES = 16;
+constexpr uint32_t FLAUTA_PROJ_DUR_MS = 60;
+constexpr int FLAUTA_PROJ_DRAW = GC::TILE_SIZE * 2;
+
+
+constexpr int BE_ATTACKED_FRAMES = 28;
+constexpr uint32_t BE_ATTACKED_FRAME_DUR_MS = 40;
+
+constexpr int BE_HEALED_FRAMES = 19;
+constexpr uint32_t BE_HEALED_FRAME_DUR_MS = 40;
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -139,14 +155,19 @@ FxSystem::FxSystem(TextureManager& textures, SDL2pp::Renderer& renderer):
         textures(textures), renderer(renderer) {}
 
 void FxSystem::triggerOnEntity(uint32_t targetId, uint32_t nowMs, FxType type) {
-    activeFx = ActiveFx{targetId, nowMs, 0, 0, type};
+    if (type == FxType::BE_ATTACKED || type == FxType::BE_HEALED)
+        fullscreenFx = ActiveFx{0, nowMs, 0, 0, type};
+    else
+        activeFx = ActiveFx{targetId, nowMs, 0, 0, type};
 }
 
 void FxSystem::triggerAtPixel(int px, int py, uint32_t nowMs, FxType type) {
     activeFx = ActiveFx{0, nowMs, px, py, type};
 }
 
-void FxSystem::syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapshot) {
+bool FxSystem::syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapshot) {
+    bool impactOccurred = false;
+
     for (const ProjectileDTO& dto: snapshot.projectiles) {
         projAnimators[dto.id].update(dto, nowMs);
     }
@@ -166,13 +187,18 @@ void FxSystem::syncProjectileAnimators(uint32_t nowMs, const SnapshotDTO& snapsh
                 impactType = FxType::NUDOSO_IMPACT;
             else if (it->second.getSpriteId() == VARA_SPRITE_ID)
                 impactType = FxType::FRESNO_IMPACT;
+            else if (it->second.getSpriteId() == HEAL_SPRITE_ID)
+                impactType = FxType::FLAUTA_HEAL;
 
             activeFx = ActiveFx{0, SDL_GetTicks(), px, py, impactType};
             it = projAnimators.erase(it);
+
+            impactOccurred = true;
         } else {
             ++it;
         }
     }
+    return impactOccurred;
 }
 
 void FxSystem::render(const CameraOffset& camera, const SnapshotDTO& snapshot,
@@ -270,6 +296,19 @@ void FxSystem::renderProjectiles(const CameraOffset& camera, uint32_t nowMs) {
             renderer.Copy(arrowSheet, SDL2pp::Rect(srcX, ARROW_SRC_Y, ARROW_FRAME_W, ARROW_FRAME_H),
                           dst, angle, SDL2pp::NullOpt, SDL_FLIP_NONE);
 
+        } else if (spriteId == HEAL_SPRITE_ID) {
+            const std::string p = std::string(GC::RESOURCES_DIR) + FLAUTA_PROJ_SHEET;
+            if (!std::ifstream(p).good())
+                continue;
+            SDL2pp::Texture& tex = textures.get(p);
+            const int frame = (nowMs / FLAUTA_PROJ_DUR_MS) % FLAUTA_PROJ_FRAMES;
+            const FrameRect fr =
+                    fxFrameRect(frame, FLAUTA_PROJ_FRAME_W, FLAUTA_PROJ_FRAME_H, FLAUTA_PROJ_COLS);
+            const SDL2pp::Rect dst(px - FLAUTA_PROJ_DRAW / 2, py - FLAUTA_PROJ_DRAW / 2,
+                                   FLAUTA_PROJ_DRAW, FLAUTA_PROJ_DRAW);
+            renderer.Copy(tex, SDL2pp::Rect(fr.x, fr.y, fr.w, fr.h), dst, 0.0, SDL2pp::NullOpt,
+                          SDL_FLIP_NONE);
+
         } else if (spriteId == STAFF_SPRITE_ID) {
             const std::string p = std::string(GC::RESOURCES_DIR) + STAFF_PROJ_SHEET;
             if (!std::ifstream(p).good())
@@ -307,6 +346,52 @@ void FxSystem::renderProjectiles(const CameraOffset& camera, uint32_t nowMs) {
                           dst, 0.0, SDL2pp::NullOpt, SDL_FLIP_NONE);
         }
     }
+}
+
+void FxSystem::renderFullscreen(int windowW, int windowH) {
+    if (!fullscreenFx)
+        return;
+
+    const uint32_t elapsed = SDL_GetTicks() - fullscreenFx->startMs;
+
+    int totalFrames = 0;
+    uint32_t frameDurMs = 0;
+    std::string pathPrefix = "";
+
+    if (fullscreenFx->type == FxType::BE_ATTACKED) {
+        totalFrames = BE_ATTACKED_FRAMES;
+        frameDurMs = BE_ATTACKED_FRAME_DUR_MS;
+        pathPrefix = std::string(GC::RESOURCES_DIR) + "fx/beAttacked/";
+    } else if (fullscreenFx->type == FxType::BE_HEALED) {
+        totalFrames = BE_HEALED_FRAMES;
+        frameDurMs = BE_HEALED_FRAME_DUR_MS;
+        pathPrefix = std::string(GC::RESOURCES_DIR) + "fx/beHealed/";
+    } else {
+        return;
+    }
+
+    const int frame = static_cast<int>(elapsed / frameDurMs);
+
+    if (frame >= totalFrames) {
+        fullscreenFx.reset();
+        return;
+    }
+
+    const std::string path = pathPrefix + std::to_string(frame) + ".png";
+
+    if (!std::ifstream(path).good())
+        return;
+
+    SDL2pp::Texture& tex = textures.get(path);
+
+    const int halfFrames = totalFrames / 2;
+    uint8_t alpha = 255;
+    if (frame > halfFrames)
+        alpha = static_cast<uint8_t>(255 * (totalFrames - frame) / halfFrames);
+
+    tex.SetAlphaMod(alpha);
+    renderer.Copy(tex, SDL2pp::NullOpt, SDL2pp::Rect(0, 0, windowW, windowH));
+    tex.SetAlphaMod(255);
 }
 
 const std::unordered_map<uint32_t, ProjectileAnimator>& FxSystem::projectileAnimators() const {

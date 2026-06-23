@@ -7,33 +7,20 @@
 #include "model/entities/Player.h"
 #include "model/items/Consumable.h"
 
-// Helper: crea un Player base para tests
-static Player makeTestPlayer(uint32_t id = 1) {
-    std::string name = "TestPlayer";
-    Race race = Race::HUMAN;
-    CharacterClass charClass = CharacterClass::WARRIOR;
-    RaceConfig raceConfig = {1.0f, 1.0f, 1.0f};
-    CharacterClassConfig clsConfig = {1.0f, 1.0f, 1.0f, false};
-    PlayerConfig cfg = {15, 15, 15, 15, 1, 0, 0};
-    InventoryConfig invCfg = {16, 0, 10000, 5000};
-    return Player(id, id, name, race, charClass, raceConfig, clsConfig, cfg, invCfg,
-                  FormulaEngine::getInstance());
-}
+#include "TestHelpers.h"
 
 // =========================================================================
-// TEST 1: POCIÓN DE VIDA (HEALTH POTION)
+// TEST 1: POCIÓN DE VIDA
 // =========================================================================
 TEST(ConsumableTest, Consumable_HealthPotionRestoresHp) {
-    // Explicación: Verifica que la poción de vida cure al jugador, no exceda el máximo
-    // y falle si ya está curado o está muerto.
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
     uint16_t maxHp = player.getMaxHp();
 
     // Configurar poción de vida que cura 20 HP
     Consumable healthPotion(101, "Pocion Roja", 50, ConsumableType::HEALTH, 0, 20);
 
     // Caso 1: El jugador ya tiene vida al máximo, la poción no debería hacer efecto y retornar
-    // false
+    // false false
     EXPECT_FALSE(healthPotion.use(player));
     EXPECT_EQ(player.getHp(), maxHp);
 
@@ -41,8 +28,8 @@ TEST(ConsumableTest, Consumable_HealthPotionRestoresHp) {
     player.receiveDamage(10);
     ASSERT_EQ(player.getHp(), maxHp - 10);
 
-    EXPECT_TRUE(healthPotion.use(player));
     // Curó 10 (se limitó a la vida máxima)
+    EXPECT_TRUE(healthPotion.use(player));
     EXPECT_EQ(player.getHp(), maxHp);
 
     // Caso 3: El jugador tiene poca vida y se cura parcialmente
@@ -52,16 +39,14 @@ TEST(ConsumableTest, Consumable_HealthPotionRestoresHp) {
     // Configuramos otra poción que cura 5 HP
     Consumable smallHealthPotion(105, "Pocion Chica", 20, ConsumableType::HEALTH, 0, 5);
     EXPECT_TRUE(smallHealthPotion.use(player));
-    EXPECT_EQ(player.getHp(), maxHp - 7);  // Curó 5 HP exactos (3 + 5 = 8)
+    EXPECT_EQ(player.getHp(), maxHp - 7);  // Curó 5 HP exactos
 }
 
 // =========================================================================
 // TEST 2: POCIÓN DE MANÁ (MANA POTION)
 // =========================================================================
 TEST(ConsumableTest, Consumable_ManaPotionRestoresMana) {
-    // Explicación: Verifica que la poción de maná restaure maná, no exceda el máximo
-    // y falle si ya está lleno o si el jugador está muerto.
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
     uint16_t maxMana = player.getMaxMana();
 
     // Configurar poción de maná que restaura 30 de maná
@@ -85,18 +70,16 @@ TEST(ConsumableTest, Consumable_ManaPotionRestoresMana) {
     // Configuramos otra poción que restaura 5 de maná
     Consumable smallManaPotion(106, "Pocion Azul Chica", 20, ConsumableType::MANA, 0, 5);
     EXPECT_TRUE(smallManaPotion.use(player));
-    EXPECT_EQ(player.getMana(), maxMana - 7);  // Restauró 5 exactos (3 + 5 = 8)
+    EXPECT_EQ(player.getMana(), maxMana - 7);  // Restauró 5 exactos
 }
 
 // =========================================================================
 // TEST 3: ELIXIR DE FUERZA (STRENGTH BOOST)
 // =========================================================================
 TEST(ConsumableTest, Consumable_StrengthBoostElixir) {
-    // Explicación: Verifica que el elixir de fuerza incremente temporalmente la fuerza del jugador
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
     uint8_t baseStrength = player.getStrength();
 
-    // Configurar elixir que da +5 de Fuerza por 5000ms
     Consumable strElixir(103, "Elixir de Fuerza", 150, ConsumableType::BOOST_STR, 5000, 5);
 
     EXPECT_TRUE(strElixir.use(player));
@@ -104,12 +87,10 @@ TEST(ConsumableTest, Consumable_StrengthBoostElixir) {
 }
 
 // =========================================================================
-// TEST 4: ELIXIR DE AGILIDAD (AGILITY BOOST)
+// TEST 4: ELIXIR DE AGILIDAD
 // =========================================================================
 TEST(ConsumableTest, Consumable_AgilityBoostElixir) {
-    // Explicación: Verifica que el elixir de agilidad incremente temporalmente la agilidad del
-    // jugador
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
     uint8_t baseAgility = player.getAgility();
 
     // Configurar elixir que da +8 de Agilidad por 3000ms
@@ -120,11 +101,10 @@ TEST(ConsumableTest, Consumable_AgilityBoostElixir) {
 }
 
 // =========================================================================
-// TEST 5: USO EN JUGADOR MUERTO (CONSUME WHEN DEAD FAILS)
+// TEST 5: USO EN JUGADOR MUERTO
 // =========================================================================
 TEST(ConsumableTest, Consumable_UseWhenDeadFails) {
-    // Explicación: Verifica que usar consumibles en un jugador muerto no tenga efecto
-    Player player = makeTestPlayer();
+    Player player = TestUtils::makeTestPlayer(1, "TestPlayer");
     player.receiveDamage(player.getMaxHp());
     ASSERT_TRUE(player.isDead());
 

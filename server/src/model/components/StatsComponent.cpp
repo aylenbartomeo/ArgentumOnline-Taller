@@ -44,21 +44,30 @@ StatsComponent::StatsComponent(const RaceConfig& raceConfigData,
 
 void StatsComponent::recalculateMaxStats() {
     this->max_health =
-            formulaEngine.calculate_max_life(this->constitution, this->classConfig.lifeFactor,
-                                             this->raceConfig.lifeFactor, this->level);
+            formulaEngine.calculateMaxLife(this->constitution, this->classConfig.lifeFactor,
+                                           this->raceConfig.lifeFactor, this->level);
 
     this->max_mana =
-            formulaEngine.calculate_max_mana(this->intelligence, this->classConfig.manaFactor,
-                                             this->raceConfig.manaFactor, this->level);
+            formulaEngine.calculateMaxMana(this->intelligence, this->classConfig.manaFactor,
+                                           this->raceConfig.manaFactor, this->level);
 }
 
 void StatsComponent::addExperience(uint32_t amount) {
+    if (level >= FormulaEngine::MAX_LEVEL) {
+        exp = formulaEngine.calculateLevelUpLimit(FormulaEngine::MAX_LEVEL - 1);
+        return;
+    }
+
     exp += amount;
-    while (exp >= formulaEngine.calculate_level_up_limit(level)) {
+    while (level < FormulaEngine::MAX_LEVEL && exp >= formulaEngine.calculateLevelUpLimit(level)) {
         level++;
         recalculateMaxStats();
         health = max_health;
         mana = max_mana;
+    }
+
+    if (level >= FormulaEngine::MAX_LEVEL) {
+        exp = formulaEngine.calculateLevelUpLimit(FormulaEngine::MAX_LEVEL - 1);
     }
 }
 
@@ -84,6 +93,19 @@ void StatsComponent::recoverMana(uint16_t amount) {
     if (health == 0)
         return;
     mana = std::min(static_cast<uint16_t>(mana + amount), max_mana);
+}
+
+void StatsComponent::loseExperienceUponDeath() {
+    uint32_t loss = formulaEngine.calculateDeathExpLoss(this->level);
+
+    uint32_t minExpAllowed =
+            (this->level == 1) ? 0 : formulaEngine.calculateLevelUpLimit(this->level - 1);
+
+    if (this->exp > loss && (this->exp - loss) >= minExpAllowed) {
+        this->exp -= loss;
+    } else {
+        this->exp = minExpAllowed;
+    }
 }
 
 void StatsComponent::restoreMana() { mana = max_mana; }

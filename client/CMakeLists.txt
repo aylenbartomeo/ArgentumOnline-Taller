@@ -2,14 +2,8 @@ find_package(SDL2_ttf REQUIRED)
 
 add_library(lib_client STATIC)
 
-# Crucial para Qt5: Activamos el procesado automático de UI y Meta-Objetos en la lib
-set_target_properties(lib_client PROPERTIES
-    AUTOMOC ON
-    AUTOUIC ON
-    AUTORCC ON
-)
 
-set_property(TARGET lib_client APPEND PROPERTY AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/ui")
+
 
 target_sources(lib_client
     PRIVATE
@@ -22,7 +16,9 @@ target_sources(lib_client
     src/core/systems/FxSystem.cpp
     src/core/systems/EntityRenderer.cpp
     src/core/systems/WorldRenderer.cpp
+    src/core/systems/StateAudioTrigger.cpp
     src/core/systems/InputProcessor.cpp
+    src/core/rendering/EquipmentVisualRegistry.cpp
 
     # network
     src/network/Sender.cpp
@@ -37,11 +33,16 @@ target_sources(lib_client
     src/ui/ItemIcons.cpp
     src/ui/HudPanel.cpp
     src/ui/ManualPanel.cpp
-
+    src/ui/CharacterCreationScreen.cpp
+    src/ui/QuitView.cpp
+    
     # rendering
     src/rendering/TileMap.cpp
+    src/rendering/IndoorRegions.cpp
     src/rendering/Viewport.cpp
     src/rendering/TextureManager.cpp
+    src/rendering/BuildingFronts.cpp
+    src/rendering/TallFlora.cpp
 
     # animation
     src/animation/CharacterAnimator.cpp
@@ -55,7 +56,6 @@ target_sources(lib_client
     src/input/EventHandler.cpp
     src/input/ChatCommandParser.cpp
 
-    ui/launcher.ui
 
     PUBLIC
     # core
@@ -67,10 +67,12 @@ target_sources(lib_client
     src/core/systems/FxSystem.h
     src/core/systems/EntityRenderer.h
     src/core/systems/WorldRenderer.h
+    src/core/systems/StateAudioTrigger.h
     src/core/systems/InputProcessor.h
     src/core/common/GameConstants.h
     src/core/common/FxType.h
     src/core/common/WeaponHelper.h
+    src/core/rendering/EquipmentVisualRegistry.h
 
     # network
     src/network/Sender.h
@@ -85,11 +87,16 @@ target_sources(lib_client
     src/ui/ItemIcons.h
     src/ui/HudPanel.h
     src/ui/ManualPanel.h
-
+    src/ui/CharacterCreationScreen.h
+    src/ui/QuitView.h
+    
     # rendering
     src/rendering/TileMap.h
     src/rendering/Viewport.h
     src/rendering/TextureManager.h
+    src/rendering/NpcVisuals.h
+    src/rendering/BuildingFronts.h
+    src/rendering/TallFlora.h
 
     # animation
     src/animation/CharacterAnimator.h
@@ -101,6 +108,7 @@ target_sources(lib_client
     # input
     src/input/EventHandler.h
     src/input/ChatCommandParser.h
+    src/input/NpcPolicy.h
 )
 
 # Definimos que las carpetas del cliente se expongan públicamente 
@@ -127,7 +135,6 @@ target_link_libraries(lib_client PUBLIC
     SDL2::SDL2
     SDL2_ttf::SDL2_ttf
     SDL2_mixer::SDL2_mixer
-    Qt5::Widgets 
     nlohmann_json::nlohmann_json
     pthread
 )

@@ -1,15 +1,25 @@
 #include "Game.h"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
 
+#include "../ui/CharacterCreationScreen.h"
+#include "../ui/QuitView.h"
 #include "common/GameConstants.h"
+#include "common/include/dto/CreateCharacterDTO.h"
+#include "common/include/dto/JoinResponseDTO.h"
+#include "loop/ConstantRateLoop.h"
+#include "rendering/EquipmentVisualRegistry.h"  // <-- NUEVO INCLUDE
+#include "systems/StateAudioTrigger.h"
 
 using GameConstants::VIEW_H;
 using GameConstants::VIEW_W;
@@ -19,8 +29,10 @@ using GameConstants::WINDOW_HEIGHT;
 using GameConstants::WINDOW_WIDTH;
 
 namespace {
-constexpr const char* HUD_FONT_PATH = "resources/fonts/DejaVuSans.ttf";
-constexpr const char* CHAT_FONT_PATH = "resources/fonts/DejaVuSans.ttf";
+constexpr const char* HUD_FONT_PATH = "resources/ui/fonts/DejaVuSans.ttf";
+constexpr const char* CHAT_FONT_PATH = "resources/ui/fonts/DejaVuSans.ttf";
+constexpr const char* MANUAL_PATH = "resources/data/MANUAL_JUGADOR.toml";
+constexpr int FRAME_DURATION_MS = 16;
 
 std::string readWholeFile(const std::string& path) {
     std::ifstream file(path);
@@ -32,68 +44,150 @@ std::string readWholeFile(const std::string& path) {
 }
 }  // namespace
 
-Game::Game(Client& client):
+Game::Game(Client& client, int width, int height, bool fullscreen):
         sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO),
-        window("Argentum Online - Client", WINDOW_WIDTH, WINDOW_HEIGHT),
+        window("Argentum Online - Client", width, height, fullscreen),
         events(),
         client(client),
         textures(window.getRenderer()),
         map(readWholeFile("maps/defaultMap.json")),
+        equipmentRegistry(),
         miniChat(CHAT_FONT_PATH),
         hud(textures, HUD_FONT_PATH),
         manualPanel(HUD_FONT_PATH),
-        chatParser(),
+        chatParser([this]() { return hud.getSelectedSlot(); },
+                   [this]() { return this->client.getSelectedNpc(); }),
         lastSnapshot(),
         lastStats(),
         audio(),
         camera(),
-        worldRenderer(textures, window.getRenderer(), map, worldFont),
-        entityRenderer(textures, window.getRenderer(), client.getClientId()),
+        worldRenderer(textures, window.getRenderer(), map),
+        entityRenderer(textures, window.getRenderer(), client.getClientId(), equipmentRegistry),
         fxSystem(textures, window.getRenderer()),
         inputProcessor(client, window, miniChat, hud, manualPanel, chatParser) {
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
     window.getRenderer().SetLogicalSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-    worldFont = TTF_OpenFont(HUD_FONT_PATH, 12);
-    if (!worldFont)
-        std::cerr << "No pude abrir la fuente del texto del mundo: " << TTF_GetError() << std::endl;
+    equipmentRegistry.loadFromDir(GameConstants::RESOURCES_DIR);
 
-    manualPanel.loadManual("../MANUAL_JUGADOR.md");
+    worldFont = TTF_OpenFont(HUD_FONT_PATH, 12);
+    entityFont = TTF_OpenFont(HUD_FONT_PATH, 11);  // Font para nombres y nivel
+    if (!worldFont) {
+        std::cerr << "No pude abrir la fuente del texto del mundo: " << TTF_GetError() << std::endl;
+    } else {
+        worldRenderer.setFont(worldFont);
+    }
+    if (entityFont) {
+        entityRenderer.setFont(entityFont);
+    }
+
+    manualPanel.loadManual(MANUAL_PATH);
 }
 
 Game::~Game() {
     if (worldFont)
         TTF_CloseFont(worldFont);
+    if (entityFont)
+        TTF_CloseFont(entityFont);
+}
+
+bool Game::runStartupAndCreation() {
+    JoinResponseDTO joinResp;
+
+    // Esperamos a recibir el JOIN_RESPONSE
+    bool received = false;
+    while (!received) {
+        if (events.pollEvents().quit) {
+            return false;  // Cerrar el juego
+        }
+        received = client.tryPopJoinResponse(joinResp);
+        SDL_Delay(10);
+    }
+
+    if (joinResp.needsCreation) {
+        CharacterCreationScreen screen(window.getRenderer(), textures, joinResp);
+        auto result = screen.run();
+
+        if (result.created) {
+            CreateCharacterDTO createDto{result.race, result.characterClass};
+            client.sendCommand(createDto);
+            run();                    // Entramos al mundo
+            return returnToLauncher;  // true → vuelve al Launcher, false → cierra
+        } else {
+            // El usuario apretó VOLVER en la creación de personaje
+            return true;  // Volvemos al login
+        }
+    } else {
+        // Ya tiene personaje
+        run();                    // Entramos al mundo
+        return returnToLauncher;  // true → vuelve al Launcher, false → cierra
+    }
 }
 
 void Game::run() {
-    while (true) {
-        const FrameInput input = events.pollEvents();
-        if (input.quit)
-            break;
+    ConstantRateLoop loop(FRAME_DURATION_MS);
+    loop.run([this](int64_t) -> bool {
+        FrameInput input = events.pollEvents();
 
+        // 2. Si apretan la X de la ventana (quit) o la tecla ESC, mostramos el diálogo
+        if (input.quit || input.escPressed) {
+            // Instanciamos y ejecutamos la vista de salida de forma bloqueante
+            QuitView quitView;
+            QuitViewAction action = quitView.run();
+
+            if (action == QuitViewAction::Quit) {
+                // El usuario eligió ACEPTAR (Salir al Launcher)
+                returnToLauncher = true;  // Seteamos el flag para ir al Launcher
+                return false;
+            } else if (action == QuitViewAction::Resume) {
+                // El usuario eligió VOLVER (Reanudar la partida)
+                input.quit = false;
+                events.clearInputState();
+            }
+        }
+
+        // --- 3. Lógica normal de juego ---
         miniChat.update(input, VIEW_X + VIEW_W, VIEW_Y + VIEW_H);
         manualPanel.update(input, WINDOW_WIDTH, WINDOW_HEIGHT);
 
         inputProcessor.drainIncomingChat();
-        inputProcessor.processChatInput(input);
+        inputProcessor.processChatInput(input, audio);
         inputProcessor.processCheats(input);
         inputProcessor.processEquipInput(input);
-        inputProcessor.processUiInput(input);
-        inputProcessor.sendMoveIfDue(input, lastSnapshot);
+        inputProcessor.processUseInput(input, audio);
+        inputProcessor.processActionKeysInput(input);
+        inputProcessor.processSelectSlotInput(input);
+        inputProcessor.processUiInput(input, audio);
+        if (input.toggleMute)
+            audio.toggleMute();
+
+        inputProcessor.sendMoveIfDue(input, lastSnapshot, map);
 
         render(input);
-        SDL_Delay(16);
-    }
+        audio.updateMonsterSounds(lastSnapshot, SDL_GetTicks(), client.getClientId());
+
+        return true;
+    });
 }
 
 void Game::render(const FrameInput& input) {
     SnapshotDTO incomingSnap;
     PlayerStatsDTO incomingStats;
+    PlayerStatsDTO previousStats = lastStats;
 
     while (client.tryPopSnapshot(incomingSnap)) lastSnapshot = incomingSnap;
-    while (client.tryPopPlayerStats(incomingStats)) lastStats = incomingStats;
+    while (client.tryPopPlayerStats(incomingStats)) {
+        lastStats = incomingStats;
+        lastStatsReceiveTimeMs = SDL_GetTicks();
+    }
+
+    StateAudioTrigger audioTrigger;
+    StateChanges changes = audioTrigger.checkAndTrigger(previousStats, lastStats, audio);
+    if (changes.tookDamage)
+        fxSystem.triggerOnEntity(0, SDL_GetTicks(), FxType::BE_ATTACKED);
+    if (changes.gotHealed)
+        fxSystem.triggerOnEntity(0, SDL_GetTicks(), FxType::BE_HEALED);
 
     SDL2pp::Renderer& renderer = window.getRenderer();
     renderer.SetDrawColor(0, 0, 0, 255);
@@ -102,27 +196,69 @@ void Game::render(const FrameInput& input) {
     const CameraOffset cam =
             camera.compute(client.getClientId(), lastSnapshot, entityRenderer.getAnimators(), map);
 
-    const auto combatResult =
-            inputProcessor.processCombatInput(input, cam, lastSnapshot, lastStats);
-    if (combatResult.fx)
-        fxSystem.triggerOnEntity(combatResult.fx->targetId, combatResult.fx->startMs,
-                                 combatResult.fx->type);
+    // Procesar click izq sobre npc
+    bool npcHandled = inputProcessor.processNpcTargetInput(input, cam, lastSnapshot, map);
+
+    if (!npcHandled) {
+        const auto combatResult =
+                inputProcessor.processCombatInput(input, cam, lastSnapshot, lastStats, map);
+        if (combatResult.fx) {
+            fxSystem.triggerOnEntity(combatResult.fx->targetId, combatResult.fx->startMs,
+                                     combatResult.fx->type);
+
+            if (combatResult.fx->type == FxType::SWORD) {
+                audio.playSound(SoundEffect::SWORD_ATTACK);
+            } else if (combatResult.fx->type == FxType::FLAUTA_HEAL) {
+                audio.playSound(SoundEffect::FLAUTE);
+            }
+        }
+
+        if (combatResult.magicAttack)
+            audio.playSound(SoundEffect::MAGIC_ATTACK);
+        if (combatResult.bowAttack)
+            audio.playSound(SoundEffect::BOW_SHOOT);
+    }
 
     const uint32_t now = SDL_GetTicks();
-    fxSystem.syncProjectileAnimators(now, lastSnapshot);
+
+    if (fxSystem.syncProjectileAnimators(now, lastSnapshot))
+        audio.playSound(SoundEffect::PROJ_HIT);
+
+    int playerCol = -1;
+    int playerRow = -1;
+    const uint32_t myId = client.getClientId();
+    const auto& animators = entityRenderer.getAnimators();
+    auto ait = animators.find(myId);
+    if (ait != animators.end()) {
+        playerCol = static_cast<int>(ait->second.getVirtualX() + 0.5f);
+        playerRow = static_cast<int>(ait->second.getVirtualY() + 0.5f);
+    } else {
+        const auto it = std::find_if(lastSnapshot.players.begin(), lastSnapshot.players.end(),
+                                     [myId](const EntityDTO& e) { return e.id == myId; });
+        if (it != lastSnapshot.players.end()) {
+            playerCol = it->x;
+            playerRow = it->y;
+        }
+    }
 
     worldRenderer.renderTerrain(cam);
+    worldRenderer.renderDecorationBehind(cam, playerRow);
     worldRenderer.renderOverlays(cam);
     worldRenderer.renderGroundItems(cam, lastSnapshot);
-    worldRenderer.renderCitizens(cam);
-    entityRenderer.render(cam, lastSnapshot, now);
+    worldRenderer.renderGroundItems(cam, lastSnapshot);
+    worldRenderer.renderCitizens(cam, client.getSelectedNpc());
+    entityRenderer.render(cam, lastSnapshot, now, client.getSelectedNpc(), &lastStats);
+    worldRenderer.renderBuildingFronts(cam, playerCol, playerRow);
+    worldRenderer.renderDecorationFront(cam, playerRow);
+    worldRenderer.renderRoofs(cam, playerCol, playerRow);
     fxSystem.renderProjectiles(cam, now);
     fxSystem.render(cam, lastSnapshot, entityRenderer.getAnimators());
+    fxSystem.renderFullscreen(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     miniChat.render(renderer.Get(), VIEW_X + VIEW_W, VIEW_Y + VIEW_H, input.chatInputActive,
                     input.chatText);
     hud.renderBackground(renderer);
-    hud.render(renderer, lastStats);
+    hud.render(renderer, lastStats, lastStatsReceiveTimeMs, audio.getIsMuted());
     manualPanel.render(renderer.Get(), WINDOW_WIDTH, WINDOW_HEIGHT);
 
     renderer.Present();

@@ -2,26 +2,33 @@
 
 #include <utility>
 
+#include "../../common/include/RandomNumberGenerator.h"
+
 Monster::Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config):
         id(id),
         type(type),
         zone(config.zone),
         pos(pos),
+        isBoss_(config.isBoss),
         health(config.maxHealth),
         max_health(config.maxHealth),
         detection_range(config.detectionRange),
         attack_range(config.attackRange),
         strength(config.strength),
         agility(config.agility),
-        attack_min(config.attackMin),
-        attack_max(config.attackMax),
-        level(config.level),
         attack_cooldown_ms(config.attackCooldownMs),
         move_cooldown_ms(config.moveCooldownMs),
         time_since_last_attack(0.0f),
-        time_since_last_move(0.0f) {}
+        time_since_last_move(0.0f) {
+    RandomNumberGenerator rng;
+    this->level = rng(config.minLevel, config.maxLevel);
 
-void Monster::move(const Position& new_pos) { this->pos = new_pos; }
+    float scale = 1.0f + (this->level - 1) * 0.1f;
+    this->max_health = static_cast<int>(config.maxHealth * scale);
+    this->health = this->max_health;
+    this->attack_min = static_cast<int>(config.attackMin * scale);
+    this->attack_max = static_cast<int>(config.attackMax * scale);
+}
 
 void Monster::update(float deltaMs) {
     time_since_last_attack += deltaMs;
@@ -60,11 +67,11 @@ void Monster::setPosition(const Position& newPos) { this->pos = newPos; }
 uint16_t Monster::getStrength() const { return this->strength; }
 uint16_t Monster::getIntelligence() const { return 0; }  // Monsters don't use magic yet
 
-int Monster::get_detection_range() const { return this->detection_range; }
+int Monster::getDetectionRange() const { return this->detection_range; }
 
-int Monster::get_attack_range() const { return this->attack_range; }
+int Monster::getAttackRange() const { return this->attack_range; }
 
-const std::string& Monster::get_zone() const { return this->zone; }
+const std::string& Monster::getZone() const { return this->zone; }
 
 std::string Monster::getName() const {
     switch (this->type) {
@@ -80,6 +87,14 @@ std::string Monster::getName() const {
             return "Orc";
         case NPCType::GOLEM:
             return "Golem";
+        case NPCType::BOSS_BALROG:
+            return "Balrog Infernal";
+        case NPCType::BOSS_TITAN:
+            return "Titan de Piedra";
+        case NPCType::BOSS_COLOSO:
+            return "Coloso de Magma";
+        case NPCType::BOSS_ARACNE:
+            return "Aracne Abismal";
         default:
             return "Monster";
     }
@@ -95,6 +110,7 @@ EntityDTO Monster::toEntityDTO() const {
     dto.max_hp = static_cast<uint16_t>(max_health);
     dto.entityTypeId = static_cast<uint8_t>(type);
     dto.action = currentAction;
+    dto.level = level;
     return dto;
 }
 

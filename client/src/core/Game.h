@@ -13,9 +13,11 @@
 #include "../ui/HudPanel.h"
 #include "../ui/ManualPanel.h"
 #include "../ui/MiniChat.h"
+#include "../ui/QuitView.h"
 #include "../ui/Window.h"
 #include "common/include/dto/PlayerStatsDTO.h"
 #include "common/include/dto/Snapshot.h"
+#include "rendering/EquipmentVisualRegistry.h"
 #include "systems/AudioSystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/EntityRenderer.h"
@@ -27,11 +29,13 @@
 
 class Game {
 public:
-    explicit Game(Client& client);
+    explicit Game(Client& client, int width, int height, bool fullscreen);
     ~Game();
 
     void run();
-
+    bool runStartupAndCreation();
+    SDL2pp::Renderer& getWindowRenderer() { return window.getRenderer(); }
+    TextureManager& getTextures() { return textures; }
     Game(const Game&) = delete;
     Game& operator=(const Game&) = delete;
     Game(Game&&) = delete;
@@ -39,7 +43,6 @@ public:
 
 private:
     void render(const FrameInput& input);
-
     // SDL / core
     SDL2pp::SDL sdl;
     Window window;
@@ -49,7 +52,11 @@ private:
     // Resources
     TextureManager textures;
     TileMap map;
+
+    EquipmentVisualRegistry equipmentRegistry;
+
     TTF_Font* worldFont = nullptr;
+    TTF_Font* entityFont = nullptr;
 
     // UI
     MiniChat miniChat;
@@ -57,9 +64,15 @@ private:
     ManualPanel manualPanel;
     ChatCommandParser chatParser;
 
+    // Flag que run() setea antes de terminar:
+    // true  → runStartupAndCreation() devuelve true  → main vuelve al Launcher
+    // false → runStartupAndCreation() devuelve false → main sale del programa
+    bool returnToLauncher = false;
+
     // State
     SnapshotDTO lastSnapshot;
     PlayerStatsDTO lastStats;
+    uint32_t lastStatsReceiveTimeMs = 0;
 
     // Systems (order matches render pipeline)
     AudioSystem audio;

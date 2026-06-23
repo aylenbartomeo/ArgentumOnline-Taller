@@ -1,11 +1,16 @@
 #include "server/src/model/items/ItemRegistry.h"
 
+#include <algorithm>
+#include <cctype>
+#include <string>
 #include <vector>
 
 #include "server/src/config/ItemConfigLoader.h"
+#include "server/src/model/interfaces/CombatStrategies.h"
 #include "server/src/model/items/BodyArmor.h"
 #include "server/src/model/items/Helmet.h"
 #include "server/src/model/items/Shield.h"
+#include "server/src/model/items/WeaponFactory.h"
 
 ItemRegistry::ItemRegistry(const std::filesystem::path& configPath) {
     auto weaponConfigs = ItemConfigLoader::loadWeaponConfigs(configPath);
@@ -13,9 +18,11 @@ ItemRegistry::ItemRegistry(const std::filesystem::path& configPath) {
     auto consumableConfigs = ItemConfigLoader::loadConsumableConfigs(configPath);
 
     for (const auto& [name, config]: weaponConfigs) {
-        weapons[config.id] = std::make_unique<Weapon>(config.id, name, config.price, config.type,
-                                                      config.minDamage, config.maxDamage,
-                                                      config.attackRange, config.manaCost);
+        weapons[config.id] = std::make_unique<Weapon>(
+                config.id, name, config.price, config.type, config.minDamage, config.maxDamage,
+                config.attackRange, config.manaCost,
+                WeaponFactory::createDelivery(config.delivery, config.type),
+                WeaponFactory::createHitEffect(config.hitEffect, config.type));
     }
 
     for (const auto& [name, config]: armorConfigs) {
@@ -48,6 +55,33 @@ const Item* ItemRegistry::get_item(int item_id) const {
     if (it != items.end()) {
         return it->second.get();
     }
+    return nullptr;
+}
+
+const Item* ItemRegistry::getItemByName(const std::string& name) const {
+    // Helper lambda to compare strings case-insensitively
+    auto iequals = [](const std::string& a, const std::string& b) {
+        return std::equal(a.begin(), a.end(), b.begin(), b.end(),
+                          [](char a, char b) { return tolower(a) == tolower(b); });
+    };
+
+    for (const auto& [id, w]: weapons) {
+        if (iequals(w->getName(), name))
+            return w.get();
+    }
+    for (const auto& [id, a]: armors) {
+        if (iequals(a->getName(), name))
+            return a.get();
+    }
+    for (const auto& [id, c]: consumables) {
+        if (iequals(c->getName(), name))
+            return c.get();
+    }
+    for (const auto& [id, i]: items) {
+        if (iequals(i->getName(), name))
+            return i.get();
+    }
+
     return nullptr;
 }
 

@@ -105,7 +105,6 @@ TEST_F(PlayerDataStoreTest, IndexSurvivesRestart) {
         store.savePlayerData("PersistentPlayer", data);
     }
 
-    // Simulate restart by creating a new store instance pointing to the same directory
     {
         PlayerDataStore newStore(testDir);
         auto loaded = newStore.loadPlayerData("PersistentPlayer");

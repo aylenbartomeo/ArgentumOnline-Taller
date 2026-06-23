@@ -12,7 +12,7 @@
 namespace {
 constexpr int FONT_SIZE = 12;
 constexpr const char* RESOURCES_DIR = "resources/";
-constexpr const char* BACKGROUND = "resources/ventanaprincipal.png";
+constexpr const char* BACKGROUND = "resources/ui/ventanaprincipal.png";
 
 const OverlayDef* itemDef(uint32_t itemId) {
     const std::vector<OverlayDef>& registry = getOverlayRegistry();
@@ -22,9 +22,9 @@ const OverlayDef* itemDef(uint32_t itemId) {
     return it != registry.end() ? &(*it) : nullptr;
 }
 
-constexpr const char* HP_BAR = "resources/en_barradevida.bmp";
-constexpr const char* MP_BAR = "resources/en_barrademana.bmp";
-constexpr const char* XP_BAR = "resources/en_barraexperiencia.bmp";
+constexpr const char* HP_BAR = "resources/ui/en_barradevida.bmp";
+constexpr const char* MP_BAR = "resources/ui/en_barrademana.bmp";
+constexpr const char* XP_BAR = "resources/ui/en_barraexperiencia.bmp";
 
 constexpr int HP_X = 796, HP_Y = 542, HP_FULL = 200, BAR_H = 15;
 constexpr int MP_X = 796, MP_Y = 581, MP_FULL = 200;
@@ -38,6 +38,11 @@ constexpr int EQUIP_LIST_X = 778, EQUIP_LIST_Y = 648, EQUIP_ROW_H = 20, EQUIP_IC
 constexpr int LEVEL_X = 770, LEVEL_Y = 48;
 constexpr int GOLD_X = 788, GOLD_Y = 506;
 
+constexpr int AUDIO_BTN_X = 880;
+constexpr int AUDIO_BTN_Y = 730;
+constexpr int AUDIO_BTN_W = 130;
+constexpr int AUDIO_BTN_H = 20;
+
 const SDL_Color WHITE{255, 255, 255, 255};
 }  // namespace
 
@@ -49,11 +54,18 @@ HudPanel::HudPanel(TextureManager& textures, const std::string& fontPath): textu
     if (!font) {
         throw std::runtime_error(std::string("HudPanel font: ") + TTF_GetError());
     }
+    smallFont = TTF_OpenFont(fontPath.c_str(), 10);
+    if (!smallFont) {
+        throw std::runtime_error(std::string("HudPanel smallFont: ") + TTF_GetError());
+    }
 }
 
 HudPanel::~HudPanel() {
     if (font) {
         TTF_CloseFont(font);
+    }
+    if (smallFont) {
+        TTF_CloseFont(smallFont);
     }
 }
 
@@ -66,7 +78,7 @@ int HudPanel::slotAtPosition(int x, int y) const {
     const int pitch = INV_CELL + INV_GAP;
     const int col = relX / pitch;
     const int row = relY / pitch;
-    if (col >= INV_COLS || row >= 5) {
+    if (col >= INV_COLS || row >= 4) {
         return -1;
     }
     if (relX % pitch > INV_CELL || relY % pitch > INV_CELL) {
@@ -117,13 +129,18 @@ void HudPanel::drawBars(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats)
     }
 }
 
-void HudPanel::drawText(SDL2pp::Renderer& renderer, const std::string& text, int x, int y) {
-    SDL_Surface* surf = TTF_RenderUTF8_Blended(font, text.c_str(), WHITE);
+void HudPanel::drawText(SDL2pp::Renderer& renderer, const std::string& text, int x, int y,
+                        SDL_Color color, bool rightAlign, bool useSmallFont) {
+    TTF_Font* f = useSmallFont ? smallFont : font;
+    SDL_Surface* surf = TTF_RenderUTF8_Blended(f, text.c_str(), color);
     if (!surf) {
         return;
     }
     SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer.Get(), surf);
     SDL_Rect dst{x, y, surf->w, surf->h};
+    if (rightAlign) {
+        dst.x -= surf->w;
+    }
     SDL_FreeSurface(surf);
     if (!tex) {
         return;
@@ -136,7 +153,18 @@ void HudPanel::drawItemSprite(SDL2pp::Renderer& renderer, uint32_t itemId, int x
                               int h) {
     const OverlayDef* def = itemDef(itemId);
     if (def == nullptr) {
-        renderer.Copy(textures.get(iconForItem(itemId)), SDL2pp::NullOpt, SDL2pp::Rect(x, y, w, h));
+        SDL2pp::Texture* tex = textures.tryGet(iconForItem(itemId));
+        if (tex == nullptr) {
+            return;
+        }
+        if (itemId >= 4000 && itemId <= 4004) {
+            // Option 1: extract bottom-left icon from 6x6 sheet
+            int wTex = tex->GetWidth() / 6;
+            int hTex = tex->GetHeight() / 6;
+            renderer.Copy(*tex, SDL2pp::Rect(0, 5 * hTex, wTex, hTex), SDL2pp::Rect(x, y, w, h));
+        } else {
+            renderer.Copy(*tex, SDL2pp::NullOpt, SDL2pp::Rect(x, y, w, h));
+        }
         return;
     }
     int dw = w;
@@ -153,7 +181,21 @@ void HudPanel::drawItemSprite(SDL2pp::Renderer& renderer, uint32_t itemId, int x
                   SDL2pp::Rect(dx, dy, dw, dh));
 }
 
+void HudPanel::drawSlotHighlight(SDL2pp::Renderer& renderer, int slotIndex) {
+    const SlotRect r =
+            inventorySlotRect(slotIndex, INV_COLS, INV_CELL, INV_GAP, INV_ORIGIN_X, INV_ORIGIN_Y);
+    // Borde dorado para indicar slot seleccionado
+    SDL_SetRenderDrawColor(renderer.Get(), 255, 215, 0, 255);
+    SDL_Rect border{r.x - 1, r.y - 1, r.w + 2, r.h + 2};
+    SDL_RenderDrawRect(renderer.Get(), &border);
+    SDL_Rect borderInner{r.x - 2, r.y - 2, r.w + 4, r.h + 4};
+    SDL_RenderDrawRect(renderer.Get(), &borderInner);
+}
+
 void HudPanel::drawInventory(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats) {
+    if (selectedSlot >= 0) {
+        drawSlotHighlight(renderer, selectedSlot);
+    }
     for (const InventorySlotDTO& it: stats.inventory) {
         const SlotRect r =
                 inventorySlotRect(it.slot, INV_COLS, INV_CELL, INV_GAP, INV_ORIGIN_X, INV_ORIGIN_Y);
@@ -179,15 +221,98 @@ void HudPanel::drawEquipment(SDL2pp::Renderer& renderer, const PlayerStatsDTO& s
     }
 }
 
-void HudPanel::render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats) {
+void HudPanel::drawItemTooltip(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats) {
+    if (selectedSlot < 0) {
+        return;
+    }
+
+    std::string desc;
+    auto it = std::find_if(
+            stats.inventory.begin(), stats.inventory.end(),
+            [this](const InventorySlotDTO& item) { return item.slot == selectedSlot; });
+    if (it != stats.inventory.end()) {
+        desc = it->description;
+    }
+
+    if (desc.empty()) {
+        return;
+    }
+
+    // Dibujamos un fondo negro semi-transparente debajo del inventario
+    // El inventario termina en INV_ORIGIN_Y + 5 * (INV_CELL + INV_GAP) = 172 + 5 * 42 = 382
+    // Dejamos un margen de 10px -> Y = 392
+    SDL_SetRenderDrawBlendMode(renderer.Get(), SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer.Get(), 0, 0, 0, 180);
+    SDL_Rect bgRect{770, 392, 240, 25};
+    SDL_RenderFillRect(renderer.Get(), &bgRect);
+
+    drawText(renderer, desc, 775, 398);
+}
+
+bool HudPanel::isAudioButtonClicked(int x, int y) const {
+    return (x >= AUDIO_BTN_X && x <= AUDIO_BTN_X + AUDIO_BTN_W && y >= AUDIO_BTN_Y &&
+            y <= AUDIO_BTN_Y + AUDIO_BTN_H);
+}
+
+void HudPanel::drawAudioButton(SDL2pp::Renderer& renderer, bool isMuted) {
+    const std::string path =
+            isMuted ? "resources/ui/button/audio-off.jpg" : "resources/ui/button/audio-on.jpg";
+    SDL2pp::Texture& tex = textures.get(path);
+    renderer.Copy(tex, SDL2pp::NullOpt,
+                  SDL2pp::Rect(AUDIO_BTN_X, AUDIO_BTN_Y, AUDIO_BTN_W, AUDIO_BTN_H));
+}
+
+void HudPanel::render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats,
+                      uint32_t lastStatsReceiveTimeMs, bool isMuted) {
     drawBars(renderer, stats);
     drawInventory(renderer, stats);
     drawEquipment(renderer, stats);
-    drawText(renderer, "Nivel " + std::to_string(stats.level), LEVEL_X, LEVEL_Y);
-    drawText(renderer, "Oro " + std::to_string(stats.gold), GOLD_X, GOLD_Y);
+    drawItemTooltip(renderer, stats);
+
+    std::string levelStr = "Nivel: " + std::to_string(stats.level);
+    if (stats.level >= 99) {  // Nivel máximo, se usa 99 según MAX_LEVEL
+        levelStr += " (Máx)";
+    }
+    drawText(renderer, levelStr, LEVEL_X, LEVEL_Y);
+    drawText(renderer, "Oro: " + std::to_string(stats.gold), GOLD_X, GOLD_Y);
     drawText(renderer,
-             "Exp " + std::to_string(stats.expIntoLevel) + "/" + std::to_string(stats.expForLevel),
+             "Exp: " + std::to_string(stats.expIntoLevel) + "/" + std::to_string(stats.expForLevel),
              LEVEL_X, LEVEL_Y + 18);
+
+    drawText(renderer, "Raza: " + getRaceName(stats.race), LEVEL_X, LEVEL_Y + 36);
+    drawText(renderer, "Clase: " + getClassName(stats.characterClass), LEVEL_X, LEVEL_Y + 52);
+
+    int buffX = 1010;  // Margen derecho del recuadro
+    int buffY = LEVEL_Y;
+    uint32_t elapsed = SDL_GetTicks() - lastStatsReceiveTimeMs;
+    uint32_t ticks = SDL_GetTicks();
+
+    if (stats.strengthBuffTimeLeftMs > elapsed) {
+        uint32_t leftMs = stats.strengthBuffTimeLeftMs - elapsed;
+        uint32_t leftSecs = leftMs / 1000;
+        bool visible = true;
+        if (leftSecs <= 10) {
+            visible = (ticks / 250) % 2 == 0;  // Blink every 250ms
+        }
+        if (visible) {
+            drawText(renderer, "+Fuerza (" + std::to_string(leftSecs) + "s)", buffX, buffY,
+                     {255, 50, 50, 255}, true, true);
+        }
+        buffY += 14;
+    }
+
+    if (stats.agilityBuffTimeLeftMs > elapsed) {
+        uint32_t leftMs = stats.agilityBuffTimeLeftMs - elapsed;
+        uint32_t leftSecs = leftMs / 1000;
+        bool visible = true;
+        if (leftSecs <= 10) {
+            visible = (ticks / 250) % 2 == 0;  // Blink every 250ms
+        }
+        if (visible) {
+            drawText(renderer, "+Agilidad (" + std::to_string(leftSecs) + "s)", buffX, buffY,
+                     {100, 200, 255, 255}, true, true);
+        }
+    }
 
     drawText(renderer, std::to_string(stats.currentHp) + "/" + std::to_string(stats.maxHp),
              HP_X + 78, HP_Y + 1);
@@ -195,4 +320,18 @@ void HudPanel::render(SDL2pp::Renderer& renderer, const PlayerStatsDTO& stats) {
         drawText(renderer, std::to_string(stats.currentMana) + "/" + std::to_string(stats.maxMana),
                  MP_X + 78, MP_Y + 1);
     }
+    drawAudioButton(renderer, isMuted);
 }
+
+void HudPanel::selectSlot(int slot) {
+    // Toggle: si el slot ya está seleccionado, deseleccionarlo
+    if (selectedSlot == slot) {
+        selectedSlot = -1;
+    } else {
+        selectedSlot = slot;
+    }
+}
+
+void HudPanel::clearSelection() { selectedSlot = -1; }
+
+int HudPanel::getSelectedSlot() const { return selectedSlot; }

@@ -4,8 +4,8 @@
 
 #include "../components/EquipmentComponent.h"
 
-BodyArmor::BodyArmor(const int id, std::string name, const int minDefense, const int maxDefense,
-                     const int price):
+BodyArmor::BodyArmor(const int id, std::string name, const int price, const int minDefense,
+                     const int maxDefense):
         Armor(id, std::move(name), price, minDefense, maxDefense) {}
 
 int BodyArmor::getDefense() const { return rollDefense(); }

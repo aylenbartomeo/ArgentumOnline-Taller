@@ -80,8 +80,54 @@ bool Map::loadSpawnFromJson(const std::string& path, const MapLoadOptions& optio
     safeZones.clear();
     npcs.clear();
     monsterSpawns.clear();
+    bossZones.clear();
+    zoneRects.clear();
     mapElements.clear();
     groundItems.clear();
+
+    if (data.contains("bossZones")) {
+        for (const auto& bz: data["bossZones"]) {
+            BossZoneConfig config;
+            config.x = bz["x"].get<int>();
+            config.y = bz["y"].get<int>();
+            config.width = bz["width"].get<int>();
+            config.height = bz["height"].get<int>();
+            config.spawnX = bz["spawnX"].get<int>();
+            config.spawnY = bz["spawnY"].get<int>();
+            config.respawnCooldownMs = bz.value("respawnCooldownMs", 300000.0f);
+            bossZones.push_back(config);
+        }
+    }
+
+    if (data.contains("dungeons")) {
+        for (const auto& d: data["dungeons"]) {
+            BossZoneConfig config;
+            config.x = d["x"].get<int>();
+            config.y = d["y"].get<int>();
+            config.width = d["width"].get<int>();
+            config.height = d["height"].get<int>();
+            config.spawnX = config.x + config.width / 2;
+            config.spawnY = config.y + config.height / 2;
+            config.respawnCooldownMs = 300000.0f;
+            bossZones.push_back(config);
+        }
+    }
+
+    if (data.contains("forests")) {
+        for (const auto& f: data["forests"]) {
+            MapZoneRect rect{ZoneType::FOREST, f["x"].get<int>(), f["y"].get<int>(),
+                             f["width"].get<int>(), f["height"].get<int>()};
+            zoneRects.push_back(rect);
+        }
+    }
+
+    if (data.contains("deserts")) {
+        for (const auto& d: data["deserts"]) {
+            MapZoneRect rect{ZoneType::DESERT, d["x"].get<int>(), d["y"].get<int>(),
+                             d["width"].get<int>(), d["height"].get<int>()};
+            zoneRects.push_back(rect);
+        }
+    }
 
     if (data.contains("safeZones")) {
         for (const auto& zone: data["safeZones"]) {
@@ -160,15 +206,6 @@ const std::vector<MapMonsterSpawn>& Map::getMonsterSpawns() const { return monst
 int Map::heightLimit() const { return this->height; }
 
 int Map::widthLimit() const { return this->width; }
-
-/*Area Map::initArea(const int x, const int y, const int width, const int height) {
-    Area area;
-    area.x = x;
-    area.y = this->height - y - height;
-    area.width = width;
-    area.height = height;
-    return area;
-}*/
 
 void Map::generate_collision_grid() {
     // Marcamos en la matriz qué celdas específicas están ocupadas

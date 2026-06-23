@@ -17,6 +17,7 @@ private:
     NPCType type;
     std::string zone;  // bosques, mazmorras
     Position pos;
+    bool isBoss_ = false;
 
     int health;
     int max_health;
@@ -40,13 +41,13 @@ private:
 public:
     Monster(uint32_t id, NPCType type, Position pos, const MonsterConfig& config);
 
-    void move(const Position& new_pos);
     void setPosition(const Position& newPos);
-    int get_detection_range() const;
-    int get_attack_range() const;
+    int getDetectionRange() const;
+    int getAttackRange() const;
     int getAttackMin() const;
     int getAttackMax() const;
-    const std::string& get_zone() const;
+    const std::string& getZone() const;
+    bool isBoss() const { return isBoss_; }
 
     void update(float deltaMs);
     bool canAttack() const;

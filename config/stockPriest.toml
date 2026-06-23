@@ -1,0 +1,35 @@
+[[stock]]
+item_id = 1002  # Túnica azul
+amount = 10
+
+[[stock]]
+item_id = 1010  # Capucha
+amount = 10
+
+[[stock]]
+item_id = 1012  # Sombrero mágico
+amount = 10
+
+[[stock]]
+item_id = 2020  # Vara de fresno
+amount = 10
+
+[[stock]]
+item_id = 2021  # Flauta élfica
+amount = 10
+
+[[stock]]
+item_id = 2022  # Báculo nudoso
+amount = 10
+
+[[stock]]
+item_id = 2023  # Báculo engarzado
+amount = 10
+
+[[stock]]
+item_id = 3000  # Pócima de Maná
+amount = 25
+
+[[stock]]
+item_id = 3010  # Pócima de Vida
+amount = 25

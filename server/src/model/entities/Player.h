@@ -37,6 +37,10 @@ private:
     uint8_t currentAction = 0;
     float actionTimerMs = 0.0f;
     bool infiniteMana = false;
+    bool infiniteHealth = false;
+    float resurrectionImmobilizedTimeMs = 0.0f;
+
+    void updateResurrectionTimer(float deltaTimeMs);
 
 public:
     Player(uint32_t entityId, uint32_t dbId, const std::string& name, Race race, CharacterClass cls,
@@ -55,9 +59,11 @@ public:
     void update(float deltaSeconds);
 
 
+    enum class EquipResult { EQUIPPED, UNEQUIPPED, FAILED };
+
     // Equipa un ítem directamente desde un slot del inventario.
-    // Retorna true si pudo equiparlo, false en caso contrario.
-    bool equipFromSlot(uint8_t slotIndex);
+    // Retorna EQUIPPED si lo equipó, UNEQUIPPED si lo desequipó, FAILED en caso contrario.
+    EquipResult equipFromSlot(uint8_t slotIndex);
 
     // Se llama cada vez que el jugador inicia una accion activa en el mundo
     void onActionStarted();
@@ -103,6 +109,7 @@ public:
         return stats.consumeMana(static_cast<uint16_t>(amount));
     }
     void toggleInfiniteMana() { infiniteMana = !infiniteMana; }
+    void toggleInfiniteHealth() { infiniteHealth = !infiniteHealth; }
     uint16_t heal(uint16_t amount) {
         stats.heal(amount);
         return amount;
@@ -112,6 +119,8 @@ public:
     void setHp(uint16_t newHp) { stats.setHp(newHp); }
     void setMana(uint16_t newMana) { stats.setMana(newMana); }
     void applyBoost(BoostType type, uint8_t value, uint32_t durationMs);
+    void immobilizeForResurrection(float durationMs);
+    bool isImmobilized() const;
     Race getRace() const { return stats.getRace(); }
     CharacterClass getCharacterClass() const { return stats.getCharacterClass(); }
 
@@ -157,6 +166,7 @@ public:
     StateComponent& getState() { return this->state; }
     const StateComponent& getState() const { return this->state; }
     bool canAttack() const { return this->state.canAttack(); }
+    bool canUseItems() const { return this->state.canUseItems(); }
     bool canBeAttacked() const override { return this->state.canBeAttacked(); }
     void handleDeath() override;
     void resurrect();

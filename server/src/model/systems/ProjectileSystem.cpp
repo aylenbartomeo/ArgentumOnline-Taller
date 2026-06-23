@@ -15,11 +15,12 @@ ProjectileSystem::ProjectileSystem(Map& map, EntityManager& em, CombatSystem& cs
 
 uint32_t ProjectileSystem::spawnProjectile(uint32_t ownerDbId, float sx, float sy, float tx,
                                            float ty, uint16_t spriteId, int minDmg, int maxDmg,
-                                           bool isMagical, ProjectileType type, float speed,
-                                           float maxRange) {
+                                           bool isMagical, IHitEffect* hitEffect,
+                                           ProjectileType type, float speed, float maxRange) {
     uint32_t id = nextId++;
+    // Captura el hitEffect en el momento del disparo (snapshot)
     projectiles.emplace_back(id, ownerDbId, sx, sy, tx, ty, speed, maxRange, spriteId, minDmg,
-                             maxDmg, isMagical, type);
+                             maxDmg, isMagical, type, hitEffect);
     return id;
 }
 
@@ -73,7 +74,7 @@ bool ProjectileSystem::checkCollisionWithEntities(const Projectile& p, uint32_t&
         if (player->getDbId() == p.ownerDbId || player->isDead())
             continue;
         auto pos = player->getPosition();
-        if (checkDist(pos.x, pos.y, player->getDbId()))
+        if (checkDist(pos.x, pos.y, id))
             return true;
     }
     for (const auto& [id, monster]: entityManager.getMonsters()) {
@@ -126,30 +127,64 @@ void ProjectileSystem::applySingleTargetDamage(const Projectile& p, uint32_t hit
     if (!target || target->isDead())
         return;
 
+    // Determinar si el efecto capturado es curativo
+    bool healingProjectile = p.capturedHitEffect && p.capturedHitEffect->isHeal();
+
+    if (healingProjectile) {
+        // Proyectil curativo: solo aplica sobre Players (los monstruos no se curan con magia
+        // aliada)
+        const Player* targetPlayer = dynamic_cast<const Player*>(target);
+        if (!targetPlayer)
+            return;
+
+        // No aplica guardia de zona segura, clanmates ni fairPlay — es una curación, no un ataque
+        const Weapon* weapon = attacker->getEquippedWeapon();
+        if (!weapon)
+            return;
+
+        CombatModifiers modifiers = combatSystem.buildModifiers(p.ownerDbId, target);
+        combatSystem.onProjectileHit(*attacker, *target, p.capturedHitEffect, modifiers, *weapon);
+        return;
+    }
+
+    // --- Proyectil ofensivo (comportamiento original) ---
+
     // Guardia de zona segura del target (el proyectil ya cruzó el mapa)
     if (map.isSafeZone(target->getPosition().x, target->getPosition().y))
         return;
 
-    // No se puede dañar a clanmates
-    if (combatSystem.areClanmates(p.ownerDbId, hitEntityId))
+    Player* targetPlayer = dynamic_cast<Player*>(target);
+    uint32_t targetClanId = targetPlayer ? targetPlayer->getDbId() : hitEntityId;
+
+    if (combatSystem.areClanmates(p.ownerDbId, targetClanId))
         return;
+
+    if (!combatSystem.checkFairPlay(*attacker, *target, p.ownerDbId, true)) {
+        return;
+    }
 
     // Calcular modificadores de clan en el momento del impacto
     CombatModifiers modifiers = combatSystem.buildModifiers(p.ownerDbId, target);
 
-    // Obtener la estrategia de impacto del arma del atacante.
-    // Si el arma fue desequipada durante el vuelo del proyectil, usamos nullptr
-    // y onProjectileHit lo manejará degradando a sin efecto.
-    const Weapon* weapon = attacker->getEquippedWeapon();
-    IHitEffect* hitEffect = weapon ? weapon->getHitEffect() : nullptr;
+    // Usar el hitEffect capturado al momento del disparo.
+    // Si el jugador cambió de arma en vuelo, el efecto sigue siendo el del arma original.
+    // Si no hay efecto capturado (legacy / spawn sin arma), degradar a daño por parámetros.
+    if (!p.capturedHitEffect) {
+        AttackParams params = buildAttackParams(p, modifiers);
+        combatSystem.applyDamageEffect(*attacker, *target, params);
+        return;
+    }
 
+    // Necesitamos el Weapon para pasarlo a onProjectileHit; si el jugador cambió de arma
+    // en vuelo, usamos el arma actual como contexto de stats (rango ya no importa aquí).
+    const Weapon* weapon = attacker->getEquippedWeapon();
     if (!weapon) {
         AttackParams params = buildAttackParams(p, modifiers);
         combatSystem.applyDamageEffect(*attacker, *target, params);
         return;
     }
 
-    combatSystem.onProjectileHit(*attacker, *target, hitEffect, modifiers, *weapon);
+    combatSystem.onProjectileHit(*attacker, *target, p.capturedHitEffect, modifiers, *weapon);
 }
 
 void ProjectileSystem::applyAoeDamage(const Projectile& p) {
@@ -159,7 +194,13 @@ void ProjectileSystem::applyAoeDamage(const Projectile& p) {
     if (!attacker)
         return;
 
-    auto checkAndDamage = [&](float ex, float ey, uint32_t id) {
+    // Determinar si el efecto capturado es curativo
+    bool healingProjectile = p.capturedHitEffect && p.capturedHitEffect->isHeal();
+
+    // Contexto del arma actual (para pasar stats a onProjectileHit)
+    const Weapon* weapon = attacker->getEquippedWeapon();
+
+    auto checkAndApply = [&](float ex, float ey, uint32_t id) {
         float dx = p.x - ex, dy = p.y - ey;
         if (std::sqrt(dx * dx + dy * dy) > AOE_RADIUS)
             return;
@@ -168,27 +209,53 @@ void ProjectileSystem::applyAoeDamage(const Projectile& p) {
         if (!target || target->isDead())
             return;
 
+        if (healingProjectile) {
+            // Solo cura Players; no aplica guardias ofensivas
+            const Player* targetPlayer = dynamic_cast<const Player*>(target);
+            if (!targetPlayer || !weapon)
+                return;
+
+            CombatModifiers modifiers = combatSystem.buildModifiers(p.ownerDbId, target);
+            combatSystem.onProjectileHit(*attacker, *target, p.capturedHitEffect, modifiers,
+                                         *weapon);
+            return;
+        }
+
+        // --- Proyectil ofensivo (comportamiento original) ---
         if (map.isSafeZone(target->getPosition().x, target->getPosition().y))
             return;
 
-        if (combatSystem.areClanmates(p.ownerDbId, id))
+        Player* targetPlayer = dynamic_cast<Player*>(target);
+        uint32_t targetClanId = targetPlayer ? targetPlayer->getDbId() : id;
+
+        if (combatSystem.areClanmates(p.ownerDbId, targetClanId))
             return;
 
+        if (!combatSystem.checkFairPlay(*attacker, *target, p.ownerDbId, false)) {
+            return;
+        }
+
         CombatModifiers modifiers = combatSystem.buildModifiers(p.ownerDbId, target);
-        AttackParams params = buildAttackParams(p, modifiers);
-        combatSystem.applyDamageEffect(*attacker, *target, params);
+
+        if (p.capturedHitEffect && weapon) {
+            combatSystem.onProjectileHit(*attacker, *target, p.capturedHitEffect, modifiers,
+                                         *weapon);
+        } else {
+            AttackParams params = buildAttackParams(p, modifiers);
+            combatSystem.applyDamageEffect(*attacker, *target, params);
+        }
     };
 
     for (const auto& [id, player]: entityManager.getPlayers()) {
         if (player->getDbId() == p.ownerDbId || player->isDead())
             continue;
         auto pos = player->getPosition();
-        checkAndDamage(pos.x, pos.y, player->getDbId());
+        checkAndApply(pos.x, pos.y, id);
     }
     for (const auto& [id, monster]: entityManager.getMonsters()) {
         if (monster->isDead())
             continue;
         auto pos = monster->getPosition();
-        checkAndDamage(pos.x, pos.y, id);
+        checkAndApply(pos.x, pos.y, id);
     }
 }

@@ -5,11 +5,12 @@
 #include <iostream>
 #include <vector>
 
+#include "config/ServerConfigLoader.h"
 #include "persistence/WorldDataStore.h"
 
 #include "Server.h"
 
-#define ERROR_MSG "Uso: ./server <puerto>"
+#define ERROR_MSG "Uso: ./argentum_online_server <puerto>"
 #define EXE_KNOWN_MSG "Error: "
 #define EXE_NKNOWN_MSG "Ha ocurrido un error desconocido en el servidor."
 #define ARGV_PORT 1
@@ -19,15 +20,25 @@ int main(int argc, char* argv[]) try {
 
     if (argc < 4) {
         std::cerr << "Uso:\n";
-        std::cerr
-                << "  Para crear: ./server <puerto> --create <nombre_mundo> [--map <ruta_mapa>]\n";
-        std::cerr << "  Para cargar: ./server <puerto> --load <nombre_mundo>\n";
+        std::cerr << "  Para crear: ./argentum_online_server <puerto> --create <nombre_mundo> "
+                     "[--map <ruta_mapa>]\n";
+        std::cerr << "  Para cargar: ./argentum_online_server <puerto> --load <nombre_mundo>\n";
         return EXIT_FAILURE;
     }
 
     WorldDataStore wds("worlds/");
     WorldConfig wConfig;
+    ServerConfig serverConfig;
+    try {
+        std::string configPath = "config/config.toml";
+        serverConfig = loadServerConfig(configPath);
 
+    } catch (const std::exception& e) {
+        std::cerr << "[ERROR] No se pudo cargar config.toml en el inicio: " << e.what()
+                  << std::endl;
+    }
+
+    std::string portStr = std::to_string(serverConfig.port);
     std::string port = argv[1];
     std::string command = argv[2];
     std::string worldName = argv[3];
@@ -79,7 +90,7 @@ int main(int argc, char* argv[]) try {
         return EXIT_FAILURE;
     }
 
-    Server server(port.c_str(), wConfig);
+    Server server(std::to_string(serverConfig.port).c_str(), wConfig, serverConfig);
     server.run();
 
     return EXIT_SUCCESS;

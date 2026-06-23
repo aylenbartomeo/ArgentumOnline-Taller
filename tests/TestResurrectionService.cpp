@@ -18,8 +18,7 @@ TEST(ResurrectionServiceTest, RequestFailsIfNoPriests) {
 
 TEST(ResurrectionServiceTest, RequestSuccessEnqueuesWithDelay) {
     ResurrectionService svc;
-    std::vector<Position> priests = {Position{20, 10},
-                                     Position{12, 10}};  // Distances: 10 and 2 from (10, 10)
+    std::vector<Position> priests = {Position{20, 10}, Position{12, 10}};
 
     auto result = svc.requestResurrection(1, Position{10, 10}, true, priests);
     EXPECT_TRUE(result.success);

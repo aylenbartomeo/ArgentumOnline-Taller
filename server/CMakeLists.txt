@@ -21,6 +21,7 @@ add_library(lib_server STATIC)
 target_sources(lib_server
     PRIVATE
     # Config
+    src/config/ServerConfigLoader.cpp
     src/config/CharacterConfigLoader.cpp
     src/config/ItemConfigLoader.cpp
     src/config/MonsterConfigLoader.cpp
@@ -40,10 +41,14 @@ target_sources(lib_server
     src/model/entities/EntityManager.cpp
     src/model/entities/Projectile.cpp
     src/model/systems/ProjectileSystem.cpp
-    src/model/systems/SpawnSystem.cpp
+    src/model/systems/ZoneSpawnSystem.cpp
+    src/model/map/SpawnZone.cpp
+    src/model/systems/BossSpawnSystem.cpp
     src/model/systems/ResurrectionService.cpp
     src/model/systems/InteractionService.cpp
     src/model/systems/CombatSystem.cpp
+    src/model/systems/ClanBonusCalculator.cpp
+    src/model/systems/CombatNotifier.cpp
 
     # Items
     src/model/items/Armor.cpp
@@ -73,6 +78,7 @@ target_sources(lib_server
     src/model/map/SafeZoneLayer.cpp
     src/model/map/NPCLayer.cpp
     src/model/map/CollisionLayer.cpp
+    src/model/map/BossZone.cpp
     src/Map.cpp
     src/World.cpp
     src/model/events/EventPublisher.cpp
@@ -93,6 +99,8 @@ target_sources(lib_server
 
     PUBLIC
     # Headers para visualización en IDEs y exposición pública
+    src/config/TomlConfigHelper.h
+    src/config/ServerConfigLoader.h
     src/config/CharacterConfig.h
     src/config/CharacterConfigLoader.h
     src/config/ItemConfigLoader.h
@@ -110,10 +118,16 @@ target_sources(lib_server
     src/model/entities/Banker.h
     src/model/entities/GlobalBank.h
     src/model/entities/EntityManager.h
-    src/model/systems/SpawnSystem.h
+    src/model/systems/ZoneSpawnSystem.h
+    src/model/map/SpawnZone.h
+    src/model/systems/SpawnRequest.h
+    src/model/systems/BossSpawnSystem.h
     src/model/systems/ResurrectionService.h
     src/model/systems/InteractionService.h
     src/model/systems/CombatSystem.h
+    src/model/systems/ClanBonusCalculator.h
+    src/model/systems/CombatNotifier.h
+    src/model/systems/CombatTypes.h
     src/model/components/StatsComponent.h
     src/model/components/InventoryComponent.h
     src/model/components/EquipmentComponent.h
@@ -152,6 +166,7 @@ target_sources(lib_server
     src/model/map/SafeZoneLayer.h
     src/model/map/NPCLayer.h
     src/model/map/CollisionLayer.h
+    src/model/map/BossZone.h
     src/World.h
     src/auth/AuthManager.h
     src/persistence/PlayerDataStore.h

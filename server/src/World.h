@@ -23,13 +23,15 @@
 #include "model/entities/Player.h"
 #include "model/events/EventPublisher.h"
 #include "model/items/ItemRegistry.h"
+#include "model/systems/BossSpawnSystem.h"
 #include "model/systems/CombatSystem.h"
 #include "model/systems/InteractionService.h"
 #include "model/systems/ProjectileSystem.h"
 #include "model/systems/ResurrectionService.h"
-#include "model/systems/SpawnSystem.h"
+#include "model/systems/ZoneSpawnSystem.h"
 #include "persistence/PlayerDataStore.h"
 #include "persistence/WorldPersistData.h"
+#include "server/src/config/ServerConfigLoader.h"
 
 #include "Map.h"
 #include "queue.h"
@@ -57,7 +59,8 @@ private:
     bool enforceFairPlay = true;  // Regla de mundo: Modo arena
 
     CharacterConfigs characterConfigs;
-    SpawnSystem spawnSystem;
+    ZoneSpawnSystem zoneSpawnSystem;
+    BossSpawnSystem bossSpawnSystem;
     CombatSystem combatSystem;
     ProjectileSystem projectileSystem;
     ResurrectionService resurrectionService;
@@ -68,18 +71,17 @@ private:
 
     // Mueve al monstruo hacia el objetivo (si está en cooldown no hace nada)
     void moveMonsterTowards(Monster& monster, const Position& targetPos);
-    void monsterAttack(const Monster& monster, Player& target);
 
 public:
     explicit World(int worldId, const std::string& creatorPlayerName,
                    const ItemRegistry& itemRegistry, const CharacterConfigs& configs,
-                   const InventoryConfig& inventoryConfig);
+                   const InventoryConfig& inventoryConfig, const ServerConfig& config);
 
     // Metodos de cheat para testing
     void playerCheat(uint32_t dbId, CheatType type);
 
     // Métodos lógicos: Entrar y salir del mundo virtual
-    bool addPlayer(uint32_t playerId, std::string& username,
+    bool addPlayer(uint32_t dbId, const std::string& username, Race race, CharacterClass cls,
                    const std::optional<PlayerPersistData>& savedData = std::nullopt);
 
     // Extrae la data completa de un jugador para persistencia
@@ -119,6 +121,10 @@ public:
     std::vector<GroundItemPersistData> getGroundItemsPersistData() const;
     void restoreMonsters(const std::vector<MonsterPersistData>& data,
                          const MonsterConfigs& configs);
+    std::pair<std::vector<NpcHeaderPersistData>, std::vector<std::vector<NpcStockPersistData>>>
+            getNpcsPersistData() const;
+    void restoreNpcStates(const std::vector<NpcHeaderPersistData>& headers,
+                          const std::vector<std::vector<NpcStockPersistData>>& allStocks);
     void restoreGroundItems(const std::vector<GroundItemPersistData>& data);
 
     // Persistencia de clanes
@@ -160,6 +166,7 @@ public:
     void playerMeditate(uint32_t dbId);
     void dropItem(uint32_t dbId, uint8_t slot, uint16_t amount);
     void equipItem(uint32_t dbId, uint8_t slot);
+    void useItem(uint32_t dbId, uint8_t slot);
     void handlePlayerDeath(uint32_t dbId);
     void playerResurrect(uint32_t dbId);
 
@@ -185,6 +192,14 @@ public:
 
     // Obtener una referencia al Player según su ID de base de datos
     Player* getPlayerById(uint32_t dbId);
+
+    Interactable* resolveNpcTarget(uint32_t targetId, const Player& player) const;
+
+    void publishInteractionResult(uint32_t dbId, const InteractionResult& res);
+
+    void setUsernameCache(const std::unordered_map<uint32_t, std::string>& cache) {
+        entityManager.setUsernameCache(cache);
+    }
 
     ~World() override = default;
 };

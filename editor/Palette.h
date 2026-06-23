@@ -9,11 +9,13 @@ private:
     int cols;
     int tileCount;
     int selectedTile;
+    int scrollRow;
 
 public:
     Palette(int panelX, int panelY, int tileDrawSize, int cols, int tileCount);
 
-    void selectFromClick(int x, int y);
+    void setSelectedTile(int index);
+    void scroll(int deltaRows);
 
     int getSelectedTile() const;
     int getPanelX() const;
@@ -21,6 +23,7 @@ public:
     int getTileDrawSize() const;
     int getCols() const;
     int getTileCount() const;
+    int getScrollRow() const;
 };
 
 #endif

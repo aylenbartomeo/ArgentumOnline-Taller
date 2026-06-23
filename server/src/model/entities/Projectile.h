@@ -5,6 +5,9 @@
 
 #include "../../../common/include/dto/Snapshot.h"
 
+// Forward declaration para evitar incluir todo CombatStrategies
+class IHitEffect;
+
 enum class ProjectileType : uint8_t {
     ARROW,        // Arcos
     MAGIC_ARROW,  // Vara de fresno
@@ -28,9 +31,14 @@ public:
     bool isMagical;
     ProjectileType type;
 
+    // Puntero no-owning al efecto capturado en el momento del disparo.
+    // Permite que el efecto correcto se aplique aunque el jugador cambie de arma en vuelo.
+    IHitEffect* capturedHitEffect = nullptr;
+
     Projectile(uint32_t id, uint32_t owner, float startX, float startY, float targetX,
                float targetY, float speedTilesPerSec, float maxRange, uint16_t sprite, int minDmg,
-               int maxDmg, bool magical, ProjectileType type = ProjectileType::ARROW);
+               int maxDmg, bool magical, ProjectileType type = ProjectileType::ARROW,
+               IHitEffect* hitEffect = nullptr);
 
     // Avanza la física para un dt en milisegundos. Retorna false si llegó al rango máximo.
     bool step(float dtMs);

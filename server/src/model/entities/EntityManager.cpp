@@ -47,7 +47,7 @@ Attackable* EntityManager::findAttackable(uint32_t entityId) {
     return nullptr;
 }
 
-Interactable* EntityManager::findInteractable(uint32_t entityId) {
+Interactable* EntityManager::findInteractable(uint32_t entityId) const {
     auto itNpc = cityNPCs.find(entityId);
     if (itNpc != cityNPCs.end()) {
         return itNpc->second.get();
@@ -60,7 +60,7 @@ void EntityManager::registerPlayer(uint32_t entityId, uint32_t dbId,
     if (dbIdToEntityId.find(dbId) != dbIdToEntityId.end()) {
         return;  // Ya existe
     }
-
+    dbIdToUsernameCache[dbId] = player->getName();
     dbIdToEntityId[dbId] = entityId;
     players[entityId] = std::move(player);
 }
@@ -125,6 +125,10 @@ std::optional<std::string> EntityManager::getPlayerUsername(uint32_t dbId) const
     const Player* p = getPlayer(dbId);
     if (p) {
         return p->getName();
+    }
+    auto it = dbIdToUsernameCache.find(dbId);
+    if (it != dbIdToUsernameCache.end()) {
+        return it->second;
     }
     return std::nullopt;
 }

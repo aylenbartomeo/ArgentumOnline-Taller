@@ -2,7 +2,6 @@
 
 #include "model/components/InventoryComponent.h"
 
-// Inventario estándar: 5 slots, 5000 oro seguro, 10000 oro máximo.
 class InventoryComponentTest: public ::testing::Test {
 protected:
     static constexpr int SLOTS = 5;

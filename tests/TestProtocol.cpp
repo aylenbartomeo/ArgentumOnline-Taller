@@ -21,16 +21,12 @@ TEST(ProtocolTest, LoginSerializationIsSymmetric) {
     Protocol client_protocol(client_skt);
     Protocol server_protocol(server_skt);
 
-    // El cliente envia
     client_protocol.sendLogin(original_dto);
 
-    // El servidor recibe y procesa el OpCode automáticamente
     CommandVariant received_cmd = server_protocol.receive_command();
 
-    // ASSERT: Verificamos que el variant contiene la alternativa correcta
     ASSERT_TRUE(std::holds_alternative<LoginDTO>(received_cmd));
 
-    // Extraemos el DTO limpio y comparamos
     LoginDTO received_dto = std::get<LoginDTO>(received_cmd);
     EXPECT_EQ(original_dto.username, received_dto.username);
 }
@@ -63,7 +59,7 @@ TEST(ProtocolTest, StartMoveSerializationIsSymmetric) {
 TEST(ProtocolTest, DropItemSerializationIsSymmetric) {
     DropItemDTO original_dto;
     original_dto.slot = 5;
-    original_dto.amount = 1500;  // Valor mayor a 255 para asegurar que usa 2 bytes
+    original_dto.amount = 1500;
 
     Socket acceptor_skt("8082");
     Socket client_skt("localhost", "8082");
@@ -92,11 +88,9 @@ TEST(ProtocolTest, StopMoveSerializationIsSymmetric) {
     Protocol client_protocol(client_skt);
     Protocol server_protocol(server_skt);
 
-    // El cliente envía el comando STOP_MOVE y el servidor lee del socket y reconstruye el comando
     client_protocol.sendStopMove();
     CommandVariant received_cmd = server_protocol.receive_command();
 
-    // Se verifica que lo recibido sea efectivamente un StopMoveDTO
     ASSERT_TRUE(std::holds_alternative<StopMoveDTO>(received_cmd));
 }
 
@@ -142,7 +136,7 @@ TEST(ProtocolTest, EquipItemSerializationIsSymmetric) {
     EXPECT_EQ(original_dto.slot, received_dto.slot);  // Se compara el contenido
 }
 
-// --- TEST PARA USE ITEM (Payload: 1 byte) ---
+// --- TEST PARA USE ITEM ---
 TEST(ProtocolTest, UseItemSerializationIsSymmetric) {
     UseItemDTO original_dto;
     original_dto.slot = 1;
@@ -158,9 +152,9 @@ TEST(ProtocolTest, UseItemSerializationIsSymmetric) {
 
     CommandVariant received_cmd = server_protocol.receive_command();
 
-    ASSERT_TRUE(std::holds_alternative<UseItemDTO>(received_cmd));  // Validación de tipo
-    UseItemDTO received_dto = std::get<UseItemDTO>(received_cmd);   // Extracción del DTO
-    EXPECT_EQ(original_dto.slot, received_dto.slot);                // Comparación de datos
+    ASSERT_TRUE(std::holds_alternative<UseItemDTO>(received_cmd));
+    UseItemDTO received_dto = std::get<UseItemDTO>(received_cmd);
+    EXPECT_EQ(original_dto.slot, received_dto.slot);
 }
 
 // --- TEST PARA GRAB ITEM (DTO Vacío) ---
@@ -179,7 +173,7 @@ TEST(ProtocolTest, GrabItemSerializationIsSymmetric) {
     ASSERT_TRUE(std::holds_alternative<GrabItemDTO>(received_cmd));
 }
 
-// --- TEST PARA EL MENSAJE DE CHAT (Payload: string dinámico) ---
+// --- TEST PARA EL MENSAJE DE CHAT ---
 TEST(ProtocolTest, ChatSerializationIsSymmetric) {
     ChatDTO original_dto;
     original_dto.message = "Hola servidor, un gusto!";
@@ -193,11 +187,11 @@ TEST(ProtocolTest, ChatSerializationIsSymmetric) {
 
     client_protocol.sendChat(original_dto);
 
-    CommandVariant received_cmd = server_protocol.receive_command();  // Recepción y parseo
+    CommandVariant received_cmd = server_protocol.receive_command();
 
     ASSERT_TRUE(std::holds_alternative<ChatDTO>(received_cmd));
     ChatDTO received_dto = std::get<ChatDTO>(received_cmd);
-    EXPECT_EQ(original_dto.message, received_dto.message);  // Comparación del contenido del string
+    EXPECT_EQ(original_dto.message, received_dto.message);
 }
 
 // =================================================================
@@ -220,6 +214,7 @@ TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
     entity1.helmetItemId = 2;
     entity1.shieldItemId = 3;
     entity1.bodyArmorItemId = 4;
+    entity1.stateId = 1;  // 1 = Fantasma / Muerto
 
     EntityDTO entity2;
     entity2.id = 200;
@@ -260,6 +255,7 @@ TEST(ProtocolTest, SnapshotSerializationIsSymmetric) {
     EXPECT_EQ(received_snap.players[0].helmetItemId, 2);
     EXPECT_EQ(received_snap.players[0].shieldItemId, 3);
     EXPECT_EQ(received_snap.players[0].bodyArmorItemId, 4);
+    EXPECT_EQ(received_snap.players[0].stateId, 1);  // Validar que se reciba el estado de fantasma
 
     ASSERT_EQ(received_snap.monsters.size(), 1u);
     EXPECT_EQ(received_snap.monsters[0].id, 200);
@@ -279,13 +275,10 @@ TEST(ProtocolTest, LoginResponseSuccessIsSymmetric) {
 
     uint32_t expected_client_id = 42;
 
-    // SERVER envia respuesta de exito
     server_protocol.sendLoginSuccess(expected_client_id);
 
-    // CLIENT recibe y procesa respuesta
     LoginResponseDTO response = client_protocol.recvLoginResponse();
 
-    // Validamos que la respuesta indique exito y tenga el ID correcto
     EXPECT_TRUE(response.success);
     EXPECT_EQ(response.clientId, expected_client_id);
     EXPECT_EQ(response.errorMessage, "");
@@ -301,13 +294,10 @@ TEST(ProtocolTest, LoginResponseFailureIsSymmetric) {
 
     std::string expected_error = "Usuario o contraseña incorrecta";
 
-    // SERVER rechaza login y envia un error
     server_protocol.sendLoginFailed(expected_error);
 
-    // CLIENT recibe y procesa la respuesta
     LoginResponseDTO response = client_protocol.recvLoginResponse();
 
-    // Validamos que la respuesta indique fallo y traiga el mensaje correcto
     EXPECT_FALSE(response.success);
     EXPECT_EQ(response.errorMessage, expected_error);
 }

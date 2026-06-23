@@ -22,7 +22,7 @@ void Font::drawString(const std::string& text, int x, int y, SDL_Color color) {
     if (text.empty()) {
         return;
     }
-    SDL_Surface* sdlSurface = TTF_RenderText_Blended(ttfFont, text.c_str(), color);
+    SDL_Surface* sdlSurface = TTF_RenderUTF8_Blended(ttfFont, text.c_str(), color);
     if (!sdlSurface) {
         return;
     }

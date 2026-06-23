@@ -18,9 +18,11 @@ constexpr int VIEW_H = 736;
 
 // Constantes compartidas de Renderizado (usadas en Entity y World Renderer)
 constexpr int CHARACTER_DRAW_H = TILE_SIZE * 3 / 2;
-constexpr const char* HEAD_SHEET = "420.png";
+constexpr const char* HEAD_SHEET = "characters/heads.png";
 constexpr int HEAD_DRAW_W = 18;
 constexpr int HEAD_DRAW_H = 20;
+
+constexpr uint16_t MAX_LEVEL = 99;
 }  // namespace GameConstants
 
 #endif

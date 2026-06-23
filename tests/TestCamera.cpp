@@ -43,3 +43,45 @@ TEST(CameraTest, SmallMapDoesNotScroll) {
     EXPECT_EQ(camera.getOffsetX(), 0);
     EXPECT_EQ(camera.getOffsetY(), 0);
 }
+
+TEST(CameraTest, GetTileSizeReturnsConstructed) {
+    Camera camera(640, 480, 32, 100, 100);
+    EXPECT_EQ(camera.getTileSize(), 32);
+}
+
+TEST(CameraTest, ZoomInStepsToNextLevel) {
+    Camera camera(640, 480, 32, 100, 100);
+    camera.zoomIn();
+    EXPECT_EQ(camera.getTileSize(), 48);
+}
+
+TEST(CameraTest, ZoomOutStepsToPreviousLevel) {
+    Camera camera(640, 480, 32, 100, 100);
+    camera.zoomOut();
+    EXPECT_EQ(camera.getTileSize(), 24);
+}
+
+TEST(CameraTest, ZoomInStopsAtMaxLevel) {
+    Camera camera(640, 480, 32, 100, 100);
+    camera.zoomIn();
+    camera.zoomIn();
+    EXPECT_EQ(camera.getTileSize(), 48);
+}
+
+TEST(CameraTest, ZoomOutStopsAtMinLevel) {
+    Camera camera(640, 480, 32, 100, 100);
+    camera.zoomOut();
+    camera.zoomOut();
+    camera.zoomOut();
+    camera.zoomOut();
+    EXPECT_EQ(camera.getTileSize(), 12);
+}
+
+TEST(CameraTest, ZoomKeepsCenterCellStable) {
+    Camera camera(640, 480, 32, 100, 100);
+    Position before = camera.screenToCell(320, 240);
+    camera.zoomIn();
+    Position after = camera.screenToCell(320, 240);
+    EXPECT_EQ(after.x, before.x);
+    EXPECT_EQ(after.y, before.y);
+}

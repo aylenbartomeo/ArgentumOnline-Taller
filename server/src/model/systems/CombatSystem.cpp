@@ -7,91 +7,34 @@
 #include "../interfaces/CombatStrategies.h"
 #include "../items/Weapon.h"
 
+#include "BossSpawnSystem.h"
 #include "FormulaEngine.h"
 
 CombatSystem::CombatSystem(Map& map, EntityManager& em, ClanRepository& cr, EventPublisher& ep,
-                           ICombatEventCallback& cb, bool enforceFairPlay):
+                           ICombatEventCallback& cb, const BossSpawnSystem& bss,
+                           bool enforceFairPlay, const ServerConfig& config):
         map(map),
         entityManager(em),
         clanRepo(cr),
         eventPublisher(ep),
         callback(cb),
-        enforceFairPlay(enforceFairPlay) {}
+        bossSpawnSystem(bss),
+        enforceFairPlay(enforceFairPlay),
+        criticalProbability(config.criticalProbability),
+        clanBonusCalc(em, cr, ep, config),
+        notifier(ep, cb) {}
 
-bool CombatSystem::areClanmates(uint32_t dbId1, uint32_t dbId2) const {
-    if (dbId1 == dbId2)
-        return true;
-    auto clan1 = clanRepo.getClanIdOfPlayer(dbId1);
-    auto clan2 = clanRepo.getClanIdOfPlayer(dbId2);
-    return clan1 && clan2 && *clan1 == *clan2;
-}
-
-int CombatSystem::countNearbyClanmates(uint32_t dbId, int range) const {
-    auto clanId = clanRepo.getClanIdOfPlayer(dbId);
-    if (!clanId)
-        return 0;
-
-    const Clan* clan = clanRepo.getClanById(*clanId);
-    if (!clan)
-        return 0;
-
-    auto posOpt = entityManager.getPlayerPosition(dbId);
-    if (!posOpt)
-        return 0;
-
-    int count = 0;
-    for (uint32_t memberId: clan->getMembers()) {
-        if (memberId == dbId)
-            continue;
-        auto memberPosOpt = entityManager.getPlayerPosition(memberId);
-        if (memberPosOpt && posOpt->chebyshev_distance_to(*memberPosOpt) <= range) {
-            count++;
+bool CombatSystem::checkFairPlay(const Player& attacker, const Attackable& target,
+                                 uint32_t attackerDbId, bool notify) {
+    if (enforceFairPlay &&
+        (!attacker.canEngageInCombatWith(target) || !target.canEngageInCombatWith(attacker))) {
+        if (notify) {
+            eventPublisher.sendTo(attackerDbId,
+                                  "No puedes pelear con este objetivo (violacion de fair play).");
         }
+        return false;  // Violación de Fair Play
     }
-    return count;
-}
-
-void CombatSystem::notifyCombatResult(const Attackable& attacker, const Attackable& target,
-                                      const CombatResult& res) {
-    if (!res.attackHappened || res.isPending)
-        return;
-
-    const Player* pAttacker = dynamic_cast<const Player*>(&attacker);
-    if (!pAttacker)
-        return;
-
-    uint32_t attackerDbId = pAttacker->getDbId();
-    const Player* pTarget = dynamic_cast<const Player*>(&target);
-
-    if (res.evaded) {
-        eventPublisher.sendTo(attackerDbId, "¡" + target.getName() + " evadió tu ataque!");
-        if (pTarget) {
-            eventPublisher.sendTo(pTarget->getDbId(),
-                                  "¡Evadiste el ataque de " + attacker.getName() + "!");
-        }
-    } else {
-        std::string critMsg = res.critical ? " ¡GOLPE CRITICO!" : "";
-        eventPublisher.sendTo(attackerDbId, "¡Le hiciste " + std::to_string(res.damage) +
-                                                    " de dano a " + target.getName() + "!" +
-                                                    critMsg);
-        if (pTarget) {
-            eventPublisher.sendTo(pTarget->getDbId(), "¡Recibiste " + std::to_string(res.damage) +
-                                                              " de dano de " + attacker.getName() +
-                                                              "!");
-
-            if (pTarget->isDead()) {
-                std::string deathMsg =
-                        attacker.getName() + " ha asesinado a " + pTarget->getName() + "!";
-                eventPublisher.broadcast(deathMsg);
-                callback.onPlayerDeath(pTarget->getDbId());
-            }
-        }
-
-        const Monster* mTarget = dynamic_cast<const Monster*>(&target);
-        if (mTarget && mTarget->isDead()) {
-            callback.onMonsterDeath(*mTarget, attackerDbId);
-        }
-    }
+    return true;  // Todo legal, proceda
 }
 
 void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
@@ -119,7 +62,7 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     }
 
     // -- Validar no atacar a un miembro de tu clan ---
-    if (areClanmates(attackerDbId, targetDbId)) {
+    if (clanBonusCalc.areClanmates(attackerDbId, targetDbId)) {
         eventPublisher.sendTo(attackerDbId, "No puedes atacar a un miembro de tu clan.");
         return;
     }
@@ -130,6 +73,15 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
         return;
     }
 
+    // --- Validar boss area ---
+    Monster* mTarget = dynamic_cast<Monster*>(target);
+    if (mTarget && mTarget->isBoss()) {
+        if (!bossSpawnSystem.isInAnyBossArea(attacker.getPosition())) {
+            eventPublisher.sendTo(attackerDbId, "Debes acercarte al area del boss para atacarlo.");
+            return;
+        }
+    }
+
     // --- Validar linea de vision ---
     if (!map.hasLineOfSight(attacker.getPosition(), target->getPosition())) {
         eventPublisher.sendTo(attackerDbId, "Hay un obstaculo bloqueando tu vision.");
@@ -137,50 +89,52 @@ void CombatSystem::playerAttack(uint32_t attackerDbId, uint32_t targetDbId) {
     }
 
     // --- Validar fair play ---
-    if (enforceFairPlay &&
-        (!attacker.canEngageInCombatWith(*target) || !target->canEngageInCombatWith(attacker))) {
-        eventPublisher.sendTo(attackerDbId,
-                              "No puedes pelear con este objetivo (violacion de fair play).");
+    if (!checkFairPlay(attacker, *target, attackerDbId, true)) {
         return;
     }
 
-    // --- Calcular bonificaciones ---
-    float attackBonus = 1.0f + (countNearbyClanmates(attackerDbId, CLAN_BONUS_RANGE) *
-                                CLAN_ATTACK_BONUS_PER_MEMBER);
-    float defenseBonus = 1.0f;
+    auto attackerPos = attacker.getPosition();
+    auto targetPos = target->getPosition();
+    const Weapon* weapon = attacker.getEquippedWeapon();
 
-    // Notificar a los clanmates del target que está siendo atacado y aplicar su defensa
-    auto targetPlayerIt = dynamic_cast<Player*>(target);
-    if (targetPlayerIt) {
-        uint32_t targetDb = targetPlayerIt->getDbId();
+    if (!weapon || weapon->getType() == WeaponType::MELEE) {
+        // Lógica Melee (Por celdas discretas / tiles de la grilla)
+        int attackerTileX = static_cast<int>(std::floor(attackerPos.x));
+        int attackerTileY = static_cast<int>(std::floor(attackerPos.y));
+        int targetTileX = static_cast<int>(std::floor(targetPos.x));
+        int targetTileY = static_cast<int>(std::floor(targetPos.y));
 
-        defenseBonus +=
-                countNearbyClanmates(targetDb, CLAN_BONUS_RANGE) * CLAN_DEFENSE_BONUS_PER_MEMBER;
+        int deltaX = std::abs(attackerTileX - targetTileX);
+        int deltaY = std::abs(attackerTileY - targetTileY);
 
-        auto clanIdOpt = clanRepo.getClanIdOfPlayer(targetDb);
-        if (clanIdOpt) {
-            const Clan* clan = clanRepo.getClanById(*clanIdOpt);
-            if (clan) {
-                std::string alertMsg = "[Clan] " + targetPlayerIt->getName() +
-                                       " está siendo atacado por " + attacker.getName() + "!";
-                for (uint32_t memberId: clan->getMembers()) {
-                    if (memberId != targetDb && memberId != attackerDbId) {
-                        eventPublisher.sendTo(memberId, alertMsg);
-                    }
-                }
-            }
+        // Permite atacar si está en cualquiera de los 8 casilleros adyacentes
+        if (deltaX > 1 || deltaY > 1) {
+            eventPublisher.sendTo(attackerDbId,
+                                  "Estas demasiado lejos para atacar cuerpo a cuerpo.");
+            return;
+        }
+    } else {
+        float dx = attackerPos.x - targetPos.x;
+        float dy = attackerPos.y - targetPos.y;
+        float distance = std::sqrt(dx * dx + dy * dy);
+
+        int maxRange = weapon->getAttackRange();
+        if (distance > maxRange) {
+            eventPublisher.sendTo(attackerDbId, "El objetivo esta fuera del rango de tu arma.");
+            return;
         }
     }
 
-    // Ejecutar ataque con bonificaciones calculadas
-    CombatResult res = processAttack(attacker, *target, attackBonus, defenseBonus);
+    // --- Calcular bonificaciones y notificar ataque de clan ---
+    CombatModifiers mods = clanBonusCalc.buildModifiers(attackerDbId, target);
 
+    // Ejecutar ataque con bonificaciones calculadas
+    CombatResult res = processAttack(attacker, *target, mods.attackBonus, mods.defenseBonus);
+    notifier.notifyCombatResult(attacker, *target, res);
     if (!res.attackHappened)
         return;
 
     attacker.setAction(static_cast<uint8_t>(EntityAction::ATTACKING), 400.0f);
-
-    notifyCombatResult(attacker, *target, res);
 }
 
 void CombatSystem::monsterAttack(const Monster& monster, Player& target) {
@@ -196,38 +150,14 @@ void CombatSystem::monsterAttack(const Monster& monster, Player& target) {
     }
 
     // Notificar a los clanmates del target (Player) que está siendo atacado
-    uint32_t targetDb = target.getDbId();
-    auto clanIdOpt = clanRepo.getClanIdOfPlayer(targetDb);
-    if (clanIdOpt) {
-        const Clan* clan = clanRepo.getClanById(*clanIdOpt);
-        if (clan) {
-            std::string alertMsg = "[Clan] " + target.getName() + " está siendo atacado por " +
-                                   monster.getName() + "!";
-            for (uint32_t memberId: clan->getMembers()) {
-                if (memberId != targetDb) {
-                    eventPublisher.sendTo(memberId, alertMsg);
-                }
-            }
-        }
-    }
+    clanBonusCalc.notifyClanOfAttack(target.getDbId(), monster.getName());
 
     CombatResult res = processAttack(monster, target);
 
     if (!res.attackHappened)
         return;
 
-    if (res.evaded) {
-        eventPublisher.sendTo(target.getDbId(),
-                              "¡Evadiste el ataque de " + monster.getName() + "!");
-    } else {
-        eventPublisher.sendTo(target.getDbId(), "¡Recibiste " + std::to_string(res.damage) +
-                                                        " de dano de " + monster.getName() + "!");
-        if (target.isDead()) {
-            std::string deathMsg = monster.getName() + " ha asesinado a " + target.getName() + "!";
-            eventPublisher.broadcast(deathMsg);
-            callback.onPlayerDeath(target.getDbId());
-        }
-    }
+    notifier.notifyCombatResult(monster, target, res);
 }
 
 
@@ -255,20 +185,19 @@ CombatResult CombatSystem::applyDamageEffect(const Attackable& attacker, Attacka
     res.attackHappened = true;
 
     // 1. Calcular daño bruto usando la Fuerza y aplicar bonificación de ataque del clan
-    uint16_t rawDamage = FormulaEngine::getInstance().calculate_base_damage(
+    uint16_t rawDamage = FormulaEngine::getInstance().calculateBaseDamage(
             attacker.getStrength(), params.minDamage, params.maxDamage);
 
     rawDamage = static_cast<uint16_t>(rawDamage * params.attackBonus);
 
     // 2. Chequear crítico
-    const float CRITICAL_PROB = 0.05f;
-    res.critical = FormulaEngine::getInstance().is_critical_attack(CRITICAL_PROB);
+    res.critical = FormulaEngine::getInstance().isCriticalAttack(criticalProbability);
     if (res.critical) {
         rawDamage *= 2;
     }
 
     // 3. Chequear esquive (si no fue crítico, no se puede esquivar)
-    if (!res.critical && FormulaEngine::getInstance().is_attack_eluded(target.getAgility())) {
+    if (!res.critical && FormulaEngine::getInstance().isAttackEluded(target.getAgility())) {
         res.evaded = true;
         return res;
     }
@@ -285,10 +214,17 @@ CombatResult CombatSystem::applyDamageEffect(const Attackable& attacker, Attacka
     return res;
 }
 
+CombatResult CombatSystem::applyHealEffect(Player& target) {
+    CombatResult res;
+    res.attackHappened = true;
+    res.isHeal = true;
+    target.restoreHp();
+    return res;
+}
 
 CombatResult CombatSystem::processAttack(const Monster& attacker, Attackable& target) {
     AttackParams params{static_cast<uint16_t>(attacker.getAttackMin()),
-                        static_cast<uint16_t>(attacker.getAttackMax()), attacker.get_attack_range(),
+                        static_cast<uint16_t>(attacker.getAttackMax()), attacker.getAttackRange(),
                         0, false};
 
     CombatResult res = resolveCombat(attacker, target, params);
@@ -311,14 +247,20 @@ CombatResult CombatSystem::processAttack(Player& attacker, Attackable& target, f
 
     CombatModifiers modifiers{attackBonus, defenseBonus};
 
-    CombatResult res = weapon->getDelivery()->deliver(attacker, target, modifiers, *weapon, *this);
+    CombatResult res = weapon->deliver(attacker, target, modifiers, *this);
 
     if (!res.attackHappened || res.isPending)
         return res;
 
+    if (!res.evaded && !res.isHeal && res.damage > 0) {
+        uint32_t attackXp = FormulaEngine::getInstance().calculateAttackXpGain(
+                res.damage, attacker.getLevel(), target.getLevel());
+        attacker.addExperience(attackXp);
+    }
+
     if (target.isDead()) {
         target.handleDeath();
-        uint32_t killXp = FormulaEngine::getInstance().calculate_kill_xp_gain(
+        uint32_t killXp = FormulaEngine::getInstance().calculateKillXpGain(
                 target.getMaxHp(), attacker.getLevel(), target.getLevel());
         attacker.addExperience(killXp);
     }
@@ -327,42 +269,48 @@ CombatResult CombatSystem::processAttack(Player& attacker, Attackable& target, f
 }
 
 // --- Impacto de proyectil (llamado por ProjectileSystem cuando el proyectil llega) ---
-void CombatSystem::onProjectileHit(Attackable& attacker, Attackable& target, IHitEffect* hitEffect,
+void CombatSystem::onProjectileHit(Player& attacker, Attackable& target, IHitEffect* hitEffect,
                                    const CombatModifiers& modifiers, const Weapon& weapon) {
     if (target.isDead() || !target.canBeAttacked()) {
         return;  // Si el objetivo murió en el viaje del proyectil, se descarta el impacto
     }
 
+    // --- Validar boss area (el jugador podría haberse movido después de disparar) ---
+    const Monster* mTarget = dynamic_cast<const Monster*>(&target);
+    if (mTarget && mTarget->isBoss()) {
+        if (!bossSpawnSystem.isInAnyBossArea(attacker.getPosition())) {
+            eventPublisher.sendTo(attacker.getId(),
+                                  "Debes acercarte al area del boss para atacarlo.");
+            return;
+        }
+    }
+
     CombatResult res;
-    // Ejecución polimórfica diferida.
-    // Si era un arco         -> MeleeDamageEffect  (daño físico)
-    // Si era un bastón mágico -> MagicDamageEffect (valida/consume maná e impacta daño mágico)
     if (hitEffect) {
         res = hitEffect->apply(attacker, target, modifiers, weapon, *this);
     }
 
-    Player* playerAttacker = dynamic_cast<Player*>(&attacker);
-    if (playerAttacker) {
-        if (target.isDead()) {
-            target.handleDeath();
-            uint32_t killXp = FormulaEngine::getInstance().calculate_kill_xp_gain(
-                    target.getMaxHp(), playerAttacker->getLevel(), target.getLevel());
-            playerAttacker->addExperience(killXp);
-        }
+    if (res.attackHappened && !res.evaded && !res.isHeal && res.damage > 0) {
+        uint32_t attackXp = FormulaEngine::getInstance().calculateAttackXpGain(
+                res.damage, attacker.getLevel(), target.getLevel());
+        attacker.addExperience(attackXp);
     }
 
-    notifyCombatResult(attacker, target, res);
+    if (target.isDead()) {
+        target.handleDeath();
+        uint32_t killXp = FormulaEngine::getInstance().calculateKillXpGain(
+                target.getMaxHp(), attacker.getLevel(), target.getLevel());
+        attacker.addExperience(killXp);
+    }
+
+    notifier.notifyCombatResult(attacker, target, res);
 }
 
 CombatModifiers CombatSystem::buildModifiers(uint32_t attackerDbId,
                                              const Attackable* target) const {
-    CombatModifiers m;
-    m.attackBonus = 1.0f + (countNearbyClanmates(attackerDbId, CLAN_BONUS_RANGE) *
-                            CLAN_ATTACK_BONUS_PER_MEMBER);
-    m.defenseBonus = 1.0f;
-    const Player* tp = dynamic_cast<const Player*>(target);
-    if (tp)
-        m.defenseBonus += countNearbyClanmates(tp->getDbId(), CLAN_BONUS_RANGE) *
-                          CLAN_DEFENSE_BONUS_PER_MEMBER;
-    return m;
+    return clanBonusCalc.buildModifiers(attackerDbId, target);
+}
+
+bool CombatSystem::areClanmates(uint32_t dbId1, uint32_t dbId2) const {
+    return clanBonusCalc.areClanmates(dbId1, dbId2);
 }

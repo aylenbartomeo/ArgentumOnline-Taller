@@ -6,13 +6,12 @@
 
 #include "../../common/include/queue.h"
 #include "auth/AuthManager.h"
+#include "config/ServerConfigLoader.h"
 #include "dto/CommandDTO.h"
 
 #include "Acceptor.h"
 #include "ConnectionMonitor.h"
 #include "GameLoop.h"
-
-// #include "GameLoop.h"
 
 /**
  * @class Server
@@ -36,7 +35,8 @@ private:
     void wait_for_exit();
 
 public:
-    explicit Server(const char* port, const WorldConfig& worldConfig);
+    explicit Server(const char* port, const WorldConfig& worldConfig,
+                    const ServerConfig& serverConfig);
 
     void run();
 

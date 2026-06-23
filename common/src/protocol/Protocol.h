@@ -5,6 +5,8 @@
 
 #include "../../include/OpCodes.h"
 #include "../../include/dto/ClientCommands.h"
+#include "../../include/dto/CreateCharacterDTO.h"
+#include "../../include/dto/JoinResponseDTO.h"
 #include "../../include/dto/LoginDTO.h"
 #include "../../include/dto/LoginResponseDTO.h"
 #include "../../include/dto/PlayerStatsDTO.h"
@@ -46,6 +48,7 @@ public:
     void sendStartMove(const StartMoveDTO& dto);
     void sendStopMove();
     void sendAttack(uint32_t targetId);
+    void sendSelectNpc(uint32_t targetId);
     void sendDropItem(const DropItemDTO& dto);
     void sendEquipItem(const EquipItemDTO& dto);
     void sendUseItem(const UseItemDTO& dto);
@@ -56,6 +59,7 @@ public:
     void sendResurrect();
     void sendNpcCommand(const NpcCommandDTO& dto);
     void sendClanCommand(const ClanCommandDTO& dto);
+    void sendCreateCharacter(const CreateCharacterDTO& dto);
 
     // --- MÉTODOS DE ENVÍO (Servidor -> Cliente) ---
     void sendSnapshot(const SnapshotDTO& snap);
@@ -77,6 +81,9 @@ public:
     void sendLoginSuccess(uint32_t clientId);
     void sendLoginFailed(const std::string& errorMessage);
     LoginResponseDTO recvLoginResponse();
+
+    void sendJoinResponse(const JoinResponseDTO& dto);
+    JoinResponseDTO receiveJoinResponseBody();
 
     // --- MÉTODO DE ENVÍO DE CHEATS ---
     void sendCheat(const CheatDTO& dto);

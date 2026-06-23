@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <string>
 #include <unordered_map>
 
 #include "server/src/model/items/Armor.h"
@@ -38,6 +39,10 @@ public:
     // Obtiene la definición inmutable de un ítem genérico en O(1).
     const Item* get_item(int item_id) const;
 
+    // Obtiene un item por su nombre (búsqueda case-insensitive).
+    // Retorna nullptr si no se encuentra.
+    const Item* getItemByName(const std::string& name) const;
+
     // Retorna el ítem casteado de forma segura a Weapon.
     const Weapon* get_weapon(int item_id) const;
 
@@ -46,12 +51,6 @@ public:
 
     // Retorna el ítem casteado de forma segura a Consumable.
     const Consumable* get_consumable(int item_id) const;
-
-    // Retorna el catalogo de items
-    const std::unordered_map<int, std::unique_ptr<Item>> getItemCatalog() const;
-
-    // Retorna el catalogo de armas
-    const std::unordered_map<int, std::unique_ptr<Weapon>> getWeaponCatalog() const;
 
     // Determina si un ítem es apilable. Las armas y armaduras no lo son.
     bool isStackable(int item_id) const;

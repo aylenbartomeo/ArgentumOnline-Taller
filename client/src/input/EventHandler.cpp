@@ -11,11 +11,17 @@ FrameInput EventHandler::pollEvents() {
     int equipX = 0;
     int equipY = 0;
     bool resurrectThisFrame = false;
+    bool consumeThisFrame = false;
+    bool grabThisFrame = false;
+    bool dropThisFrame = false;
+    bool meditateThisFrame = false;
 
     bool toggleChatThisFrame = false;
     int scrollThisFrame = 0;
     bool mouseLeftJustPressedThisFrame = false;
 
+    bool toggleMuteThisFrame = false;
+    bool escThisFrame = false;
     bool shootThisFrame = false;
     int shootX = 0, shootY = 0;
 
@@ -68,6 +74,10 @@ FrameInput EventHandler::pollEvents() {
                 toggleChatThisFrame = true;
             }
 
+            if (key == SDLK_F4 && event.key.repeat == 0) {
+                toggleMuteThisFrame = true;
+            }
+
             if (inputActive) {
                 if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
                     inputActive = false;
@@ -81,13 +91,25 @@ FrameInput EventHandler::pollEvents() {
                 }
             } else {
                 if (key == SDLK_ESCAPE) {
-                    quitRequested = true;
+                    escThisFrame = true;
                 } else if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
                     inputActive = true;
                     SDL_StartTextInput();
                 } else if (key == SDLK_r) {
                     if (event.key.repeat == 0)
                         resurrectThisFrame = true;
+                } else if (key == SDLK_c) {
+                    if (event.key.repeat == 0)
+                        consumeThisFrame = true;
+                } else if (key == SDLK_g) {
+                    if (event.key.repeat == 0)
+                        grabThisFrame = true;
+                } else if (key == SDLK_t) {
+                    if (event.key.repeat == 0)
+                        dropThisFrame = true;
+                } else if (key == SDLK_m) {
+                    if (event.key.repeat == 0)
+                        meditateThisFrame = true;
                 }
                 pressedKeys.insert(key);
                 justPressedKeys.insert(key);
@@ -105,10 +127,12 @@ FrameInput EventHandler::pollEvents() {
 
     input.mouseX = currentMouseX;
     input.mouseY = currentMouseY;
+    input.escPressed = escThisFrame;
     input.mouseLeftHeld = mouseLeftHeld;
     input.mouseLeftJustPressed = mouseLeftJustPressedThisFrame;
     input.mouseScroll = scrollThisFrame;
     input.toggleChat = toggleChatThisFrame;
+    input.toggleMute = toggleMuteThisFrame;
 
     if (inputActive) {
         input.chatInputActive = true;
@@ -128,9 +152,12 @@ FrameInput EventHandler::pollEvents() {
         bool shiftHeld = (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0;
         input.cheatLevelUp = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_L);
         input.cheatDie = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_K);
-        input.cheatGiveRanged = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_B);
+        input.cheatGiveRanged = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_W);
         input.cheatInfiniteMana = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_M);
+        input.cheatInfiniteHealth = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_H);
         input.cheatGiveGold = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_G);
+        input.cheatGiveArmors = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_A);
+        input.cheatGivePotions = shiftHeld && justPressedScancodes.count(SDL_SCANCODE_P);
     }
 
     input.attackPressed = attackThisFrame;
@@ -139,6 +166,10 @@ FrameInput EventHandler::pollEvents() {
     input.equipPressed = equipThisFrame;
     input.equipX = equipX;
     input.equipY = equipY;
+    input.consumeKeyPressed = consumeThisFrame;
+    input.grabKeyPressed = grabThisFrame;
+    input.dropKeyPressed = dropThisFrame;
+    input.meditateKeyPressed = meditateThisFrame;
     input.resurrectPressed = resurrectThisFrame;
     input.shootPressed = shootThisFrame;
     input.shootScreenX = shootX;

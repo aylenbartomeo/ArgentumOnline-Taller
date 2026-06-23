@@ -18,4 +18,9 @@ std::optional<uint32_t> pickTargetAt(int col, int row, const SnapshotDTO& snap, 
 
 const EntityDTO* findEntityById(const SnapshotDTO& snap, uint32_t id);
 
+// Busca un NPC en la posición indicada y verifica que se encuentre dentro del rango máximo
+// permitido respecto al jugador.
+std::optional<uint32_t> pickNpcTargetAt(int col, int row, const SnapshotDTO& snap, uint32_t selfId,
+                                        int maxRange);
+
 #endif

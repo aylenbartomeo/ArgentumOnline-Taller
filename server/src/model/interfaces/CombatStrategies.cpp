@@ -6,7 +6,7 @@
 
 #include "Attackable.h"
 
-CombatResult InstantMeleeDelivery::deliver(Player& attacker, Attackable& target,
+CombatResult InstantMeleeDelivery::deliver(Attackable& attacker, Attackable& target,
                                            const CombatModifiers& modifiers, const Weapon& weapon,
                                            CombatSystem& combatSystem) {
     // 1. Validación de rango cuerpo a cuerpo (Fijo a lo pedido: rango de la Weapon, que suele ser 1
@@ -20,14 +20,17 @@ CombatResult InstantMeleeDelivery::deliver(Player& attacker, Attackable& target,
         return CombatResult{false};
     }
 
-    // Como es cuerpo a cuerpo inmediato, el impacto se ejecuta en este mismo frame/tick
-    if (weapon.getHitEffect()) {
-        return weapon.getHitEffect()->apply(attacker, target, modifiers, weapon, combatSystem);
+    Player* playerAttacker = dynamic_cast<Player*>(&attacker);
+    if (playerAttacker) {
+        return weapon.applyEffect(*playerAttacker, target, modifiers, combatSystem);
     }
-    return CombatResult{true};
+
+    CombatResult defaultResult;
+    defaultResult.attackHappened = true;
+    return defaultResult;
 }
 
-CombatResult ProjectileDelivery::deliver(Player& attacker, Attackable& target,
+CombatResult ProjectileDelivery::deliver(Attackable& attacker, Attackable& target,
                                          const CombatModifiers& modifiers, const Weapon& weapon,
                                          CombatSystem& combatSystem) {
     // 1. En armas a distancia, la distancia máxima la da el arma, pero no se resuelve el daño acá.
@@ -35,29 +38,16 @@ CombatResult ProjectileDelivery::deliver(Player& attacker, Attackable& target,
         return CombatResult{false};
     }
 
-    // 2. Validar línea de visión inicial mediante el mapa (mencionado en la guía PDF)
-    // Supongamos que combatSystem expone el acceso al mapa o validación de visión:
-    // if (!combatSystem.hasLineOfSight(attacker, target)) return false;
-
-    // 3. ¡EL COUPLING DE RED Y FÍSICA!
-    // Invocamos al sistema de tu compañero. Él necesitará saber quién dispara,
-    // a quién, y qué EFECTO se ejecutará al impactar.
-    // Pasamos 'weapon.getHitEffect()' para que el proyectil lo arrastre en su viaje.
-
-    // NOTA: Adaptá esta línea a la firma exacta que haya creado tu compañero:
-    // projectileSystem.spawnProjectile(&attacker, &target, weapon.getHitEffect(), modifiers);
-
     CombatResult res;
     res.attackHappened = true;
     res.isPending = true;
     return res;
 }
 
-CombatResult MeleeDamageEffect::apply(Attackable& attacker, Attackable& target,
+CombatResult MeleeDamageEffect::apply(Player& attacker, Attackable& target,
                                       const CombatModifiers& modifiers, const Weapon& weapon,
                                       CombatSystem& combatSystem) {
 
-    // Encapsulamos los parámetros que solían viajar en AttackParams
     AttackParams params{static_cast<uint16_t>(weapon.getMinDamage()),
                         static_cast<uint16_t>(weapon.getMaxDamage()),
                         weapon.getAttackRange(),
@@ -66,27 +56,15 @@ CombatResult MeleeDamageEffect::apply(Attackable& attacker, Attackable& target,
                         modifiers.attackBonus,
                         modifiers.defenseBonus};
 
-    // Reutilizamos el método público aislado que creamos en la Fase 1
     return combatSystem.applyDamageEffect(attacker, target, params);
 }
 
-CombatResult MagicDamageEffect::apply(Attackable& attacker, Attackable& target,
+CombatResult MagicDamageEffect::apply(Player& attacker, Attackable& target,
                                       const CombatModifiers& modifiers, const Weapon& weapon,
                                       CombatSystem& combatSystem) {
 
-    // Tratamos de castear el atacante a Player porque los monstruos no suelen usar el sistema de
-    // maná de ítems Si tu arquitectura permite que los monstruos usen Weapon, esto se puede
-    // abstraer a Attackable.
-    Player* playerAttacker = dynamic_cast<Player*>(&attacker);
-
-    if (playerAttacker) {
-        int manaCost = weapon.getManaCost();
-        if (!playerAttacker->consumeMana(manaCost)) {
-            return CombatResult{false};
-        }
-    }
-
-    // Si pasó el filtro de maná, ejecutamos el daño mágico
+    // El maná ya se consumió en playerShoot() al lanzar el hechizo
+    // Ejecutamos el daño mágico
     AttackParams params{static_cast<uint16_t>(weapon.getMinDamage()),
                         static_cast<uint16_t>(weapon.getMaxDamage()),
                         weapon.getAttackRange(),
@@ -96,4 +74,18 @@ CombatResult MagicDamageEffect::apply(Attackable& attacker, Attackable& target,
                         modifiers.defenseBonus};
 
     return combatSystem.applyDamageEffect(attacker, target, params);
+}
+
+CombatResult MagicHealEffect::apply(Player& attacker, Attackable& target,
+                                    const CombatModifiers& modifiers, const Weapon& weapon,
+                                    CombatSystem& combatSystem) {
+
+    // El maná ya se consumió en playerShoot() al lanzar el hechizo
+
+    Player* playerTarget = dynamic_cast<Player*>(&target);
+    if (!playerTarget) {
+        return CombatResult{false};
+    }
+
+    return combatSystem.applyHealEffect(*playerTarget);
 }

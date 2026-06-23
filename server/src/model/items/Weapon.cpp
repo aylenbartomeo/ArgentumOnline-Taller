@@ -9,13 +9,16 @@
 #include "FormulaEngine.h"
 
 Weapon::Weapon(int id, std::string name, int price, WeaponType type, int minDamage, int maxDamage,
-               int attackRange, int manaCost):
+               int attackRange, int manaCost, std::unique_ptr<IAttackDelivery> delivery,
+               std::unique_ptr<IHitEffect> hitEffect):
         Item(id, std::move(name), price),
         minDamage(minDamage),
         maxDamage(maxDamage),
         type(type),
         attackRange(attackRange),
-        manaCost(manaCost) {
+        manaCost(manaCost),
+        deliveryStrategy(std::move(delivery)),
+        hitEffectStrategy(std::move(hitEffect)) {
 
     // Validate weapon-specific parameters (name is already validated by Item)
     if (minDamage < 0) {
@@ -34,24 +37,7 @@ Weapon::Weapon(int id, std::string name, int price, WeaponType type, int minDama
         throw std::invalid_argument("Weapon mana cost cannot be negative");
     }
 
-    // --- INYECCIÓN AUTOMÁTICA SEGÚN EL TIPO (COMPATIBILIDAD) ---
-    if (type == WeaponType::MELEE) {
-        deliveryStrategy = std::make_unique<InstantMeleeDelivery>();
-        hitEffectStrategy = std::make_unique<MeleeDamageEffect>();
-    } else if (type == WeaponType::MAGIC) {
-        // ¡BASTONES MÁGICOS! Disparan proyectil y consumen maná
-        deliveryStrategy = std::make_unique<ProjectileDelivery>();
-        hitEffectStrategy = std::make_unique<MagicDamageEffect>();
-    } else if (type == WeaponType::RANGED) {
-        // ¡ARCOS! Flechas infinitas (no consumen recurso), generan daño físico mediante proyectil
-        deliveryStrategy = std::make_unique<ProjectileDelivery>();
-        hitEffectStrategy = std::make_unique<MeleeDamageEffect>();
-    }
-    // else if (type == WeaponType::SUPPORT_MAGIC) {
-    //     deliveryStrategy = std::make_unique<ProjectileDelivery>(); // Dispara un rayo/proyectil
-    //     sanador hitEffectStrategy = std::make_unique<MagicHealEffect>();   // Que cura al
-    //     impactar
-    // }
+    // Strategies are now injected by the factory.
 }
 
 int Weapon::getMinDamage() const { return minDamage; }
@@ -69,6 +55,26 @@ bool Weapon::isMagic() const {
         return true;
     }
     return false;
+}
+
+CombatResult Weapon::deliver(Attackable& attacker, Attackable& target,
+                             const CombatModifiers& modifiers, CombatSystem& combatSystem) const {
+    if (!deliveryStrategy) {
+        return CombatResult();
+    }
+    return deliveryStrategy->deliver(attacker, target, modifiers, *this, combatSystem);
+}
+
+CombatResult Weapon::applyEffect(Player& attacker, Attackable& target,
+                                 const CombatModifiers& modifiers,
+                                 CombatSystem& combatSystem) const {
+    if (!hitEffectStrategy) {
+        CombatResult defaultRes;
+        defaultRes.attackHappened = true;
+        return defaultRes;
+    }
+
+    return hitEffectStrategy->apply(attacker, target, modifiers, *this, combatSystem);
 }
 
 Weapon::~Weapon() = default;

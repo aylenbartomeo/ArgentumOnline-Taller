@@ -16,6 +16,7 @@ public:
     ~TextureManager() = default;
 
     SDL2pp::Texture& get(const std::string& path);
+    SDL2pp::Texture* tryGet(const std::string& path);
 
     TextureManager(const TextureManager&) = delete;
     TextureManager& operator=(const TextureManager&) = delete;

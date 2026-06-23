@@ -1,13 +1,16 @@
 #include "Merchant.h"
 
+#include <algorithm>
+#include <sstream>
+#include <utility>
+
+#include "../handlers/ListStockHandler.h"
 #include "../handlers/TradeHandler.h"
 #include "model/entities/Player.h"
 
-Merchant::Merchant(uint32_t id, Position pos, const ItemRegistry& registry):
-        id(id), pos(pos), stock() {
-    // El comerciante abre con sus artículos locales
-    stock[2000u] = 5;  // 5 Espadas
-    stock[1000u] = 3;  // 3 Armaduras de cuero
+Merchant::Merchant(uint32_t id, Position pos, const ItemRegistry& registry,
+                   std::unordered_map<uint32_t, int> initialStock):
+        id(id), pos(pos), stock(std::move(initialStock)) {
 
     auto merchantFilter = [](const Item* item) {
         return !item->isMagic();  // Si es Weapon MAGIC, retorna false
@@ -17,6 +20,8 @@ Merchant::Merchant(uint32_t id, Position pos, const ItemRegistry& registry):
             std::make_unique<TradeHandler>(registry, stock, true, merchantFilter);
     commandHandlers[NpcCommandType::SELL] =
             std::make_unique<TradeHandler>(registry, stock, true, merchantFilter);
+    commandHandlers[NpcCommandType::LIST] =
+            std::make_unique<ListStockHandler>(registry, stock, true, merchantFilter);
 }
 
 InteractionResult Merchant::beInteractedBy(Player& player) {
@@ -26,8 +31,10 @@ InteractionResult Merchant::beInteractedBy(Player& player) {
                      "ayuda al sacerdote";
     } else {
         player.onActionStarted();
-        result.msg = "[MERCHANT] Saludos, viajero. ¿Lo puedo ayudar con algo?";
+        result.msg = "[MERCHANT] ¡Bienvenido a mi humilde tienda! Si tienes oro, tengo maravillas "
+                     "para ofrecerte. ¿Qué buscas hoy?";
     }
+    result.status = InteractionStatus::SUCCESS;
     return result;
 }
 

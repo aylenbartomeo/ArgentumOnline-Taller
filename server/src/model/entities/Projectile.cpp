@@ -4,7 +4,7 @@
 
 Projectile::Projectile(uint32_t id, uint32_t owner, float sx, float sy, float tx, float ty,
                        float speedTPS, float maxRng, uint16_t sprite, int minDmg, int maxDmg,
-                       bool magical, ProjectileType pType):
+                       bool magical, ProjectileType pType, IHitEffect* hitEffect):
         id(id),
         ownerDbId(owner),
         x(sx),
@@ -15,7 +15,8 @@ Projectile::Projectile(uint32_t id, uint32_t owner, float sx, float sy, float tx
         minDamage(minDmg),
         maxDamage(maxDmg),
         isMagical(magical),
-        type(pType) {
+        type(pType),
+        capturedHitEffect(hitEffect) {
     float dx = tx - sx, dy = ty - sy;
     float len = std::sqrt(dx * dx + dy * dy);
     if (len < 0.001f)

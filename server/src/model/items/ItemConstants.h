@@ -18,8 +18,6 @@ static constexpr uint16_t SPRITE_ARROW = 200;
 static constexpr uint16_t SPRITE_MAGIC_ARROW = 201;
 static constexpr uint16_t SPRITE_MISSILE = 202;
 static constexpr uint16_t SPRITE_EXPLOSION = 203;
-
-// Curación de flauta élfica (HP fijo por hechizo):
-static constexpr uint16_t FLAUTA_HEAL_AMOUNT = 50;
+static constexpr uint16_t SPRITE_HEAL_PROJECTILE = 204;
 
 #endif  // SERVER_SRC_MODEL_ITEMS_ITEMCONSTANTS_H

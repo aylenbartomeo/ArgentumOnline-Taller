@@ -20,6 +20,12 @@ private:
     int tilesetCols;
     std::string tileset;
     std::vector<std::vector<int>> tiles;
+    std::vector<std::vector<int>> terrain;
+    std::vector<std::vector<int>> ground;
+    std::vector<std::vector<int>> ground2;
+    std::vector<std::vector<int>> decoration;
+    std::vector<std::vector<int>> roofs;
+    std::vector<std::vector<int>> indoor;
     std::vector<SafeZoneRect> safeZones;
     std::vector<MapCitizen> citizens;
 
@@ -35,6 +41,13 @@ public:
     const std::vector<MapCitizen>& getCitizens() const;
 
     int tileAt(int col, int row) const;
+    int terrainAt(int col, int row) const;
+
+    const std::vector<std::vector<int>>& getGround() const;
+    const std::vector<std::vector<int>>& getGround2() const;
+    const std::vector<std::vector<int>>& getDecoration() const;
+    const std::vector<std::vector<int>>& getRoofs() const;
+    const std::vector<std::vector<int>>& getIndoor() const;
 };
 
 #endif

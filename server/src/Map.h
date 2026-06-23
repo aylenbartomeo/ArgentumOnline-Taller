@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 
+#include "model/map/BossZone.h"
 #include "model/map/CollisionLayer.h"
 #include "model/map/GroundItemLayer.h"
 #include "model/map/NPCLayer.h"
@@ -28,6 +29,11 @@ struct MapElement {
     MapElementType type;
 };
 
+struct MapZoneRect {
+    ZoneType type;
+    int x, y, width, height;
+};
+
 struct MapMonsterSpawn {
     NPCType type;
     Position pos;
@@ -41,11 +47,13 @@ private:
     std::vector<MapElement> mapElements;
     GroundItemLayer groundItems;
     SafeZoneLayer safeZones;
+    NPCType lastNpcType;  // dummy ? No
     NPCLayer npcs;
+    std::vector<MapZoneRect> zoneRects;
     std::vector<MapMonsterSpawn> monsterSpawns;
+    std::vector<BossZoneConfig> bossZones;
     std::pair<float, float> spawn_point;
-    // Area initArea(const int x, const int y, const int weight, const int height);
-    // void load_from_toml(const std::string& filepath);
+
     //  Inicializa la matriz de colisiones en base a los mapElements cargados
     void generate_collision_grid();
     void loadFromToml(const std::string& filepath);
@@ -97,6 +105,8 @@ public:
 
     /* Monstruos cargados desde el mapa */
     const std::vector<MapMonsterSpawn>& getMonsterSpawns() const;
+    const std::vector<BossZoneConfig>& getBossZones() const { return bossZones; }
+    const std::vector<MapZoneRect>& getZoneRects() const { return zoneRects; }
 
     /* Expone los elementos para que el GameLoop arme los snapshots compartidos */
     const std::vector<MapElement>& getElements() const;

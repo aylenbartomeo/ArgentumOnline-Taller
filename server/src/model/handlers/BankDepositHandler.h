@@ -9,6 +9,8 @@
 
 #include "NpcCommandHandler.h"
 
+#define ONE 1
+
 class BankDepositHandler: public NpcCommandHandler {
 private:
     GlobalBank& bankInstance;
@@ -64,23 +66,17 @@ public:
             return result;
         }
 
-        // Usamos 'subComando' para asegurarnos de parsear solo el token numérico aislado
-        uint32_t itemId = 0;
-        try {
-            itemId = std::stoul(subComando);
-        } catch (...) {
+        // Usamos la frase completa a partir del primer argumento
+        // Si no es "oro", asumimos que todo el arg es el nombre del item
+        const Item* itemDef = registry.getItemByName(dto.arg);
+        if (!itemDef) {
             result.status = InteractionStatus::FAILURE;
-            result.msg = "Argumento inválido. Uso: /depositar oro <cant> o /depositar <itemId>";
+            result.msg = "No se encontró ningún artículo con ese nombre. Uso: /depositar oro "
+                         "<cant> o /depositar <nombreItem>";
             return result;
         }
 
-        // Validamos contra el registro que el ítem realmente exista
-        const Item* itemDef = registry.get_item(itemId);
-        if (!itemDef) {
-            result.status = InteractionStatus::FAILURE;
-            result.msg = "El artículo especificado no existe en el registro.";
-            return result;
-        }
+        uint32_t itemId = itemDef->getId();
 
         // Buscamos si el jugador efectivamente posee el ítem en su inventario
         int playerSlot = -1;
@@ -98,16 +94,14 @@ public:
             return result;
         }
 
-        // Intentamos depositarlo en la bóveda del banco (aquí se usa el find_if que refactorizamos
-        // antes)
-        if (!bankInstance.depositItem(playerId, itemId, 1)) {
+        if (!bankInstance.depositItem(playerId, itemId, ONE)) {
             result.status = InteractionStatus::FAILURE;
             result.msg = "Tu bovéda bancaria está llena. No hay espacio para más artículos.";
             return result;
         }
 
         // Si el banco lo aceptó con éxito, lo removemos de la mochila del jugador
-        player.removeItem(static_cast<uint8_t>(playerSlot), 1);
+        player.removeItem(static_cast<uint8_t>(playerSlot), ONE);
         result.status = InteractionStatus::SUCCESS;
         result.msg = "Depósito exitoso: Protegiste 1 " + itemDef->getName() + " en tu bovéda.";
         return result;

@@ -15,12 +15,12 @@ TEST(SpawnCatalogsTest, MonsterCatalogReferencesExpectedSheets) {
                                [&type](const auto& entry) { return entry.type == type; });
         return it != catalog.end() ? it->sheet : std::string("");
     };
-    EXPECT_EQ(find("goblin"), "4015.png");
-    EXPECT_EQ(find("orc"), "4017.png");
-    EXPECT_EQ(find("zombie"), "4044.png");
-    EXPECT_EQ(find("spider"), "4151.png");
-    EXPECT_EQ(find("golem"), "4091.png");
-    EXPECT_EQ(find("skeleton"), "4079.png");
+    EXPECT_EQ(find("goblin"), "characters/monsters/goblin1.png");
+    EXPECT_EQ(find("orc"), "characters/monsters/orco1.png");
+    EXPECT_EQ(find("zombie"), "characters/monsters/zombie1.png");
+    EXPECT_EQ(find("spider"), "characters/monsters/spider1.png");
+    EXPECT_EQ(find("golem"), "characters/monsters/golem1.png");
+    EXPECT_EQ(find("skeleton"), "characters/monsters/skeleton1.png");
 }
 
 TEST(SpawnCatalogsTest, CitizenCatalogHasMerchantBankerPriest) {
@@ -31,7 +31,27 @@ TEST(SpawnCatalogsTest, CitizenCatalogHasMerchantBankerPriest) {
                                [&type](const auto& entry) { return entry.type == type; });
         return it != catalog.end() ? it->sheet : std::string("");
     };
-    EXPECT_EQ(find("merchant"), "1077.png");
-    EXPECT_EQ(find("banker"), "1071.png");
-    EXPECT_EQ(find("priest"), "1910.png");
+    EXPECT_EQ(find("merchant"), "characters/npc-merchant.png");
+    EXPECT_EQ(find("banker"), "characters/npc-banker.png");
+    EXPECT_EQ(find("priest"), "characters/npc-priest.png");
+}
+
+TEST(SpawnCatalogsTest, MonsterEntryForKnownTypeReturnsIt) {
+    const MonsterCatalogEntry* entry = monsterEntryFor("goblin");
+    ASSERT_NE(entry, nullptr);
+    EXPECT_EQ(entry->type, "goblin");
+}
+
+TEST(SpawnCatalogsTest, MonsterEntryForUnknownTypeReturnsNull) {
+    EXPECT_EQ(monsterEntryFor("no-existe"), nullptr);
+}
+
+TEST(SpawnCatalogsTest, CitizenEntryForKnownTypeReturnsIt) {
+    const CitizenCatalogEntry* entry = citizenEntryFor("priest");
+    ASSERT_NE(entry, nullptr);
+    EXPECT_EQ(entry->type, "priest");
+}
+
+TEST(SpawnCatalogsTest, CitizenEntryForUnknownTypeReturnsNull) {
+    EXPECT_EQ(citizenEntryFor("no-existe"), nullptr);
 }

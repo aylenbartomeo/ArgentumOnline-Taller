@@ -4,6 +4,6 @@
 
 [inventory]
 max_slots = 20
-gold = 0
+gold = 50
 max_gold = 10000
 initial_safe_gold = 5000

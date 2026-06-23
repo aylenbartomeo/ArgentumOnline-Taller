@@ -8,6 +8,12 @@ target_sources(lib_common
     src/RandomNumberGenerator.cpp
     src/protocol/Protocol.cpp
     src/OverlayRegistry.cpp
+    src/CityPrefab.cpp
+    src/DungeonPrefab.cpp
+    src/ForestPrefab.cpp
+    src/DesertPrefab.cpp
+    src/BeachPrefab.cpp
+    src/loop/ConstantRateLoop.cpp
     PUBLIC
     # .h files
     src/socket/socket.h
@@ -18,7 +24,13 @@ target_sources(lib_common
     include/queue.h
     include/thread.h
     include/OverlayRegistry.h
+    include/CityPrefab.h
+    include/DungeonPrefab.h
+    include/ForestPrefab.h
+    include/DesertPrefab.h
+    include/BeachPrefab.h
     include/SafeZoneRect.h
+    include/loop/ConstantRateLoop.h
     src/protocol/Protocol.h
     utils/position.h
     utils/types.h
