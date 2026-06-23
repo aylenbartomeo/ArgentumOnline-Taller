@@ -259,9 +259,9 @@ Cerrar la ventana (×) o presionar `Esc` abre un diálogo de confirmación: **Ac
 Dentro de la carpeta `documents/` se encuentran los 3 manuales del juego y el enunciado del mismo.
 
 - [Enunciado Argentum Online](documents/enunciado.pdf).
-- 'Manual de Usuario'.
-- 'Informe Técnico'.
-- 'Informe del Proyecto'.
+- [Manual de Usuario](documents/ManualDeUsuario.pdf).
+- [Informe Técnico](documents/InformeTecnico.pdf).
+- [Manual de Proyecto](documents/ManualDeProyecto.pdf).
 
 ## Créditos
 Se han usado las siguiente bibliotecas desarrolladas por [Di Paola, Martin](https://www.github.com/eldipa):
