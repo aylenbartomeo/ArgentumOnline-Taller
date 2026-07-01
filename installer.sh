@@ -115,7 +115,7 @@ log_info "--- Paso 2/5: Compilando el proyecto ---"
 mkdir -p auth_data users_data worlds
 mkdir -p "${BUILD_DIR}"
 
-cmake -S . -B "./${BUILD_DIR}" -DCMAKE_BUILD_TYPE=Debug
+cmake -S . -B "./${BUILD_DIR}" -DCMAKE_BUILD_TYPE=Release
 cmake --build "${BUILD_DIR}" --parallel "${JOBS}"
 
 # Symlinks para que los binarios encuentren sus recursos al ejecutarse desde build/
